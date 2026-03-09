@@ -79,7 +79,7 @@ export default function LibraryPage() {
           <h1 className="font-heading text-2xl font-extrabold text-text-primary flex items-center gap-2.5">
             <Books size={24} weight="fill" className="text-teal" /> Library
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="text-[13px] text-text-secondary mt-1">
             Your reusable activities, aligned to standards. Create once, assign anytime.
           </p>
         </div>
@@ -101,15 +101,15 @@ export default function LibraryPage() {
             placeholder="Search activities or standards..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
-              bg-surface text-text-primary font-heading outline-none focus:border-teal"
+            className="w-full pl-9 pr-3.5 py-[9px] border-[1.5px] border-border rounded-lg text-[13px]
+              bg-card-bg text-text-primary font-heading outline-none focus:border-teal"
           />
         </div>
         {statusPills.map((p) => (
           <button
             key={p.key}
             onClick={() => setStatusFilter(p.key)}
-            className={`px-3.5 py-1.5 border-[1.5px] rounded-full text-xs font-semibold font-heading
+            className={`px-3.5 py-[7px] border-[1.5px] rounded-full text-xs font-semibold font-heading
               cursor-pointer transition-all ${
                 statusFilter === p.key
                   ? 'bg-teal text-white border-teal'
@@ -138,7 +138,7 @@ export default function LibraryPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
           {filtered.map((a) => (
             <ActivityCard
               key={a.id}
@@ -163,7 +163,7 @@ export default function LibraryPage() {
             <h2 className="font-heading font-bold text-lg text-text-primary flex items-center gap-2 mb-1">
               <ShareFat size={20} weight="fill" className="text-teal" /> Assign Activity
             </h2>
-            <p className="text-sm text-text-secondary mb-4">
+            <p className="text-[13px] text-text-secondary mb-4">
               Select the classes that should receive{' '}
               <span className="font-bold text-teal">{assignModal.title}</span>
             </p>
@@ -175,7 +175,7 @@ export default function LibraryPage() {
                   key={c.name}
                   onClick={() => toggleClass(c.name)}
                   className={`flex items-center gap-3 p-3 border-[1.5px] rounded-lg mb-2 cursor-pointer transition-all
-                    ${checked ? 'border-teal bg-teal/4' : 'border-border bg-surface hover:border-teal'}`}
+                    ${checked ? 'border-teal bg-teal/[0.04]' : 'border-border bg-card-bg hover:border-teal'}`}
                 >
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all
                     ${checked ? 'bg-teal border-teal' : 'border-border'}`}>
@@ -183,7 +183,7 @@ export default function LibraryPage() {
                   </div>
                   <ClassIcon name={c.name} size={32} />
                   <div className="flex-1">
-                    <div className="font-semibold text-sm text-text-primary">{c.name}</div>
+                    <div className="font-semibold text-[13px] text-text-primary">{c.name}</div>
                     <div className="text-[11px] text-text-secondary">{c.students} students</div>
                   </div>
                 </div>
@@ -191,27 +191,27 @@ export default function LibraryPage() {
             })}
 
             <div className="flex items-center gap-2.5 mt-3.5">
-              <label className="font-semibold text-sm text-text-primary flex items-center gap-1.5 whitespace-nowrap">
+              <label className="font-semibold text-[13px] text-text-primary flex items-center gap-1.5 whitespace-nowrap">
                 <CalendarBlank size={16} weight="fill" className="text-teal" /> Due Date
               </label>
               <input
                 type="date"
-                className="flex-1 px-3 py-2 border-[1.5px] border-border rounded-lg text-sm
-                  bg-surface text-text-primary font-heading outline-none focus:border-teal"
+                className="flex-1 px-3 py-2 border-[1.5px] border-border rounded-lg text-[13px]
+                  bg-card-bg text-text-primary font-heading outline-none focus:border-teal"
               />
             </div>
 
             <div className="flex gap-2.5 mt-5 justify-end">
               <button
                 onClick={() => setAssignModal(null)}
-                className="px-5 py-2.5 border-[1.5px] border-border rounded-lg text-sm font-semibold
+                className="px-5 py-2.5 border-[1.5px] border-border rounded-lg text-[13px] font-semibold
                   text-text-primary hover:border-teal hover:text-teal transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmAssign}
-                className="px-5 py-2.5 bg-teal text-white rounded-lg text-sm font-bold
+                className="px-5 py-2.5 bg-teal text-white rounded-lg text-[13px] font-bold
                   flex items-center gap-1.5 hover:bg-teal/85 transition-colors cursor-pointer"
               >
                 <PaperPlaneTilt size={16} weight="fill" /> Assign

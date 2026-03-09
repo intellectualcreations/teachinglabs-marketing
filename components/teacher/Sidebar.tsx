@@ -59,13 +59,10 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="px-5 py-5 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-teal flex items-center justify-center text-white font-bold text-sm">
-              TL
+            <div className="w-9 h-9 rounded-[10px] bg-[#1F3A5F] flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="none" width={22} height={22}><rect x="4" y="4" width="16" height="4" rx="1" fill="white"/><rect x="9" y="8" width="6" height="13" rx="1" fill="white"/></svg>
             </div>
-            <div>
-              <div className="text-white font-heading font-bold text-sm">TeachingLabs</div>
-              <div className="text-white/50 text-xs">Lincoln Elementary</div>
-            </div>
+            <div className="text-white font-heading font-bold text-sm">TeachingLabs</div>
           </div>
         </div>
 
@@ -82,8 +79,8 @@ export default function Sidebar() {
                 className={`
                   flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors
                   ${isActive
-                    ? 'text-teal bg-white/8'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                    ? 'bg-white/[0.12] text-white'
+                    : 'text-white/70 hover:text-white hover:bg-white/[0.08]'
                   }
                 `}
               >
@@ -106,13 +103,12 @@ export default function Sidebar() {
           </Link>
 
           <div className="flex items-center gap-3 px-2 py-2 mt-1">
-            <div className="w-8 h-8 rounded-full bg-teal text-white flex items-center justify-center
+            <div className="w-8 h-8 rounded-full bg-[#1F3A5F] text-white flex items-center justify-center
               font-heading font-bold text-xs shrink-0">
               MH
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-white text-xs font-semibold truncate">Ms. Harper</div>
-              <div className="text-white/40 text-[10px]">5th Grade</div>
             </div>
             <ThemeToggle className="border-white/20 text-white/60 hover:text-white hover:border-white/40" />
           </div>

@@ -3,9 +3,8 @@
 import { useState, useMemo } from 'react';
 import {
   ChartBar, Funnel, MagnifyingGlass, WarningCircle,
-  ClipboardText, Fire, ChatText, CaretRight,
+  ClipboardText, Fire, ChatText,
 } from '@phosphor-icons/react';
-import ClassIcon from '@/components/shared/ClassIcon';
 import BarChart from '@/components/shared/BarChart';
 import {
   getDemoStudents, DEMO_CLASSES, ACTIVITY_HOURS, ACTIVITY_VALUES,
@@ -56,8 +55,8 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Header — mb matches HTML .dash-topbar margin-bottom: 32px */}
+      <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-heading text-2xl font-extrabold text-text-primary">
             Hi Ms. Harper 👋
@@ -73,14 +72,16 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Overview Row */}
+      {/* Overview Row — gap:20px, mb:24px, grid 1fr 1.4fr */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-5 mb-6">
-        {/* Class Overview */}
-        <div className="bg-card-bg border border-border rounded-[14px] p-6">
-          <h2 className="font-heading text-xs font-bold uppercase tracking-wide text-text-secondary mb-4 flex items-center gap-2">
+        {/* Class Overview card — border-radius: 20px (HTML --radius-lg from shared.css) */}
+        <div className="bg-card-bg border border-border rounded-[20px] p-6">
+          {/* Overview title: 13px, 700, uppercase, letter-spacing 0.5px */}
+          <h2 className="font-heading text-[13px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-4 flex items-center gap-2">
             <ChartBar size={16} weight="fill" className="text-teal" />
             Class Overview
           </h2>
+          {/* stat-grid: 2-col, gap 12px */}
           <div className="grid grid-cols-2 gap-3">
             <StatBox value={students.length} label="Students Enrolled" />
             <StatBox value={activeThisWeek} label="Active This Week">
@@ -97,13 +98,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Activity */}
-        <div className="bg-card-bg border border-border rounded-[14px] p-6">
-          <h2 className="font-heading text-xs font-bold uppercase tracking-wide text-text-secondary mb-4 flex items-center gap-2">
+        {/* Activity card — border-radius: 20px */}
+        <div className="bg-card-bg border border-border rounded-[20px] p-6">
+          <h2 className="font-heading text-[13px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-4 flex items-center gap-2">
             <Fire size={16} weight="fill" className="text-coral" />
             Activity
           </h2>
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          {/* activity-stats: 2-col, gap 12px, mb 18px */}
+          <div className="grid grid-cols-2 gap-3 mb-[18px]">
             <StatBox value={totalInteractions} label="Total Interactions">
               <span className="text-xs font-semibold text-success">↑ 23%</span>
             </StatBox>
@@ -111,17 +113,21 @@ export default function DashboardPage() {
               <span className="text-xs font-semibold text-success">↑ 18%</span>
             </StatBox>
           </div>
-          <div className="text-xs text-text-secondary mb-2">Activity by hour (today)</div>
-          <BarChart labels={ACTIVITY_HOURS} values={ACTIVITY_VALUES} />
+          {/* chart-area: padding 4px 0 */}
+          <div className="py-1">
+            {/* chart-label: 12px, color gray, mb 10px */}
+            <div className="text-xs text-text-secondary mb-[10px]">Activity by hour (today)</div>
+            <BarChart labels={ACTIVITY_HOURS} values={ACTIVITY_VALUES} />
+          </div>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters row — gap 12px, mb 20px */}
       <div className="flex items-center gap-3 mb-5 flex-wrap">
         <select
           value={classFilter}
           onChange={(e) => setClassFilter(e.target.value)}
-          className="px-3.5 py-2 border-[1.5px] border-border rounded-lg text-sm font-heading font-medium
+          className="px-3.5 py-2 border-[1.5px] border-border rounded-lg text-[13px] font-heading font-medium
             bg-surface text-text-primary cursor-pointer focus:border-navy outline-none"
         >
           <option value="all">All Classes</option>
@@ -132,26 +138,26 @@ export default function DashboardPage() {
 
         <input
           type="date"
-          className="px-3 py-2 border-[1.5px] border-border rounded-lg text-sm font-heading
+          className="px-3 py-2 border-[1.5px] border-border rounded-lg text-[13px] font-heading
             bg-surface text-text-primary outline-none focus:border-navy"
         />
-        <span className="text-text-secondary text-sm">to</span>
+        <span className="text-text-secondary text-[13px]">to</span>
         <input
           type="date"
-          className="px-3 py-2 border-[1.5px] border-border rounded-lg text-sm font-heading
+          className="px-3 py-2 border-[1.5px] border-border rounded-lg text-[13px] font-heading
             bg-surface text-text-primary outline-none focus:border-navy"
         />
 
         <button
           onClick={() => setShowCount(12)}
-          className="px-4 py-2 bg-navy text-white rounded-lg text-sm font-heading font-semibold
+          className="px-4 py-2 bg-navy text-white rounded-lg text-[13px] font-heading font-semibold
             flex items-center gap-1.5 hover:opacity-85 transition-opacity cursor-pointer"
         >
           <Funnel size={14} weight="fill" /> Apply Filters
         </button>
       </div>
 
-      {/* Status Pills + Search */}
+      {/* Status Pills + Search — mb 16px */}
       <div className="flex items-center gap-3 flex-wrap mb-4">
         <div className="flex items-center gap-2 flex-wrap">
           {(['all', 'attention', 'on-track', 'excelling'] as StatusFilter[]).map((f) => {
@@ -173,7 +179,7 @@ export default function DashboardPage() {
               <button
                 key={f}
                 onClick={() => { setStatusFilter(f); setShowCount(12); }}
-                className={`px-4 py-1.5 rounded-full border-[1.5px] text-sm font-semibold font-heading
+                className={`px-4 py-[7px] rounded-full border-[1.5px] text-[13px] font-semibold font-heading
                   transition-all cursor-pointer ${
                     isActive
                       ? `${activeColors[f]} text-white`
@@ -186,27 +192,28 @@ export default function DashboardPage() {
           })}
         </div>
 
+        {/* Search — width 220px, pl 36px to accommodate icon */}
         <div className="relative ml-auto">
-          <MagnifyingGlass size={16} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary" />
+          <MagnifyingGlass size={16} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-text-secondary" />
           <input
             type="text"
             placeholder="Search student..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setShowCount(12); }}
-            className="pl-8 pr-3 py-2 border-[1.5px] border-border rounded-lg text-sm
-              bg-surface text-text-primary outline-none w-52 focus:border-navy"
+            className="pl-9 pr-3.5 py-2 border-[1.5px] border-border rounded-lg text-[13px]
+              bg-surface text-text-primary outline-none w-[220px] focus:border-navy"
           />
         </div>
       </div>
 
-      {/* Student Grid */}
+      {/* Student Grid — 3 cols, gap 16px */}
       {filtered.length === 0 ? (
         <div className="text-center py-10 text-text-secondary">
           No students match your filters.
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
             {showing.map((s) => (
               <StudentCard key={s.id} student={s} />
             ))}
@@ -214,11 +221,10 @@ export default function DashboardPage() {
           {filtered.length > showCount && (
             <button
               onClick={() => setShowCount((c) => c + 12)}
-              className="block max-w-xs mx-auto mt-7 px-6 py-3 rounded-lg bg-navy text-white
-                font-heading font-bold text-sm hover:bg-navy/90 transition-colors cursor-pointer"
+              className="block max-w-xs mx-auto mt-7 px-6 py-3 rounded-[10px] bg-navy text-white
+                font-heading font-bold text-sm hover:bg-[#162D48] transition-colors cursor-pointer"
             >
-              <CaretRight size={14} weight="fill" className="inline mr-1" />
-              Load More Students ({filtered.length} total)
+              ▶ Load More Students ({filtered.length} total)
             </button>
           )}
         </>
@@ -227,8 +233,9 @@ export default function DashboardPage() {
   );
 }
 
-// Sub-components
-
+// ── StatBox ──
+// HTML: bg-white (var(--white)), border-radius:10px, padding:14px 16px
+// stat-value: 26px 800, stat-label: 12px color gray mt:2px, stat-change: mt:4px
 function StatBox({
   value,
   label,
@@ -239,14 +246,16 @@ function StatBox({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="bg-surface rounded-lg p-3.5">
-      <div className="font-heading text-2xl font-extrabold text-text-primary">{value}</div>
+    <div className="bg-surface rounded-[10px] py-3.5 px-4">
+      <div className="font-heading text-[26px] font-extrabold text-text-primary leading-tight">{value}</div>
       <div className="text-xs text-text-secondary mt-0.5">{label}</div>
       {children && <div className="mt-1">{children}</div>}
     </div>
   );
 }
 
+// ── StudentCard ──
+// HTML: bg:card-bg, border, border-radius:20px (--radius-lg), padding:20px
 function StudentCard({ student: s }: { student: DemoStudent }) {
   const initials = s.first[0] + s.last[0];
   const statusStyles: Record<string, string> = {
@@ -265,16 +274,16 @@ function StudentCard({ student: s }: { student: DemoStudent }) {
 
   return (
     <div
-      className="bg-card-bg border border-border rounded-[14px] p-5 cursor-pointer
+      className="bg-card-bg border border-border rounded-[20px] p-5 cursor-pointer
         transition-all hover:shadow-md hover:-translate-y-0.5 relative"
       onClick={() => window.location.href = '/teacher/students/student-detail'}
     >
-      {/* Status pill */}
+      {/* Status pill — absolute top:16px right:16px */}
       <span className={`absolute top-4 right-4 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${statusStyles[s.status]}`}>
         {statusIcons[s.status]}{STATUS_LABELS[s.status]}
       </span>
 
-      {/* Header */}
+      {/* Header — gap:12px, mb:14px */}
       <div className="flex items-center gap-3 mb-3.5">
         <div
           className="w-10 h-10 rounded-full flex items-center justify-center font-heading font-bold text-sm text-white shrink-0"
@@ -283,45 +292,53 @@ function StudentCard({ student: s }: { student: DemoStudent }) {
           {initials}
         </div>
         <div>
+          {/* sc-name: 14px 700 */}
           <div className="font-heading font-bold text-sm text-text-primary">
             {s.last}, {s.first}
           </div>
+          {/* sc-meta: 12px gray mt:1px */}
           <div className="text-xs text-text-secondary mt-px">
             {classLabel} · Grade {s.grade}
           </div>
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — sc-stats: grid 2-col gap:10px */}
+      {/* HTML has 3 items in 2-col grid — Last Session falls naturally in col 1 of row 2 */}
       <div className="grid grid-cols-2 gap-2.5">
         <div>
+          {/* sc-stat-label: 11px gray */}
           <div className="text-[11px] text-text-secondary flex items-center gap-1">
             <ClipboardText size={12} weight="fill" /> Activities
           </div>
-          <div className="text-sm font-semibold text-text-primary">{s.activitiesComplete} complete</div>
+          {/* sc-stat-value: 13px 600 */}
+          <div className="text-[13px] font-semibold text-text-primary">{s.activitiesComplete} complete</div>
         </div>
         <div>
           <div className="text-[11px] text-text-secondary flex items-center gap-1">
             <Fire size={12} weight="fill" /> Streak
           </div>
-          <div className="text-sm font-semibold text-text-primary">{s.streak} days</div>
+          <div className="text-[13px] font-semibold text-text-primary">{s.streak} days</div>
         </div>
-        <div className="col-span-2">
+        {/* Last Session — 3rd item, occupies col 1 of row 2 (not col-span-2) */}
+        <div>
           <div className="text-[11px] text-text-secondary flex items-center gap-1">
             <ChatText size={12} weight="fill" /> Last Session
           </div>
-          <div className={`text-sm font-semibold ${isRecent ? 'text-warning font-bold' : 'text-text-primary'}`}>
+          <div className={`text-[13px] font-semibold ${isRecent ? 'text-warning font-bold' : 'text-text-primary'}`}>
             {s.lastSession}{isStale ? ' ⚠' : ''}
           </div>
         </div>
       </div>
 
-      {/* Concern */}
+      {/* Concern — HTML: mt:12px, padding:10px 12px, bg rgba(245,158,11,0.06), border rgba(245,158,11,0.15), radius:8px */}
       {s.concern && (
-        <div className="mt-3 p-2.5 bg-warning/5 border border-warning/15 rounded-lg">
-          <div className="text-[11px] font-bold text-warning uppercase flex items-center gap-1 mb-0.5">
+        <div className="mt-3 py-[10px] px-3 bg-warning/[0.06] border border-warning/[0.15] rounded-lg">
+          {/* concern-title: 11px 700 uppercase text-warning mb:3px */}
+          <div className="text-[11px] font-bold text-warning uppercase flex items-center gap-1 mb-[3px]">
             <WarningCircle size={12} weight="fill" /> Concern
           </div>
+          {/* concern-text: 12px color:#92400E leading:1.5 */}
           <div className="text-xs text-[#92400E] dark:text-warning/80 leading-relaxed">{s.concern}</div>
         </div>
       )}

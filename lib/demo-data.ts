@@ -1,11 +1,11 @@
 // Demo data matching the HTML prototype
 
 export const DEMO_CLASSES = [
-  { id: 'cls-1', name: '5th Grade Math', subject: 'Math', studentCount: 28, code: 'MATH-5A' },
-  { id: 'cls-2', name: '4th Grade Math', subject: 'Math', studentCount: 26, code: 'MATH-4A' },
-  { id: 'cls-3', name: '5th Grade Science', subject: 'Science', studentCount: 27, code: 'SCI-5A' },
-  { id: 'cls-4', name: '4th Grade Reading', subject: 'ELA', studentCount: 24, code: 'READ-4A' },
-  { id: 'cls-5', name: 'Reading Intervention', subject: 'ELA', studentCount: 12, code: 'READ-INT' },
+  { id: 'cls-1', name: '5th Grade Math', subject: 'Math', grade: '5', studentCount: 52, code: 'MATH-5A' },
+  { id: 'cls-2', name: '4th Grade Math', subject: 'Math', grade: '4', studentCount: 48, code: 'MATH-4A' },
+  { id: 'cls-3', name: '5th Grade Science', subject: 'Science', grade: '5', studentCount: 28, code: 'SCI-5A' },
+  { id: 'cls-4', name: '4th Grade Reading', subject: 'ELA', grade: '4', studentCount: 20, code: 'READ-4A' },
+  { id: 'cls-5', name: 'Reading Intervention', subject: 'ELA', grade: '4-5', studentCount: 7, code: 'READ-INT' },
 ];
 
 export const AVATAR_COLORS = [
