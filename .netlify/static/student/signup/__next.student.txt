@@ -1,4 +1,0 @@
-1:"$Sreact.fragment"
-2:I[94817,["/_next/static/chunks/fa11ab0629b1103d.js","/_next/static/chunks/86a4e3c80ea84c29.js"],"default"]
-3:I[20065,["/_next/static/chunks/fa11ab0629b1103d.js","/_next/static/chunks/86a4e3c80ea84c29.js"],"default"]
-0:{"buildId":"jD2dgyQnXCg42IxM4FjFV","rsc":["$","$1","c",{"children":[null,["$","div",null,{"className":"min-h-screen bg-warm-white","children":["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]}]]}],"loading":null,"isPartial":false}
