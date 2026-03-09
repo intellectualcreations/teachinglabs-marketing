@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Brand Colors */
+  --color-navy: #1F3A5F;
+  --color-teal: #4FA3A5;
+  --color-coral: #E8836B;
+
+  /* Semantic */
+  --color-card-bg: #F0F4F8;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+
+  /* Status */
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-info: #0891B2;
+  --color-purple: #7C3AED;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+
+  /* Fonts */
+  --font-heading: var(--font-inter);
+  --font-body: var(--font-open-sans);
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-card-bg: #1A2332;
+  --color-surface: #1A2332;
+  --color-border: #2D3748;
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body), 'Open Sans', sans-serif;
+  color: var(--color-text-primary);
+}
+
+/* Light mode background */
+body {
+  background: #FFFFFF;
+}
+
+.dark body {
+  background: #0F1419;
+}
+
+/* Headings use Inter */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), 'Inter', sans-serif;
+}
+
+/* Smooth transitions for theme switching */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* Override transition for elements that shouldn't animate */
+.no-transition,
+.no-transition * {
+  transition: none !important;
+}
