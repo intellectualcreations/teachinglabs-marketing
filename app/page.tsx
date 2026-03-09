@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import MobileMenu from './_components/MobileMenu';
 import ThemeToggle from '@/components/shared/ThemeToggle';
@@ -129,7 +130,7 @@ function Card({
   floatClass: string;
 }) {
   return (
-    <div className="card-accent relative bg-white rounded-[20px] p-10 overflow-hidden shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300">
+    <div className="card-accent relative bg-card-bg rounded-[20px] p-10 overflow-hidden shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300">
       <div className={`mb-6 ${floatClass}`}>{icon}</div>
       <h3 className="font-heading text-[16.5px] font-semibold text-text-primary mb-3">{title}</h3>
       <p className="text-[15px] leading-[1.78] text-text-secondary">{text}</p>
@@ -162,7 +163,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-warm-white text-text-secondary overflow-x-hidden" style={{ fontFamily: "var(--font-open-sans, 'Open Sans', sans-serif)" }}>
 
       {/* ── NAV ── */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-surface/97 backdrop-blur-lg">
+      <nav className="sticky top-0 z-50 border-b border-border backdrop-blur-2xl" style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface) 97%, transparent)' }}>
         <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
 
           {/* Logo */}
@@ -190,7 +191,8 @@ export default function HomePage() {
               <button className="flex items-center gap-1 font-heading text-sm font-medium text-text-secondary group-hover:text-gold transition-colors duration-200 cursor-pointer bg-transparent border-0 p-0">
                 About <IconChevronDown />
               </button>
-              <div className="absolute top-[calc(100%+12px)] left-1/2 -translate-x-1/2 bg-card-bg border border-border rounded-xl py-2 min-w-[200px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div className="bg-card-bg border border-border rounded-xl py-2 min-w-[200px] shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
                 {[
                   { href: '/our-story', label: 'Our Story' },
                   { href: '/how-it-works', label: 'How It Works' },
@@ -201,6 +203,7 @@ export default function HomePage() {
                     {label}
                   </Link>
                 ))}
+              </div>
               </div>
             </li>
           </ul>
@@ -393,14 +396,14 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]" style={{ aspectRatio: '4/3' }}>
-                <FeatureImagePlaceholder label="Teacher training their digital twin" colors="bg-gradient-to-br from-[#4FA3A5] to-[#14213D]" />
+                <Image src="/images/teacher-twin-reflection.jpg" alt="Teacher training their digital twin" width={560} height={400} className="w-full h-full object-cover rounded-2xl" />
               </div>
             </div>
 
             {/* Step 02 (reversed) */}
             <div className="grid grid-cols-2 gap-16 items-center mb-20 max-md:grid-cols-1 max-md:gap-8 max-md:mb-12">
               <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)] max-md:order-2" style={{ aspectRatio: '4/3' }}>
-                <FeatureImagePlaceholder label="Student receiving personalized help" colors="bg-gradient-to-br from-[#F0C95D] to-[#E8836B]" />
+                <Image src="/images/student-getting-help.jpg" alt="Student receiving personalized help" width={560} height={400} className="w-full h-full object-cover rounded-2xl" />
               </div>
               <div className="max-md:order-1">
                 <div className="font-heading text-[13px] font-extrabold tracking-[3px] uppercase text-coral mb-3">Step 02</div>
@@ -429,7 +432,7 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]" style={{ aspectRatio: '4/3' }}>
-                <FeatureImagePlaceholder label="Teacher reviewing classroom insights" colors="bg-gradient-to-br from-[#14213D] to-[#4FA3A5]" />
+                <Image src="/images/teacher-viewing-data.jpg" alt="Teacher reviewing classroom insights" width={560} height={400} className="w-full h-full object-cover rounded-2xl" />
               </div>
             </div>
 

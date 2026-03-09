@@ -164,6 +164,22 @@ h1, h2, h3, h4, h5, h6 {
 .card-icon-float-2 { animation: gentleFloat 3s ease-in-out infinite 0.5s; }
 .card-icon-float-3 { animation: gentleFloat 3s ease-in-out infinite 1s; }
 
+/* Districts hero — 5th word + extra stagger slots */
+.hero-word-4 { animation-delay: 0.9s; }
+.hero-word-5 { animation-delay: 1.05s; }
+
+.hero-resolve-anim {
+  animation: fadeSlideUp 0.6s ease forwards;
+  animation-delay: 1.4s;
+  opacity: 0;
+}
+
+.hero-buttons-anim-late {
+  animation: fadeSlideUp 0.6s ease forwards;
+  animation-delay: 1.6s;
+  opacity: 0;
+}
+
 .cta-button-pulse { animation: gentlePulse 2.5s ease-in-out infinite; }
 
 .blob-teal {
@@ -174,7 +190,7 @@ h1, h2, h3, h4, h5, h6 {
   animation: blobDrift2 14s ease-in-out infinite;
 }
 
-/* Card left accent bar (light mode) */
+/* Card left accent bar (light mode only) */
 .card-accent::before {
   content: '';
   position: absolute;
@@ -184,6 +200,21 @@ h1, h2, h3, h4, h5, h6 {
   width: 4px;
   background: linear-gradient(180deg, #4FA3A5, rgba(79, 163, 165, 0.3));
   border-radius: 20px 0 0 20px;
+}
+
+.dark .card-accent::before {
+  display: none;
+}
+
+/* Dark mode homepage cards: translucent glass style matching HTML prototype */
+.dark .card-accent {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.dark .card-accent:hover {
+  box-shadow: 0 8px 32px rgba(240, 201, 93, 0.08), 0 4px 20px rgba(255, 107, 107, 0.06);
 }
 
 /* Section title underline */
