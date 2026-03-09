@@ -211,11 +211,11 @@ export default function HomePage() {
           {/* Desktop right */}
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
-            <Link href="/teacher/dashboard" className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200">
+            <Link href="/login" className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200">
               Sign In
             </Link>
             <Link
-              href="/teacher/dashboard"
+              href="/login"
               className="font-heading text-sm font-semibold bg-gold text-deep-navy px-6 py-2.5 rounded-full hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200"
             >
               Get Started
@@ -264,7 +264,7 @@ export default function HomePage() {
           {/* Buttons */}
           <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8">
             <Link
-              href="/teacher/dashboard"
+              href="/login"
               className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] hover:bg-[#f2d06e] transition-all duration-300"
             >
               Get Started Free
@@ -458,7 +458,7 @@ export default function HomePage() {
               Be among the first to bring Teaching Labs into your classroom. No credit card. No commitment. Just better teaching.
             </p>
             <Link
-              href="/teacher/dashboard"
+              href="/login"
               className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
             >
               Get Started Free
