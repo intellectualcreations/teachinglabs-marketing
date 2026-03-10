@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeachingLabs — Database Schema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0F172A;
+    --card: #1E293B;
+    --card-hover: #273548;
+    --border: #334155;
+    --text: #E2E8F0;
+    --text-dim: #94A3B8;
+    --navy: #3B82F6;
+    --teal: #4FA3A5;
+    --coral: #E8836B;
+    --yellow: #FBBF24;
+    --green: #10B981;
+    --purple: #A78BFA;
+    --pink: #F472B6;
+    --red: #EF4444;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px 24px;
+    line-height: 1.5;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .header p {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(79,163,165,0.15);
+    color: var(--teal);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-family: var(--mono);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    padding: 16px;
+    background: var(--card);
+    border-radius: 12px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  /* Schema grid */
+  .schema-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Table card */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .table-card:hover {
+    border-color: rgba(79,163,165,0.4);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+
+  .table-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-name {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .table-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .table-body { padding: 4px 0; }
+
+  .column-row {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 20px;
+    font-size: 13px;
+    transition: background 0.15s;
+  }
+  .column-row:hover { background: var(--card-hover); }
+
+  .col-icon {
+    font-size: 11px;
+    text-align: center;
+  }
+  .col-name {
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .col-type {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+  .col-pk { color: var(--yellow); }
+  .col-fk { color: var(--navy); }
+  .col-req { color: var(--green); }
+  .col-opt { color: var(--text-dim); }
+  .col-unique { color: var(--purple); }
+
+  .table-footer {
+    padding: 10px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .table-footer strong { color: var(--text); }
+
+  /* Relationship section */
+  .relationships {
+    max-width: 1400px;
+    margin: 48px auto 0;
+  }
+  .relationships h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .rel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 16px;
+  }
+
+  .rel-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .rel-arrow {
+    font-size: 20px;
+    flex-shrink: 0;
+    color: var(--teal);
+  }
+  .rel-from, .rel-to {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .rel-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    flex: 1;
+    text-align: center;
+    line-height: 1.4;
+  }
+  .rel-type {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* Notes section */
+  .notes {
+    max-width: 900px;
+    margin: 48px auto 0;
+  }
+  .notes h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .note-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .note-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--teal);
+  }
+  .note-card p, .note-card li {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .note-card ul { padding-left: 20px; }
+  .note-card code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: rgba(79,163,165,0.1);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--teal);
+  }
+
+  @media (max-width: 500px) {
+    .schema-grid { grid-template-columns: 1fr; }
+    .rel-grid { grid-template-columns: 1fr; }
+    .legend { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="badge">v1.0 — March 2026</div>
+  <h1>TeachingLabs Database Schema</h1>
+  <p>Complete data model for user management, school hierarchy, class enrollment, and parent-child connections.</p>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--yellow);"></div> Primary Key</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--navy);"></div> Foreign Key</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div> Required</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--purple);"></div> Unique</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--text-dim);"></div> Optional</div>
+</div>
+
+<div class="schema-grid">
+
+  <!-- ==================== USERS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">users</span>
+      <span class="table-badge" style="background:rgba(79,163,165,0.15); color:var(--teal);">Core</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">email</span><span class="col-type">VARCHAR UNIQUE</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">first_name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">last_name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">role</span><span class="col-type">ENUM</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">username</span><span class="col-type">VARCHAR UNIQUE</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">password_hash</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">sso_provider</span><span class="col-type">ENUM</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">sso_id</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">avatar_url</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">is_active</span><span class="col-type">BOOLEAN</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">created_at</span><span class="col-type">TIMESTAMP</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">last_login_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+    <div class="table-footer">
+      <strong>role</strong> = teacher | student | administrator | parent<br>
+      <strong>sso_provider</strong> = google | microsoft | classlink<br>
+      Auth: either password_hash OR sso_provider+sso_id. Students may use username instead of email.
+    </div>
+  </div>
+
+  <!-- ==================== STATES ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">states</span>
+      <span class="table-badge" style="background:rgba(251,191,36,0.15); color:var(--yellow);">Lookup</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">abbr</span><span class="col-type">CHAR(2) PK</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">name</span><span class="col-type">VARCHAR</span></div>
+    </div>
+    <div class="table-footer">56 records: 50 states + DC + territories. Source: NCES ELSI data.</div>
+  </div>
+
+  <!-- ==================== DISTRICTS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">districts</span>
+      <span class="table-badge" style="background:rgba(251,191,36,0.15); color:var(--yellow);">Lookup</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">state_abbr</span><span class="col-type">FK → states</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">nces_id</span><span class="col-type">VARCHAR UNIQUE</span></div>
+    </div>
+    <div class="table-footer">~18,400 districts from NCES. Unique per state.</div>
+  </div>
+
+  <!-- ==================== SCHOOLS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">schools</span>
+      <span class="table-badge" style="background:rgba(251,191,36,0.15); color:var(--yellow);">Lookup</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">district_id</span><span class="col-type">FK → districts</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">type</span><span class="col-type">ENUM</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">nces_id</span><span class="col-type">VARCHAR UNIQUE</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">zip</span><span class="col-type">CHAR(5)</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">city</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">is_verified</span><span class="col-type">BOOLEAN</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">added_by_user_id</span><span class="col-type">FK → users</span></div>
+    </div>
+    <div class="table-footer">
+      <strong>type</strong> = public | private | charter | homeschool | other<br>
+      ~101,000 NCES schools (is_verified=true). Teachers can add unlisted schools (is_verified=false).
+    </div>
+  </div>
+
+  <!-- ==================== TEACHERS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">teacher_profiles</span>
+      <span class="table-badge" style="background:rgba(31,58,95,0.3); color:var(--navy);">Role</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">user_id</span><span class="col-type">FK → users UNIQUE</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">school_id</span><span class="col-type">FK → schools</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">onboarding_completed</span><span class="col-type">BOOLEAN</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">ai_agent_config</span><span class="col-type">JSONB</span></div>
+    </div>
+    <div class="table-footer">One teacher → one school. AI agent preferences stored in JSONB (voice, personality, subjects).</div>
+  </div>
+
+  <!-- ==================== STUDENTS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">student_profiles</span>
+      <span class="table-badge" style="background:rgba(79,163,165,0.15); color:var(--teal);">Role</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">user_id</span><span class="col-type">FK → users UNIQUE</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">school_id</span><span class="col-type">FK → schools</span></div>
+      <div class="column-row"><span class="col-icon col-unique">◆</span><span class="col-name col-unique">district_student_id</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">grade</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">onboarding_completed</span><span class="col-type">BOOLEAN</span></div>
+    </div>
+    <div class="table-footer">
+      <strong>district_student_id</strong> is unique within a school. Used for roster matching and deduplication across teachers/classes.
+      Composite unique: (school_id + district_student_id).
+    </div>
+  </div>
+
+  <!-- ==================== ADMINISTRATORS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">admin_profiles</span>
+      <span class="table-badge" style="background:rgba(251,191,36,0.15); color:var(--yellow);">Role</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">user_id</span><span class="col-type">FK → users UNIQUE</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">district_id</span><span class="col-type">FK → districts</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">title</span><span class="col-type">VARCHAR</span></div>
+    </div>
+    <div class="table-footer">
+      <strong>title</strong> = Principal, Assistant Principal, Superintendent, Tech Director, Curriculum Director, Department Head, Other.<br>
+      Admin picks district at signup. School access managed via <code>admin_school_access</code> table.
+    </div>
+  </div>
+
+  <!-- ==================== ADMIN SCHOOL ACCESS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">admin_school_access</span>
+      <span class="table-badge" style="background:rgba(251,191,36,0.15); color:var(--yellow);">Junction</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">admin_id</span><span class="col-type">FK → admin_profiles</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">school_id</span><span class="col-type">FK → schools</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">granted_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+    <div class="table-footer">Many-to-many: admin chooses which schools in their district to monitor from dashboard. Added post-signup.</div>
+  </div>
+
+  <!-- ==================== PARENT PROFILES ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">parent_profiles</span>
+      <span class="table-badge" style="background:rgba(232,131,107,0.15); color:var(--coral);">Role</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">user_id</span><span class="col-type">FK → users UNIQUE</span></div>
+    </div>
+    <div class="table-footer">Lightweight profile. Child connections stored in <code>parent_student_connections</code>.</div>
+  </div>
+
+  <!-- ==================== PARENT-STUDENT CONNECTIONS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">parent_student_connections</span>
+      <span class="table-badge" style="background:rgba(232,131,107,0.15); color:var(--coral);">Junction</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">parent_id</span><span class="col-type">FK → parent_profiles</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">student_id</span><span class="col-type">FK → student_profiles</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">relationship</span><span class="col-type">ENUM</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">connected_via_code_id</span><span class="col-type">FK → invite_codes</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">status</span><span class="col-type">ENUM</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">connected_at</span><span class="col-type">TIMESTAMP</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">revoked_at</span><span class="col-type">TIMESTAMP</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">revoked_by</span><span class="col-type">FK → users</span></div>
+    </div>
+    <div class="table-footer">
+      <strong>relationship</strong> = mother | father | stepmother | stepfather | grandmother | grandfather | legal_guardian | other<br>
+      <strong>status</strong> = active | revoked | flagged<br>
+      Many-to-many: one student can have many parents, one parent can have many children. Teacher can revoke (sets revoked_at + revoked_by).
+    </div>
+  </div>
+
+  <!-- ==================== SCHOOL ROSTER ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">school_roster</span>
+      <span class="table-badge" style="background:rgba(16,185,129,0.15); color:var(--green);">Master</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">school_id</span><span class="col-type">FK → schools</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">first_name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">last_name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-unique">◆</span><span class="col-name col-unique">district_student_id</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">grade</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">student_profile_id</span><span class="col-type">FK → student_profiles</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">uploaded_by</span><span class="col-type">FK → users</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">created_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+    <div class="table-footer">
+      Master student list per school. Populated via CSV upload. Composite unique: (school_id + district_student_id).<br>
+      <strong>student_profile_id</strong> is NULL until student creates an account and matches against roster. Roster spelling is canonical: overrides any input.
+    </div>
+  </div>
+
+  <!-- ==================== CLASSES ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">classes</span>
+      <span class="table-badge" style="background:rgba(59,130,246,0.15); color:var(--navy);">Core</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">teacher_id</span><span class="col-type">FK → teacher_profiles</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">school_id</span><span class="col-type">FK → schools</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">subject</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">grade</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-unique">◆</span><span class="col-name col-unique">join_code</span><span class="col-type">CHAR(6) UNIQUE</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">qr_code_url</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">is_active</span><span class="col-type">BOOLEAN</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">created_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+    <div class="table-footer">
+      <strong>join_code</strong>: 6-character alphanumeric, system-generated, unique globally. Used for both typed entry and QR code. QR encodes the same join_code value.
+    </div>
+  </div>
+
+  <!-- ==================== CLASS ENROLLMENTS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">class_enrollments</span>
+      <span class="table-badge" style="background:rgba(59,130,246,0.15); color:var(--navy);">Junction</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">class_id</span><span class="col-type">FK → classes</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">student_id</span><span class="col-type">FK → student_profiles</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">enrolled_at</span><span class="col-type">TIMESTAMP</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">removed_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+    <div class="table-footer">Many-to-many: students can be in multiple classes, classes have many students. Composite unique: (class_id + student_id).</div>
+  </div>
+
+  <!-- ==================== INVITE CODES ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">invite_codes</span>
+      <span class="table-badge" style="background:rgba(164,139,250,0.15); color:var(--purple);">Auth</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-unique">◆</span><span class="col-name col-unique">code</span><span class="col-type">CHAR(6) UNIQUE</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">type</span><span class="col-type">ENUM</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">student_id</span><span class="col-type">FK → student_profiles</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">class_id</span><span class="col-type">FK → classes</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">created_by</span><span class="col-type">FK → users</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">sent_to_email</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">status</span><span class="col-type">ENUM</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">claimed_by</span><span class="col-type">FK → users</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">claimed_at</span><span class="col-type">TIMESTAMP</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">expires_at</span><span class="col-type">TIMESTAMP</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">created_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+    <div class="table-footer">
+      <strong>type</strong> = parent_invite (single-use, per-student) | teacher_invite (from parent request)<br>
+      <strong>status</strong> = active | claimed | expired | revoked<br>
+      Parent invite codes are SINGLE USE. Once claimed, status → claimed, code is burned. Teacher can revoke and regenerate.
+    </div>
+  </div>
+
+  <!-- ==================== PARENT INTEREST REQUESTS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">parent_interest_requests</span>
+      <span class="table-badge" style="background:rgba(232,131,107,0.15); color:var(--coral);">Lead</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">parent_first_name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">parent_last_name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">parent_email</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">child_first_name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">child_last_name</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">teacher_email</span><span class="col-type">VARCHAR</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">status</span><span class="col-type">ENUM</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">created_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+    <div class="table-footer">
+      <strong>status</strong> = pending | teacher_notified | teacher_joined | resolved<br>
+      Created when a parent submits the "Let the teacher know" form. If teacher email matches an existing user, notify them. If not, send a platform invite. Parent becomes a lead generator.
+    </div>
+  </div>
+
+  <!-- ==================== PASSWORD RESETS ==================== -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="table-name">password_resets</span>
+      <span class="table-badge" style="background:rgba(164,139,250,0.15); color:var(--purple);">Auth</span>
+    </div>
+    <div class="table-body">
+      <div class="column-row"><span class="col-icon col-pk">🔑</span><span class="col-name col-pk">id</span><span class="col-type">UUID PK</span></div>
+      <div class="column-row"><span class="col-icon col-fk">→</span><span class="col-name col-fk">user_id</span><span class="col-type">FK → users</span></div>
+      <div class="column-row"><span class="col-icon col-unique">◆</span><span class="col-name col-unique">token</span><span class="col-type">VARCHAR UNIQUE</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">expires_at</span><span class="col-type">TIMESTAMP</span></div>
+      <div class="column-row"><span class="col-icon col-opt">○</span><span class="col-name col-opt">used_at</span><span class="col-type">TIMESTAMP</span></div>
+      <div class="column-row"><span class="col-icon col-req">●</span><span class="col-name col-req">created_at</span><span class="col-type">TIMESTAMP</span></div>
+    </div>
+    <div class="table-footer">Token is a secure random string. Expires after 1 hour. Single use (used_at set on consumption).</div>
+  </div>
+
+</div>
+
+<!-- ==================== RELATIONSHIPS ==================== -->
+<div class="relationships">
+  <h2>Relationships</h2>
+  <div class="rel-grid">
+
+    <div class="rel-card">
+      <span class="rel-from" style="background:rgba(251,191,36,0.15); color:var(--yellow);">states</span>
+      <span class="rel-label">has many<span class="rel-type" style="color:var(--teal);">1 → N</span></span>
+      <span class="rel-to" style="background:rgba(251,191,36,0.15); color:var(--yellow);">districts</span>
+    </div>
+
+    <div class="rel-card">
+      <span class="rel-from" style="background:rgba(251,191,36,0.15); color:var(--yellow);">districts</span>
+      <span class="rel-label">has many<span class="rel-type" style="color:var(--teal);">1 → N</span></span>
+      <span class="rel-to" style="background:rgba(251,191,36,0.15); color:var(--yellow);">schools</span>
+    </div>
+
+    <div class="rel-card">
+      <span class="rel-from" style="background:rgba(31,58,95,0.3); color:var(--navy);">teacher</span>
+      <span class="rel-label">belongs to<span class="rel-type" style="color:var(--teal);">N → 1</span></span>
+      <span class="rel-to" style="background:rgba(251,191,36,0.15); color:var(--yellow);">school</span>
+    </div>
+
+    <div class="rel-card">
+      <span class="rel-from" style="background:rgba(31,58,95,0.3); color:var(--navy);">teacher</span>
+      <span class="rel-label">creates many<span class="rel-type" style="color:var(--teal);">1 → N</span></span>
+      <span class="rel-to" style="background:rgba(59,130,246,0.15); color:var(--navy);">classes</span>
+    </div>
+
+    <div class="rel-card">
+      <span class="rel-from" style="background:rgba(79,163,165,0.15); color:var(--teal);">student</span>
+      <span class="rel-label">enrolled in many<span class="rel-type" style="color:var(--teal);">N → N</span></span>
+      <span class="rel-to" style="background:rgba(59,130,246,0.15); color:var(--navy);">classes</span>
+    </div>
+
+    <div class="rel-card">
+      <span class="rel-from" style="background:rgba(232,131,107,0.15); color:var(--coral);">parent</span>
+      <span class="rel-label">connected to many<span class="rel-type" style="color:var(--teal);">N → N</span></span>
+      <span class="rel-to" style="background:rgba(79,163,165,0.15); color:var(--teal);">students</span>
+    </div>
+
+    <div class="rel-card">
+      <span class="rel-from" style="background:rgba(251,191,36,0.15); color:var(--yellow);">admin</span>
+      <span class="rel-label">monitors many<span class="rel-type" style="color:var(--teal);">N → N</span></span>
+      <span class="rel-to" style="background:rgba(251,191,36,0.15); color:var(--yellow);">schools</span>
+    </div>
+
+    <div class="rel-card">
+      <span class="rel-from" style="background:rgba(16,185,129,0.15); color:var(--green);">school_roster</span>
+      <span class="rel-label">resolves to<span class="rel-type" style="color:var(--teal);">N → 1</span></span>
+      <span class="rel-to" style="background:rgba(79,163,165,0.15); color:var(--teal);">student_profile</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== DESIGN NOTES ==================== -->
+<div class="notes">
+  <h2>Design Notes</h2>
+
+  <div class="note-card">
+    <h3>Student Identity Flow</h3>
+    <ul>
+      <li>Teacher uploads CSV → creates <code>school_roster</code> entries (no account yet, <code>student_profile_id</code> = NULL)</li>
+      <li>Student signs up with class code or QR → matches against roster by name</li>
+      <li>If ambiguous match (multiple students with same name) → last 3 digits of <code>district_student_id</code> used as tiebreaker</li>
+      <li>On match: <code>student_profiles</code> row created, <code>school_roster.student_profile_id</code> linked</li>
+      <li>Roster spelling is canonical. <code>formatName()</code> is input convenience only.</li>
+    </ul>
+  </div>
+
+  <div class="note-card">
+    <h3>Parent Safety Model</h3>
+    <ul>
+      <li>Teacher always initiates the connection: generates single-use <code>invite_code</code> (type=parent_invite) per student</li>
+      <li>Parent claims code → <code>parent_student_connections</code> row created with status=active</li>
+      <li>Code is burned on claim (status → claimed). Cannot be reused.</li>
+      <li>Parent dashboard shows "Connected Adults" for each child. Any parent can flag a connection.</li>
+      <li>Teacher can revoke any connection: sets <code>revoked_at</code> + <code>revoked_by</code>, status → revoked</li>
+      <li>If code is compromised: teacher revokes + generates a new one</li>
+    </ul>
+  </div>
+
+  <div class="note-card">
+    <h3>Class Join Codes vs Parent Invite Codes</h3>
+    <ul>
+      <li><strong>Class join code</strong> (in <code>classes.join_code</code>): reusable, shared with entire class, identifies the CLASS. Used by students + QR codes.</li>
+      <li><strong>Parent invite code</strong> (in <code>invite_codes</code>): single-use, per-student, identifies a specific STUDENT. Used only by parents.</li>
+      <li>Both are 6-character alphanumeric. Different namespaces: class codes stored in <code>classes</code>, parent codes in <code>invite_codes</code>.</li>
+    </ul>
+  </div>
+
+  <div class="note-card">
+    <h3>Auth Strategy</h3>
+    <ul>
+      <li>SSO (Google, Microsoft, ClassLink): <code>sso_provider</code> + <code>sso_id</code> on users table. No password needed.</li>
+      <li>Email/password: <code>password_hash</code> (bcrypt). Available for all roles.</li>
+      <li>Username/password: Students only. <code>username</code> field. For students without email (home accounts created by parent).</li>
+      <li>Password resets: secure token, 1-hour expiry, single use. Response never reveals if account exists.</li>
+    </ul>
+  </div>
+
+  <div class="note-card">
+    <h3>FERPA / COPPA Considerations</h3>
+    <ul>
+      <li>No student PII stored without school/teacher consent (roster upload = consent)</li>
+      <li>Parent connections are teacher-initiated only. No self-service child lookup.</li>
+      <li>Admin access is scoped to their district + selected schools only</li>
+      <li>All connection changes are auditable (timestamps, revoked_by)</li>
+      <li>Student usernames should not contain real names (enforced in UI)</li>
+    </ul>
+  </div>
+</div>
+
+<div style="text-align:center; padding:48px 0 24px; color:var(--text-dim); font-size:12px;">
+  TeachingLabs Database Schema v1.0 — March 2026<br>
+  15 tables · 4 roles · FERPA/COPPA compliant
+</div>
+
+</body>
+</html>

@@ -55,6 +55,7 @@ const INITIAL_DATA: Record<ClassKey, ClassData> = {
     ],
     turnedIn: [
       { id: 'hw-ch6-test', name: 'Chapter 6 Test Prep', turned: 'Mar 5', time: 'Mar 5', preview: 'Great job, you got 9 out of 10!', count: 15, isLesson: true },
+      { id: 'hw-percents', name: 'Percents Worksheet', turned: 'Mar 2', time: 'Mar 2', preview: 'All done! Nice work.', count: 7, isLesson: true },
     ],
     openChats: [
       { id: 'fractions-help', name: 'Help with fractions', time: '2m ago', preview: 'You got it! 7/12 is correct.', count: 8 },
@@ -64,6 +65,7 @@ const INITIAL_DATA: Record<ClassKey, ClassData> = {
     archived: [
       { id: 'geometry-shapes', name: 'Geometry: area of shapes', time: 'Feb 28', preview: 'Length times width gives you the area!', count: 9 },
       { id: 'fractions-intro', name: 'What are fractions?', time: 'Feb 20', preview: 'Think of a pizza cut into equal slices...', count: 12 },
+      { id: 'place-value', name: 'Place value review', time: 'Feb 14', preview: 'The 5 is in the hundreds place!', count: 8 },
     ],
   },
   science: {
@@ -73,7 +75,9 @@ const INITIAL_DATA: Record<ClassKey, ClassData> = {
       { id: 'ecosystems-proj', name: 'Ecosystems Project', due: 'Due Mar 14', status: 'active', time: 'Today', preview: 'Great question about food webs!', count: 6 },
       { id: 'lab-report-3', name: 'Lab Report #3', due: 'Due Mar 10', status: 'due', time: 'Mar 4', preview: 'Your hypothesis section looks good!', count: 5 },
     ],
-    turnedIn: [],
+    turnedIn: [
+      { id: 'hw-weather', name: 'Weather Patterns Worksheet', turned: 'Feb 20', time: 'Feb 20', preview: 'Clouds form when...', count: 6, isLesson: true },
+    ],
     openChats: [
       { id: 'water-cycle', name: 'Water cycle quiz prep', time: 'Mar 4', preview: 'Evaporation, condensation, precipitation...', count: 9 },
       { id: 'planets-chat', name: 'Solar system questions', time: 'Feb 28', preview: 'Jupiter is the largest planet!', count: 4 },
@@ -87,9 +91,12 @@ const INITIAL_DATA: Record<ClassKey, ClassData> = {
       { id: 'book-report', name: 'Book Report: Percy Jackson', due: 'Due Mar 15', status: 'active', time: 'Today', preview: 'What themes did you notice?', count: 4 },
       { id: 'essay-draft', name: 'Persuasive Essay Draft', due: 'Due Mar 11', status: 'due', time: 'Mar 6', preview: "Strong intro! Let's work on transitions.", count: 8 },
     ],
-    turnedIn: [],
+    turnedIn: [
+      { id: 'hw-spelling', name: 'Spelling Test Prep', turned: 'Feb 18', time: 'Feb 18', preview: 'You got all 20 right!', count: 8, isLesson: true },
+    ],
     openChats: [
       { id: 'vocabulary', name: 'Vocabulary practice', time: 'Mar 1', preview: 'Context clues help figure out meaning.', count: 11 },
+      { id: 'reading-log', name: 'Reading log questions', time: 'Feb 26', preview: 'How many pages did you read this week?', count: 3 },
     ],
     archived: [],
   },
@@ -114,6 +121,7 @@ interface ChatMsg {
   role: 'ai' | 'student';
   text: string;
   attachment?: { type: string; name: string; size: string };
+  image?: { src: string; alt: string; fileName: string };
 }
 
 const DEMO_MSGS: ChatMsg[] = [
@@ -127,8 +135,35 @@ const DEMO_MSGS: ChatMsg[] = [
   { id: 'm8', role: 'student', text: "7/12!" },
   { id: 'm9', role: 'ai', text: "🎉 You got it! 7/12 is correct. See, you DO get fractions.<br><br>Now let's try something a little harder: <strong>mixed numbers</strong>. Grab a piece of paper and solve this:<br><br><strong>1 3/5 + 1 7/10 = ?</strong><br><br>Show all your work and upload a photo when you're done!" },
   { id: 'm10', role: 'student', text: "Ok let me try" },
-  { id: 'm11', role: 'ai', text: "This is really good work, Alex! Every step is correct. I love that you drew the fraction bars — that shows you really understand what the numbers mean. Mrs. Martinez is going to be proud of this one. 💪" },
+  { id: 'm10b', role: 'student', text: '', image: { src: '/student/fraction-work.jpg', alt: "Alex's fraction work", fileName: 'fraction_work.jpg' } },
+  { id: 'm11', role: 'ai', text: "This is really good work, Alex! Let me check each step:<br><br>✅ You drew bar models for both numbers. That's a great way to visualize it.<br>✅ You found the common denominator: <strong>10</strong><br>✅ You converted 3/5 to <strong>6/10</strong> (multiply top and bottom by 2)<br>✅ 1 6/10 + 1 7/10 = 2 13/10<br>✅ You noticed 13/10 is more than a whole, so you simplified: <strong>3 3/10</strong><br><br>Every single step is correct. I love that you drew the fraction bars too, that shows you really understand what the numbers mean. Mrs. Martinez is going to be proud of this one. 💪" },
 ];
+
+const WORD_PROBLEMS_MSGS: ChatMsg[] = [
+  { id: 'wp1', role: 'ai', text: "Hi Alex! Working on word problems today?" },
+  { id: 'wp2', role: 'student', text: "Yeah Mrs. Martinez gave us these word problems and I don't know where to start" },
+  { id: 'wp3', role: 'ai', text: "Word problems can feel tricky, but there's a strategy. First, read it twice. Then ask: what do I know, what do I need to find, and what operation do I use?<br><br>Try this one: Sarah has 24 stickers. She gives 1/3 to her friend and 1/4 to her brother. How many does she keep?" },
+  { id: 'wp4', role: 'student', text: "So 1/3 of 24 is 8 and 1/4 of 24 is 6... so she gave away 14?" },
+  { id: 'wp5', role: 'ai', text: "You're so close! Let me walk you through this step by step. You got the individual amounts right:<br><br>• 1/3 of 24 = <strong>8 stickers</strong> (to her friend)<br>• 1/4 of 24 = <strong>6 stickers</strong> (to her brother)<br>• Total given away: 8 + 6 = <strong>14 stickers</strong><br><br>Now, how many does she keep?" },
+  { id: 'wp6', role: 'student', text: "24 - 14 = 10!" },
+  { id: 'wp7', role: 'ai', text: "🎉 Perfect! Sarah keeps 10 stickers. See how breaking it into steps makes it manageable? Let's try a harder one..." },
+];
+
+const TIMES_TABLES_MSGS: ChatMsg[] = [
+  { id: 'tt1', role: 'ai', text: "Hey Alex! Ready for some times table tricks? 😊" },
+  { id: 'tt2', role: 'student', text: "I keep messing up the 7s and 8s" },
+  { id: 'tt3', role: 'ai', text: "Those are the hardest ones! Here's a trick for 9s first, since it helps with the others.<br><br>Hold up both hands. To multiply 9 × 4, put down your 4th finger (from the left). Count the fingers on each side:<br><br>• Left of the down finger: <strong>3</strong><br>• Right of the down finger: <strong>6</strong><br>• Answer: <strong>36</strong>!" },
+  { id: 'tt4', role: 'student', text: "Wait that works for all of them??" },
+  { id: 'tt5', role: 'ai', text: "The 9s trick with your fingers works every time! Try 9 × 7: put down finger #7. You get 6 on the left, 3 on the right = 63. 🤯<br><br>For 7s and 8s, here's my favorite: <strong>5, 6, 7, 8</strong> → 56 = 7 × 8. The numbers go in order! That's the one most people forget." },
+  { id: 'tt6', role: 'student', text: "56 = 7 x 8!! I'll never forget that now" },
+  { id: 'tt7', role: 'ai', text: "That's the spirit! 💪 Now quick quiz: what's 8 × 6?" },
+];
+
+const CHAT_MESSAGES: Record<string, ChatMsg[]> = {
+  'fractions-help': DEMO_MSGS,
+  'word-problems': WORD_PROBLEMS_MSGS,
+  'times-tables': TIMES_TABLES_MSGS,
+};
 
 let msgIdCounter = 100;
 function newMsgId() { return `msg-${++msgIdCounter}`; }
@@ -211,7 +246,7 @@ export default function StudentMainPage() {
       ...classData[classId].archived, ...classData[classId].turnedIn].find(c => c.id === chatId);
     if (chatItem) setChatName(chatItem.name);
 
-    setMessages(DEMO_MSGS);
+    setMessages(CHAT_MESSAGES[chatId] ?? [{ id: 'gen1', role: 'ai', text: `Hi Alex! What would you like to work on today? 😊` }]);
     setSidebarOpen(false);
     if (!expandedClasses.has(classId)) {
       setExpandedClasses(prev => new Set([...prev, classId]));
@@ -697,7 +732,16 @@ export default function StudentMainPage() {
                         {msg.role === 'ai' ? cls.teacherInitial : 'A'}
                       </div>
                       <div>
-                        {msg.attachment ? (
+                        {msg.image ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <img
+                              src={msg.image.src}
+                              alt={msg.image.alt}
+                              className="max-w-[220px] rounded-xl border border-border object-cover"
+                            />
+                            <span className="text-[11px] text-text-muted">{msg.image.fileName}</span>
+                          </div>
+                        ) : msg.attachment ? (
                           <div className={`px-3.5 py-3 rounded-2xl ${msg.role === 'student' ? 'bg-teal rounded-br-sm' : 'bg-card-bg border border-border rounded-bl-sm'}`}>
                             <div className="flex items-center gap-2">
                               <span className="text-xl">{msg.attachment.type}</span>
