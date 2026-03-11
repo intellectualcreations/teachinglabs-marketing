@@ -177,7 +177,7 @@ export default function ForTeachersPage() {
 
           {/* Headline — word-by-word reveal */}
           <h1
-            className="font-heading font-extrabold tracking-[-2px] leading-[1.05] text-text-primary mb-6"
+            className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary mb-6"
             style={{ fontSize: 'clamp(42px, 7vw, 76px)' }}
           >
             <span className="hero-word hero-word-0 mr-3">Support</span>

@@ -64,7 +64,7 @@ export default function WaitlistPage() {
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6 py-20">
           {/* Headline */}
-          <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.05] text-text-primary mb-6"
+          <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary mb-6"
             style={{ fontSize: 'clamp(48px, 7vw, 80px)' }}>
             Your Teaching.{' '}
             <br className="max-md:hidden" />

@@ -214,7 +214,7 @@ export default function ForDistrictsPage() {
 
           {/* Headline — 5 words with staggered reveal */}
           <h1
-            className="font-heading font-extrabold tracking-[-2px] leading-[1.08] text-text-primary mb-7"
+            className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary mb-7"
             style={{ fontSize: 'clamp(38px, 6vw, 68px)' }}
           >
             <span className="hero-word hero-word-0 mr-2">AI</span>

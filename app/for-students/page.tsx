@@ -148,7 +148,7 @@ export default function ForStudentsPage() {
 
           {/* Headline — 6 words with staggered reveal */}
           <h1
-            className="font-heading font-extrabold leading-[1.05] text-text-primary mb-6"
+            className="font-heading font-extrabold leading-[1.15] text-text-primary mb-6"
             style={{ fontSize: 'clamp(42px, 7vw, 76px)', letterSpacing: '-2px' }}
           >
             <span className="hero-word hero-word-0 mr-2">Every</span>{' '}

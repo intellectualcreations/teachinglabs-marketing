@@ -176,7 +176,7 @@ export default function HomePage() {
           </div>
 
           {/* Headline */}
-          <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.05] text-text-primary mb-6"
+          <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary mb-6"
             style={{ fontSize: 'clamp(52px, 8vw, 88px)' }}>
             <span className="hero-word hero-word-0 mr-3">Your</span>
             <span className="hero-word hero-word-1 mr-3">Teaching</span>

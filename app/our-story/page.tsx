@@ -145,7 +145,7 @@ export default function OurStoryPage() {
 
           {/* Headline — CSS-animated word reveal */}
           <h1
-            className="font-heading font-extrabold tracking-[-2px] leading-[1.1] text-text-primary mb-6"
+            className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary mb-6"
             style={{ fontSize: 'clamp(40px, 6vw, 72px)' }}
           >
             {/* Line 1 */}
