@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Brand Colors */
   --color-navy: #1F3A5F;
@@ -12,7 +14,7 @@
   --color-coral: #E8836B;
   --color-coral-bright: #FF6B6B;
   --color-text-dark: #1A1A2E;
-  --color-text-body: #4A5568;
+  --color-text-body: #334155;
   --color-text-muted: #8896A6;
   --color-bg-secondary: #F5F3EF;
   --color-bg-feature: #EDF5F0;
@@ -22,8 +24,8 @@
   --color-surface: #FFFFFF;
   --color-border: #E2E8F0;
   --color-text-primary: #1E293B;
-  --color-text-secondary: #64748B;
-  --color-text-muted: #94A3B8;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748B;
 
   /* Status */
   --color-success: #059669;
@@ -37,26 +39,26 @@
   --radius-lg: 14px;
   --radius-full: 9999px;
 
-  /* Fonts */
-  --font-heading: var(--font-inter);
-  --font-body: var(--font-open-sans);
+  /* Fonts — Inter and Open Sans loaded by Next.js via --font-inter / --font-open-sans on body */
+  --font-heading: "Inter", sans-serif;
+  --font-body: "Open Sans", sans-serif;
 }
 
-/* Dark mode overrides — matching HTML prototype [data-theme="dark"] */
+/* Dark mode overrides — matching v4 HTML website dark theme */
 .dark {
-  --color-surface: #0F1419;
-  --color-card-bg: #1A2332;
-  --color-surface-elevated: #1E2A3A;
+  --color-surface: #0B1426;
+  --color-card-bg: rgba(255, 255, 255, 0.04);
+  --color-surface-elevated: #1a2744;
   --color-border: #2A3A4E;
   --color-text-primary: #E8ECF0;
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;
-  --color-bg-secondary: #1E2A3A;
+  --color-bg-secondary: #0D1B30;
   --color-bg-feature: transparent;
-  --color-warm-white: #0F1419;
+  --color-warm-white: #0B1426;
   --color-text-dark: #E8ECF0;
   --color-text-body: #94A3B8;
-  --color-navy-light: #1E2A3A;
+  --color-navy-light: #1a2744;
   --color-teal-light: rgba(79, 163, 165, 0.15);
   --color-gold-light: rgba(240, 201, 93, 0.12);
 }
@@ -67,19 +69,19 @@ html {
 }
 
 body {
-  font-family: var(--font-body), 'Open Sans', sans-serif;
+  font-family: var(--font-open-sans, 'Open Sans'), sans-serif;
   color: var(--color-text-primary);
   background: #FFFFFF;
 }
 
 .dark body {
-  background: #0F1419;
+  background: #0B1426;
   color: #E8ECF0;
 }
 
-/* Headings use Inter */
+/* Headings use Inter — must reference --font-inter directly (set on body by Next.js) */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading), 'Inter', sans-serif;
+  font-family: var(--font-inter, 'Inter'), sans-serif;
 }
 
 /* Smooth transitions for theme switching */
@@ -111,9 +113,41 @@ h1, h2, h3, h4, h5, h6 {
   66% { transform: translate(25px, -35px) scale(1.03); }
 }
 
+@keyframes blobDrift3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -20px) scale(1.05); }
+}
+
 @keyframes gentleFloat {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
+}
+
+/* ── Scroll reveal animations (matching v4) ── */
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Image hover zoom (matching v4 feat-photo) ── */
+.feat-photo-hover {
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.feat-photo-hover img {
+  transition: transform 0.6s ease;
+}
+
+.feat-photo-hover:hover img {
+  transform: scale(1.03);
 }
 
 @keyframes gentlePulse {
@@ -228,3 +262,12 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 2px;
 }
 
+
+/* Hero outline buttons - light/dark text colors */
+.btn-outline-text {
+  color: var(--btn-outline-color, #1F3A5F) !important;
+}
+.dark .btn-outline-text {
+  --btn-outline-color: #ffffff;
+  color: #ffffff !important;
+}

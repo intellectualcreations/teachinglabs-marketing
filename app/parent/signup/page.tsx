@@ -128,7 +128,7 @@ export default function ParentSignupPage() {
   const SELECT_ARROW = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`;
 
   return (
-    <div className="min-h-screen bg-warm-white dark:bg-[#0F1419] flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12">
 
       <div className="w-full max-w-[460px] mb-4">
         {screen === 1 ? (

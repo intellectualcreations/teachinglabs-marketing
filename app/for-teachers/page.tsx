@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import MobileMenu from '../_components/MobileMenu';
-import ThemeToggle from '@/components/shared/ThemeToggle';
+import MarketingNav from '@/components/shared/MarketingNav';
+import ScrollReveal from '@/components/shared/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'For Teachers — Teaching Labs',
@@ -57,7 +57,7 @@ function ScenarioSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className={bg}>
+    <section className={`fade-up ${bg}`}>
       <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
         <div className="max-w-[760px] mx-auto">
           {children}
@@ -150,73 +150,7 @@ export default function ForTeachersPage() {
     <div className="min-h-screen bg-warm-white text-text-secondary overflow-x-hidden" style={{ fontFamily: "var(--font-open-sans, 'Open Sans', sans-serif)" }}>
 
       {/* ── NAV ── */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-surface/97 backdrop-blur-lg">
-        <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
-
-          {/* Logo */}
-          <Link href="/" className="font-heading text-[22px] font-bold text-text-primary">
-            Teaching Labs
-          </Link>
-
-          {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-8 list-none">
-            {[
-              { href: '/', label: 'Home' },
-              { href: '/for-teachers', label: 'For Teachers', active: true },
-              { href: '/for-students', label: 'For Students' },
-              { href: '/for-districts', label: 'For Districts' },
-              { href: '/for-parents', label: 'For Parents' },
-            ].map(({ href, label, active }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className={`font-heading text-sm font-medium transition-colors duration-200 ${active ? 'text-gold' : 'text-text-secondary hover:text-gold'}`}
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-
-            {/* About dropdown */}
-            <li className="group relative">
-              <button className="flex items-center gap-1 font-heading text-sm font-medium text-text-secondary group-hover:text-gold transition-colors duration-200 cursor-pointer bg-transparent border-0 p-0">
-                About <IconChevronDown />
-              </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"><div className="bg-card-bg border border-border rounded-xl py-2 min-w-[200px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] z-10">
-                {[
-                  { href: '/our-story', label: 'Our Story' },
-                  { href: '/how-it-works', label: 'How It Works' },
-                  { href: '/pricing', label: 'Pricing' },
-                  { href: '/contact', label: 'Contact' },
-                ].map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="block px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-[rgba(79,163,165,0.08)] hover:text-gold transition-colors duration-150"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-              </div>
-            </li>
-          </ul>
-
-          {/* Desktop right */}
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
-            <Link
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="font-heading text-sm font-semibold bg-gold text-deep-navy px-6 py-2.5 rounded-full hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200"
-            >
-              Join Waitlist
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <MobileMenu />
-        </div>
-      </nav>
+      <MarketingNav />
 
       {/* ── HERO ── */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-warm-white">
@@ -281,8 +215,14 @@ export default function ForTeachersPage() {
             style={{ animation: 'fadeSlideUp 0.6s ease forwards', animationDelay: '1.6s', opacity: 0 }}
           >
             <Link
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] hover:bg-[#f2d06e] transition-all duration-300"
+              href="/how-it-works"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
+            >
+              Meet Your Twin
+            </Link>
+            <Link
+              href="/waitlist"
+              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
             >
               Join the Waitlist
             </Link>
@@ -291,6 +231,7 @@ export default function ForTeachersPage() {
       </section>
 
       {/* ── MAIN CONTENT ── */}
+            <ScrollReveal />
       <main>
 
         {/* ── It Starts With You ── */}
@@ -306,7 +247,7 @@ export default function ForTeachersPage() {
 
         {/* ── Photo 1 ── */}
         <div className="bg-warm-white">
-          <div className="max-w-[760px] mx-auto px-12 pb-12 max-md:px-6">
+          <div className="fade-up feat-photo-hover max-w-[760px] mx-auto px-12 py-12 max-md:px-6">
             <Image src="/images/homepage-hero-teacher.jpg" alt="Confident teacher engaging her classroom" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" />
           </div>
         </div>
@@ -356,7 +297,7 @@ export default function ForTeachersPage() {
 
         {/* ── Photo 2 ── */}
         <div className="bg-bg-secondary">
-          <div className="max-w-[760px] mx-auto px-12 pb-12 max-md:px-6">
+          <div className="fade-up feat-photo-hover max-w-[760px] mx-auto px-12 py-12 max-md:px-6">
             <Image src="/images/teacher-with-student.jpg" alt="Teacher kneeling beside a student for one-on-one guidance" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" />
           </div>
         </div>
@@ -381,7 +322,7 @@ export default function ForTeachersPage() {
         </div>
 
         {/* ── Teacher Twin section (dark) ── */}
-        <section style={{ background: '#14213D' }} className="text-center">
+        <section style={{ background: '#14213D' }} className="fade-up text-center">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="max-w-[700px] mx-auto">
               <Eyebrow light>The Technology Behind It</Eyebrow>
@@ -403,7 +344,7 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── What Teachers Gain Back ── */}
-        <section className="bg-warm-white">
+        <section className="fade-up bg-warm-white">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-12">
               <Eyebrow>What You Gain Back</Eyebrow>
@@ -423,7 +364,7 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── Closing Line ── */}
-        <section className="bg-bg-secondary">
+        <section className="fade-up bg-bg-secondary">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center max-w-[760px] mx-auto">
               <p
@@ -440,7 +381,7 @@ export default function ForTeachersPage() {
 
         {/* ── CTA Section ── */}
         <section
-          className="relative overflow-hidden"
+          className="fade-up relative overflow-hidden"
           style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}
         >
           {/* Radial glow */}

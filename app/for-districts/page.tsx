@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import MobileMenu from '../_components/MobileMenu';
-import ThemeToggle from '@/components/shared/ThemeToggle';
+import MarketingNav from '@/components/shared/MarketingNav';
+import ScrollReveal from '@/components/shared/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'For Districts — Teaching Labs',
@@ -153,14 +153,16 @@ function PrincipleCard({
   icon,
   title,
   paragraphs,
+  floatClass = '',
 }: {
   icon: React.ReactNode;
   title: string;
   paragraphs: string[];
+  floatClass?: string;
 }) {
   return (
     <div className="card-accent relative bg-card-bg border border-border rounded-[20px] p-9 overflow-hidden shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300">
-      <div className="mb-4">{icon}</div>
+      <div className={`mb-4 ${floatClass}`}>{icon}</div>
       <h3 className="font-heading text-[17px] font-bold text-text-primary tracking-[-0.2px] mb-3">
         {title}
       </h3>
@@ -184,82 +186,7 @@ export default function ForDistrictsPage() {
       {/* ════════════════════════════════════════
           NAV
       ════════════════════════════════════════ */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-surface/97 backdrop-blur-lg">
-        <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
-
-          {/* Logo */}
-          <Link href="/" className="font-heading text-[22px] font-bold text-text-primary">
-            Teaching Labs
-          </Link>
-
-          {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-8 list-none">
-            {[
-              { href: '/', label: 'Home' },
-              { href: '/for-teachers', label: 'For Teachers' },
-              { href: '/for-students', label: 'For Students' },
-              { href: '/for-parents', label: 'For Parents' },
-            ].map(({ href, label }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200"
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-
-            {/* For Districts — active */}
-            <li>
-              <Link
-                href="/for-districts"
-                className="font-heading text-sm font-medium text-gold transition-colors duration-200"
-              >
-                For Districts
-              </Link>
-            </li>
-
-            {/* About dropdown */}
-            <li className="group relative">
-              <button className="flex items-center gap-1 font-heading text-sm font-medium text-text-secondary group-hover:text-gold transition-colors duration-200 cursor-pointer bg-transparent border-0 p-0">
-                About <IconChevronDown />
-              </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"><div className="bg-card-bg border border-border rounded-xl py-2 min-w-[200px] shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
-                {[
-                  { href: '/our-story', label: 'Our Story' },
-                  { href: '/how-it-works', label: 'How It Works' },
-                  { href: '/pricing', label: 'Pricing' },
-                  { href: '/contact', label: 'Contact' },
-                ].map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="block px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-[rgba(79,163,165,0.08)] hover:text-gold transition-colors duration-150"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-              </div>
-            </li>
-          </ul>
-
-          {/* Desktop right */}
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
-            <Link
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="font-heading text-sm font-semibold bg-gold text-deep-navy px-6 py-2.5 rounded-full hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200"
-            >
-              Join Waitlist
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <MobileMenu />
-        </div>
-      </nav>
+      <MarketingNav />
 
 
       {/* ════════════════════════════════════════
@@ -327,8 +254,14 @@ export default function ForDistrictsPage() {
           {/* CTA */}
           <div className="hero-buttons-anim-late flex gap-4 justify-center flex-wrap">
             <Link
+              href="/see-the-difference"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
+            >
+              What Is Different
+            </Link>
+            <Link
               href="/contact"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] hover:bg-[#f2d06e] transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
             >
               Request District Access
             </Link>
@@ -340,10 +273,11 @@ export default function ForDistrictsPage() {
       {/* ════════════════════════════════════════
           MAIN CONTENT
       ════════════════════════════════════════ */}
+            <ScrollReveal />
       <main>
 
         {/* ── A Responsible Approach to AI in Schools ── */}
-        <section className="bg-warm-white">
+        <section className="fade-up bg-warm-white">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="max-w-[860px] mx-auto text-center">
               <Eyebrow>A Responsible Approach to AI in Schools</Eyebrow>
@@ -373,7 +307,7 @@ export default function ForDistrictsPage() {
 
 
         {/* ── Governance Districts Can Trust ── */}
-        <section className="bg-bg-secondary">
+        <section className="fade-up bg-bg-secondary">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             {/* Section header */}
             <div className="text-center mb-12">
@@ -392,6 +326,7 @@ export default function ForDistrictsPage() {
               <PrincipleCard
                 icon={<IconTeacherGuided />}
                 title="Teacher-Guided AI"
+                floatClass="card-icon-float-1"
                 paragraphs={[
                   'Teaching Labs is built around the expertise of your educators. The system learns from how teachers explain concepts, guide students, and respond when learning breaks down.',
                   'AI supports instruction, but teachers remain the authority guiding learning in every classroom.',
@@ -400,6 +335,7 @@ export default function ForDistrictsPage() {
               <PrincipleCard
                 icon={<IconStudentData />}
                 title="Student Data Protection"
+                floatClass="card-icon-float-2"
                 paragraphs={[
                   'Student privacy is protected by design.',
                   'Teaching Labs is FERPA and COPPA compliant, with no advertising, no data resale, and no external model training on student information.',
@@ -409,6 +345,7 @@ export default function ForDistrictsPage() {
               <PrincipleCard
                 icon={<IconTransparent />}
                 title="Transparent Learning Systems"
+                floatClass="card-icon-float-3"
                 paragraphs={[
                   'Teaching Labs is designed to support learning, not simply generate answers.',
                   'Students are guided through explanations, practice, and feedback aligned with classroom instruction.',
@@ -418,6 +355,7 @@ export default function ForDistrictsPage() {
               <PrincipleCard
                 icon={<IconOversight />}
                 title="Human Oversight"
+                floatClass="card-icon-float-1"
                 paragraphs={[
                   'AI operates within clear human oversight.',
                   'Teachers guide how the system is used in their classrooms while administrators maintain district-level governance and visibility.',
@@ -430,7 +368,7 @@ export default function ForDistrictsPage() {
 
 
         {/* ── Built Around Your Teachers ── */}
-        <section className="bg-warm-white">
+        <section className="fade-up bg-warm-white">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="max-w-[800px] mx-auto">
               <h2
@@ -473,7 +411,7 @@ export default function ForDistrictsPage() {
 
 
         {/* ── Adoption That Happens Naturally ── */}
-        <section className="bg-bg-secondary">
+        <section className="fade-up bg-bg-secondary">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="max-w-[800px] mx-auto">
               <h2
@@ -507,7 +445,7 @@ export default function ForDistrictsPage() {
 
 
         {/* ── Visibility Without Micromanagement ── */}
-        <section className="bg-warm-white">
+        <section className="fade-up bg-warm-white">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="max-w-[800px] mx-auto">
               <h2
@@ -554,7 +492,7 @@ export default function ForDistrictsPage() {
 
 
         {/* ── What Districts Gain ── */}
-        <section style={{ background: '#0B1426' }}>
+        <section className="fade-up" style={{ background: '#0B1426' }}>
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center">
               {/* Eyebrow (light on dark) */}
@@ -604,7 +542,7 @@ export default function ForDistrictsPage() {
 
 
         {/* ── Leading the Next Era of Learning ── */}
-        <section className="bg-bg-secondary">
+        <section className="fade-up bg-bg-secondary">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="max-w-[860px] mx-auto text-center">
               <h2
@@ -637,7 +575,7 @@ export default function ForDistrictsPage() {
 
         {/* ── CTA Section ── */}
         <section
-          className="relative overflow-hidden"
+          className="fade-up relative overflow-hidden"
           style={{
             background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)',
           }}

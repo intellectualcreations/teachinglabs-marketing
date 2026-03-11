@@ -92,7 +92,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-warm-white dark:bg-[#0F1419] flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12">
 
       {/* Back link */}
       <div className="w-full max-w-[420px] mb-4">

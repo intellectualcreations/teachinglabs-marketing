@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import ThemeToggle from '@/components/shared/ThemeToggle';
-import MobileMenu from '../_components/MobileMenu';
+import MarketingNav from '@/components/shared/MarketingNav';
+import ScrollReveal from '@/components/shared/ScrollReveal';
 import ContactForm from './_components/ContactForm';
 
 export const metadata: Metadata = {
@@ -43,95 +43,7 @@ export default function ContactPage() {
     >
 
       {/* ── NAV ── */}
-      <nav
-        className="sticky top-0 z-50 border-b border-border backdrop-blur-2xl"
-        role="navigation"
-        aria-label="Main navigation"
-        style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface) 97%, transparent)' }}
-      >
-        <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
-
-          {/* Logo */}
-          <Link href="/" className="font-heading text-[22px] font-bold text-text-primary">
-            Teaching Labs
-          </Link>
-
-          {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-8 list-none">
-            {[
-              { href: '/', label: 'Home' },
-              { href: '/for-teachers', label: 'For Teachers' },
-              { href: '/for-students', label: 'For Students' },
-              { href: '/for-districts', label: 'For Districts' },
-              { href: '/for-parents', label: 'For Parents' },
-            ].map(({ href, label }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200"
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-
-            {/* About dropdown */}
-            <li className="group relative">
-              <button className="flex items-center gap-1 font-heading text-sm font-medium text-text-secondary group-hover:text-gold transition-colors duration-200 cursor-pointer bg-transparent border-0 p-0">
-                About <IconChevronDown />
-              </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-              <div className="bg-card-bg border border-border rounded-xl py-2 min-w-[220px] shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
-                {[
-                  { href: '/our-story', label: 'Our Story' },
-                  { href: '/how-it-works', label: 'How It Works' },
-                  { href: '/pricing', label: 'Pricing' },
-                  { href: '/see-the-difference', label: 'See the Difference' },
-                ].map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="block px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-[rgba(79,163,165,0.08)] hover:text-gold transition-colors duration-150"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-              </div>
-            </li>
-
-            {/* Contact — active */}
-            <li>
-              <Link
-                href="/contact"
-                className="font-heading text-sm font-medium text-gold transition-colors duration-200"
-              >
-                Contact
-              </Link>
-            </li>
-          </ul>
-
-          {/* Desktop right */}
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
-            <Link
-              href="/teacher/dashboard"
-              className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="font-heading text-sm font-semibold bg-gold text-deep-navy px-6 py-2.5 rounded-full hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200"
-            >
-              Join Waitlist
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <MobileMenu />
-        </div>
-      </nav>
+      <MarketingNav />
 
       {/* ── HERO ── */}
       <section className="relative flex items-center justify-center overflow-hidden bg-warm-white py-20 md:py-[80px] md:pb-[60px]">
@@ -199,17 +111,11 @@ export default function ContactPage() {
           {/* Buttons */}
           <div className="flex gap-4 justify-center flex-wrap mb-5 max-sm:flex-col max-sm:items-center">
             <Link
-              href="/see-the-difference"
+              href="/waitlist"
               className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] hover:bg-[#f2d06e] transition-all duration-300 max-sm:w-full max-sm:justify-center"
             >
-              See How It Works
-            </Link>
-            <a
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-teal px-10 py-4 rounded-full border-2 border-[#4FA3A5] hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300 max-sm:w-full max-sm:justify-center"
-            >
               Join the Waitlist
-            </a>
+            </Link>
           </div>
 
           <p className="font-heading text-[13px] text-text-muted">
@@ -219,6 +125,7 @@ export default function ContactPage() {
       </section>
 
       {/* ── CONTACT SECTION ── */}
+            <ScrollReveal />
       <main>
         <div className="max-w-[1100px] mx-auto px-12 py-24 grid grid-cols-2 gap-20 items-start max-md:grid-cols-1 max-md:gap-12 max-md:px-6 max-md:py-16">
 

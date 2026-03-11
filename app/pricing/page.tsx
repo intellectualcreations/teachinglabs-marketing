@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import MobileMenu from '../_components/MobileMenu';
-import ThemeToggle from '@/components/shared/ThemeToggle';
+import MarketingNav from '@/components/shared/MarketingNav';
+import ScrollReveal from '@/components/shared/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'Pricing — Teaching Labs',
@@ -73,7 +73,7 @@ function PricingCard({
     primary:
       'bg-teal text-white hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(79,163,165,0.35)]',
     secondary:
-      'bg-transparent text-teal border-2 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5',
+      'bg-transparent text-teal border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5',
     amber:
       'bg-gold text-deep-navy hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)]',
   };
@@ -139,74 +139,8 @@ export default function PricingPage() {
     <div className="min-h-screen bg-warm-white text-text-secondary overflow-x-hidden" style={{ fontFamily: "var(--font-open-sans, 'Open Sans', sans-serif)" }}>
 
       {/* ── NAV ── */}
-      <nav className="sticky top-0 z-50 border-b border-border backdrop-blur-2xl" style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface) 97%, transparent)' }}>
-        <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
-
-          {/* Logo */}
-          <Link href="/" className="font-heading text-[22px] font-bold text-text-primary">
-            Teaching Labs
-          </Link>
-
-          {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-8 list-none">
-            {[
-              { href: '/', label: 'Home' },
-              { href: '/for-teachers', label: 'For Teachers' },
-              { href: '/for-students', label: 'For Students' },
-              { href: '/for-districts', label: 'For Districts' },
-              { href: '/for-parents', label: 'For Parents' },
-            ].map(({ href, label }) => (
-              <li key={href}>
-                <Link href={href} className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200">
-                  {label}
-                </Link>
-              </li>
-            ))}
-
-            {/* About dropdown — active because Pricing is under About */}
-            <li className="group relative">
-              <button className="flex items-center gap-1 font-heading text-sm font-medium text-gold group-hover:text-gold transition-colors duration-200 cursor-pointer bg-transparent border-0 p-0">
-                About <IconChevronDown />
-              </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                <div className="bg-card-bg border border-border rounded-xl py-2 min-w-[200px] shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
-                  {[
-                    { href: '/our-story', label: 'Our Story', active: false },
-                    { href: '/how-it-works', label: 'How It Works', active: false },
-                    { href: '/pricing', label: 'Pricing', active: true },
-                    { href: '/contact', label: 'Contact', active: false },
-                  ].map(({ href, label, active }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      className={`block px-5 py-2.5 text-sm font-medium transition-colors duration-150 hover:bg-[rgba(79,163,165,0.08)] hover:text-gold ${active ? 'text-gold' : 'text-text-secondary'}`}
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </li>
-          </ul>
-
-          {/* Desktop right */}
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
-            <Link href="/teacher/dashboard" className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200">
-              Sign In
-            </Link>
-            <Link
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="font-heading text-sm font-semibold bg-gold text-deep-navy px-6 py-2.5 rounded-full hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200"
-            >
-              Join Waitlist
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <MobileMenu />
-        </div>
-      </nav>
+      <MarketingNav />
+      <ScrollReveal />
 
       {/* ── HERO ── */}
       <section className="relative flex items-center justify-center overflow-hidden bg-warm-white" style={{ minHeight: '50vh', padding: '80px 0 60px' }}>
@@ -248,7 +182,7 @@ export default function PricingPage() {
       </section>
 
       {/* ── PRICING GRID ── */}
-      <section className="bg-warm-white">
+      <section className="fade-up bg-warm-white">
         <div className="max-w-[1100px] mx-auto px-12 pb-20 max-md:px-6 max-md:pb-16">
           <div className="grid grid-cols-4 gap-6 max-md:grid-cols-1 max-md:max-w-[400px] max-md:mx-auto md:max-lg:grid-cols-2">
 
@@ -267,7 +201,7 @@ export default function PricingPage() {
                 'Community access',
               ]}
               ctaLabel="Get Started Free"
-              ctaHref="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
+              ctaHref="/waitlist"
               ctaVariant="primary"
             />
 
@@ -287,7 +221,7 @@ export default function PricingPage() {
                 'Priority support',
               ]}
               ctaLabel="Join Waitlist"
-              ctaHref="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
+              ctaHref="/waitlist"
               ctaVariant="amber"
               featured
             />
@@ -367,7 +301,7 @@ export default function PricingPage() {
 
       {/* ── CTA SECTION ── */}
       <section
-        className="relative overflow-hidden"
+        className="fade-up relative overflow-hidden"
         style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}
       >
         {/* Radial glow */}
@@ -391,7 +325,7 @@ export default function PricingPage() {
             Join the waitlist and be among the first to use Teaching Labs.
           </p>
           <Link
-            href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
+            href="/waitlist"
             className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
           >
             Join Waitlist

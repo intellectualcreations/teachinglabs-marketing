@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import MobileMenu from './_components/MobileMenu';
-import ThemeToggle from '@/components/shared/ThemeToggle';
+import ScrollReveal from '@/components/shared/ScrollReveal';
+import MarketingNav from '@/components/shared/MarketingNav';
 
 export const metadata: Metadata = {
   title: 'Teaching Labs — AI-Powered Teaching Platform for K-12',
@@ -88,14 +88,6 @@ function IconStar() {
   );
 }
 
-function IconChevronDown() {
-  return (
-    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-3 h-3">
-      <path d="M3 5l3 3 3-3" />
-    </svg>
-  );
-}
-
 /* ─── Feature image placeholders ─── */
 function FeatureImagePlaceholder({ label, colors }: { label: string; colors: string }) {
   return (
@@ -160,81 +152,20 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 /* ─── Main page ─── */
 export default function HomePage() {
   return (
+    <>
+      <MarketingNav />
     <div className="min-h-screen bg-warm-white text-text-secondary overflow-x-hidden" style={{ fontFamily: "var(--font-open-sans, 'Open Sans', sans-serif)" }}>
-
-      {/* ── NAV ── */}
-      <nav className="sticky top-0 z-50 border-b border-border backdrop-blur-2xl" style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface) 97%, transparent)' }}>
-        <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
-
-          {/* Logo */}
-          <Link href="/" className="font-heading text-[22px] font-bold text-text-primary">
-            Teaching Labs
-          </Link>
-
-          {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-8 list-none">
-            {[
-              { href: '/', label: 'Home' },
-              { href: '/for-teachers', label: 'For Teachers' },
-              { href: '/for-students', label: 'For Students' },
-              { href: '/for-districts', label: 'For Districts' },
-              { href: '/for-parents', label: 'For Parents' },
-            ].map(({ href, label }) => (
-              <li key={href}>
-                <Link href={href} className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200">
-                  {label}
-                </Link>
-              </li>
-            ))}
-            {/* About dropdown */}
-            <li className="group relative">
-              <button className="flex items-center gap-1 font-heading text-sm font-medium text-text-secondary group-hover:text-gold transition-colors duration-200 cursor-pointer bg-transparent border-0 p-0">
-                About <IconChevronDown />
-              </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-              <div className="bg-card-bg border border-border rounded-xl py-2 min-w-[200px] shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
-                {[
-                  { href: '/our-story', label: 'Our Story' },
-                  { href: '/how-it-works', label: 'How It Works' },
-                  { href: '/pricing', label: 'Pricing' },
-                  { href: '/contact', label: 'Contact' },
-                ].map(({ href, label }) => (
-                  <Link key={href} href={href} className="block px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-[rgba(79,163,165,0.08)] hover:text-gold transition-colors duration-150">
-                    {label}
-                  </Link>
-                ))}
-              </div>
-              </div>
-            </li>
-          </ul>
-
-          {/* Desktop right */}
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
-            <Link href="/login" className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200">
-              Sign In
-            </Link>
-            <Link
-              href="/login"
-              className="font-heading text-sm font-semibold bg-gold text-deep-navy px-6 py-2.5 rounded-full hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200"
-            >
-              Get Started
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <MobileMenu />
-        </div>
-      </nav>
 
       {/* ── HERO ── */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-warm-white">
-        {/* Blobs */}
+        {/* Decorative blobs — v4 uses higher opacity in dark mode (0.15/0.12) */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <div className="blob-teal absolute w-[500px] h-[500px] rounded-full opacity-[0.08] top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px]"
+          <div className="blob-teal absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px] opacity-[0.08] dark:opacity-[0.15]"
             style={{ background: '#4FA3A5', filter: 'blur(80px)' }} />
-          <div className="blob-gold absolute w-[450px] h-[450px] rounded-full opacity-[0.10] top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px]"
+          <div className="blob-gold absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px] opacity-[0.10] dark:opacity-[0.12]"
             style={{ background: '#F0C95D', filter: 'blur(80px)' }} />
+          <div className="absolute w-[350px] h-[350px] rounded-full top-[40%] left-[40%] opacity-0 dark:opacity-[0.06] max-md:hidden"
+            style={{ background: '#FF6B6B', filter: 'blur(80px)', animation: 'blobDrift3 10s ease-in-out infinite' }} />
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
@@ -264,27 +195,25 @@ export default function HomePage() {
           {/* Buttons */}
           <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8">
             <Link
-              href="/login"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] hover:bg-[#f2d06e] transition-all duration-300"
+              href="/how-it-works"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
             >
-              Get Started Free
+              Meet Your Twin
             </Link>
             <Link
-              href="/how-it-works"
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-teal px-10 py-4 rounded-full border-2 border-[#4FA3A5] hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
+              href="/waitlist"
+              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
             >
-              See How It Works
+              Join the Waitlist
             </Link>
           </div>
 
-          {/* Footnote */}
-          <p className="hero-footnote-anim font-heading text-[13px] text-text-muted">
-            Trusted by 2,500+ educators on the waitlist
-          </p>
+
         </div>
       </section>
 
       {/* ── MAIN CONTENT ── */}
+      <ScrollReveal />
       <main>
 
         {/* Intro line */}
@@ -296,7 +225,7 @@ export default function HomePage() {
         </div>
 
         {/* ── PROBLEM SECTION ── */}
-        <section className="bg-warm-white">
+        <section className="bg-warm-white fade-up">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14">
               <Eyebrow>The Challenge</Eyebrow>
@@ -332,7 +261,7 @@ export default function HomePage() {
         </section>
 
         {/* ── SOLUTION SECTION ── */}
-        <section className="bg-bg-secondary">
+        <section className="bg-bg-secondary fade-up">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14">
               <Eyebrow>Our Approach</Eyebrow>
@@ -368,7 +297,7 @@ export default function HomePage() {
         </section>
 
         {/* ── FEATURES WALKTHROUGH ── */}
-        <section className="bg-bg-feature">
+        <section className="bg-bg-feature fade-up">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="mb-14">
               <Eyebrow>How It Works</Eyebrow>
@@ -395,14 +324,14 @@ export default function HomePage() {
                   Your teaching style becomes the foundation for how students receive help and feedback.
                 </p>
               </div>
-              <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]" style={{ aspectRatio: '4/3' }}>
+              <div className="feat-photo-hover relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]" style={{ aspectRatio: '4/3' }}>
                 <Image src="/images/teacher-twin-reflection.jpg" alt="Teacher training their digital twin" width={560} height={400} className="w-full h-full object-cover rounded-2xl" />
               </div>
             </div>
 
             {/* Step 02 (reversed) */}
             <div className="grid grid-cols-2 gap-16 items-center mb-20 max-md:grid-cols-1 max-md:gap-8 max-md:mb-12">
-              <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)] max-md:order-2" style={{ aspectRatio: '4/3' }}>
+              <div className="feat-photo-hover relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)] max-md:order-2" style={{ aspectRatio: '4/3' }}>
                 <Image src="/images/student-getting-help.jpg" alt="Student receiving personalized help" width={560} height={400} className="w-full h-full object-cover rounded-2xl" />
               </div>
               <div className="max-md:order-1">
@@ -431,7 +360,7 @@ export default function HomePage() {
                   is needed most. So you can focus on the moments where your teaching has the greatest impact.
                 </p>
               </div>
-              <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]" style={{ aspectRatio: '4/3' }}>
+              <div className="feat-photo-hover relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]" style={{ aspectRatio: '4/3' }}>
                 <Image src="/images/teacher-viewing-data.jpg" alt="Teacher reviewing classroom insights" width={560} height={400} className="w-full h-full object-cover rounded-2xl" />
               </div>
             </div>
@@ -441,7 +370,7 @@ export default function HomePage() {
         </section>
 
         {/* ── CTA SECTION ── */}
-        <section className="relative overflow-hidden" style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}>
+        <section className="relative overflow-hidden fade-up" style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}>
           {/* Radial glow */}
           <div className="absolute inset-0 pointer-events-none" aria-hidden="true"
             style={{ background: 'radial-gradient(ellipse at center, rgba(240,201,93,0.12) 0%, transparent 70%)' }} />
@@ -458,10 +387,10 @@ export default function HomePage() {
               Be among the first to bring Teaching Labs into your classroom. No credit card. No commitment. Just better teaching.
             </p>
             <Link
-              href="/login"
+              href="/waitlist"
               className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
             >
-              Get Started Free
+              Join the Waitlist
             </Link>
           </div>
         </section>
@@ -552,5 +481,6 @@ export default function HomePage() {
       </footer>
 
     </div>
+    </>
   );
 }

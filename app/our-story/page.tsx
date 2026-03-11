@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import MobileMenu from '../_components/MobileMenu';
-import ThemeToggle from '@/components/shared/ThemeToggle';
+import MarketingNav from '@/components/shared/MarketingNav';
+import ScrollReveal from '@/components/shared/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'Our Story — Teaching Labs',
@@ -112,92 +112,7 @@ export default function OurStoryPage() {
     >
 
       {/* ── NAV ── */}
-      <nav
-        className="sticky top-0 z-50 border-b border-border backdrop-blur-2xl"
-        style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface) 97%, transparent)' }}
-        role="navigation"
-        aria-label="Main navigation"
-      >
-        <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
-
-          {/* Logo */}
-          <Link href="/" className="font-heading text-[22px] font-bold text-text-primary">
-            Teaching Labs
-          </Link>
-
-          {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-8 list-none">
-            {[
-              { href: '/', label: 'Home' },
-              { href: '/for-teachers', label: 'For Teachers' },
-              { href: '/for-students', label: 'For Students' },
-              { href: '/for-districts', label: 'For Districts' },
-              { href: '/for-parents', label: 'For Parents' },
-            ].map(({ href, label }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200"
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-
-            {/* About dropdown — "Our Story" is active */}
-            <li className="group relative">
-              <button className="flex items-center gap-1 font-heading text-sm font-medium text-gold transition-colors duration-200 cursor-pointer bg-transparent border-0 p-0">
-                About <IconChevronDown />
-              </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"><div className="bg-card-bg border border-border rounded-xl py-2 min-w-[200px] shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
-                <Link
-                  href="/our-story"
-                  className="block px-5 py-2.5 text-sm font-medium text-gold bg-[rgba(79,163,165,0.08)] transition-colors duration-150"
-                >
-                  Our Story
-                </Link>
-                {[
-                  { href: '/how-it-works', label: 'How It Works' },
-                  { href: '/pricing', label: 'Pricing' },
-                  { href: '/contact', label: 'Contact' },
-                ].map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="block px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-[rgba(79,163,165,0.08)] hover:text-gold transition-colors duration-150"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-              </div>
-            </li>
-
-            <li>
-              <Link
-                href="/contact"
-                className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200"
-              >
-                Contact
-              </Link>
-            </li>
-          </ul>
-
-          {/* Desktop right */}
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
-            <Link
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="font-heading text-sm font-semibold bg-gold text-deep-navy px-6 py-2.5 rounded-full hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200"
-            >
-              Join Waitlist
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <MobileMenu />
-        </div>
-      </nav>
+      <MarketingNav />
 
       {/* ── HERO ── */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-warm-white">
@@ -311,14 +226,14 @@ export default function OurStoryPage() {
             }}
           >
             <Link
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] hover:bg-[#f2d06e] transition-all duration-300"
+              href="/see-the-difference"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
             >
-              See How It Works
+              What Is Different
             </Link>
             <Link
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-teal px-10 py-4 rounded-full border-2 border-[#4FA3A5] hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
+              href="/waitlist"
+              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
             >
               Join the Waitlist
             </Link>
@@ -358,6 +273,7 @@ export default function OurStoryPage() {
         `}</style>
       </section>
 
+            <ScrollReveal />
       <main>
 
         {/* ── FOUNDER IMAGE ── */}
@@ -373,7 +289,7 @@ export default function OurStoryPage() {
         </div>
 
         {/* ── MISSION SECTION ── */}
-        <section className="bg-warm-white">
+        <section className="fade-up bg-warm-white">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="grid grid-cols-2 gap-20 items-center max-md:grid-cols-1 max-md:gap-12">
 
@@ -420,7 +336,7 @@ export default function OurStoryPage() {
         </section>
 
         {/* ── STORY SECTION ── */}
-        <section className="bg-bg-secondary">
+        <section className="fade-up bg-bg-secondary">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="grid grid-cols-2 gap-20 items-start max-md:grid-cols-1 max-md:gap-12">
 
@@ -471,7 +387,7 @@ export default function OurStoryPage() {
         </section>
 
         {/* ── VALUES SECTION ── */}
-        <section className="bg-warm-white">
+        <section className="fade-up bg-warm-white">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div>
               <SectionLabel>What We Believe</SectionLabel>
@@ -549,7 +465,7 @@ export default function OurStoryPage() {
 
         {/* ── CTA SECTION ── */}
         <section
-          className="relative overflow-hidden"
+          className="fade-up relative overflow-hidden"
           style={{
             background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)',
           }}
