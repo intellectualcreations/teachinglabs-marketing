@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   List, HouseLine, Archive, CaretRight, CaretDown, Plus,
   ClipboardText, Check, PaperPlaneRight, Paperclip,
   Camera, FileText, PencilLine, Cube, Microphone, X,
-  MathOperations, BookOpenText, Flask, GlobeHemisphereWest,
+  MathOperations, BookOpenText, Flask, GlobeHemisphereWest, SquaresFour,
+  ChatCircle, Trophy, Lightning, Clock, CalendarBlank, EnvelopeSimple,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 // ============ DATA ============
 
@@ -168,15 +171,88 @@ const CHAT_MESSAGES: Record<string, ChatMsg[]> = {
 let msgIdCounter = 100;
 function newMsgId() { return `msg-${++msgIdCounter}`; }
 
-type ViewMode = 'chat' | 'new-chat' | 'welcome';
+type ViewMode = 'chat' | 'new-chat' | 'welcome' | 'class-dashboard';
+
+// Stats data per class for the class dashboard
+const CLASS_STATS: Record<ClassKey, { chatSessions: number; activities: number; personalChats: number; badges: number }> = {
+  math: { chatSessions: 12, activities: 3, personalChats: 5, badges: 2 },
+  science: { chatSessions: 8, activities: 2, personalChats: 2, badges: 1 },
+  ela: { chatSessions: 10, activities: 2, personalChats: 2, badges: 3 },
+  social: { chatSessions: 6, activities: 1, personalChats: 1, badges: 1 },
+};
+
+// Recent activity data per class
+const CLASS_RECENT_ACTIVITY: Record<ClassKey, { label: string; chatId: string; type: 'lesson' | 'open' | 'archived' | 'turnedin'; time: string; color: string }[]> = {
+  math: [
+    { label: 'Continued "Help with fractions" chat', chatId: 'fractions-help', type: 'open', time: '2m ago', color: '#4FA3A5' },
+    { label: 'Worked on Adding Fractions Worksheet', chatId: 'hw-fractions-add', type: 'lesson', time: '1h ago', color: '#D4A843' },
+    { label: 'Started "Word problems practice"', chatId: 'word-problems', type: 'open', time: 'Yesterday', color: '#4FA3A5' },
+    { label: 'Turned in Chapter 6 Test Prep', chatId: 'hw-ch6-test', type: 'turnedin', time: 'Mar 5', color: '#22C55E' },
+    { label: 'Explored "Times tables tricks"', chatId: 'times-tables', type: 'open', time: 'Mar 4', color: '#4FA3A5' },
+  ],
+  science: [
+    { label: 'Worked on Ecosystems Project', chatId: 'ecosystems-proj', type: 'lesson', time: 'Today', color: '#D4A843' },
+    { label: 'Continued "Water cycle quiz prep"', chatId: 'water-cycle', type: 'open', time: 'Mar 4', color: '#4FA3A5' },
+    { label: 'Asked about solar system', chatId: 'planets-chat', type: 'open', time: 'Feb 28', color: '#4FA3A5' },
+    { label: 'Turned in Weather Patterns Worksheet', chatId: 'hw-weather', type: 'turnedin', time: 'Feb 20', color: '#22C55E' },
+  ],
+  ela: [
+    { label: 'Started Book Report: Percy Jackson', chatId: 'book-report', type: 'lesson', time: 'Today', color: '#D4A843' },
+    { label: 'Worked on Persuasive Essay Draft', chatId: 'essay-draft', type: 'lesson', time: 'Mar 6', color: '#D4A843' },
+    { label: 'Practiced vocabulary', chatId: 'vocabulary', type: 'open', time: 'Mar 1', color: '#4FA3A5' },
+    { label: 'Turned in Spelling Test Prep', chatId: 'hw-spelling', type: 'turnedin', time: 'Feb 18', color: '#22C55E' },
+  ],
+  social: [
+    { label: 'Worked on 13 Colonies Worksheet', chatId: 'colonies-worksheet', type: 'lesson', time: 'Mar 6', color: '#D4A843' },
+    { label: 'Discussed timeline project ideas', chatId: 'timeline', type: 'open', time: 'Feb 27', color: '#4FA3A5' },
+    { label: 'Completed Map Skills Quiz', chatId: 'hw-map-skills', type: 'archived', time: 'Feb 15', color: '#6B7280' },
+  ],
+};
+
+const CLASS_MESSAGES: Record<ClassKey, { from: string; role: 'ai' | 'teacher'; avatar: string; avatarBg: string; message: string; time: string }[]> = {
+  math: [
+    { from: "Mrs. Martinez's Assistant", role: 'ai', avatar: 'M', avatarBg: '#4FA3A5', message: "Hey Alex! Don't forget your fraction work is due tomorrow. Let me know if you need any help!", time: '3h ago' },
+    { from: 'Mrs. Martinez', role: 'teacher', avatar: 'MM', avatarBg: '#1F3A5F', message: "Hi Alex! Great work on the Chapter 6 test prep. I can tell you really read through the materials! You will be ready to go!!", time: 'Yesterday' },
+  ],
+  science: [
+    { from: "Mr. Thompson's Assistant", role: 'ai', avatar: 'T', avatarBg: '#4FA3A5', message: "Hi Alex! Your Ecosystems Project is coming along great. Remember to include at least 3 food chain examples before Friday!", time: '5h ago' },
+    { from: 'Mr. Thompson', role: 'teacher', avatar: 'DT', avatarBg: '#1F3A5F', message: "Alex, I saw your water cycle diagram. Really impressive detail on the condensation stage. Keep it up!", time: '2 days ago' },
+  ],
+  ela: [
+    { from: "Ms. Chen's Assistant", role: 'ai', avatar: 'C', avatarBg: '#4FA3A5', message: "Hey Alex! Your Percy Jackson book report is off to a great start. Want to work on the character analysis section together?", time: '1h ago' },
+    { from: 'Ms. Chen', role: 'teacher', avatar: 'LC', avatarBg: '#1F3A5F', message: "Alex, your persuasive essay draft showed real improvement in using evidence. I left some notes for your next revision!", time: 'Mar 6' },
+  ],
+  social: [
+    { from: "Mrs. Johnson's Assistant", role: 'ai', avatar: 'J', avatarBg: '#4FA3A5', message: "Alex, you mentioned wanting to do your timeline project on the American Revolution. I found some great primary sources we can look at together!", time: 'Today' },
+    { from: 'Mrs. Johnson', role: 'teacher', avatar: 'SJ', avatarBg: '#1F3A5F', message: "Nice work on the 13 Colonies worksheet, Alex. Your map labels were very accurate!", time: 'Mar 7' },
+  ],
+};
 
 export default function StudentMainPage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center bg-warm-white"><div className="text-text-muted text-sm">Loading...</div></div>}>
+      <StudentMainInner />
+    </Suspense>
+  );
+}
+
+function StudentMainInner() {
+  const searchParams = useSearchParams();
+  const initialClass = (searchParams.get('class') as ClassKey) || 'math';
+  const initialView = searchParams.get('view') === 'class-dashboard' ? 'class-dashboard' as ViewMode : 'chat' as ViewMode;
+
   const [classData, setClassData] = useState(INITIAL_DATA);
-  const [currentClass, setCurrentClass] = useState<ClassKey>('math');
+  const [currentClass, setCurrentClass] = useState<ClassKey>(initialClass);
   const [currentChatId, setCurrentChatId] = useState<string>('fractions-help');
   const [currentChatType, setCurrentChatType] = useState<'lesson' | 'open' | 'archived' | 'turnedin'>('open');
-  const [viewMode, setViewMode] = useState<ViewMode>('chat');
-  const [expandedClasses, setExpandedClasses] = useState<Set<ClassKey>>(new Set(['math']));
+  const [viewMode, setViewMode] = useState<ViewMode>(initialView);
+
+  const openClassDashboard = (classId: ClassKey) => {
+    setCurrentClass(classId);
+    setViewMode('class-dashboard');
+    setSidebarOpen(false);
+  };
+  const [expandedClasses, setExpandedClasses] = useState<Set<ClassKey>>(new Set());
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [expandedArchives, setExpandedArchives] = useState<Set<ClassKey>>(new Set());
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -426,22 +502,33 @@ export default function StudentMainPage() {
       <div className="flex h-screen w-screen overflow-hidden bg-warm-white">
         {/* ============ SIDEBAR ============ */}
         <aside className={`
-          w-[280px] min-w-[280px] bg-card-bg border-r border-border flex flex-col overflow-hidden
+          w-[280px] min-w-[280px] bg-navy flex flex-col overflow-hidden
           fixed lg:static top-0 bottom-0 left-0 z-[100] transition-transform duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
           {/* Sidebar header */}
-          <div className="px-4 py-4 border-b border-border flex items-center gap-3">
+          <div className="px-4 py-4 border-b border-white/10 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-sm flex-shrink-0">AR</div>
             <div>
-              <div className="font-heading font-semibold text-sm text-text-primary">Alex Rivera</div>
-              <div className="text-[11px] text-text-muted">5th Grade · Lincoln Elementary</div>
+              <div className="font-heading font-semibold text-sm text-white">Alex Rivera</div>
+              <div className="text-[11px] text-white/50">5th Grade · Lincoln Elementary</div>
             </div>
           </div>
 
+          {/* Dashboard button */}
+          <nav className="px-2 py-2 border-b border-white/10">
+            <Link
+              href="/student/dashboard"
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal/90 transition-colors"
+            >
+              <SquaresFour size={18} weight="fill" />
+              Dashboard
+            </Link>
+          </nav>
+
           {/* Class list */}
           <div className="flex-1 overflow-y-auto pb-4">
-            <div className="px-4 py-3 text-[10px] font-bold uppercase tracking-[1.2px] text-text-muted">My Classes</div>
+            <div className="px-4 py-3 text-[10px] font-bold uppercase tracking-[1.2px] text-white/50">My Classes</div>
 
             {(Object.keys(classData) as ClassKey[]).map(classId => {
               const c = classData[classId];
@@ -452,17 +539,24 @@ export default function StudentMainPage() {
                 <div key={classId} className="mx-2 mb-0.5">
                   {/* Class header */}
                   <div
-                    onClick={() => toggleClass(classId)}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${isCurrent ? 'bg-teal/[0.08]' : 'hover:bg-teal/[0.04]'}`}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${isCurrent ? 'bg-white/[0.15] border-l-2 border-teal' : 'hover:bg-white/[0.12]'}`}
                   >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: c.iconBg }}>
-                      {c.icon}
+                    <div
+                      onClick={() => openClassDashboard(classId)}
+                      className="flex items-center gap-2.5 flex-1 min-w-0"
+                    >
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: c.iconBg }}>
+                        {c.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-xs text-white truncate">{c.name}</div>
+                        <div className="text-[11px] text-white/50">{c.teacher}</div>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-xs text-text-primary truncate">{c.name}</div>
-                      <div className="text-[11px] text-text-muted">{c.teacher}</div>
-                    </div>
-                    <div className={`w-5 h-5 flex items-center justify-center text-text-muted transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+                    <div
+                      onClick={(e) => { e.stopPropagation(); toggleClass(classId); }}
+                      className={`w-5 h-5 flex items-center justify-center text-white/40 transition-transform hover:text-white ${isExpanded ? 'rotate-90' : ''}`}
+                    >
                       <CaretRight size={14} weight="fill" />
                     </div>
                   </div>
@@ -475,20 +569,20 @@ export default function StudentMainPage() {
                         <>
                           <button
                             onClick={() => toggleSection(`${classId}-lessons`)}
-                            className="flex items-center w-full pl-[54px] pr-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.8px] text-text-muted hover:text-text-primary transition-colors"
+                            className="flex items-center w-full pl-[54px] pr-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.8px] text-white/50 hover:text-white/70 transition-colors"
                           >
                             <span className={`mr-1 transition-transform ${collapsedSections.has(`${classId}-lessons`) ? '-rotate-90' : ''}`}>
                               <CaretDown size={10} weight="fill" />
                             </span>
                             Open Activities
-                            <span className="ml-auto text-[9px] font-semibold bg-border text-text-muted px-1.5 py-0.5 rounded-md">{c.lessons.length}</span>
+                            <span className="ml-auto text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{c.lessons.length}</span>
                           </button>
                           {!collapsedSections.has(`${classId}-lessons`) && c.lessons.map(item => (
                             <div
                               key={item.id}
                               onClick={() => openChat(classId, item.id, 'lesson')}
                               className={`flex items-center gap-2 pl-[54px] pr-3 py-1.5 mx-2 rounded-md cursor-pointer text-xs transition-colors
-                                ${classId === currentClass && item.id === currentChatId ? 'bg-teal/10 text-teal font-medium' : 'text-text-primary hover:bg-teal/[0.05]'}`}
+                                ${classId === currentClass && item.id === currentChatId ? 'bg-teal/20 text-teal font-medium' : 'text-white/70 hover:text-white hover:bg-white/[0.08]'}`}
                             >
                               <span className="flex-shrink-0 text-[13px]">📋</span>
                               <span className="flex-1 truncate">{item.name}</span>
@@ -503,24 +597,24 @@ export default function StudentMainPage() {
                         <>
                           <button
                             onClick={() => toggleSection(`${classId}-turnedin`)}
-                            className="flex items-center w-full pl-[54px] pr-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.8px] text-text-muted hover:text-text-primary transition-colors"
+                            className="flex items-center w-full pl-[54px] pr-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.8px] text-white/50 hover:text-white/70 transition-colors"
                           >
                             <span className={`mr-1 transition-transform ${collapsedSections.has(`${classId}-turnedin`) ? '-rotate-90' : ''}`}>
                               <CaretDown size={10} weight="fill" />
                             </span>
                             Turned In
-                            <span className="ml-auto text-[9px] font-semibold bg-border text-text-muted px-1.5 py-0.5 rounded-md">{c.turnedIn.length}</span>
+                            <span className="ml-auto text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{c.turnedIn.length}</span>
                           </button>
                           {!collapsedSections.has(`${classId}-turnedin`) && c.turnedIn.map(item => (
                             <div
                               key={item.id}
                               onClick={() => openChat(classId, item.id, 'turnedin')}
                               className={`flex items-center gap-2 pl-[54px] pr-3 py-1.5 mx-2 rounded-md cursor-pointer text-xs transition-colors opacity-70
-                                ${classId === currentClass && item.id === currentChatId ? 'bg-teal/10 text-teal font-medium opacity-100' : 'text-text-primary hover:bg-teal/[0.05]'}`}
+                                ${classId === currentClass && item.id === currentChatId ? 'bg-teal/20 text-teal font-medium opacity-100' : 'text-white/70 hover:text-white hover:bg-white/[0.08]'}`}
                             >
                               <span className="flex-shrink-0 text-[13px]">✅</span>
                               <span className="flex-1 truncate">{item.name}</span>
-                              <span className="text-[10px] text-text-muted flex-shrink-0">{item.turned}</span>
+                              <span className="text-[10px] text-white/40 flex-shrink-0">{item.turned}</span>
                             </div>
                           ))}
                         </>
@@ -529,13 +623,13 @@ export default function StudentMainPage() {
                       {/* Open Chats */}
                       <button
                         onClick={() => toggleSection(`${classId}-chats`)}
-                        className="flex items-center w-full pl-[54px] pr-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.8px] text-text-muted hover:text-text-primary transition-colors"
+                        className="flex items-center w-full pl-[54px] pr-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.8px] text-white/50 hover:text-white/70 transition-colors"
                       >
                         <span className={`mr-1 transition-transform ${collapsedSections.has(`${classId}-chats`) ? '-rotate-90' : ''}`}>
                           <CaretDown size={10} weight="fill" />
                         </span>
                         Open Chats
-                        <span className="ml-auto text-[9px] font-semibold bg-border text-text-muted px-1.5 py-0.5 rounded-md">{c.openChats.length}</span>
+                        <span className="ml-auto text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{c.openChats.length}</span>
                       </button>
                       {!collapsedSections.has(`${classId}-chats`) && (
                         <>
@@ -544,16 +638,16 @@ export default function StudentMainPage() {
                               key={item.id}
                               onClick={() => openChat(classId, item.id, 'open')}
                               className={`flex items-center gap-2 pl-[54px] pr-3 py-1.5 mx-2 rounded-md cursor-pointer text-xs transition-colors
-                                ${classId === currentClass && item.id === currentChatId ? 'bg-teal/10 text-teal font-medium' : 'text-text-primary hover:bg-teal/[0.05]'}`}
+                                ${classId === currentClass && item.id === currentChatId ? 'bg-teal/20 text-teal font-medium' : 'text-white/70 hover:text-white hover:bg-white/[0.08]'}`}
                             >
                               <span className="flex-shrink-0 text-[13px]">💬</span>
                               <span className="flex-1 truncate">{item.name}</span>
-                              <span className="text-[10px] text-text-muted flex-shrink-0">{item.time}</span>
+                              <span className="text-[10px] text-white/40 flex-shrink-0">{item.time}</span>
                             </div>
                           ))}
                           <button
                             onClick={() => startNewChat(classId)}
-                            className="flex items-center gap-1.5 pl-[54px] pr-3 py-1.5 mx-2 rounded-md w-full text-left text-xs text-teal font-medium hover:bg-teal/[0.06] transition-colors"
+                            className="flex items-center gap-1.5 pl-[54px] pr-3 py-1.5 mx-2 rounded-md w-full text-left text-xs text-teal font-medium hover:bg-white/[0.08] transition-colors"
                           >
                             <Plus size={14} weight="fill" /> New chat
                           </button>
@@ -565,23 +659,23 @@ export default function StudentMainPage() {
                         <>
                           <button
                             onClick={() => toggleArchive(classId)}
-                            className="flex items-center gap-1.5 pl-[54px] pr-3 py-1.5 w-full text-left text-[11px] text-text-muted font-medium hover:text-text-primary transition-colors"
+                            className="flex items-center gap-1.5 pl-[54px] pr-3 py-1.5 w-full text-left text-[11px] text-white/50 font-medium hover:text-white/70 transition-colors"
                           >
                             <span className={`transition-transform ${expandedArchives.has(classId) ? 'rotate-90' : ''}`}>
                               <CaretRight size={12} weight="fill" />
                             </span>
                             Archived
-                            <span className="ml-1 text-[9px] font-semibold bg-border text-text-muted px-1.5 py-0.5 rounded-md">{c.archived.length}</span>
+                            <span className="ml-1 text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{c.archived.length}</span>
                           </button>
                           {expandedArchives.has(classId) && c.archived.map(item => (
                             <div
                               key={item.id}
                               onClick={() => openChat(classId, item.id, 'archived')}
-                              className="flex items-center gap-2 pl-[54px] pr-3 py-1.5 mx-2 rounded-md cursor-pointer text-xs text-text-primary opacity-60 hover:opacity-100 hover:bg-teal/[0.05] transition-all"
+                              className="flex items-center gap-2 pl-[54px] pr-3 py-1.5 mx-2 rounded-md cursor-pointer text-xs text-white/50 opacity-60 hover:opacity-100 hover:bg-white/[0.08] transition-all"
                             >
                               <span className="flex-shrink-0 text-[13px]">💬</span>
                               <span className="flex-1 truncate">{item.name}</span>
-                              <span className="text-[10px] text-text-muted flex-shrink-0">{item.time}</span>
+                              <span className="text-[10px] text-white/40 flex-shrink-0">{item.time}</span>
                             </div>
                           ))}
                         </>
@@ -597,7 +691,7 @@ export default function StudentMainPage() {
         {/* ============ MAIN AREA ============ */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex items-center gap-3 px-6 py-3.5 border-b border-border bg-card-bg min-h-14">
+          <div className="flex items-center gap-3 px-4 sm:px-6 py-3.5 border-b border-border bg-card-bg shadow-sm min-h-14">
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-teal/[0.06] text-text-primary transition-colors"
@@ -626,6 +720,7 @@ export default function StudentMainPage() {
                 >
                   <Archive size={16} weight="fill" />
                 </button>
+                <ThemeToggle />
               </>
             ) : viewMode === 'new-chat' ? (
               <>
@@ -636,24 +731,176 @@ export default function StudentMainPage() {
                   <div className="font-heading font-semibold text-sm text-text-primary">New Chat</div>
                   <div className="text-xs text-text-muted">{cls.name} · {cls.teacher}</div>
                 </div>
+                <ThemeToggle />
+              </>
+            ) : viewMode === 'class-dashboard' ? (
+              <>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.iconBg }}>
+                  {cls.icon}
+                </div>
+                <div className="flex-1">
+                  <div className="font-heading font-semibold text-sm text-text-primary">{cls.name}</div>
+                  <div className="text-xs text-text-muted">{cls.teacher} · Class Dashboard</div>
+                </div>
+                <ThemeToggle />
               </>
             ) : (
-              <div className="flex-1">
-                <div className="font-heading font-semibold text-sm text-text-primary">My Classes</div>
-              </div>
+              <>
+                <div className="flex-1">
+                  <div className="font-heading font-semibold text-sm text-text-primary">My Classes</div>
+                </div>
+                <ThemeToggle />
+              </>
             )}
           </div>
 
           {/* ---- WELCOME VIEW ---- */}
           {viewMode === 'welcome' && (
             <div className="flex-1 flex items-center justify-center p-10">
-              <div className="text-center max-w-sm">
+              <div className="text-center max-w-sm bg-card-bg border border-border rounded-2xl shadow-sm px-8 py-10">
                 <div className="text-5xl mb-4 opacity-60">👋</div>
                 <h2 className="font-heading font-bold text-xl text-text-primary mb-2">Hi Alex!</h2>
                 <p className="text-sm text-text-secondary leading-relaxed">Pick a class from the sidebar to continue a chat, or start a new one.</p>
               </div>
             </div>
           )}
+
+          {/* ---- CLASS DASHBOARD VIEW ---- */}
+          {viewMode === 'class-dashboard' && (() => {
+            const stats = CLASS_STATS[currentClass];
+            const recentActivity = CLASS_RECENT_ACTIVITY[currentClass];
+            const messages = CLASS_MESSAGES[currentClass];
+            const classInfo = classData[currentClass];
+            return (
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+                {/* Class Header */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: classInfo.iconBg }}>
+                    {classInfo.icon}
+                  </div>
+                  <div>
+                    <h1 className="font-heading font-bold text-xl text-text-primary">{classInfo.name}</h1>
+                    <p className="text-sm text-text-secondary">{classInfo.teacher}</p>
+                  </div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  {[
+                    { label: 'Chat Sessions', value: stats.chatSessions, icon: <ChatCircle size={20} weight="fill" className="text-teal" />, bg: 'bg-teal/[0.08]' },
+                    { label: 'Activities', value: stats.activities, icon: <ClipboardText size={20} weight="fill" className="text-[#D4A843]" />, bg: 'bg-[#D4A843]/[0.08]' },
+                    { label: 'Personal Chats', value: stats.personalChats, icon: <Lightning size={20} weight="fill" className="text-[#1F3A5F]" />, bg: 'bg-[#1F3A5F]/[0.08]' },
+                    { label: 'Badges Earned', value: stats.badges, icon: <Trophy size={20} weight="fill" className="text-[#D4A843]" />, bg: 'bg-[#D4A843]/[0.08]' },
+                  ].map(stat => (
+                    <div key={stat.label} className="bg-card-bg border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-2 ${stat.bg}`}>
+                        {stat.icon}
+                      </div>
+                      <div className="font-heading font-bold text-2xl text-text-primary">{stat.value}</div>
+                      <div className="text-xs text-text-muted">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Recent Activity */}
+                <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
+                  <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
+                    <Clock size={16} weight="fill" className="text-text-muted" />
+                    Recent Activity
+                  </h2>
+                  <div className="flex flex-col gap-1">
+                    {recentActivity.map((item, i) => (
+                      <div
+                        key={i}
+                        onClick={() => openChat(currentClass, item.chatId, item.type)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-teal/[0.05] transition-colors"
+                      >
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: item.color }} />
+                        <span className="flex-1 text-sm text-text-primary truncate">{item.label}</span>
+                        <span className="text-xs text-text-muted flex-shrink-0">{item.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
+                  <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
+                    <EnvelopeSimple size={16} weight="fill" className="text-teal" />
+                    Messages
+                  </h2>
+                  <div className="flex flex-col gap-3">
+                    {messages.map((msg, i) => (
+                      <div key={i} className="flex gap-3 px-3 py-3 rounded-lg hover:bg-teal/[0.05] transition-colors cursor-pointer">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5"
+                          style={{ background: msg.avatarBg }}
+                        >
+                          {msg.avatar}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="font-heading font-semibold text-sm text-text-primary truncate">{msg.from}</span>
+                            {msg.role === 'ai' && (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal/[0.1] text-teal flex-shrink-0">AI</span>
+                            )}
+                            <span className="text-[11px] text-text-muted flex-shrink-0 ml-auto">{msg.time}</span>
+                          </div>
+                          <p className="text-sm text-text-secondary leading-relaxed">{msg.message}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Open Activities */}
+                {classInfo.lessons.length > 0 && (
+                  <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
+                    <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
+                      <CalendarBlank size={16} weight="fill" className="text-[#D4A843]" />
+                      Open Activities
+                    </h2>
+                    <div className="flex flex-col gap-1">
+                      {classInfo.lessons.map(item => (
+                        <div
+                          key={item.id}
+                          onClick={() => openChat(currentClass, item.id, 'lesson')}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-teal/[0.05] transition-colors"
+                        >
+                          <span className="text-[15px] flex-shrink-0">📋</span>
+                          <span className="flex-1 text-sm text-text-primary truncate">{item.name}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0 ${statusColor(item.status)}`}>{item.due}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Open Chats */}
+                {classInfo.openChats.length > 0 && (
+                  <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
+                    <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
+                      <ChatCircle size={16} weight="fill" className="text-teal" />
+                      Open Chats
+                    </h2>
+                    <div className="flex flex-col gap-1">
+                      {classInfo.openChats.map(item => (
+                        <div
+                          key={item.id}
+                          onClick={() => openChat(currentClass, item.id, 'open')}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-teal/[0.05] transition-colors"
+                        >
+                          <span className="text-[15px] flex-shrink-0">💬</span>
+                          <span className="flex-1 text-sm text-text-primary truncate">{item.name}</span>
+                          <span className="text-xs text-text-muted flex-shrink-0">{item.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* ---- NEW CHAT VIEW ---- */}
           {viewMode === 'new-chat' && (
@@ -690,7 +937,7 @@ export default function StudentMainPage() {
           {/* ---- CHAT VIEW ---- */}
           {viewMode === 'chat' && (
             <>
-              <div ref={chatViewRef} className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4">
+              <div ref={chatViewRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
                 {/* Assignment banner */}
                 {currentChatType === 'lesson' && currentChat && (
                   <div className="flex items-center gap-3 px-4 py-3 bg-info/[0.06] border border-info/15 rounded-[10px] mb-2">
@@ -742,7 +989,7 @@ export default function StudentMainPage() {
                             <span className="text-[11px] text-text-muted">{msg.image.fileName}</span>
                           </div>
                         ) : msg.attachment ? (
-                          <div className={`px-3.5 py-3 rounded-2xl ${msg.role === 'student' ? 'bg-teal rounded-br-sm' : 'bg-card-bg border border-border rounded-bl-sm'}`}>
+                          <div className={`px-3.5 py-3 rounded-2xl ${msg.role === 'student' ? 'bg-teal rounded-br-sm shadow-sm' : 'bg-card-bg border border-border rounded-bl-sm shadow-sm'}`}>
                             <div className="flex items-center gap-2">
                               <span className="text-xl">{msg.attachment.type}</span>
                               <div>
@@ -755,8 +1002,8 @@ export default function StudentMainPage() {
                           <div
                             className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed
                               ${msg.role === 'ai'
-                                ? 'bg-card-bg border border-border rounded-bl-sm text-text-primary'
-                                : 'bg-teal text-white rounded-br-sm'}`}
+                                ? 'bg-card-bg border border-border rounded-bl-sm shadow-sm text-text-primary'
+                                : 'bg-teal text-white rounded-br-sm shadow-sm'}`}
                             dangerouslySetInnerHTML={{ __html: msg.text }}
                           />
                         )}
@@ -771,7 +1018,7 @@ export default function StudentMainPage() {
                     <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center text-xs font-semibold text-white mt-1 flex-shrink-0">
                       {cls.teacherInitial}
                     </div>
-                    <div className="bg-card-bg border border-border rounded-2xl rounded-bl-sm px-3.5 py-3">
+                    <div className="bg-card-bg border border-border rounded-2xl rounded-bl-sm shadow-sm px-3.5 py-3">
                       <div className="flex gap-1">
                         {[0, 1, 2].map(i => (
                           <div
@@ -787,7 +1034,7 @@ export default function StudentMainPage() {
               </div>
 
               {/* Input bar */}
-              <div className="px-6 py-3 border-t border-border bg-card-bg">
+              <div className="px-4 sm:px-6 py-3 border-t border-border bg-card-bg shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
                 {/* Turn in row */}
                 {currentChatType === 'lesson' && (
                   <div className="mb-2.5">
