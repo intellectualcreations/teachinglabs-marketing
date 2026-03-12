@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   CaretLeft, CheckCircle, UsersThree, BookOpenText, MathOperations,
   Flask, GlobeHemisphereWest, SquaresFour, ChatsCircle, ClipboardText,
@@ -8,6 +9,7 @@ import {
   EnvelopeSimple, RocketLaunch, Fire, Star, Lightning, Brain, Medal,
   Target, ClockCounterClockwise,
 } from '@phosphor-icons/react';
+import { getDemoStudents } from '@/lib/demo-data';
 
 // ── Demo data ────────────────────────────────────────────────────────────────
 
@@ -118,7 +120,31 @@ const ACTIVITIES: Record<string, Activity[]> = {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function StudentDetailPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-text-secondary">Loading student...</div>}>
+      <StudentDetailContent />
+    </Suspense>
+  );
+}
+
+function StudentDetailContent() {
+  const searchParams = useSearchParams();
+  const studentId = searchParams.get('student');
+
+  // Look up student from demo data
+  const allStudents = getDemoStudents();
+  const student = allStudents.find((s) => s.id === studentId) ?? allStudents[0];
+
+  const initials = student.first[0] + student.last[0];
+  const statusLabel = student.status === 'on-track' ? 'On Track' : student.status === 'excelling' ? 'Excelling' : 'Needs Attention';
+  const statusStyle = student.status === 'on-track'
+    ? 'bg-teal/10 text-teal'
+    : student.status === 'excelling'
+      ? 'bg-success/10 text-success'
+      : 'bg-warning/10 text-warning';
+
   const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [teacherNotes, setTeacherNotes] = useState('');
 
   const filterKey = activeFilter;
   const stats = STATS_DATA[filterKey] ?? STATS_DATA.all;
@@ -152,17 +178,20 @@ export default function StudentDetailPage() {
         {/* top stripe */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-navy to-teal" />
 
-        <div className="w-16 h-16 rounded-full bg-navy text-white flex items-center justify-center
-          font-heading font-extrabold text-[22px] shrink-0">
-          EJ
+        <div
+          className="w-16 h-16 rounded-full text-white flex items-center justify-center
+            font-heading font-extrabold text-[22px] shrink-0"
+          style={{ backgroundColor: student.color }}
+        >
+          {initials}
         </div>
 
         <div>
-          <div className="font-heading text-[22px] font-bold text-text-primary">Emma Johnson</div>
-          <div className="text-[13px] text-text-secondary mt-0.5">5th Grade · STU-10042 · Lincoln Elementary</div>
+          <div className="font-heading text-[22px] font-bold text-text-primary">{student.first} {student.last}</div>
+          <div className="text-[13px] text-text-secondary mt-0.5">Grade {student.grade} · {student.id} · {student.classNames[0] || 'Unassigned'}</div>
           <div className="flex gap-2 mt-2">
-            <span className="inline-flex items-center gap-1 px-3 py-[3px] rounded-full text-xs font-semibold bg-success/10 text-success">
-              <CheckCircle size={12} weight="fill" /> Active
+            <span className={`inline-flex items-center gap-1 px-3 py-[3px] rounded-full text-xs font-semibold ${statusStyle}`}>
+              <CheckCircle size={12} weight="fill" /> {statusLabel}
             </span>
             <span className="inline-flex items-center gap-1 px-3 py-[3px] rounded-full text-xs font-semibold bg-teal/10 text-teal">
               <UsersThree size={12} weight="fill" /> Parent Connected
@@ -172,16 +201,16 @@ export default function StudentDetailPage() {
 
         <div className="ml-auto hidden sm:flex gap-6 text-center">
           <div>
-            <div className="font-heading font-extrabold text-[22px] text-navy">47</div>
-            <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Sessions</div>
+            <div className="font-heading font-extrabold text-[22px] text-navy">{student.streak}</div>
+            <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Day Streak</div>
           </div>
           <div>
-            <div className="font-heading font-extrabold text-[22px] text-navy">3h 24m</div>
-            <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Total Time</div>
+            <div className="font-heading font-extrabold text-[22px] text-navy">{student.activitiesComplete}</div>
+            <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Activities</div>
           </div>
           <div>
-            <div className="font-heading font-extrabold text-[22px] text-navy">78%</div>
-            <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Avg Mastery</div>
+            <div className="font-heading font-extrabold text-[22px] text-navy">{student.lastSession}</div>
+            <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Last Session</div>
           </div>
         </div>
       </div>
@@ -232,9 +261,9 @@ export default function StudentDetailPage() {
 
         {/* Note */}
         <div className="bg-surface border-l-4 border-[#7C3AED] rounded-lg px-4 py-3.5 text-[13px] leading-relaxed text-text-primary">
-          <strong className="text-navy">How Ms. Harper&apos;s assistant communicates with Emma:</strong>
+          <strong className="text-navy">How Ms. Harper&apos;s assistant communicates with {student.first}:</strong>
           <br />
-          Uses clear, straightforward language at grade level. Shows examples before asking Emma to try, breaks problems
+          Uses clear, straightforward language at grade level. Shows examples before asking {student.first} to try, breaks problems
           into steps, and gives positive reinforcement. Longer explanations are chunked into smaller pieces.
         </div>
 
@@ -252,7 +281,7 @@ export default function StudentDetailPage() {
       {/* Class Tabs */}
       <div className="mb-5">
         <div className="text-xs font-bold uppercase tracking-[0.5px] text-text-secondary mb-2.5 flex items-center gap-1.5">
-          <BookOpenText size={14} weight="fill" /> Emma&apos;s Classes
+          <BookOpenText size={14} weight="fill" /> {student.first}&apos;s Classes
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {/* All tab */}
@@ -397,6 +426,30 @@ export default function StudentDetailPage() {
         </div>
       </div>
 
+      {/* AI Insights */}
+      <div className="bg-card-bg rounded-[20px] border border-border p-6 mb-5">
+        <div className="font-heading font-bold text-sm text-text-primary flex items-center gap-2 mb-4">
+          <Brain size={16} weight="fill" className="text-[#7C3AED]" /> AI Insights
+        </div>
+        <div className="flex flex-col gap-3">
+          <div className="bg-surface border border-border rounded-lg px-4 py-3.5 border-l-4 border-l-[#10B981]">
+            <p className="text-[13px] leading-relaxed text-text-primary m-0">
+              Shows strong pattern recognition with visual math problems. Excels when concepts are presented graphically.
+            </p>
+          </div>
+          <div className="bg-surface border border-border rounded-lg px-4 py-3.5 border-l-4 border-l-[#F59E0B]">
+            <p className="text-[13px] leading-relaxed text-text-primary m-0">
+              Tends to rush through word problems. May benefit from guided reading strategies before solving.
+            </p>
+          </div>
+          <div className="bg-surface border border-border rounded-lg px-4 py-3.5 border-l-4 border-l-teal">
+            <p className="text-[13px] leading-relaxed text-text-primary m-0">
+              Engagement peaks during morning sessions. Consider scheduling challenging activities before noon.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Activity Feed */}
       <div className="bg-card-bg border border-border rounded-[12px] p-5 mb-5">
         <div className="font-heading font-bold text-sm text-text-primary flex items-center gap-2 mb-3.5">
@@ -427,6 +480,26 @@ export default function StudentDetailPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Teacher Notes */}
+      <div className="bg-card-bg rounded-[20px] border border-border p-6">
+        <h2 className="font-heading font-bold text-sm text-text-primary mb-4">Teacher Notes</h2>
+        <textarea
+          value={teacherNotes}
+          onChange={(e) => setTeacherNotes(e.target.value)}
+          placeholder="Add private notes about this student..."
+          className="w-full min-h-[120px] p-3 rounded-lg border border-border bg-surface text-[13px]
+            text-text-primary placeholder:text-text-secondary resize-y outline-none focus:border-navy"
+        />
+        <div className="flex justify-end mt-3">
+          <button
+            className="px-5 py-2 rounded-lg bg-navy text-white font-heading font-semibold text-[13px]
+              cursor-pointer hover:opacity-85 transition-opacity"
+          >
+            Save Notes
+          </button>
+        </div>
       </div>
     </div>
   );

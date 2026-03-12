@@ -276,7 +276,7 @@ function StudentCard({ student: s }: { student: DemoStudent }) {
     <div
       className="bg-card-bg border border-border rounded-[20px] p-5 cursor-pointer
         transition-all hover:shadow-md hover:-translate-y-0.5 relative"
-      onClick={() => window.location.href = '/teacher/students/student-detail'}
+      onClick={() => window.location.href = `/teacher/student-detail?student=${s.id}`}
     >
       {/* Status pill — absolute top:16px right:16px */}
       <span className={`absolute top-4 right-4 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${statusStyles[s.status]}`}>

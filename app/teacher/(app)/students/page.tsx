@@ -427,7 +427,7 @@ function StudentsContent() {
                         {openActionMenu === s.id && (
                           <div className="absolute right-0 top-full mt-1 bg-card-bg border border-border rounded-lg shadow-lg z-30 min-w-[170px]">
                             <button
-                              onClick={() => { window.location.href = '/teacher/students/student-detail'; setOpenActionMenu(null); }}
+                              onClick={() => { window.location.href = `/teacher/student-detail?student=${s.id}`; setOpenActionMenu(null); }}
                               className="block w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-navy/5 cursor-pointer"
                             >
                               View Profile
