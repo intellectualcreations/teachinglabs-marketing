@@ -168,6 +168,46 @@ const CHAT_MESSAGES: Record<string, ChatMsg[]> = {
   'times-tables': TIMES_TABLES_MSGS,
 };
 
+// Peer chat enabled per activity (matches teacher-side toggle)
+const PEER_CHAT_ENABLED: Record<string, boolean> = {
+  'math-fractions': true,
+  'math-word-problems': true,
+  'sci-photosynthesis': false,
+  'ela-vocab': false,
+  'math-multiplication': false,
+};
+
+// Map lesson chat IDs to activity IDs for peer chat lookup
+const CHAT_TO_ACTIVITY: Record<string, string> = {
+  'hw-fractions-add': 'math-fractions',
+  'hw-ch7-review': 'math-word-problems',
+  'hw-decimals-quiz': 'math-multiplication',
+  'ecosystems-proj': 'sci-photosynthesis',
+  'lab-report-3': 'sci-photosynthesis',
+  'book-report': 'ela-vocab',
+  'essay-draft': 'ela-vocab',
+  'colonies-worksheet': 'math-multiplication',
+};
+
+const PEER_CHAT_MESSAGES: Record<string, { id: string; sender: string; initials: string; color: string; text: string; time: string }[]> = {
+  'math-fractions': [
+    { id: 'p1', sender: 'Emma S.', initials: 'ES', color: '#E8836B', text: 'Hey does anyone get problem 3? I keep getting 5/6 but the hint says that\'s wrong', time: '10:23 AM' },
+    { id: 'p2', sender: 'Liam T.', initials: 'LT', color: '#4FA3A5', text: 'I got 5/8. You have to find the common denominator first before adding', time: '10:24 AM' },
+    { id: 'p3', sender: 'Emma S.', initials: 'ES', color: '#E8836B', text: 'Ohhh wait I see it now. The denominator is 8 not 6. Thanks Liam!', time: '10:25 AM' },
+    { id: 'p4', sender: 'Kai S.', initials: 'KS', color: '#F59E0B', text: 'I\'m stuck on problem 5. Can someone explain mixed numbers?', time: '10:28 AM' },
+    { id: 'p5', sender: 'Sophia R.', initials: 'SR', color: '#3B82F6', text: 'Mixed numbers are like 1 and 3/4. The 1 is the whole part and 3/4 is the fraction part', time: '10:29 AM' },
+    { id: 'p6', sender: 'Kai S.', initials: 'KS', color: '#F59E0B', text: 'So to add them I add the whole numbers and then the fractions separately?', time: '10:31 AM' },
+    { id: 'p7', sender: 'Sophia R.', initials: 'SR', color: '#3B82F6', text: 'Exactly! And if the fraction part adds up to more than 1, carry it over', time: '10:32 AM' },
+  ],
+  'math-word-problems': [
+    { id: 'wp1', sender: 'Ethan J.', initials: 'EJ', color: '#8B5CF6', text: 'Is anyone else confused by the pizza problem?', time: '11:05 AM' },
+    { id: 'wp2', sender: 'Emma S.', initials: 'ES', color: '#E8836B', text: 'Which one? The one where Maria eats 1/3?', time: '11:06 AM' },
+    { id: 'wp3', sender: 'Ethan J.', initials: 'EJ', color: '#8B5CF6', text: 'Yeah that one. How do you know what\'s left?', time: '11:07 AM' },
+    { id: 'wp4', sender: 'Emma S.', initials: 'ES', color: '#E8836B', text: 'Think of the whole pizza as 3/3. She ate 1/3, so 3/3 - 1/3 = 2/3 left!', time: '11:08 AM' },
+    { id: 'wp5', sender: 'Marcus W.', initials: 'MW', color: '#1F3A5F', text: 'That actually makes sense when you think of it that way', time: '11:10 AM' },
+  ],
+};
+
 let msgIdCounter = 100;
 function newMsgId() { return `msg-${++msgIdCounter}`; }
 
@@ -265,6 +305,11 @@ function StudentMainInner() {
   const [showTurnInConfirm, setShowTurnInConfirm] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [turnedIn, setTurnedIn] = useState(false);
+  const [chatMode, setChatMode] = useState<'tutor' | 'peer'>('tutor');
+  const [peerUnread, setPeerUnread] = useState(0);
+  const [peerInputText, setPeerInputText] = useState('');
+  const peerInputRef = useRef<HTMLTextAreaElement>(null);
+  const peerChatViewRef = useRef<HTMLDivElement>(null);
   const chatViewRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -280,8 +325,36 @@ function StudentMainInner() {
 
   useEffect(() => { scrollToBottom(); }, [messages, isTyping, scrollToBottom]);
 
+  // Reset chatMode to tutor when switching chats or classes
+  useEffect(() => {
+    setChatMode('tutor');
+    // Set unread count if peer chat is enabled for this activity
+    const activityId = CHAT_TO_ACTIVITY[currentChatId];
+    if (activityId && PEER_CHAT_ENABLED[activityId]) {
+      setPeerUnread(3);
+    } else {
+      setPeerUnread(0);
+    }
+  }, [currentChatId, currentClass]);
+
+  // Scroll peer chat to bottom
+  useEffect(() => {
+    if (chatMode === 'peer' && peerChatViewRef.current) {
+      setTimeout(() => {
+        if (peerChatViewRef.current) {
+          peerChatViewRef.current.scrollTop = peerChatViewRef.current.scrollHeight;
+        }
+      }, 100);
+    }
+  }, [chatMode]);
+
   const currentChat: ChatItem | undefined = [...cls.lessons, ...cls.openChats, ...cls.archived, ...cls.turnedIn]
     .find(c => c.id === currentChatId);
+
+  // Determine if peer chat is available for the current chat
+  const currentActivityId = CHAT_TO_ACTIVITY[currentChatId] || '';
+  const peerChatAvailable = currentChatType === 'lesson' && !!PEER_CHAT_ENABLED[currentActivityId];
+  const currentPeerMessages = PEER_CHAT_MESSAGES[currentActivityId] || [];
 
   // Sidebar interactions
   const toggleClass = (id: ClassKey) => {
@@ -937,177 +1010,307 @@ function StudentMainInner() {
           {/* ---- CHAT VIEW ---- */}
           {viewMode === 'chat' && (
             <>
-              <div ref={chatViewRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
-                {/* Assignment banner */}
-                {currentChatType === 'lesson' && currentChat && (
-                  <div className="flex items-center gap-3 px-4 py-3 bg-info/[0.06] border border-info/15 rounded-[10px] mb-2">
-                    <ClipboardText size={20} weight="fill" className="text-teal flex-shrink-0" />
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm text-text-primary">{currentChat.name}</div>
-                      <div className="text-xs text-text-muted">{currentChat.due} · {cls.name}</div>
-                    </div>
-                  </div>
-                )}
+              {/* Tab bar — only when peer chat is available */}
+              {peerChatAvailable && (
+                <div className="px-4 sm:px-6 py-0 border-b border-border bg-card-bg flex gap-0">
+                  <button
+                    onClick={() => setChatMode('tutor')}
+                    className={`py-2.5 px-4 font-heading font-semibold text-sm transition-colors relative
+                      ${chatMode === 'tutor'
+                        ? 'text-teal border-b-2 border-teal'
+                        : 'text-text-muted hover:text-text-primary'}`}
+                  >
+                    🤖 My Tutor
+                  </button>
+                  <button
+                    onClick={() => { setChatMode('peer'); setPeerUnread(0); }}
+                    className={`py-2.5 px-4 font-heading font-semibold text-sm transition-colors relative flex items-center gap-1.5
+                      ${chatMode === 'peer'
+                        ? 'text-teal border-b-2 border-teal'
+                        : 'text-text-muted hover:text-text-primary'}`}
+                  >
+                    👥 Class Chat
+                    <span className="text-text-muted text-xs font-normal">(3 online)</span>
+                    {peerUnread > 0 && chatMode === 'tutor' && (
+                      <span className="ml-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-teal text-white text-[10px] font-bold px-1">
+                        {peerUnread}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
 
-                {messages.map(msg => {
-                  // Special notice messages
-                  if (msg.text === '🎉__TURNIN_NOTICE__') {
-                    return (
-                      <div key={msg.id} className="text-center py-2">
-                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-success/[0.08] rounded-full text-xs font-medium text-success">
-                          ✅ Assignment turned in
-                        </span>
+              {/* ---- TUTOR CHAT (default / existing) ---- */}
+              {chatMode === 'tutor' && (
+                <>
+                  <div ref={chatViewRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
+                    {/* Assignment banner */}
+                    {currentChatType === 'lesson' && currentChat && (
+                      <div className="flex items-center gap-3 px-4 py-3 bg-info/[0.06] border border-info/15 rounded-[10px] mb-2">
+                        <ClipboardText size={20} weight="fill" className="text-teal flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm text-text-primary">{currentChat.name}</div>
+                          <div className="text-xs text-text-muted">{currentChat.due} · {cls.name}</div>
+                        </div>
                       </div>
-                    );
-                  }
-                  if (msg.text === '📦__ARCHIVE_NOTICE__') {
-                    return (
-                      <div key={msg.id} className="text-center py-2">
-                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-teal/[0.08] rounded-full text-xs font-medium text-teal">
-                          📦 Chat archived
-                        </span>
-                      </div>
-                    );
-                  }
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex gap-2.5 max-w-[72%] ${msg.role === 'student' ? 'self-end flex-row-reverse' : 'self-start'}`}
-                    >
-                      <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold mt-1
-                        ${msg.role === 'ai' ? 'bg-navy text-white' : 'bg-teal text-white'}`}>
-                        {msg.role === 'ai' ? cls.teacherInitial : 'A'}
-                      </div>
-                      <div>
-                        {msg.image ? (
-                          <div className="flex flex-col items-end gap-1">
-                            <img
-                              src={msg.image.src}
-                              alt={msg.image.alt}
-                              className="max-w-[220px] rounded-xl border border-border object-cover"
-                            />
-                            <span className="text-[11px] text-text-muted">{msg.image.fileName}</span>
-                          </div>
-                        ) : msg.attachment ? (
-                          <div className={`px-3.5 py-3 rounded-2xl ${msg.role === 'student' ? 'bg-teal rounded-br-sm shadow-sm' : 'bg-card-bg border border-border rounded-bl-sm shadow-sm'}`}>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xl">{msg.attachment.type}</span>
-                              <div>
-                                <div className={`font-semibold text-sm ${msg.role === 'student' ? 'text-white' : 'text-text-primary'}`}>{msg.attachment.name}</div>
-                                <div className={`text-xs ${msg.role === 'student' ? 'text-white/70' : 'text-text-muted'}`}>{msg.attachment.size}</div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div
-                            className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed
-                              ${msg.role === 'ai'
-                                ? 'bg-card-bg border border-border rounded-bl-sm shadow-sm text-text-primary'
-                                : 'bg-teal text-white rounded-br-sm shadow-sm'}`}
-                            dangerouslySetInnerHTML={{ __html: msg.text }}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                    )}
 
-                {/* Typing indicator */}
-                {isTyping && (
-                  <div className="flex gap-2.5 self-start max-w-[72%]">
-                    <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center text-xs font-semibold text-white mt-1 flex-shrink-0">
-                      {cls.teacherInitial}
-                    </div>
-                    <div className="bg-card-bg border border-border rounded-2xl rounded-bl-sm shadow-sm px-3.5 py-3">
-                      <div className="flex gap-1">
-                        {[0, 1, 2].map(i => (
-                          <div
-                            key={i}
-                            className="w-2 h-2 rounded-full bg-text-muted opacity-40"
-                            style={{ animation: `typingBounce 1.4s infinite ease-in-out ${i * 0.2}s` }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Input bar */}
-              <div className="px-4 sm:px-6 py-3 border-t border-border bg-card-bg shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-                {/* Turn in row */}
-                {currentChatType === 'lesson' && (
-                  <div className="mb-2.5">
-                    <button
-                      onClick={() => !turnedIn && setShowTurnInConfirm(true)}
-                      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] border font-heading font-semibold text-sm transition-all
-                        ${turnedIn
-                          ? 'bg-success/10 border-success/30 text-success cursor-default pointer-events-none'
-                          : 'border-success text-success hover:bg-success hover:text-white'}`}
-                    >
-                      <Check size={16} weight="fill" />
-                      {turnedIn ? 'Turned in ✓' : 'Turn in'}
-                    </button>
-                  </div>
-                )}
-
-                <div className="flex gap-2 items-end">
-                  {/* Upload button */}
-                  <div className="relative flex-shrink-0">
-                    <button
-                      onClick={e => { e.stopPropagation(); setShowUploadMenu(v => !v); }}
-                      className="w-[42px] h-[42px] rounded-[10px] border border-border text-text-muted flex items-center justify-center hover:border-teal hover:text-teal transition-colors"
-                    >
-                      <Paperclip size={18} weight="fill" />
-                    </button>
-                    {showUploadMenu && (
-                      <div className="absolute bottom-12 left-0 bg-card-bg border border-border rounded-[10px] p-1.5 min-w-[190px] shadow-lg z-10">
-                        {[
-                          { type: 'photo', Icon: Camera, color: '#4FA3A5', label: 'Photo', sub: 'Take or choose a photo' },
-                          { type: 'file', Icon: FileText, color: '#1F3A5F', label: 'Document', sub: 'PDF, Word, or text file' },
-                          { type: 'drawing', Icon: PencilLine, color: '#E8836B', label: 'Drawing', sub: 'Sketch or handwritten work' },
-                          { type: '3d', Icon: Cube, color: '#8B5CF6', label: '3D Model', sub: 'STL file' },
-                          { type: 'audio', Icon: Microphone, color: '#F59E0B', label: 'Audio / Video', sub: 'Recording or presentation' },
-                        ].map(opt => (
-                          <button
-                            key={opt.type}
-                            onClick={() => simulateUpload(opt.type)}
-                            className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg hover:bg-teal/[0.06] transition-colors text-left"
-                          >
-                            <span className="w-6 text-center flex-shrink-0">
-                              <opt.Icon size={20} weight="fill" style={{ color: opt.color }} />
+                    {messages.map(msg => {
+                      // Special notice messages
+                      if (msg.text === '🎉__TURNIN_NOTICE__') {
+                        return (
+                          <div key={msg.id} className="text-center py-2">
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-success/[0.08] rounded-full text-xs font-medium text-success">
+                              ✅ Assignment turned in
                             </span>
-                            <div>
-                              <div className="text-sm font-medium text-text-primary">{opt.label}</div>
-                              <div className="text-xs text-text-muted">{opt.sub}</div>
-                            </div>
-                          </button>
-                        ))}
+                          </div>
+                        );
+                      }
+                      if (msg.text === '📦__ARCHIVE_NOTICE__') {
+                        return (
+                          <div key={msg.id} className="text-center py-2">
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-teal/[0.08] rounded-full text-xs font-medium text-teal">
+                              📦 Chat archived
+                            </span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`flex gap-2.5 max-w-[72%] ${msg.role === 'student' ? 'self-end flex-row-reverse' : 'self-start'}`}
+                        >
+                          <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold mt-1
+                            ${msg.role === 'ai' ? 'bg-navy text-white' : 'bg-teal text-white'}`}>
+                            {msg.role === 'ai' ? cls.teacherInitial : 'A'}
+                          </div>
+                          <div>
+                            {msg.image ? (
+                              <div className="flex flex-col items-end gap-1">
+                                <img
+                                  src={msg.image.src}
+                                  alt={msg.image.alt}
+                                  className="max-w-[220px] rounded-xl border border-border object-cover"
+                                />
+                                <span className="text-[11px] text-text-muted">{msg.image.fileName}</span>
+                              </div>
+                            ) : msg.attachment ? (
+                              <div className={`px-3.5 py-3 rounded-2xl ${msg.role === 'student' ? 'bg-teal rounded-br-sm shadow-sm' : 'bg-card-bg border border-border rounded-bl-sm shadow-sm'}`}>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xl">{msg.attachment.type}</span>
+                                  <div>
+                                    <div className={`font-semibold text-sm ${msg.role === 'student' ? 'text-white' : 'text-text-primary'}`}>{msg.attachment.name}</div>
+                                    <div className={`text-xs ${msg.role === 'student' ? 'text-white/70' : 'text-text-muted'}`}>{msg.attachment.size}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div
+                                className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed
+                                  ${msg.role === 'ai'
+                                    ? 'bg-card-bg border border-border rounded-bl-sm shadow-sm text-text-primary'
+                                    : 'bg-teal text-white rounded-br-sm shadow-sm'}`}
+                                dangerouslySetInnerHTML={{ __html: msg.text }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Typing indicator */}
+                    {isTyping && (
+                      <div className="flex gap-2.5 self-start max-w-[72%]">
+                        <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center text-xs font-semibold text-white mt-1 flex-shrink-0">
+                          {cls.teacherInitial}
+                        </div>
+                        <div className="bg-card-bg border border-border rounded-2xl rounded-bl-sm shadow-sm px-3.5 py-3">
+                          <div className="flex gap-1">
+                            {[0, 1, 2].map(i => (
+                              <div
+                                key={i}
+                                className="w-2 h-2 rounded-full bg-text-muted opacity-40"
+                                style={{ animation: `typingBounce 1.4s infinite ease-in-out ${i * 0.2}s` }}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Text input */}
-                  <textarea
-                    ref={inputRef}
-                    value={inputText}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    placeholder={currentChatType === 'lesson' ? 'Ask about this assignment...' : `Ask anything about ${cls.name.toLowerCase()}...`}
-                    rows={1}
-                    className="flex-1 px-3.5 py-2.5 border border-border rounded-xl text-sm font-[var(--font-body)] bg-warm-white text-text-primary outline-none resize-none min-h-[42px] max-h-[120px] leading-relaxed focus:border-teal transition-colors placeholder:text-text-muted"
-                  />
+                  {/* Input bar — Tutor */}
+                  <div className="px-4 sm:px-6 py-3 border-t border-border bg-card-bg shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                    {/* Turn in row */}
+                    {currentChatType === 'lesson' && (
+                      <div className="mb-2.5">
+                        <button
+                          onClick={() => !turnedIn && setShowTurnInConfirm(true)}
+                          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] border font-heading font-semibold text-sm transition-all
+                            ${turnedIn
+                              ? 'bg-success/10 border-success/30 text-success cursor-default pointer-events-none'
+                              : 'border-success text-success hover:bg-success hover:text-white'}`}
+                        >
+                          <Check size={16} weight="fill" />
+                          {turnedIn ? 'Turned in ✓' : 'Turn in'}
+                        </button>
+                      </div>
+                    )}
 
-                  {/* Send button */}
-                  <button
-                    onClick={sendMessage}
-                    className="w-[42px] h-[42px] rounded-[10px] bg-teal text-white flex items-center justify-center hover:bg-teal/90 active:scale-95 transition-all flex-shrink-0"
-                  >
-                    <PaperPlaneRight size={18} weight="fill" />
-                  </button>
-                </div>
-                <p className="text-center text-[11px] text-text-muted mt-1.5">{cls.teacher}&apos;s assistant can see this conversation</p>
-              </div>
+                    <div className="flex gap-2 items-end">
+                      {/* Upload button */}
+                      <div className="relative flex-shrink-0">
+                        <button
+                          onClick={e => { e.stopPropagation(); setShowUploadMenu(v => !v); }}
+                          className="w-[42px] h-[42px] rounded-[10px] border border-border text-text-muted flex items-center justify-center hover:border-teal hover:text-teal transition-colors"
+                        >
+                          <Paperclip size={18} weight="fill" />
+                        </button>
+                        {showUploadMenu && (
+                          <div className="absolute bottom-12 left-0 bg-card-bg border border-border rounded-[10px] p-1.5 min-w-[190px] shadow-lg z-10">
+                            {[
+                              { type: 'photo', Icon: Camera, color: '#4FA3A5', label: 'Photo', sub: 'Take or choose a photo' },
+                              { type: 'file', Icon: FileText, color: '#1F3A5F', label: 'Document', sub: 'PDF, Word, or text file' },
+                              { type: 'drawing', Icon: PencilLine, color: '#E8836B', label: 'Drawing', sub: 'Sketch or handwritten work' },
+                              { type: '3d', Icon: Cube, color: '#8B5CF6', label: '3D Model', sub: 'STL file' },
+                              { type: 'audio', Icon: Microphone, color: '#F59E0B', label: 'Audio / Video', sub: 'Recording or presentation' },
+                            ].map(opt => (
+                              <button
+                                key={opt.type}
+                                onClick={() => simulateUpload(opt.type)}
+                                className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg hover:bg-teal/[0.06] transition-colors text-left"
+                              >
+                                <span className="w-6 text-center flex-shrink-0">
+                                  <opt.Icon size={20} weight="fill" style={{ color: opt.color }} />
+                                </span>
+                                <div>
+                                  <div className="text-sm font-medium text-text-primary">{opt.label}</div>
+                                  <div className="text-xs text-text-muted">{opt.sub}</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Text input */}
+                      <textarea
+                        ref={inputRef}
+                        value={inputText}
+                        onChange={handleInputChange}
+                        onKeyDown={handleKeyDown}
+                        placeholder={currentChatType === 'lesson' ? 'Ask about this assignment...' : `Ask anything about ${cls.name.toLowerCase()}...`}
+                        rows={1}
+                        className="flex-1 px-3.5 py-2.5 border border-border rounded-xl text-sm font-[var(--font-body)] bg-warm-white text-text-primary outline-none resize-none min-h-[42px] max-h-[120px] leading-relaxed focus:border-teal transition-colors placeholder:text-text-muted"
+                      />
+
+                      {/* Send button */}
+                      <button
+                        onClick={sendMessage}
+                        className="w-[42px] h-[42px] rounded-[10px] bg-teal text-white flex items-center justify-center hover:bg-teal/90 active:scale-95 transition-all flex-shrink-0"
+                      >
+                        <PaperPlaneRight size={18} weight="fill" />
+                      </button>
+                    </div>
+                    <p className="text-center text-[11px] text-text-muted mt-1.5">{cls.teacher}&apos;s assistant can see this conversation</p>
+                  </div>
+                </>
+              )}
+
+              {/* ---- PEER / CLASS CHAT ---- */}
+              {chatMode === 'peer' && (
+                <>
+                  <div ref={peerChatViewRef} className="flex-1 overflow-y-auto flex flex-col">
+                    {/* Assignment banner (shows in both tabs) */}
+                    {currentChatType === 'lesson' && currentChat && (
+                      <div className="mx-4 sm:mx-6 mt-6 mb-2 flex items-center gap-3 px-4 py-3 bg-info/[0.06] border border-info/15 rounded-[10px]">
+                        <ClipboardText size={20} weight="fill" className="text-teal flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm text-text-primary">{currentChat.name}</div>
+                          <div className="text-xs text-text-muted">{currentChat.due} · {cls.name}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Monitoring banner */}
+                    <div className="bg-teal/[0.06] text-teal text-xs py-1.5 text-center">
+                      💬 This chat is monitored by your teacher
+                    </div>
+
+                    {/* Peer messages */}
+                    <div className="flex-1 px-4 sm:px-6 py-4 flex flex-col gap-3">
+                      {currentPeerMessages.map(pm => {
+                        const isMe = pm.sender === 'Alex R.';
+                        return (
+                          <div
+                            key={pm.id}
+                            className={`flex gap-2.5 max-w-[72%] ${isMe ? 'self-end flex-row-reverse' : 'self-start'}`}
+                          >
+                            {!isMe && (
+                              <div
+                                className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white mt-1"
+                                style={{ background: pm.color }}
+                              >
+                                {pm.initials}
+                              </div>
+                            )}
+                            <div>
+                              {!isMe && (
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <span className="font-semibold text-xs text-text-primary">{pm.sender}</span>
+                                  <span className="text-[10px] text-text-muted">{pm.time}</span>
+                                </div>
+                              )}
+                              <div
+                                className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed
+                                  ${isMe
+                                    ? 'bg-teal text-white rounded-br-sm shadow-sm'
+                                    : 'bg-card-bg border border-border rounded-bl-sm shadow-sm text-text-primary'}`}
+                              >
+                                {pm.text}
+                              </div>
+                              {isMe && (
+                                <div className="text-[10px] text-text-muted text-right mt-0.5">{pm.time}</div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Input bar — Peer chat */}
+                  <div className="px-4 sm:px-6 py-3 border-t border-border bg-card-bg shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                    <div className="flex gap-2 items-end">
+                      <textarea
+                        ref={peerInputRef}
+                        value={peerInputText}
+                        onChange={e => {
+                          setPeerInputText(e.target.value);
+                          e.target.style.height = 'auto';
+                          e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            // Demo: no-op send for peer chat
+                            if (peerInputText.trim()) setPeerInputText('');
+                          }
+                        }}
+                        placeholder="Message your classmates..."
+                        rows={1}
+                        className="flex-1 px-3.5 py-2.5 border border-border rounded-xl text-sm font-[var(--font-body)] bg-warm-white text-text-primary outline-none resize-none min-h-[42px] max-h-[120px] leading-relaxed focus:border-teal transition-colors placeholder:text-text-muted"
+                      />
+                      <button
+                        className="w-[42px] h-[42px] rounded-[10px] bg-teal text-white flex items-center justify-center hover:bg-teal/90 active:scale-95 transition-all flex-shrink-0"
+                      >
+                        <PaperPlaneRight size={18} weight="fill" />
+                      </button>
+                    </div>
+                    <p className="text-center text-[11px] text-text-muted mt-1.5">{cls.teacher} can see this conversation</p>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>

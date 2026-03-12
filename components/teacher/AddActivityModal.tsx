@@ -1,13 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, PencilSimple, Users, Books, ListChecks, Info, X, MagnifyingGlass, ArrowLeft, CheckCircle } from '@phosphor-icons/react';
-import ClassIcon from '@/components/shared/ClassIcon';
-import { DEMO_CLASSES } from '@/lib/demo-data';
-
-const STRIPE_COLORS = ['var(--color-navy)', 'var(--color-teal)', '#F59E0B', '#E8836B'];
+import { Plus, Books, X, MagnifyingGlass, ArrowLeft, CheckCircle } from '@phosphor-icons/react';
 
 const LIBRARY_ACTIVITIES = [
   { name: 'Fraction Basics', subject: 'Math' },
@@ -22,27 +17,37 @@ const LIBRARY_ACTIVITIES = [
   { name: 'Weather Patterns', subject: 'Science' },
 ];
 
-/* ─── Modal Component ─── */
-function AddActivityModal({
-  className: clsName,
-  classIndex,
-  onClose,
-}: {
+interface AddActivityModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   className: string;
   classIndex: number;
-  onClose: () => void;
-}) {
+}
+
+export default function AddActivityModal({ isOpen, onClose, className: clsName, classIndex }: AddActivityModalProps) {
   const router = useRouter();
   const [view, setView] = useState<'choose' | 'library'>('choose');
   const [search, setSearch] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setView('choose');
+      setSearch('');
+      setSuccessMsg('');
+    }
+  }, [isOpen]);
+
   // Close on Escape
   useEffect(() => {
+    if (!isOpen) return;
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
 
   const filtered = LIBRARY_ACTIVITIES.filter((a) =>
     a.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -84,7 +89,6 @@ function AddActivityModal({
         </button>
 
         {view === 'choose' ? (
-          /* ─── Popup 1: Choose action ─── */
           <div className="p-7">
             <h2 className="font-heading font-bold text-xl text-text-primary">Add Activity</h2>
             <p className="text-sm text-text-secondary mt-1 mb-6">{clsName}</p>
@@ -122,7 +126,6 @@ function AddActivityModal({
             </div>
           </div>
         ) : (
-          /* ─── Popup 2: Library browser ─── */
           <div className="p-7">
             <div className="flex items-center gap-2 mb-1">
               <button
@@ -136,7 +139,6 @@ function AddActivityModal({
             </div>
             <p className="text-sm text-text-secondary mt-1 mb-4 ml-7">{clsName}</p>
 
-            {/* Search */}
             <div className="relative mb-4">
               <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input
@@ -150,7 +152,6 @@ function AddActivityModal({
               />
             </div>
 
-            {/* List */}
             <div className="max-h-[320px] overflow-y-auto -mx-2 px-2 space-y-2">
               {filtered.length === 0 ? (
                 <p className="text-center text-sm text-text-secondary py-8">No activities match your search.</p>
@@ -182,149 +183,6 @@ function AddActivityModal({
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-/* ─── Main Page ─── */
-export default function MyClassesPage() {
-  const classes = DEMO_CLASSES;
-  const [modal, setModal] = useState<{ name: string; index: number } | null>(null);
-
-  const closeModal = useCallback(() => setModal(null), []);
-
-  return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-heading text-[26px] font-bold text-text-primary">My Classes</h1>
-          <p className="text-text-secondary text-[15px] mt-1">
-            {classes.length} class{classes.length !== 1 ? 'es' : ''}
-          </p>
-        </div>
-        <Link
-          href="/teacher/create-class"
-          className="inline-flex items-center gap-1.5 px-[18px] py-2 rounded-lg bg-navy text-white
-            font-heading font-semibold text-[13px] hover:bg-navy/90 transition-colors"
-        >
-          <Plus size={14} weight="bold" /> Create Class
-        </Link>
-      </div>
-
-      {/* Classes Grid */}
-      {classes.length === 0 ? (
-        <div className="text-center py-[60px] px-5 bg-card-bg border-2 border-dashed border-border rounded-[20px] mt-6">
-          <div className="text-[40px] mb-3 opacity-40">📚</div>
-          <div className="font-heading font-semibold text-base text-text-primary mb-1.5">No classes yet</div>
-          <p className="text-sm text-text-secondary mb-5">
-            Create your first class to get started. You&apos;ll be able to add students and share a join code.
-          </p>
-          <Link
-            href="/teacher/create-class"
-            className="inline-flex items-center gap-1.5 px-7 py-3 rounded-lg bg-navy text-white
-              font-heading font-bold text-sm"
-          >
-            Create Your First Class
-          </Link>
-        </div>
-      ) : (
-        <div
-          className="grid gap-5 mt-6"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))' }}
-        >
-          {classes.map((c, i) => (
-            <div
-              key={c.id}
-              className="bg-card-bg border border-border rounded-[20px] p-6 relative overflow-hidden
-                transition-shadow hover:shadow-[0_4px_16px_rgba(31,58,95,0.08)]"
-            >
-              {/* Color stripe */}
-              <div
-                className="absolute top-0 left-0 right-0 h-1"
-                style={{ background: STRIPE_COLORS[i % 4] }}
-              />
-
-              {/* Header */}
-              <div className="flex items-center gap-3.5 mb-4">
-                <ClassIcon name={c.name} size={36} />
-                <div>
-                  <div className="font-heading font-bold text-[17px] text-text-primary">{c.name}</div>
-                  <div className="text-[13px] text-text-secondary mt-0.5">
-                    {c.grade}{c.grade && c.subject ? ' · ' : ''}{c.subject}
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="flex gap-5 mb-4">
-                <div className="text-center">
-                  <div className="font-heading font-bold text-[18px] text-navy">{c.studentCount}</div>
-                  <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Students</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-heading font-bold text-[18px] text-navy">0</div>
-                  <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Activities</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-heading font-bold text-[18px] text-navy">0</div>
-                  <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Active Chats</div>
-                </div>
-              </div>
-
-              {/* Join Code */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal/8 border border-teal/20
-                rounded-lg font-heading font-bold text-base tracking-[2px] text-teal mb-4">
-                {c.code}
-              </div>
-
-              {/* Actions */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setModal({ name: c.name, index: i })}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 bg-teal text-white
-                    rounded-lg text-xs font-semibold hover:bg-teal/90 transition-colors"
-                >
-                  <Plus size={13} weight="bold" /> Add Activity
-                </button>
-                <Link
-                  href={`/teacher/class-details?class=${c.id}`}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
-                    rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
-                    transition-colors"
-                >
-                  <Info size={13} /> Class Details
-                </Link>
-                <Link
-                  href={`/teacher/edit-class?class=${i}`}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
-                    rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
-                    transition-colors"
-                >
-                  <PencilSimple size={13} /> Edit
-                </Link>
-                <Link
-                  href={`/teacher/students?class=${c.id}`}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
-                    rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
-                    transition-colors"
-                >
-                  <Users size={13} /> Manage Students
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Add Activity Modal */}
-      {modal && (
-        <AddActivityModal
-          className={modal.name}
-          classIndex={modal.index}
-          onClose={closeModal}
-        />
-      )}
     </div>
   );
 }

@@ -153,11 +153,12 @@ export default function LibraryPage() {
       {/* Assign Modal */}
       {assignModal && (
         <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
           onClick={() => setAssignModal(null)}
         >
           <div
-            className="bg-card-bg border border-border rounded-2xl p-7 max-w-lg w-[90%] shadow-2xl"
+            className="border border-border rounded-2xl p-7 max-w-lg w-[90%] shadow-2xl bg-[#1a2744]"
+            style={{ backgroundColor: 'var(--color-navy-light, #1a2744)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="font-heading font-bold text-lg text-text-primary flex items-center gap-2 mb-1">
