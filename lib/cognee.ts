@@ -87,7 +87,7 @@ export async function cogneeAdd(
 ): Promise<unknown> {
   const blob = new Blob([params.content], { type: 'text/plain' });
   const formData = new FormData();
-  formData.append('file', blob, `${params.datasetName}.txt`);
+  formData.append('data', blob, `${params.datasetName}.txt`);
   formData.append('datasetName', params.datasetName);
 
   return cogneeRequest('/api/v1/add', {
@@ -113,7 +113,7 @@ export async function cogneeCognify(
  * Check Cognee server health.
  */
 export async function cogneeHealth(): Promise<CogneeHealthResponse> {
-  return cogneeRequest<CogneeHealthResponse>('/api/v1/health');
+  return cogneeRequest<CogneeHealthResponse>('/health');
 }
 
 /**
