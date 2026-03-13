@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Eye, EyeSlash, ArrowLeft } from '@phosphor-icons/react';
 
 function TeachingLabsLogo() {
@@ -87,6 +88,10 @@ export default function LoginPage() {
     router.push('/teacher/dashboard');
   }
 
+  function handleGoogleSignIn() {
+    signIn('google', { callbackUrl: '/dashboard' });
+  }
+
   function handleSSOLogin() {
     router.push('/teacher/dashboard');
   }
@@ -120,7 +125,7 @@ export default function LoginPage() {
         {/* SSO Buttons */}
         <div className="flex flex-col gap-3 mb-6">
           <button
-            onClick={handleSSOLogin}
+            onClick={handleGoogleSignIn}
             className="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-bg-secondary dark:hover:bg-[#1E2A3A] transition-colors font-heading text-sm font-medium text-text-primary"
           >
             <GoogleIcon />

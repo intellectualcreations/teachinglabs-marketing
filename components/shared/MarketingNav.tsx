@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from '@/components/shared/ThemeToggle';
+import UserMenu from '@/components/shared/UserMenu';
 import MobileMenu from '@/app/_components/MobileMenu';
 
 function IconChevronDown() {
@@ -79,6 +80,7 @@ export default function MarketingNav() {
             >
               Join Waitlist
             </Link>
+            <UserMenu />
             <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
           </div>
 

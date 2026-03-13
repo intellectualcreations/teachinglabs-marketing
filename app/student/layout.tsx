@@ -16,8 +16,8 @@ export default function StudentLayout({
 
   return (
     <div className="min-h-screen bg-warm-white">
-      {/* Persistent Dashboard button on pages without their own sidebar */}
-      {!isDashboard && !isMain && !isOnboarding && (
+      {/* Dashboard button ONLY on student dashboard and mainchat */}
+      {(isDashboard || isMain) && (
         <div className="sticky top-0 z-40 bg-warm-white border-b border-border px-4 py-2.5">
           <Link
             href="/student/dashboard"

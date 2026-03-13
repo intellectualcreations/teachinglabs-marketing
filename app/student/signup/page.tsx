@@ -6,6 +6,7 @@ import {
   CheckCircle, Info, CaretLeft, ArrowRight,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 // Demo roster
 const SAMPLE_ROSTER = [
@@ -132,7 +133,12 @@ export default function StudentSignupPage() {
   const stepDots = [1, 2, 3] as const;
 
   return (
-    <div className="min-h-screen bg-warm-white flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-warm-white flex flex-col items-center justify-center px-4 py-12 relative">
+      {/* Theme toggle */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+
       {/* Back link */}
       <div className="w-full max-w-[460px] mb-4">
         {screen === 1 ? (

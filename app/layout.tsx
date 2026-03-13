@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Open_Sans } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
+import AuthProvider from '@/components/shared/AuthProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -28,9 +29,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${openSans.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          {children}
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+            {children}
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );
