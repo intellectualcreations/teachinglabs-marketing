@@ -473,6 +473,7 @@ export default function OnboardingPage() {
           <div className="max-w-[600px] mx-auto">
             <Link
               href="/student/dashboard"
+              onClick={() => localStorage.setItem('teachinglabs_onboarded', 'true')}
               className="flex items-center justify-center gap-2 w-full py-3.5 bg-teal text-white font-heading font-semibold rounded-xl text-base hover:bg-teal/90 transition-colors"
             >
               Let&apos;s start learning!

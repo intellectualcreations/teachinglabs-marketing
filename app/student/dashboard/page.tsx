@@ -1,20 +1,22 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   SquaresFour, BookOpenText, MathOperations, Flask, GlobeHemisphereWest,
   ChatsCircle, ClipboardText, ChatText, Trophy, ChartBar,
   RocketLaunch, Fire, Star, Lightning, Brain, Medal,
   ClockCounterClockwise, HandWaving, HouseSimple, List, X,
+  Backpack,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 
 const CLASSES = [
-  { id: 'math', name: '5th Period Math', teacher: 'Mrs. Martinez', Icon: MathOperations, color: '#1F3A5F', badge: 2 },
-  { id: 'ela', name: 'English Language Arts', teacher: 'Mr. Davis', Icon: BookOpenText, color: '#4FA3A5', badge: 0 },
-  { id: 'science', name: 'Science', teacher: 'Ms. Chen', Icon: Flask, color: '#7C3AED', badge: 1 },
-  { id: 'social', name: 'Social Studies', teacher: 'Mrs. Thompson', Icon: GlobeHemisphereWest, color: '#0891B2', badge: 0 },
+  { id: 'math', name: '5th Period Math', teacher: 'Mrs. Martinez', initials: 'MM', avatarColor: '#1F3A5F', Icon: MathOperations, color: '#1F3A5F', badge: 2, progress: 68, totalLessons: 22, completedLessons: 15, lastAccessed: '2 hours ago' },
+  { id: 'ela', name: 'English Language Arts', teacher: 'Mr. Davis', initials: 'MD', avatarColor: '#4FA3A5', Icon: BookOpenText, color: '#4FA3A5', badge: 0, progress: 45, totalLessons: 20, completedLessons: 9, lastAccessed: 'Yesterday' },
+  { id: 'science', name: 'Science', teacher: 'Ms. Chen', initials: 'MC', avatarColor: '#7C3AED', Icon: Flask, color: '#7C3AED', badge: 1, progress: 30, totalLessons: 18, completedLessons: 5, lastAccessed: '3 days ago' },
+  { id: 'social', name: 'Social Studies', teacher: 'Mrs. Thompson', initials: 'MT', avatarColor: '#0891B2', Icon: GlobeHemisphereWest, color: '#0891B2', badge: 0, progress: 12, totalLessons: 16, completedLessons: 2, lastAccessed: 'Last week' },
 ];
 
 const STATS = [
@@ -45,15 +47,31 @@ const RECENT_ACTIVITY = [
 ];
 
 export default function StudentDashboardPage() {
+  const router = useRouter();
   const chartMax = Math.max(...ACTIVITY_VALUES);
   const barsRef = useRef<HTMLDivElement>(null);
   const [barsVisible, setBarsVisible] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+
+  // Onboarding redirect check
+  useEffect(() => {
+    const onboarded = localStorage.getItem('teachinglabs_onboarded');
+    if (!onboarded) {
+      router.replace('/student/onboarding');
+      return;
+    }
+    setOnboardingChecked(true);
+  }, [router]);
 
   useEffect(() => {
     const t = setTimeout(() => setBarsVisible(true), 300);
     return () => clearTimeout(t);
   }, []);
+
+  if (!onboardingChecked) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-warm-white">
@@ -121,17 +139,23 @@ export default function StudentDashboardPage() {
               key={cls.id}
               href={`/student/main?class=${cls.id}&view=class-dashboard`}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2 hover:bg-white/[0.12] transition-colors text-white/70 hover:text-white"
+              className="flex items-start gap-2.5 px-4 py-2.5 hover:bg-white/[0.12] transition-colors text-white/70 hover:text-white"
             >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.color }}>
-                <cls.Icon size={16} weight="fill" className="text-white" />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white mt-0.5" style={{ background: cls.avatarColor }}>
+                {cls.initials}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-xs truncate text-white">{cls.name}</div>
                 <div className="text-[11px] text-white/50">{cls.teacher}</div>
+                <div className="text-[10px] text-white/30 mt-0.5">{cls.lastAccessed}</div>
+                {/* Progress bar */}
+                <div className="mt-1.5 h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-teal rounded-full transition-all duration-500" style={{ width: `${cls.progress}%` }} />
+                </div>
+                <div className="text-[10px] text-white/40 mt-0.5">{cls.progress}% complete</div>
               </div>
               {cls.badge > 0 && (
-                <div className="w-5 h-5 rounded-full bg-teal text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                <div className="w-5 h-5 rounded-full bg-teal text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">
                   {cls.badge}
                 </div>
               )}
@@ -160,14 +184,61 @@ export default function StudentDashboardPage() {
             <HandWaving size={24} weight="fill" className="text-teal" />
             <h1 className="font-heading font-bold text-xl text-text-primary">Hi Alex!</h1>
           </div>
-          <p className="text-sm text-text-secondary">
-            You&apos;re enrolled in <strong className="text-text-primary">4 classes</strong>. Click on a class to get started.
-          </p>
-          <div className="flex items-center gap-1.5 mt-3 text-xs font-semibold text-teal">
-            <HouseSimple size={14} weight="fill" />
-            Pick a class to start chatting, view lessons, or explore on your own
-          </div>
+          {CLASSES.length > 0 ? (
+            <>
+              <p className="text-sm text-text-secondary">
+                You&apos;re enrolled in <strong className="text-text-primary">{CLASSES.length} classes</strong>. Click on a class to get started.
+              </p>
+              <div className="flex items-center gap-1.5 mt-3 text-xs font-semibold text-teal">
+                <HouseSimple size={14} weight="fill" />
+                Pick a class to start chatting, view lessons, or explore on your own
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center py-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-teal/10 flex items-center justify-center mb-4">
+                <Backpack size={32} weight="fill" className="text-teal/60" />
+              </div>
+              <p className="text-sm text-text-secondary max-w-xs">
+                You&apos;re not enrolled in any classes yet. Ask your teacher for an enrollment code.
+              </p>
+            </div>
+          )}
         </div>
+
+        {/* Class cards with progress */}
+        {CLASSES.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
+            {CLASSES.map(cls => (
+              <Link
+                key={cls.id}
+                href={`/student/main?class=${cls.id}&view=class-dashboard`}
+                className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: cls.avatarColor }}>
+                    {cls.initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-heading font-semibold text-sm text-text-primary truncate group-hover:text-teal transition-colors">{cls.name}</div>
+                    <div className="text-xs text-text-secondary">{cls.teacher}</div>
+                  </div>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.color }}>
+                    <cls.Icon size={16} weight="fill" className="text-white" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-text-muted mb-1.5">
+                  <span>{cls.completedLessons} of {cls.totalLessons} lessons</span>
+                  <span className="font-semibold text-text-primary">{cls.progress}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                  <div className="h-full bg-teal rounded-full transition-all duration-500" style={{ width: `${cls.progress}%` }} />
+                </div>
+                <div className="text-[11px] text-text-muted mt-2">Last opened {cls.lastAccessed}</div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
