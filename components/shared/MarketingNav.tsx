@@ -6,6 +6,25 @@ import ThemeToggle from '@/components/shared/ThemeToggle';
 import UserMenu from '@/components/shared/UserMenu';
 import MobileMenu from '@/app/_components/MobileMenu';
 
+function NavLogo() {
+  return (
+    <Link href="/" className="flex items-center gap-2.5 no-underline">
+      <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center flex-shrink-0">
+        <svg viewBox="0 0 512 512" fill="none" className="w-6 h-6">
+          <g transform="translate(156,106)">
+            <rect x="60" y="0" width="80" height="300" fill="#FFF" />
+            <rect x="40" y="0" width="160" height="80" fill="#FFF" />
+            <circle cx="160" cy="200" r="40" fill="#4FA3A5" />
+          </g>
+        </svg>
+      </div>
+      <span className="font-heading font-bold text-[20px] text-text-primary leading-none">
+        TeachingLabs
+      </span>
+    </Link>
+  );
+}
+
 function IconChevronDown() {
   return (
     <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-3 h-3">
@@ -22,9 +41,7 @@ export default function MarketingNav() {
         <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
 
           {/* Logo */}
-          <Link href="/" className="font-heading text-[22px] font-bold text-text-primary">
-            Teaching Labs
-          </Link>
+          <NavLogo />
 
           {/* Desktop links */}
           <ul className="hidden md:flex items-center gap-8 list-none">
