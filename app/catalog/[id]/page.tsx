@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import MarketingNav from '@/components/shared/MarketingNav';
 import { courses, getCourseById, SUBJECT_COLORS, type Subject } from '@/lib/courses';
+import EnrollButton from './EnrollButton';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -166,20 +167,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </div>
 
           {/* CTA */}
-          <div className="bg-card-bg border border-border rounded-2xl p-8 text-center">
-            <h3 className="font-heading text-lg font-bold text-text-primary mb-2">
-              Interested in {course.title}?
-            </h3>
-            <p className="text-[15px] text-text-secondary mb-5">
-              Join the waitlist to get early access when Teaching Labs launches.
-            </p>
-            <Link
-              href="/waitlist"
-              className="inline-flex items-center font-heading text-[15px] font-bold bg-gold text-deep-navy px-8 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200"
-            >
-              Join Waitlist
-            </Link>
-          </div>
+          <EnrollButton courseId={course.id} courseTitle={course.title} />
         </div>
       </div>
     </>
