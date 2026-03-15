@@ -51,6 +51,7 @@ export default function MarketingNav() {
               { href: '/for-students', label: 'For Students' },
               { href: '/for-districts', label: 'For Districts' },
               { href: '/for-parents', label: 'For Parents' },
+              { href: '/catalog', label: 'Catalog' },
             ].map(({ href, label }) => (
               <li key={href}>
                 <Link href={href} className={`font-heading text-[15px] font-semibold transition-colors duration-200 ${pathname === href ? 'text-teal dark:text-gold font-bold' : 'text-text-primary dark:text-text-secondary hover:text-teal dark:hover:text-gold'}`}>
