@@ -15,6 +15,9 @@ import {
   CaretUp,
   BookOpenText,
   House,
+  Exam,
+  ArrowClockwise,
+  XCircle,
 } from '@phosphor-icons/react';
 
 // ── Types ──────────────────────────────────────────────
@@ -57,6 +60,30 @@ interface CourseDetail {
   enrollment: { id: string; status: string; enrolledAt: string };
 }
 
+interface QuizQuestion {
+  id: string;
+  quizId: string;
+  text: string;
+  type: 'multiple-choice' | 'true-false' | 'short-answer';
+  options: string[];
+}
+
+interface QuizData {
+  id: string;
+  lessonId: string;
+  title: string;
+  passingScore: number;
+  questions: QuizQuestion[];
+  bestAttempt: { score: number; passed: boolean; takenAt: string } | null;
+}
+
+interface QuizResult {
+  score: number;
+  passed: boolean;
+  passingScore: number;
+  results: { questionId: string; correct: boolean; correctAnswer: string }[];
+}
+
 // ── Component ──────────────────────────────────────────
 
 export default function CourseViewerPage() {
@@ -74,6 +101,14 @@ export default function CourseViewerPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [marking, setMarking] = useState(false);
+
+  // Quiz state
+  const [quiz, setQuiz] = useState<QuizData | null>(null);
+  const [quizLoading, setQuizLoading] = useState(false);
+  const [quizMode, setQuizMode] = useState<'preview' | 'taking' | 'results'>('preview');
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, number | string>>({});
+  const [quizSubmitting, setQuizSubmitting] = useState(false);
+  const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
 
   // Fetch course data
   const fetchCourse = useCallback(async () => {
@@ -116,6 +151,31 @@ export default function CourseViewerPage() {
   useEffect(() => {
     fetchCourse();
   }, [fetchCourse]);
+
+  // Fetch quiz when lesson changes
+  useEffect(() => {
+    if (!currentLessonId) return;
+
+    setQuiz(null);
+    setQuizMode('preview');
+    setQuizAnswers({});
+    setQuizResult(null);
+    setQuizLoading(true);
+
+    fetch(`/api/quiz/by-lesson/${currentLessonId}`)
+      .then((res) => {
+        if (!res.ok) {
+          setQuiz(null);
+          return null;
+        }
+        return res.json();
+      })
+      .then((data: QuizData | null) => {
+        if (data) setQuiz(data);
+      })
+      .catch(() => setQuiz(null))
+      .finally(() => setQuizLoading(false));
+  }, [currentLessonId]);
 
   // Get ordered lessons
   const allLessons = data?.modules.flatMap((m) => m.lessons) ?? [];
@@ -183,6 +243,60 @@ export default function CourseViewerPage() {
     setSidebarOpen(false);
     window.scrollTo(0, 0);
   }
+
+  // Quiz handlers
+  function handleStartQuiz() {
+    setQuizAnswers({});
+    setQuizResult(null);
+    setQuizMode('taking');
+  }
+
+  function handleAnswerChange(questionId: string, answer: number | string) {
+    setQuizAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  }
+
+  async function handleSubmitQuiz() {
+    if (!quiz || quizSubmitting) return;
+    setQuizSubmitting(true);
+
+    const answersPayload = quiz.questions.map((q) => ({
+      questionId: q.id,
+      answer: quizAnswers[q.id] ?? (q.type === 'short-answer' ? '' : -1),
+    }));
+
+    try {
+      const res = await fetch(`/api/student/quiz/${quiz.id}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: answersPayload }),
+      });
+
+      if (res.ok) {
+        const result: QuizResult = await res.json();
+        setQuizResult(result);
+        setQuizMode('results');
+        // Update best attempt locally
+        setQuiz((prev) => {
+          if (!prev) return prev;
+          const newBest =
+            !prev.bestAttempt || result.score > prev.bestAttempt.score
+              ? { score: result.score, passed: result.passed, takenAt: new Date().toISOString() }
+              : prev.bestAttempt;
+          return { ...prev, bestAttempt: newBest };
+        });
+      }
+    } finally {
+      setQuizSubmitting(false);
+    }
+  }
+
+  const allQuestionsAnswered = quiz
+    ? quiz.questions.every((q) => {
+        const ans = quizAnswers[q.id];
+        if (q.type === 'short-answer') return typeof ans === 'string' && ans.trim() !== '';
+        return typeof ans === 'number' && ans >= 0;
+      })
+    : false;
 
   // ── Not enrolled state ───────────────────────────────
   if (notEnrolled) {
@@ -458,6 +572,225 @@ export default function CourseViewerPage() {
                 <p key={i}>{paragraph}</p>
               ))}
             </div>
+
+            {/* ── Quiz Section ─────────────────────────────── */}
+            {quizLoading && (
+              <div className="mt-8 flex items-center gap-2 text-sm text-text-muted">
+                <div className="w-4 h-4 border-2 border-teal border-t-transparent rounded-full animate-spin" />
+                Loading quiz...
+              </div>
+            )}
+
+            {quiz && quizMode === 'preview' && (
+              <div className="mt-8 bg-card-bg border border-border rounded-xl p-6">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-teal/10 flex items-center justify-center flex-shrink-0">
+                      <Exam size={22} weight="fill" className="text-teal" />
+                    </div>
+                    <div>
+                      <h3 className="font-heading font-bold text-base text-text-primary">
+                        {quiz.title}
+                      </h3>
+                      <p className="text-xs text-text-muted mt-0.5">
+                        {quiz.questions.length} question{quiz.questions.length !== 1 ? 's' : ''} · {quiz.passingScore}% to pass
+                      </p>
+                    </div>
+                  </div>
+
+                  {quiz.bestAttempt && (
+                    <div
+                      className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full ${
+                        quiz.bestAttempt.passed
+                          ? 'bg-teal/10 text-teal'
+                          : 'bg-coral/10 text-coral'
+                      }`}
+                    >
+                      {quiz.bestAttempt.passed ? (
+                        <CheckCircle size={14} weight="fill" />
+                      ) : (
+                        <XCircle size={14} weight="fill" />
+                      )}
+                      Best: {quiz.bestAttempt.score}%
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleStartQuiz}
+                  className="mt-4 inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-5 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                >
+                  {quiz.bestAttempt ? (
+                    <>
+                      <ArrowClockwise size={16} weight="bold" />
+                      Retake Quiz
+                    </>
+                  ) : (
+                    <>
+                      <Exam size={16} weight="bold" />
+                      Take Quiz
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {quiz && quizMode === 'taking' && (
+              <div className="mt-8 space-y-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-heading font-bold text-lg text-text-primary">
+                    {quiz.title}
+                  </h3>
+                  <button
+                    onClick={() => setQuizMode('preview')}
+                    className="text-xs text-text-muted hover:text-text-secondary transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {quiz.questions.map((q, qIdx) => (
+                  <div
+                    key={q.id}
+                    className="bg-card-bg border border-border rounded-xl p-5"
+                  >
+                    <p className="text-sm font-semibold text-text-primary mb-3">
+                      <span className="text-teal mr-1.5">{qIdx + 1}.</span>
+                      {q.text}
+                    </p>
+
+                    {(q.type === 'multiple-choice' || q.type === 'true-false') && (
+                      <div className="space-y-2">
+                        {q.options.map((opt, optIdx) => (
+                          <label
+                            key={optIdx}
+                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                              quizAnswers[q.id] === optIdx
+                                ? 'border-teal bg-teal/5'
+                                : 'border-border hover:border-teal/30 hover:bg-teal/[0.02]'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name={`question-${q.id}`}
+                              checked={quizAnswers[q.id] === optIdx}
+                              onChange={() => handleAnswerChange(q.id, optIdx)}
+                              className="w-4 h-4 text-teal accent-teal"
+                            />
+                            <span className="text-sm text-text-secondary">{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+
+                    {q.type === 'short-answer' && (
+                      <input
+                        type="text"
+                        placeholder="Type your answer..."
+                        value={(quizAnswers[q.id] as string) || ''}
+                        onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                        className="w-full px-4 py-2.5 text-sm border border-border rounded-lg bg-warm-white text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-colors"
+                      />
+                    )}
+                  </div>
+                ))}
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    onClick={handleSubmitQuiz}
+                    disabled={!allQuestionsAnswered || quizSubmitting}
+                    className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                  >
+                    {quizSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Grading...
+                      </>
+                    ) : (
+                      'Submit Quiz'
+                    )}
+                  </button>
+                  {!allQuestionsAnswered && (
+                    <span className="text-xs text-text-muted">
+                      Answer all questions to submit
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {quiz && quizMode === 'results' && quizResult && (
+              <div className="mt-8 space-y-5">
+                {/* Score banner */}
+                <div
+                  className={`rounded-xl p-6 text-center border ${
+                    quizResult.passed
+                      ? 'bg-teal/5 border-teal/20'
+                      : 'bg-coral/5 border-coral/20'
+                  }`}
+                >
+                  <div
+                    className={`text-4xl font-heading font-extrabold mb-1 ${
+                      quizResult.passed ? 'text-teal' : 'text-coral'
+                    }`}
+                  >
+                    {quizResult.score}%
+                  </div>
+                  <div
+                    className={`text-sm font-semibold mb-1 ${
+                      quizResult.passed ? 'text-teal' : 'text-coral'
+                    }`}
+                  >
+                    {quizResult.passed ? 'Passed!' : 'Not Passed'}
+                  </div>
+                  <div className="text-xs text-text-muted">
+                    {quizResult.passingScore}% required to pass
+                  </div>
+                </div>
+
+                {/* Per-question results */}
+                <div className="space-y-3">
+                  {quiz.questions.map((q, qIdx) => {
+                    const result = quizResult.results.find((r) => r.questionId === q.id);
+                    return (
+                      <div
+                        key={q.id}
+                        className={`bg-card-bg border rounded-xl p-4 ${
+                          result?.correct ? 'border-teal/30' : 'border-coral/30'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {result?.correct ? (
+                            <CheckCircle size={18} weight="fill" className="text-teal flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <XCircle size={18} weight="fill" className="text-coral flex-shrink-0 mt-0.5" />
+                          )}
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-text-primary">
+                              <span className="text-text-muted mr-1">{qIdx + 1}.</span>
+                              {q.text}
+                            </p>
+                            {!result?.correct && (
+                              <p className="text-xs text-teal mt-1">
+                                Correct answer: {result?.correctAnswer}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={handleStartQuiz}
+                  className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-5 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                >
+                  <ArrowClockwise size={16} weight="bold" />
+                  Retake Quiz
+                </button>
+              </div>
+            )}
 
             {/* Mark Complete button */}
             <div className="mt-10 mb-6">

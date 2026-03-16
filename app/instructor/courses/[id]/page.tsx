@@ -133,9 +133,21 @@ export default function InstructorCourseDetailPage() {
 
       {/* Modules List */}
       <div className="bg-card-bg border border-border rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-heading font-semibold text-text-primary mb-4">
-          Course Modules
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-heading font-semibold text-text-primary">
+            Course Modules
+          </h2>
+          <Link
+            href={`/instructor/courses/${courseId}/quiz`}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal hover:text-navy transition-colors"
+          >
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Create Quiz
+          </Link>
+        </div>
         <div className="space-y-2">
           {course.modules.map((mod, idx) => (
             <div
