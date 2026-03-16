@@ -13,11 +13,12 @@ export default function StudentLayout({
   const isDashboard = pathname === '/student/dashboard';
   const isMain = pathname === '/student/main';
   const isOnboarding = pathname === '/student/onboarding';
+  const isCourseViewer = pathname.startsWith('/student/courses/');
 
   return (
     <div className="min-h-screen bg-warm-white">
-      {/* Dashboard button ONLY on student dashboard and mainchat */}
-      {(isDashboard || isMain) && (
+      {/* Dashboard button ONLY on student dashboard and mainchat (course viewer has its own nav) */}
+      {(isDashboard || isMain) && !isCourseViewer && (
         <div className="sticky top-0 z-40 bg-warm-white border-b border-border px-4 py-2.5">
           <Link
             href="/student/dashboard"

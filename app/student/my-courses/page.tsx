@@ -259,17 +259,17 @@ export default function MyCoursesPage() {
                       {/* CTA */}
                       {enrollment.status !== 'completed' ? (
                         <Link
-                          href={`/catalog/${enrollment.courseId}`}
+                          href={`/student/courses/${enrollment.courseId}`}
                           className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
                         >
                           Continue Learning
                         </Link>
                       ) : (
                         <Link
-                          href={`/catalog/${enrollment.courseId}`}
+                          href={`/student/courses/${enrollment.courseId}`}
                           className="inline-flex items-center font-heading text-sm font-semibold text-teal hover:text-navy transition-colors"
                         >
-                          View Course Details →
+                          View Course →
                         </Link>
                       )}
                     </div>

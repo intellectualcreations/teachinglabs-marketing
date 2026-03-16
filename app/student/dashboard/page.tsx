@@ -13,10 +13,10 @@ import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 
 const CLASSES = [
-  { id: 'math', name: '5th Period Math', teacher: 'Mrs. Martinez', initials: 'MM', avatarColor: '#1F3A5F', Icon: MathOperations, color: '#1F3A5F', badge: 2, progress: 68, totalLessons: 22, completedLessons: 15, lastAccessed: '2 hours ago' },
-  { id: 'ela', name: 'English Language Arts', teacher: 'Mr. Davis', initials: 'MD', avatarColor: '#4FA3A5', Icon: BookOpenText, color: '#4FA3A5', badge: 0, progress: 45, totalLessons: 20, completedLessons: 9, lastAccessed: 'Yesterday' },
-  { id: 'science', name: 'Science', teacher: 'Ms. Chen', initials: 'MC', avatarColor: '#7C3AED', Icon: Flask, color: '#7C3AED', badge: 1, progress: 30, totalLessons: 18, completedLessons: 5, lastAccessed: '3 days ago' },
-  { id: 'social', name: 'Social Studies', teacher: 'Mrs. Thompson', initials: 'MT', avatarColor: '#0891B2', Icon: GlobeHemisphereWest, color: '#0891B2', badge: 0, progress: 12, totalLessons: 16, completedLessons: 2, lastAccessed: 'Last week' },
+  { id: 'math', courseId: 'algebra-1', name: '5th Period Math', teacher: 'Mrs. Martinez', initials: 'MM', avatarColor: '#1F3A5F', Icon: MathOperations, color: '#1F3A5F', badge: 2, progress: 68, totalLessons: 22, completedLessons: 15, lastAccessed: '2 hours ago' },
+  { id: 'ela', courseId: 'creative-writing', name: 'English Language Arts', teacher: 'Mr. Davis', initials: 'MD', avatarColor: '#4FA3A5', Icon: BookOpenText, color: '#4FA3A5', badge: 0, progress: 45, totalLessons: 20, completedLessons: 9, lastAccessed: 'Yesterday' },
+  { id: 'science', courseId: 'biology', name: 'Science', teacher: 'Ms. Chen', initials: 'MC', avatarColor: '#7C3AED', Icon: Flask, color: '#7C3AED', badge: 1, progress: 30, totalLessons: 18, completedLessons: 5, lastAccessed: '3 days ago' },
+  { id: 'social', courseId: 'us-history', name: 'Social Studies', teacher: 'Mrs. Thompson', initials: 'MT', avatarColor: '#0891B2', Icon: GlobeHemisphereWest, color: '#0891B2', badge: 0, progress: 12, totalLessons: 16, completedLessons: 2, lastAccessed: 'Last week' },
 ];
 
 const STATS = [
@@ -46,6 +46,21 @@ const RECENT_ACTIVITY = [
   { text: 'Chatted about the Civil War in Social Studies', time: '3 days ago', color: '#F59E0B' },
 ];
 
+interface EnrolledCourseData {
+  courseId: string;
+  status: string;
+  progress: number;
+  lessonProgress: { completed: number; total: number; percentage: number };
+  course: {
+    id: string;
+    title: string;
+    subject: string;
+    instructor: string;
+    thumbnail?: string;
+  } | null;
+  nextLessonId?: string;
+}
+
 export default function StudentDashboardPage() {
   const router = useRouter();
   const chartMax = Math.max(...ACTIVITY_VALUES);
@@ -53,6 +68,8 @@ export default function StudentDashboardPage() {
   const [barsVisible, setBarsVisible] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourseData[]>([]);
+  const [enrolledLoading, setEnrolledLoading] = useState(true);
 
   // Onboarding redirect check
   useEffect(() => {
@@ -67,6 +84,41 @@ export default function StudentDashboardPage() {
   useEffect(() => {
     const t = setTimeout(() => setBarsVisible(true), 300);
     return () => clearTimeout(t);
+  }, []);
+
+  // Fetch enrolled courses with lesson progress
+  useEffect(() => {
+    fetch('/api/student/courses')
+      .then((res) => res.json())
+      .then(async (data) => {
+        const courses: EnrolledCourseData[] = data.enrollments || [];
+        // For each active course, find next uncompleted lesson
+        const enriched = await Promise.all(
+          courses.map(async (c: EnrolledCourseData) => {
+            if (c.course && c.lessonProgress?.percentage < 100) {
+              try {
+                const res = await fetch(`/api/student/courses/${c.course.id}`);
+                if (res.ok) {
+                  const detail = await res.json();
+                  const allLessons = detail.modules.flatMap(
+                    (m: { lessons: { id: string; completed: boolean }[] }) => m.lessons,
+                  );
+                  const next = allLessons.find(
+                    (l: { completed: boolean }) => !l.completed,
+                  );
+                  return { ...c, nextLessonId: next?.id };
+                }
+              } catch {
+                // ignore
+              }
+            }
+            return c;
+          }),
+        );
+        setEnrolledCourses(enriched);
+        setEnrolledLoading(false);
+      })
+      .catch(() => setEnrolledLoading(false));
   }, []);
 
   if (!onboardingChecked) {
@@ -137,7 +189,7 @@ export default function StudentDashboardPage() {
           {CLASSES.map(cls => (
             <Link
               key={cls.id}
-              href={`/student/main?class=${cls.id}&view=class-dashboard`}
+              href={`/student/courses/${cls.courseId}`}
               onClick={() => setMobileOpen(false)}
               className="flex items-start gap-2.5 px-4 py-2.5 hover:bg-white/[0.12] transition-colors text-white/70 hover:text-white"
             >
@@ -212,7 +264,7 @@ export default function StudentDashboardPage() {
             {CLASSES.map(cls => (
               <Link
                 key={cls.id}
-                href={`/student/main?class=${cls.id}&view=class-dashboard`}
+                href={`/student/courses/${cls.courseId}`}
                 className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group"
               >
                 <div className="flex items-center gap-3 mb-3">
@@ -235,8 +287,79 @@ export default function StudentDashboardPage() {
                   <div className="h-full bg-teal rounded-full transition-all duration-500" style={{ width: `${cls.progress}%` }} />
                 </div>
                 <div className="text-[11px] text-text-muted mt-2">Last opened {cls.lastAccessed}</div>
+                <div className="mt-3 text-xs font-heading font-bold text-teal group-hover:text-navy transition-colors">
+                  Continue →
+                </div>
               </Link>
             ))}
+          </div>
+        )}
+
+        {/* Enrolled courses with Continue Learning */}
+        {!enrolledLoading && enrolledCourses.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-3">
+              <BookOpenText size={16} weight="fill" className="text-teal" />
+              My Enrolled Courses
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {enrolledCourses.map((ec) => {
+                if (!ec.course) return null;
+                const pct = ec.lessonProgress?.percentage ?? ec.progress ?? 0;
+                const isComplete = pct >= 100;
+                return (
+                  <div
+                    key={ec.courseId}
+                    className="bg-card-bg border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div
+                      className="h-1.5 w-full"
+                      style={{ backgroundColor: ec.course.thumbnail || '#4FA3A5' }}
+                    />
+                    <div className="p-5">
+                      <h3 className="font-heading font-semibold text-sm text-text-primary mb-1 truncate">
+                        {ec.course.title}
+                      </h3>
+                      <p className="text-xs text-text-secondary mb-3">{ec.course.instructor}</p>
+                      <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="text-text-muted">
+                          {ec.lessonProgress?.completed ?? 0} of {ec.lessonProgress?.total ?? 0} lessons
+                        </span>
+                        <span className="font-bold text-text-primary">{pct}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-border rounded-full overflow-hidden mb-4">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: isComplete ? '#F0C95D' : '#4FA3A5',
+                          }}
+                        />
+                      </div>
+                      {isComplete ? (
+                        <Link
+                          href={`/student/courses/${ec.courseId}`}
+                          className="inline-flex items-center font-heading text-xs font-semibold text-teal hover:text-navy transition-colors"
+                        >
+                          Review Course →
+                        </Link>
+                      ) : (
+                        <Link
+                          href={
+                            ec.nextLessonId
+                              ? `/student/courses/${ec.courseId}?lesson=${ec.nextLessonId}`
+                              : `/student/courses/${ec.courseId}`
+                          }
+                          className="inline-flex items-center font-heading text-xs font-bold bg-teal text-white px-4 py-2 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                        >
+                          Continue Learning
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

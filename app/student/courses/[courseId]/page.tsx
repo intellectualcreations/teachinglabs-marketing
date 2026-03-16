@@ -1,0 +1,527 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import {
+  CaretLeft,
+  CaretRight,
+  CheckCircle,
+  Circle,
+  List,
+  X,
+  Trophy,
+  CaretDown,
+  CaretUp,
+  BookOpenText,
+  House,
+} from '@phosphor-icons/react';
+
+// ── Types ──────────────────────────────────────────────
+
+interface LessonData {
+  id: string;
+  title: string;
+  order: number;
+  content: string;
+  completed: boolean;
+}
+
+interface ModuleData {
+  title: string;
+  lessonCount: number;
+  lessons: LessonData[];
+  completedCount: number;
+}
+
+interface CourseData {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  instructor: string;
+  gradeLevel: string;
+  thumbnail?: string;
+}
+
+interface ProgressData {
+  completed: number;
+  total: number;
+  percentage: number;
+}
+
+interface CourseDetail {
+  course: CourseData;
+  modules: ModuleData[];
+  progress: ProgressData;
+  enrollment: { id: string; status: string; enrolledAt: string };
+}
+
+// ── Component ──────────────────────────────────────────
+
+export default function CourseViewerPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const courseId = params.courseId as string;
+  const initialLessonId = searchParams.get('lesson');
+
+  const [data, setData] = useState<CourseDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notEnrolled, setNotEnrolled] = useState(false);
+
+  const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [marking, setMarking] = useState(false);
+
+  // Fetch course data
+  const fetchCourse = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/student/courses/${courseId}`);
+      if (res.status === 403) {
+        setNotEnrolled(true);
+        setLoading(false);
+        return;
+      }
+      if (!res.ok) {
+        setError('Failed to load course');
+        setLoading(false);
+        return;
+      }
+      const json: CourseDetail = await res.json();
+      setData(json);
+
+      // Expand all modules by default
+      const allModules = new Set(json.modules.map((m) => m.title));
+      setExpandedModules(allModules);
+
+      // Set initial lesson
+      const allLessons = json.modules.flatMap((m) => m.lessons);
+      if (initialLessonId && allLessons.some((l) => l.id === initialLessonId)) {
+        setCurrentLessonId(initialLessonId);
+      } else {
+        // Default: first uncompleted, or first lesson
+        const firstUncompleted = allLessons.find((l) => !l.completed);
+        setCurrentLessonId(firstUncompleted?.id ?? allLessons[0]?.id ?? null);
+      }
+
+      setLoading(false);
+    } catch {
+      setError('Failed to load course');
+      setLoading(false);
+    }
+  }, [courseId, initialLessonId]);
+
+  useEffect(() => {
+    fetchCourse();
+  }, [fetchCourse]);
+
+  // Get ordered lessons
+  const allLessons = data?.modules.flatMap((m) => m.lessons) ?? [];
+  const currentLesson = allLessons.find((l) => l.id === currentLessonId) ?? null;
+  const currentIndex = allLessons.findIndex((l) => l.id === currentLessonId);
+  const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
+
+  // Find which module the current lesson belongs to
+  const currentModule = data?.modules.find((m) =>
+    m.lessons.some((l) => l.id === currentLessonId),
+  );
+
+  const allComplete = data ? data.progress.percentage === 100 : false;
+
+  // Toggle module expansion
+  function toggleModule(title: string) {
+    setExpandedModules((prev) => {
+      const next = new Set(prev);
+      if (next.has(title)) next.delete(title);
+      else next.add(title);
+      return next;
+    });
+  }
+
+  // Mark lesson complete
+  async function handleMarkComplete() {
+    if (!currentLessonId || marking) return;
+    setMarking(true);
+    try {
+      const res = await fetch(`/api/lessons/${currentLessonId}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId: 'demo-student' }),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        // Update local state
+        setData((prev) => {
+          if (!prev) return prev;
+          const updatedModules = prev.modules.map((m) => ({
+            ...m,
+            lessons: m.lessons.map((l) =>
+              l.id === currentLessonId ? { ...l, completed: true } : l,
+            ),
+            completedCount:
+              m.completedCount +
+              (m.lessons.some((l) => l.id === currentLessonId && !l.completed) ? 1 : 0),
+          }));
+          return {
+            ...prev,
+            modules: updatedModules,
+            progress: result.progress,
+          };
+        });
+      }
+    } finally {
+      setMarking(false);
+    }
+  }
+
+  // Navigate to lesson
+  function goToLesson(lessonId: string) {
+    setCurrentLessonId(lessonId);
+    setSidebarOpen(false);
+    window.scrollTo(0, 0);
+  }
+
+  // ── Not enrolled state ───────────────────────────────
+  if (notEnrolled) {
+    return (
+      <div className="min-h-screen bg-warm-white flex items-center justify-center p-6">
+        <div className="bg-card-bg border border-border rounded-2xl p-10 text-center max-w-md">
+          <div className="w-16 h-16 rounded-full bg-coral/10 flex items-center justify-center mx-auto mb-4">
+            <BookOpenText size={32} weight="fill" className="text-coral/60" />
+          </div>
+          <h1 className="font-heading font-bold text-xl text-text-primary mb-2">
+            Not Enrolled
+          </h1>
+          <p className="text-sm text-text-secondary mb-6">
+            You need to enroll in this course before you can access the lessons.
+          </p>
+          <Link
+            href={`/catalog/${courseId}`}
+            className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+          >
+            View Course &amp; Enroll
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Loading state ────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-warm-white flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-teal border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // ── Error state ──────────────────────────────────────
+  if (error || !data || !currentLesson) {
+    return (
+      <div className="min-h-screen bg-warm-white flex items-center justify-center p-6">
+        <div className="bg-card-bg border border-border rounded-2xl p-10 text-center max-w-md">
+          <h1 className="font-heading font-bold text-xl text-text-primary mb-2">
+            Something went wrong
+          </h1>
+          <p className="text-sm text-text-secondary mb-6">
+            {error || 'Could not load course content.'}
+          </p>
+          <Link
+            href="/student/my-courses"
+            className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+          >
+            Back to My Courses
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── All complete celebration ─────────────────────────
+  const showCongrats = allComplete && currentLesson.completed;
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-warm-white">
+      {/* Mobile sidebar toggle */}
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="fixed top-4 left-4 z-50 lg:hidden w-10 h-10 rounded-lg bg-navy text-white flex items-center justify-center shadow-lg"
+        aria-label="Open lesson menu"
+      >
+        <List size={22} weight="bold" />
+      </button>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar ─────────────────────────────────────── */}
+      <aside
+        className={`
+          fixed lg:sticky top-0 left-0 h-screen w-[300px] bg-navy flex-shrink-0 flex flex-col z-50
+          transition-transform duration-200 overflow-hidden
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}
+      >
+        {/* Close (mobile) */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="absolute top-4 right-4 text-white/60 hover:text-white lg:hidden"
+          aria-label="Close menu"
+        >
+          <X size={20} />
+        </button>
+
+        {/* Course title */}
+        <div className="px-5 py-5 border-b border-white/10">
+          <Link
+            href="/student/my-courses"
+            className="text-xs text-teal hover:text-teal/80 font-medium transition-colors mb-2 inline-block"
+          >
+            ← My Courses
+          </Link>
+          <h2 className="font-heading font-bold text-base text-white leading-tight">
+            {data.course.title}
+          </h2>
+          <p className="text-xs text-white/50 mt-1">{data.course.instructor}</p>
+
+          {/* Progress bar */}
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-white/60">Progress</span>
+              <span className="font-bold text-teal">{data.progress.percentage}%</span>
+            </div>
+            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-teal rounded-full transition-all duration-500"
+                style={{ width: `${data.progress.percentage}%` }}
+              />
+            </div>
+            <div className="text-[10px] text-white/40 mt-1">
+              {data.progress.completed} of {data.progress.total} lessons complete
+            </div>
+          </div>
+        </div>
+
+        {/* Module accordion */}
+        <nav className="flex-1 overflow-y-auto py-3">
+          {data.modules.map((mod) => {
+            const isExpanded = expandedModules.has(mod.title);
+            const moduleComplete = mod.completedCount === mod.lessons.length && mod.lessons.length > 0;
+            const isCurrentModule = currentModule?.title === mod.title;
+
+            return (
+              <div key={mod.title} className="mb-1">
+                {/* Module header */}
+                <button
+                  onClick={() => toggleModule(mod.title)}
+                  className={`w-full flex items-center gap-2 px-5 py-3 text-left transition-colors hover:bg-white/[0.06] ${
+                    isCurrentModule ? 'bg-white/[0.04]' : ''
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      {moduleComplete ? (
+                        <CheckCircle size={16} weight="fill" className="text-teal flex-shrink-0" />
+                      ) : (
+                        <Circle size={16} weight="regular" className="text-white/30 flex-shrink-0" />
+                      )}
+                      <span className={`text-xs font-bold truncate ${moduleComplete ? 'text-teal' : 'text-white/90'}`}>
+                        {mod.title}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-white/40 ml-6">
+                      {mod.completedCount}/{mod.lessons.length} lessons
+                    </span>
+                  </div>
+                  {isExpanded ? (
+                    <CaretUp size={14} className="text-white/40 flex-shrink-0" />
+                  ) : (
+                    <CaretDown size={14} className="text-white/40 flex-shrink-0" />
+                  )}
+                </button>
+
+                {/* Lessons list */}
+                {isExpanded && (
+                  <div className="pb-1">
+                    {mod.lessons.map((lesson) => {
+                      const isActive = lesson.id === currentLessonId;
+                      return (
+                        <button
+                          key={lesson.id}
+                          onClick={() => goToLesson(lesson.id)}
+                          className={`w-full flex items-center gap-2.5 pl-10 pr-5 py-2 text-left transition-colors ${
+                            isActive
+                              ? 'bg-teal/20 border-l-2 border-teal'
+                              : 'hover:bg-white/[0.06] border-l-2 border-transparent'
+                          }`}
+                        >
+                          {lesson.completed ? (
+                            <CheckCircle size={14} weight="fill" className="text-teal flex-shrink-0" />
+                          ) : (
+                            <Circle size={14} weight="regular" className="text-white/30 flex-shrink-0" />
+                          )}
+                          <span
+                            className={`text-xs truncate ${
+                              isActive
+                                ? 'text-white font-semibold'
+                                : lesson.completed
+                                ? 'text-white/50'
+                                : 'text-white/70'
+                            }`}
+                          >
+                            {lesson.title}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* ── Main content ────────────────────────────────── */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar */}
+        <header className="flex-shrink-0 bg-card-bg border-b border-border px-6 py-3 flex items-center gap-3">
+          <nav className="flex items-center gap-1.5 text-xs text-text-muted flex-1 min-w-0">
+            <Link href="/student/dashboard" className="text-teal hover:text-navy transition-colors flex items-center gap-1">
+              <House size={12} weight="fill" />
+              Dashboard
+            </Link>
+            <span>/</span>
+            <Link href="/student/my-courses" className="text-teal hover:text-navy transition-colors">
+              My Courses
+            </Link>
+            <span>/</span>
+            <span className="text-text-primary font-medium truncate">{data.course.title}</span>
+          </nav>
+
+          {/* Compact progress */}
+          <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+            <div className="h-1.5 w-24 bg-border rounded-full overflow-hidden">
+              <div
+                className="h-full bg-teal rounded-full transition-all duration-500"
+                style={{ width: `${data.progress.percentage}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-text-primary">{data.progress.percentage}%</span>
+          </div>
+        </header>
+
+        {/* Content area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-6 py-8 lg:px-10">
+            {showCongrats && (
+              <div className="bg-gold/10 border border-gold/30 rounded-2xl p-8 mb-8 text-center">
+                <Trophy size={48} weight="fill" className="text-gold mx-auto mb-3" />
+                <h2 className="font-heading font-bold text-2xl text-text-primary mb-2">
+                  Congratulations!
+                </h2>
+                <p className="text-sm text-text-secondary max-w-md mx-auto">
+                  You&apos;ve completed all lessons in {data.course.title}. Great work! You can review any lesson by clicking on it in the sidebar.
+                </p>
+                <Link
+                  href="/student/my-courses"
+                  className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-2.5 rounded-full mt-4 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                >
+                  Back to My Courses
+                </Link>
+              </div>
+            )}
+
+            {/* Module indicator */}
+            {currentModule && (
+              <div className="text-xs font-bold text-teal uppercase tracking-wide mb-2">
+                {currentModule.title}
+              </div>
+            )}
+
+            {/* Lesson title */}
+            <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-text-primary mb-6 leading-tight">
+              {currentLesson.title}
+            </h1>
+
+            {/* Lesson content */}
+            <div className="prose prose-sm max-w-none text-text-secondary leading-relaxed space-y-4">
+              {currentLesson.content.split('\n\n').map((paragraph, i) => (
+                <p key={i}>{paragraph}</p>
+              ))}
+            </div>
+
+            {/* Mark Complete button */}
+            <div className="mt-10 mb-6">
+              {currentLesson.completed ? (
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-teal bg-teal/10 border border-teal/20 px-5 py-2.5 rounded-full">
+                  <CheckCircle size={18} weight="fill" />
+                  Lesson Complete
+                </div>
+              ) : (
+                <button
+                  onClick={handleMarkComplete}
+                  disabled={marking}
+                  className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {marking ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={18} weight="bold" />
+                      Mark Complete
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom navigation */}
+        <footer className="flex-shrink-0 bg-card-bg border-t border-border px-6 py-3 flex items-center justify-between gap-4">
+          {prevLesson ? (
+            <button
+              onClick={() => goToLesson(prevLesson.id)}
+              className="flex items-center gap-2 text-sm text-text-secondary hover:text-teal transition-colors font-medium"
+            >
+              <CaretLeft size={16} weight="bold" />
+              <span className="hidden sm:inline">{prevLesson.title}</span>
+              <span className="sm:hidden">Previous</span>
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <span className="text-xs text-text-muted">
+            {currentIndex + 1} / {allLessons.length}
+          </span>
+
+          {nextLesson ? (
+            <button
+              onClick={() => goToLesson(nextLesson.id)}
+              className="flex items-center gap-2 text-sm text-teal hover:text-navy transition-colors font-semibold"
+            >
+              <span className="hidden sm:inline">{nextLesson.title}</span>
+              <span className="sm:hidden">Next</span>
+              <CaretRight size={16} weight="bold" />
+            </button>
+          ) : (
+            <div />
+          )}
+        </footer>
+      </main>
+    </div>
+  );
+}
