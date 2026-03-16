@@ -53,6 +53,14 @@ export function getAttempts(studentId: string, quizId: string): QuizAttempt[] {
   );
 }
 
+export function getAllAttempts(): QuizAttempt[] {
+  return [...attempts];
+}
+
+export function getAttemptById(attemptId: string): QuizAttempt | undefined {
+  return attempts.find((a) => a.id === attemptId);
+}
+
 export function getBestAttempt(studentId: string, quizId: string): QuizAttempt | undefined {
   const studentAttempts = getAttempts(studentId, quizId);
   if (studentAttempts.length === 0) return undefined;
@@ -263,3 +271,51 @@ function seed() {
 }
 
 seed();
+
+// ── Seed quiz attempts (submissions to grade) ─────────
+function seedAttempts() {
+  // demo-student took quiz_1 (Variables & Expressions Check)
+  submitQuiz('demo-student', 'quiz_1', [
+    { questionId: 'q_1', answer: 1 },
+    { questionId: 'q_2', answer: 2 },
+    { questionId: 'q_3', answer: 0 },
+    { questionId: 'q_4', answer: '7' },
+  ]);
+
+  // student-emma took quiz_1
+  submitQuiz('student-emma', 'quiz_1', [
+    { questionId: 'q_1', answer: 1 },
+    { questionId: 'q_2', answer: 1 }, // wrong
+    { questionId: 'q_3', answer: 0 },
+    { questionId: 'q_4', answer: '7' },
+  ]);
+
+  // student-liam took quiz_2 (Writing Expressions Quiz)
+  submitQuiz('student-liam', 'quiz_2', [
+    { questionId: 'q_5', answer: 2 },
+    { questionId: 'q_6', answer: 1 },
+    { questionId: 'q_7', answer: 0 },
+    { questionId: 'q_8', answer: '3' },
+    { questionId: 'q_9', answer: 1 },
+  ]);
+
+  // demo-student took quiz_3 (One-Step Equations Quiz)
+  submitQuiz('demo-student', 'quiz_3', [
+    { questionId: 'q_10', answer: 1 },
+    { questionId: 'q_11', answer: '7' },
+    { questionId: 'q_12', answer: 0 },
+    { questionId: 'q_13', answer: 2 },
+    { questionId: 'q_14', answer: 2 },
+  ]);
+
+  // student-emma took quiz_3
+  submitQuiz('student-emma', 'quiz_3', [
+    { questionId: 'q_10', answer: 1 },
+    { questionId: 'q_11', answer: '5' }, // wrong
+    { questionId: 'q_12', answer: 1 },   // wrong
+    { questionId: 'q_13', answer: 2 },
+    { questionId: 'q_14', answer: 0 },   // wrong
+  ]);
+}
+
+seedAttempts();

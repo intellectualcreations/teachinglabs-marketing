@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/users';
 import { getEnrollments } from '@/lib/enrollment-store';
 import { getCourseById } from '@/lib/courses';
 import { getLessonProgress } from '@/lib/lesson-store';
+import { getCourseProgressWithGrades } from '@/lib/grade-store';
 
 export async function GET() {
   const user = getCurrentUser('student');
@@ -11,9 +12,11 @@ export async function GET() {
   const result = enrollments.map((e) => {
     const course = getCourseById(e.courseId);
     const progress = getLessonProgress(user.id, e.courseId);
+    const gradeProgress = getCourseProgressWithGrades(user.id, e.courseId);
     return {
       ...e,
       lessonProgress: progress,
+      combinedProgress: gradeProgress.combinedPct,
       course: course
         ? {
             id: course.id,

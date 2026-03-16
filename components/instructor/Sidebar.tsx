@@ -7,6 +7,7 @@ import { useState } from 'react';
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/instructor/dashboard', icon: 'grid' },
   { label: 'My Courses', href: '/instructor/dashboard', icon: 'book' },
+  { label: 'Grades', href: '/instructor/grades', icon: 'clipboard' },
   { label: 'Back to App', href: '/app-index', icon: 'arrow-left' },
 ];
 
@@ -26,6 +27,13 @@ function NavIcon({ icon, size = 20 }: { icon: string; size?: number }) {
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
           <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+      );
+    case 'clipboard':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
         </svg>
       );
     case 'arrow-left':
@@ -106,7 +114,7 @@ export default function InstructorSidebar() {
         {/* Nav items */}
         <nav className="flex-1 py-3 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href && item.label !== 'Back to App';
+            const isActive = pathname.startsWith(item.href) && item.label !== 'Back to App' && item.label !== 'My Courses';
             return (
               <Link
                 key={item.label}
