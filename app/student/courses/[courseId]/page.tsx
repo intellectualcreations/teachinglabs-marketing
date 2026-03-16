@@ -19,6 +19,9 @@ import {
   ArrowClockwise,
   XCircle,
   Certificate,
+  ChatsCircle,
+  VideoCamera,
+  Play,
 } from '@phosphor-icons/react';
 
 // ── Types ──────────────────────────────────────────────
@@ -29,6 +32,7 @@ interface LessonData {
   order: number;
   content: string;
   completed: boolean;
+  videoUrl?: string | null;
 }
 
 interface ModuleData {
@@ -425,6 +429,24 @@ export default function CourseViewerPage() {
           </div>
         </div>
 
+        {/* Course links */}
+        <div className="px-5 py-3 border-b border-white/10 space-y-1">
+          <Link
+            href={`/student/courses/${courseId}/forum`}
+            className="flex items-center gap-2 text-xs font-medium text-white/70 hover:text-white transition-colors py-1.5"
+          >
+            <ChatsCircle size={16} weight="fill" className="text-teal" />
+            Discussion Forum
+          </Link>
+          <Link
+            href={`/student/courses/${courseId}/live-sessions`}
+            className="flex items-center gap-2 text-xs font-medium text-white/70 hover:text-white transition-colors py-1.5"
+          >
+            <VideoCamera size={16} weight="fill" className="text-coral" />
+            Live Sessions
+          </Link>
+        </div>
+
         {/* Module accordion */}
         <nav className="flex-1 overflow-y-auto py-3">
           {data.modules.map((mod) => {
@@ -560,6 +582,25 @@ export default function CourseViewerPage() {
                   >
                     Back to My Courses
                   </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Video player */}
+            {currentLesson.videoUrl && (
+              <div className="mb-6">
+                <div className="relative w-full rounded-xl overflow-hidden bg-navy" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    src={currentLesson.videoUrl}
+                    title={`Video: ${currentLesson.title}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full"
+                  />
+                </div>
+                <div className="flex items-center gap-2 mt-2 text-xs text-text-muted">
+                  <Play size={14} weight="fill" className="text-teal" />
+                  <span>Watch the video lesson above, then read the summary below</span>
                 </div>
               </div>
             )}

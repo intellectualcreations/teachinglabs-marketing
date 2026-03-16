@@ -10,12 +10,14 @@ export interface Lesson {
   title: string;
   content: string;
   order: number;
+  videoUrl?: string;
 }
 
 export interface LessonCompletion {
   studentId: string;
   lessonId: string;
   completedAt: string;
+  watched?: boolean;
 }
 
 export interface LessonProgress {
@@ -161,6 +163,21 @@ function seedLessons() {
 
 seedLessons();
 
+// ── Seed video URLs on select lessons ──────────────────
+
+const VIDEO_SEEDS: Record<string, string> = {
+  'algebra-1--expressions---variables--1': 'https://www.youtube.com/embed/WJqw-IgnVXQ',   // Variables intro
+  'algebra-1--linear-equations--1': 'https://www.youtube.com/embed/LDIiYKYvvdA',           // One-step equations
+  'biology--cell-structure---function--1': 'https://www.youtube.com/embed/URUJD5NEXC8',    // Cell theory
+  'creative-writing--finding-your-voice--1': 'https://www.youtube.com/embed/4SnFnvFjYQo',  // Freewriting
+};
+
+for (const lesson of lessons) {
+  if (VIDEO_SEEDS[lesson.id]) {
+    lesson.videoUrl = VIDEO_SEEDS[lesson.id];
+  }
+}
+
 // ── Seed demo completions ──────────────────────────────
 // Algebra I: 50% → complete first half of lessons
 // Biology: 25% → complete first module's lessons
@@ -299,6 +316,36 @@ export function getNextUncompletedLesson(studentId: string, courseId: string): L
       .map((c) => c.lessonId),
   );
   return ordered.find((l) => !completedIds.has(l.id)) ?? null;
+}
+
+export function markVideoWatched(studentId: string, lessonId: string): void {
+  const existing = completions.find(
+    (c) => c.studentId === studentId && c.lessonId === lessonId,
+  );
+  if (existing) {
+    existing.watched = true;
+  } else {
+    completions.push({
+      studentId,
+      lessonId,
+      completedAt: new Date().toISOString(),
+      watched: true,
+    });
+  }
+}
+
+export function isVideoWatched(studentId: string, lessonId: string): boolean {
+  return completions.some(
+    (c) => c.studentId === studentId && c.lessonId === lessonId && c.watched === true,
+  );
+}
+
+export function updateLesson(lessonId: string, updates: Partial<Pick<Lesson, 'videoUrl' | 'title' | 'content'>>): Lesson | undefined {
+  const lesson = lessons.find((l) => l.id === lessonId);
+  if (lesson) {
+    Object.assign(lesson, updates);
+  }
+  return lesson;
 }
 
 export function getLessonProgress(studentId: string, courseId: string): LessonProgress {

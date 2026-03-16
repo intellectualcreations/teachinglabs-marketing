@@ -7,7 +7,7 @@ import {
   ChatsCircle, ClipboardText, ChatText, Trophy, ChartBar,
   RocketLaunch, Fire, Star, Lightning, Brain, Medal,
   ClockCounterClockwise, HandWaving, HouseSimple, List, X,
-  Backpack,
+  Backpack, VideoCamera, ArrowSquareOut, Calendar,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
@@ -46,6 +46,15 @@ const RECENT_ACTIVITY = [
   { text: 'Chatted about the Civil War in Social Studies', time: '3 days ago', color: '#F59E0B' },
 ];
 
+interface LiveSessionData {
+  id: string;
+  courseId: string;
+  title: string;
+  url: string;
+  scheduledAt: string;
+  duration: number;
+}
+
 interface EnrolledCourseData {
   courseId: string;
   status: string;
@@ -70,6 +79,8 @@ export default function StudentDashboardPage() {
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourseData[]>([]);
   const [enrolledLoading, setEnrolledLoading] = useState(true);
+  const [liveSessions, setLiveSessions] = useState<LiveSessionData[]>([]);
+  const [liveLoading, setLiveLoading] = useState(true);
 
   // Onboarding redirect check
   useEffect(() => {
@@ -119,6 +130,27 @@ export default function StudentDashboardPage() {
         setEnrolledLoading(false);
       })
       .catch(() => setEnrolledLoading(false));
+
+    // Fetch upcoming live sessions for enrolled courses
+    const courseIds = ['algebra-1', 'biology', 'creative-writing', 'us-history'];
+    Promise.all(
+      courseIds.map((id) =>
+        fetch(`/api/courses/${id}/live-sessions`)
+          .then((r) => r.ok ? r.json() : { sessions: [] })
+          .catch(() => ({ sessions: [] })),
+      ),
+    ).then((results) => {
+      const allSessions: LiveSessionData[] = results.flatMap((r) => r.sessions || []);
+      const now = new Date();
+      const upcoming = allSessions
+        .filter((s) => {
+          const end = new Date(new Date(s.scheduledAt).getTime() + s.duration * 60000);
+          return end > now;
+        })
+        .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+      setLiveSessions(upcoming);
+      setLiveLoading(false);
+    });
   }, []);
 
   if (!onboardingChecked) {
@@ -356,6 +388,54 @@ export default function StudentDashboardPage() {
                         </Link>
                       )}
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Upcoming live sessions */}
+        {!liveLoading && liveSessions.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-3">
+              <VideoCamera size={16} weight="fill" className="text-coral" />
+              Upcoming Live Sessions
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {liveSessions.slice(0, 4).map((session) => {
+                const d = new Date(session.scheduledAt);
+                const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                const soon = d.getTime() - Date.now() < 2 * 60 * 60 * 1000 && d.getTime() > Date.now();
+                return (
+                  <div
+                    key={session.id}
+                    className={`bg-card-bg border rounded-xl p-4 ${soon ? 'border-coral shadow-md' : 'border-border'}`}
+                  >
+                    {soon && (
+                      <div className="inline-flex items-center gap-1 text-[10px] font-bold text-coral bg-coral/10 px-2 py-0.5 rounded-full mb-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-coral animate-pulse" />
+                        Starting Soon
+                      </div>
+                    )}
+                    <h3 className="font-heading font-semibold text-sm text-text-primary mb-1 truncate">
+                      {session.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs text-text-muted mb-3">
+                      <Calendar size={12} weight="fill" />
+                      <span>{dateStr} at {timeStr}</span>
+                      <span>· {session.duration} min</span>
+                    </div>
+                    <a
+                      href={session.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 font-heading text-xs font-bold text-teal hover:text-navy transition-colors"
+                    >
+                      <ArrowSquareOut size={14} weight="bold" />
+                      Join Session
+                    </a>
                   </div>
                 );
               })}

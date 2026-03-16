@@ -41,6 +41,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       order: lesson.order,
       content: lesson.content,
       completed: isLessonCompleted(user.id, lesson.id),
+      videoUrl: lesson.videoUrl || null,
     }));
 
     const completedCount = lessonsWithStatus.filter((l) => l.completed).length;
