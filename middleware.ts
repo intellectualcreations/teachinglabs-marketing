@@ -2,13 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 
 /**
- * Middleware: protects dashboard routes via NextAuth and adds
- * a lightweight instructor-role gate for /instructor/* routes.
+ * Middleware: protects dashboard routes via NextAuth, adds
+ * a lightweight instructor-role gate for /instructor/* routes,
+ * and applies security headers to all responses.
  *
- * For the demo, the instructor portal is accessible when:
- *   - the user has a valid session, OR
- *   - the `role=instructor` cookie is set (allows easy demo access)
+ * FLU-215: Added security headers.
  */
+
+const securityHeaders: Record<string, string> = {
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy':
+    'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+};
+
+function applySecurityHeaders(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(securityHeaders)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
+
 async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -21,9 +37,9 @@ async function middleware(request: NextRequest) {
       // For demo convenience: set the cookie and allow through
       const response = NextResponse.next();
       response.cookies.set('role', 'instructor', { path: '/', maxAge: 60 * 60 * 24 });
-      return response;
+      return applySecurityHeaders(response);
     }
-    return NextResponse.next();
+    return applySecurityHeaders(NextResponse.next());
   }
 
   // All other protected routes: delegate to NextAuth
@@ -31,10 +47,10 @@ async function middleware(request: NextRequest) {
   if (!session?.user) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', request.url);
-    return NextResponse.redirect(loginUrl);
+    return applySecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
-  return NextResponse.next();
+  return applySecurityHeaders(NextResponse.next());
 }
 
 export default middleware;
