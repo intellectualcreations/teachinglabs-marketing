@@ -51,6 +51,71 @@ function seed() {
         'Revision & Portfolio',
       ],
     },
+    // Extra enrollments for instructor dashboard demo
+    {
+      studentId: 'student-emma',
+      courseId: 'algebra-1',
+      enrolledAt: '2026-02-18T09:15:00Z',
+      status: 'active',
+      progress: 75,
+      completedModules: ['Expressions & Variables', 'Linear Equations', 'Inequalities & Absolute Value'],
+    },
+    {
+      studentId: 'student-liam',
+      courseId: 'algebra-1',
+      enrolledAt: '2026-02-22T11:00:00Z',
+      status: 'active',
+      progress: 25,
+      completedModules: ['Expressions & Variables'],
+    },
+    {
+      studentId: 'student-mia',
+      courseId: 'biology',
+      enrolledAt: '2026-02-25T08:30:00Z',
+      status: 'active',
+      progress: 50,
+      completedModules: ['Cell Structure & Function', 'Genetics & Heredity'],
+    },
+    {
+      studentId: 'student-noah',
+      courseId: 'biology',
+      enrolledAt: '2026-03-01T10:00:00Z',
+      status: 'active',
+      progress: 0,
+      completedModules: [],
+    },
+    {
+      studentId: 'student-emma',
+      courseId: 'creative-writing',
+      enrolledAt: '2026-01-15T14:00:00Z',
+      status: 'active',
+      progress: 50,
+      completedModules: ['Finding Your Voice', 'Short Fiction Workshop'],
+    },
+    {
+      studentId: 'student-noah',
+      courseId: 'us-history',
+      enrolledAt: '2026-02-10T09:00:00Z',
+      status: 'active',
+      progress: 25,
+      completedModules: ['Founding & Constitution'],
+    },
+    {
+      studentId: 'student-liam',
+      courseId: 'computer-science',
+      enrolledAt: '2026-03-05T13:00:00Z',
+      status: 'active',
+      progress: 40,
+      completedModules: ['Computational Thinking', 'Python Fundamentals'],
+    },
+    {
+      studentId: 'student-mia',
+      courseId: 'geometry',
+      enrolledAt: '2026-02-28T10:30:00Z',
+      status: 'active',
+      progress: 25,
+      completedModules: ['Points, Lines & Angles'],
+    },
   ];
 
   for (const e of demoEnrollments) {
@@ -105,6 +170,20 @@ export function getEnrollments(studentId: string): Enrollment[] {
 
 export function getEnrollment(enrollmentId: string): Enrollment | undefined {
   return enrollments.get(enrollmentId);
+}
+
+export function getEnrollmentsByCourse(courseId: string): Enrollment[] {
+  const results: Enrollment[] = [];
+  for (const e of enrollments.values()) {
+    if (e.courseId === courseId) {
+      results.push(e);
+    }
+  }
+  return results;
+}
+
+export function getAllEnrollments(): Enrollment[] {
+  return Array.from(enrollments.values());
 }
 
 export function updateModuleProgress(
