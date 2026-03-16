@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser, getInstructorById } from '@/lib/users';
 import { gradeSubmission } from '@/lib/grade-store';
+import { createNotification } from '@/lib/notification-store';
+import { getAttemptById, getQuizById } from '@/lib/quiz-store';
 
 interface RouteParams {
   params: Promise<{ submissionId: string }>;
@@ -43,6 +45,23 @@ export async function POST(request: Request, { params }: RouteParams) {
       body.feedback || '',
       user.id,
     );
+
+    // Notify the student about the grade
+    const attempt = getAttemptById(submissionId);
+    if (attempt) {
+      const quiz = getQuizById(attempt.quizId);
+      createNotification(
+        graded.studentId,
+        'quiz_graded',
+        `Your quiz "${quiz?.title || 'Quiz'}" was graded: ${body.score}%`,
+        {
+          quizId: graded.quizId,
+          submissionId: graded.submissionId,
+          score: String(body.score),
+        },
+      );
+    }
+
     return NextResponse.json({ submission: graded });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Grading failed';

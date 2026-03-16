@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getQuizById, submitQuiz } from '@/lib/quiz-store';
-import { getCurrentUser } from '@/lib/users';
+import { getCurrentUser, getUserById } from '@/lib/users';
+import { createNotification } from '@/lib/notification-store';
+import { getLessonById } from '@/lib/lesson-store';
+import { getCourseById } from '@/lib/courses';
+import { getInstructorByName } from '@/lib/users';
 
 interface RouteParams {
   params: Promise<{ quizId: string }>;
@@ -50,6 +54,23 @@ export async function POST(request: Request, { params }: RouteParams) {
           : q.options[q.correctIndex],
     };
   });
+
+  // Notify the course instructor about the submission
+  const lesson = getLessonById(quiz.lessonId);
+  if (lesson) {
+    const course = getCourseById(lesson.courseId);
+    if (course) {
+      const instructor = getInstructorByName(course.instructor);
+      if (instructor) {
+        createNotification(
+          instructor.id,
+          'quiz_submitted',
+          `${user.name} submitted quiz "${quiz.title}"`,
+          { quizId: quiz.id, studentId: user.id, courseId: course.id },
+        );
+      }
+    }
+  }
 
   return NextResponse.json({
     score: attempt.score,

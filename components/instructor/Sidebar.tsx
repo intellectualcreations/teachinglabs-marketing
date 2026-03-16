@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import NotificationBell from '@/components/shared/NotificationBell';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/instructor/dashboard', icon: 'grid' },
@@ -104,10 +105,11 @@ export default function InstructorSidebar() {
                 <rect x="9" y="8" width="6" height="13" rx="1" fill="white" />
               </svg>
             </div>
-            <div>
+            <div className="flex-1">
               <div className="text-white font-heading font-bold text-sm">TeachingLabs</div>
               <div className="text-teal text-[11px] font-medium">Instructor</div>
             </div>
+            <NotificationBell role="instructor" />
           </div>
         </div>
 

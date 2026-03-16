@@ -18,6 +18,7 @@ import {
   Exam,
   ArrowClockwise,
   XCircle,
+  Certificate,
 } from '@phosphor-icons/react';
 
 // ── Types ──────────────────────────────────────────────
@@ -545,12 +546,21 @@ export default function CourseViewerPage() {
                 <p className="text-sm text-text-secondary max-w-md mx-auto">
                   You&apos;ve completed all lessons in {data.course.title}. Great work! You can review any lesson by clicking on it in the sidebar.
                 </p>
-                <Link
-                  href="/student/my-courses"
-                  className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-2.5 rounded-full mt-4 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
-                >
-                  Back to My Courses
-                </Link>
+                <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
+                  <Link
+                    href={`/student/certificates/${courseId}`}
+                    className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-gold text-deep-navy px-6 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                  >
+                    <Certificate size={18} weight="fill" />
+                    Download Certificate
+                  </Link>
+                  <Link
+                    href="/student/my-courses"
+                    className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                  >
+                    Back to My Courses
+                  </Link>
+                </div>
               </div>
             )}
 
