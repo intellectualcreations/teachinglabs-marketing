@@ -1,13 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-
-interface CourseDetail {
-  id: string;
-  title: string;
-}
 
 interface StudentRow {
   studentId: string;
@@ -28,6 +23,8 @@ interface CourseInfo {
   instructor: string;
   gradeLevel: string;
   thumbnail?: string;
+  published: boolean;
+  price: number;
 }
 
 const SUBJECT_COLORS: Record<string, string> = {
@@ -46,6 +43,7 @@ export default function InstructorCourseDetailPage() {
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     if (!courseId) return;
@@ -67,6 +65,26 @@ export default function InstructorCourseDetailPage() {
       .catch(() => setError('Failed to load course data'))
       .finally(() => setLoading(false));
   }, [courseId]);
+
+  const handleTogglePublish = useCallback(async () => {
+    if (!course) return;
+    setToggling(true);
+    try {
+      const res = await fetch(`/api/instructor/courses/${courseId}/publish`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCourse((prev) =>
+          prev ? { ...prev, published: data.course.published } : prev,
+        );
+      }
+    } catch {
+      // silent fail for demo
+    } finally {
+      setToggling(false);
+    }
+  }, [course, courseId]);
 
   if (loading) {
     return (
@@ -109,24 +127,57 @@ export default function InstructorCourseDetailPage() {
       <div className="bg-card-bg border border-border rounded-xl p-6 mb-6">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${subjectClass} mb-3`}>
-              {course.subject}
-            </span>
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${subjectClass}`}>
+                {course.subject}
+              </span>
+              <span
+                className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${
+                  course.published
+                    ? 'bg-teal/10 text-teal'
+                    : 'bg-gold/10 text-gold'
+                }`}
+              >
+                {course.published ? 'Published' : 'Draft'}
+              </span>
+              {course.price > 0 && (
+                <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-coral/10 text-coral">
+                  ${(course.price / 100).toFixed(2)}
+                </span>
+              )}
+            </div>
             <h1 className="text-2xl font-heading font-bold text-text-primary">
               {course.title}
             </h1>
             <p className="text-text-secondary mt-2 max-w-2xl">{course.description}</p>
             <p className="text-sm text-text-muted mt-2">{course.gradeLevel}</p>
           </div>
-          <div className="flex gap-3 text-sm text-text-muted">
-            <div className="text-center px-4 py-2 bg-surface rounded-lg border border-border">
-              <p className="text-xl font-bold text-teal">{students.length}</p>
-              <p>Students</p>
+          <div className="flex flex-col gap-3 items-end">
+            <div className="flex gap-3 text-sm text-text-muted">
+              <div className="text-center px-4 py-2 bg-surface rounded-lg border border-border">
+                <p className="text-xl font-bold text-teal">{students.length}</p>
+                <p>Students</p>
+              </div>
+              <div className="text-center px-4 py-2 bg-surface rounded-lg border border-border">
+                <p className="text-xl font-bold text-navy dark:text-blue-300">{course.modules.length}</p>
+                <p>Modules</p>
+              </div>
             </div>
-            <div className="text-center px-4 py-2 bg-surface rounded-lg border border-border">
-              <p className="text-xl font-bold text-navy dark:text-blue-300">{course.modules.length}</p>
-              <p>Modules</p>
-            </div>
+            <button
+              onClick={handleTogglePublish}
+              disabled={toggling}
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer border-0 ${
+                course.published
+                  ? 'bg-gold/10 text-gold hover:bg-gold/20'
+                  : 'bg-teal text-white hover:bg-teal/90'
+              } disabled:opacity-50`}
+            >
+              {toggling
+                ? 'Updating...'
+                : course.published
+                  ? 'Unpublish'
+                  : 'Publish Course'}
+            </button>
           </div>
         </div>
       </div>

@@ -6,10 +6,11 @@ import Link from 'next/link';
 interface EnrollButtonProps {
   courseId: string;
   courseTitle: string;
+  price: number;
 }
 
-export default function EnrollButton({ courseId, courseTitle }: EnrollButtonProps) {
-  const [state, setState] = useState<'idle' | 'loading' | 'enrolled' | 'already' | 'error'>('idle');
+export default function EnrollButton({ courseId, courseTitle, price }: EnrollButtonProps) {
+  const [state, setState] = useState<'idle' | 'loading' | 'enrolled' | 'already' | 'error' | 'payment_required'>('idle');
 
   async function handleEnroll() {
     setState('loading');
@@ -22,6 +23,8 @@ export default function EnrollButton({ courseId, courseTitle }: EnrollButtonProp
 
       if (res.status === 409) {
         setState('already');
+      } else if (res.status === 402) {
+        setState('payment_required');
       } else if (res.ok) {
         setState('enrolled');
       } else {
@@ -75,21 +78,53 @@ export default function EnrollButton({ courseId, courseTitle }: EnrollButtonProp
     );
   }
 
+  if (state === 'payment_required') {
+    return (
+      <div className="bg-card-bg border border-border rounded-2xl p-8 text-center">
+        <h3 className="font-heading text-lg font-bold text-text-primary mb-2">
+          Payment Required
+        </h3>
+        <p className="text-[15px] text-text-secondary mb-5">
+          {courseTitle} costs ${(price / 100).toFixed(2)}. Complete your purchase to start learning.
+        </p>
+        <Link
+          href={`/checkout/${courseId}`}
+          className="inline-flex items-center font-heading text-[15px] font-bold bg-coral text-white px-8 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+        >
+          Go to Checkout
+        </Link>
+      </div>
+    );
+  }
+
+  const isPaid = price > 0;
+
   return (
     <div className="bg-card-bg border border-border rounded-2xl p-8 text-center">
       <h3 className="font-heading text-lg font-bold text-text-primary mb-2">
         Ready to learn {courseTitle}?
       </h3>
       <p className="text-[15px] text-text-secondary mb-5">
-        Enroll now and start tracking your progress.
+        {isPaid
+          ? `This course is $${(price / 100).toFixed(2)}. Purchase to start learning.`
+          : 'Enroll now and start tracking your progress.'}
       </p>
-      <button
-        onClick={handleEnroll}
-        disabled={state === 'loading'}
-        className="inline-flex items-center font-heading text-[15px] font-bold bg-gold text-deep-navy px-8 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer border-0"
-      >
-        {state === 'loading' ? 'Enrolling...' : 'Enroll Now'}
-      </button>
+      {isPaid ? (
+        <Link
+          href={`/checkout/${courseId}`}
+          className="inline-flex items-center font-heading text-[15px] font-bold bg-coral text-white px-8 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(232,131,107,0.35)] transition-all duration-200"
+        >
+          Purchase — ${(price / 100).toFixed(2)}
+        </Link>
+      ) : (
+        <button
+          onClick={handleEnroll}
+          disabled={state === 'loading'}
+          className="inline-flex items-center font-heading text-[15px] font-bold bg-gold text-deep-navy px-8 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer border-0"
+        >
+          {state === 'loading' ? 'Enrolling...' : 'Enroll Now — Free'}
+        </button>
+      )}
       {state === 'error' && (
         <p className="text-sm text-red-500 mt-3">
           Something went wrong. Please try again.

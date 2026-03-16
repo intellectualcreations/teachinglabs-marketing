@@ -48,6 +48,8 @@ export async function POST(request: NextRequest) {
     instructor: user.name,
     gradeLevel: 'All Grades',
     thumbnail: '#4FA3A5',
+    published: false,
+    price: 0,
   };
 
   // Mutate the in-memory array (fine for demo)

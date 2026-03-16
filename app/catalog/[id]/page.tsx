@@ -96,7 +96,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </div>
 
           {/* Stats bar */}
-          <div className="grid grid-cols-3 gap-4 mb-10 max-sm:grid-cols-1">
+          <div className="grid grid-cols-4 gap-4 mb-10 max-sm:grid-cols-2">
             <div className="bg-card-bg border border-border rounded-xl p-5 text-center">
               <div className="font-heading text-2xl font-bold text-text-primary">
                 {course.modules.length}
@@ -114,6 +114,12 @@ export default async function CourseDetailPage({ params }: PageProps) {
                 {course.instructor}
               </div>
               <div className="text-sm text-text-muted mt-1">Instructor</div>
+            </div>
+            <div className="bg-card-bg border border-border rounded-xl p-5 text-center">
+              <div className="font-heading text-2xl font-bold text-teal">
+                {course.price > 0 ? `$${(course.price / 100).toFixed(2)}` : 'Free'}
+              </div>
+              <div className="text-sm text-text-muted mt-1">Price</div>
             </div>
           </div>
 
@@ -167,7 +173,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </div>
 
           {/* CTA */}
-          <EnrollButton courseId={course.id} courseTitle={course.title} />
+          <EnrollButton courseId={course.id} courseTitle={course.title} price={course.price} />
         </div>
       </div>
     </>

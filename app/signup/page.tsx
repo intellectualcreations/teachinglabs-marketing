@@ -48,7 +48,7 @@ const ROLES: RoleCard[] = [
     roleClass: 'teacher',
   },
   {
-    href: '/admin/signup',
+    href: '/admin-signup',
     icon: Buildings,
     title: 'Administrator',
     desc: 'Manage your district, monitor progress, scale what works.',

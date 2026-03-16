@@ -13,6 +13,8 @@ export interface Course {
   instructor: string;
   gradeLevel: string;
   thumbnail?: string; // placeholder color
+  published: boolean;
+  price: number; // cents — 0 = free, >0 = paid
 }
 
 export const SUBJECTS = [
@@ -51,6 +53,8 @@ export const courses: Course[] = [
     instructor: 'Mr. Daniel Park',
     gradeLevel: 'Grades 8-9',
     thumbnail: '#4FA3A5',
+    published: true,
+    price: 0,
   },
   {
     id: 'geometry',
@@ -68,6 +72,8 @@ export const courses: Course[] = [
     instructor: 'Ms. Rachel Torres',
     gradeLevel: 'Grades 9-10',
     thumbnail: '#3B8E8F',
+    published: true,
+    price: 0,
   },
   {
     id: 'pre-calculus',
@@ -85,6 +91,8 @@ export const courses: Course[] = [
     instructor: 'Dr. James Liu',
     gradeLevel: 'Grades 10-11',
     thumbnail: '#2D7A7C',
+    published: true,
+    price: 2999,
   },
 
   // ─── Science ──────────────────────────────────────────
@@ -104,6 +112,8 @@ export const courses: Course[] = [
     instructor: 'Ms. Priya Sharma',
     gradeLevel: 'Grades 9-10',
     thumbnail: '#059669',
+    published: true,
+    price: 0,
   },
   {
     id: 'chemistry',
@@ -121,6 +131,8 @@ export const courses: Course[] = [
     instructor: 'Mr. Alex Chen',
     gradeLevel: 'Grades 10-11',
     thumbnail: '#047857',
+    published: true,
+    price: 0,
   },
   {
     id: 'physics',
@@ -138,6 +150,8 @@ export const courses: Course[] = [
     instructor: 'Dr. Maria Gonzalez',
     gradeLevel: 'Grades 11-12',
     thumbnail: '#065F46',
+    published: true,
+    price: 4999,
   },
 
   // ─── English ──────────────────────────────────────────
@@ -157,6 +171,8 @@ export const courses: Course[] = [
     instructor: 'Ms. Olivia Grant',
     gradeLevel: 'Grades 9-12',
     thumbnail: '#E8836B',
+    published: true,
+    price: 0,
   },
   {
     id: 'literature',
@@ -174,6 +190,8 @@ export const courses: Course[] = [
     instructor: 'Mr. David Okafor',
     gradeLevel: 'Grades 10-12',
     thumbnail: '#D97060',
+    published: true,
+    price: 0,
   },
   {
     id: 'grammar-composition',
@@ -191,6 +209,8 @@ export const courses: Course[] = [
     instructor: 'Ms. Hannah Lee',
     gradeLevel: 'Grades 7-9',
     thumbnail: '#C46A55',
+    published: true,
+    price: 0,
   },
 
   // ─── Social Studies ───────────────────────────────────
@@ -210,6 +230,8 @@ export const courses: Course[] = [
     instructor: 'Mr. Marcus Johnson',
     gradeLevel: 'Grades 10-11',
     thumbnail: '#1F3A5F',
+    published: true,
+    price: 0,
   },
   {
     id: 'world-geography',
@@ -227,6 +249,8 @@ export const courses: Course[] = [
     instructor: 'Ms. Sofia Martinez',
     gradeLevel: 'Grades 8-9',
     thumbnail: '#2A4A6F',
+    published: true,
+    price: 0,
   },
   {
     id: 'civics',
@@ -244,6 +268,8 @@ export const courses: Course[] = [
     instructor: 'Dr. Robert Kim',
     gradeLevel: 'Grades 8-9',
     thumbnail: '#14213D',
+    published: true,
+    price: 0,
   },
 
   // ─── Electives ────────────────────────────────────────
@@ -263,6 +289,8 @@ export const courses: Course[] = [
     instructor: 'Ms. Aiko Tanaka',
     gradeLevel: 'Grades 7-12',
     thumbnail: '#F0C95D',
+    published: true,
+    price: 0,
   },
   {
     id: 'computer-science',
@@ -280,6 +308,8 @@ export const courses: Course[] = [
     instructor: 'Mr. Kevin Patel',
     gradeLevel: 'Grades 9-12',
     thumbnail: '#D4A843',
+    published: true,
+    price: 1999,
   },
   {
     id: 'music-theory',
@@ -297,6 +327,8 @@ export const courses: Course[] = [
     instructor: 'Mr. Carlos Rivera',
     gradeLevel: 'Grades 7-12',
     thumbnail: '#C49B3D',
+    published: false,
+    price: 0,
   },
 ];
 
@@ -319,4 +351,30 @@ export function searchCourses(query: string): Course[] {
       c.tags.some((t) => t.toLowerCase().includes(q)) ||
       c.instructor.toLowerCase().includes(q)
   );
+}
+
+export function getPublishedCourses(): Course[] {
+  return courses.filter((c) => c.published);
+}
+
+export function searchPublishedCourses(query: string): Course[] {
+  return searchCourses(query).filter((c) => c.published);
+}
+
+export function togglePublished(courseId: string): Course | undefined {
+  const course = courses.find((c) => c.id === courseId);
+  if (!course) return undefined;
+  course.published = !course.published;
+  return course;
+}
+
+export function updateCoursePrice(courseId: string, price: number): Course | undefined {
+  const course = courses.find((c) => c.id === courseId);
+  if (!course) return undefined;
+  course.price = price;
+  return course;
+}
+
+export function getAllCourses(): Course[] {
+  return courses;
 }

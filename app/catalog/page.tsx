@@ -6,6 +6,8 @@ import MarketingNav from '@/components/shared/MarketingNav';
 import {
   courses,
   searchCourses,
+  getPublishedCourses,
+  searchPublishedCourses,
   SUBJECTS,
   SUBJECT_COLORS,
   type Subject,
@@ -72,8 +74,10 @@ export default function CatalogPage() {
 
   const filteredCourses = useMemo(() => {
     let results = semanticResults
-      ? courses.filter((c) => semanticResults.includes(c.id))
-      : searchCourses(query);
+      ? getPublishedCourses().filter((c) => semanticResults.includes(c.id))
+      : query.trim()
+        ? searchPublishedCourses(query)
+        : getPublishedCourses();
 
     if (activeSubject) {
       results = results.filter((c) => c.subject === activeSubject);
@@ -233,9 +237,17 @@ export default function CatalogPage() {
                         {course.modules.length} modules &middot;{' '}
                         {totalModules(course.modules)} lessons
                       </span>
-                      <span className="text-xs text-text-muted">
-                        {course.instructor}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {course.price > 0 ? (
+                          <span className="text-xs font-bold text-coral">
+                            ${(course.price / 100).toFixed(2)}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold text-teal">
+                            Free
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Link>

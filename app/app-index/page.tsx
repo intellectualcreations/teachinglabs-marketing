@@ -57,7 +57,7 @@ const sections = [
     comingSoon: true,
     devNote: 'Admin signup has two paths: (1) invited by district, (2) self-register. Admins are district-level, not school-level. "Find your district" not "Choose your school."',
     links: [
-      { num: 20, name: 'Admin Signup (2 screens: profile + auth)', href: '/admin/signup', tag: 'Coming Soon', tagClass: 'tag-soon' },
+      { num: 20, name: 'Admin Signup (2 screens: profile + auth)', href: '/admin-signup', tag: 'Coming Soon', tagClass: 'tag-soon' },
       { num: 21, name: 'Admin Dashboard', href: '/admin/dashboard', tag: 'Coming Soon', tagClass: 'tag-soon' },
     ],
   },
@@ -132,9 +132,9 @@ const flowLanes = [
     role: 'Administrator',
     color: '#F59E0B',
     steps: [
-      { label: 'Name + Title', href: '/admin/signup' },
-      { label: 'Choose District', href: '/admin/signup' },
-      { label: 'Continue to Login', href: '/admin/signup' },
+      { label: 'Name + Title', href: '/admin-signup' },
+      { label: 'Choose District', href: '/admin-signup' },
+      { label: 'Continue to Login', href: '/admin-signup' },
       { label: 'Coming Soon', href: '/admin/dashboard', comingSoon: true },
     ],
   },
