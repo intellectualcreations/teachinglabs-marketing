@@ -202,13 +202,20 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Nav */}
-        <nav className="px-2 py-2 border-b border-white/10">
+        <nav className="px-2 py-2 border-b border-white/10 space-y-1">
           <Link
             href="/student/dashboard"
             className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal/90 transition-colors"
           >
             <SquaresFour size={18} weight="fill" />
             Dashboard
+          </Link>
+          <Link
+            href="/student/analytics"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-white/60 font-semibold text-sm hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <ChartBar size={18} weight="fill" />
+            Analytics
           </Link>
         </nav>
 
