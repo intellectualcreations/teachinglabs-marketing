@@ -4,7 +4,7 @@ import { getLessonsByCourse, getCompletedLessons, type LessonCompletion } from '
 import { getAllAttempts, getAttempts, type QuizAttempt } from './quiz-store';
 import { getAllPayments, type PaymentRecord } from './payment-store';
 import { getStudentGrades } from './grade-store';
-import { users } from './users';
+import { users, getSubscriptionStats } from './users';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -68,6 +68,11 @@ export interface AdminAnalytics {
   totalEnrollments: number;
   enrollmentsPerDay: EnrollmentTrend[];
   topCoursesByEnrollment: { courseId: string; courseTitle: string; count: number }[];
+  // Subscription metrics (FLU-224)
+  proSubscribers: number;
+  freeUsers: number;
+  churnRate: number;
+  totalRevenueCents: number;
 }
 
 // ── Seed analytics data ────────────────────────────────
@@ -434,15 +439,25 @@ export function getAdminAnalytics(): AdminAnalytics {
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
+  // Subscription metrics (FLU-224)
+  const subStats = getSubscriptionStats();
+  const totalRevenueCents = allPayments
+    .filter((p) => p.status === 'completed')
+    .reduce((sum, p) => sum + p.amountCents, 0);
+
   return {
     totalUsers,
     totalStudents,
     totalInstructors,
     totalAdmins,
-    mrrCents,
+    mrrCents: subStats.mrrCents || mrrCents,
     totalEnrollments,
     enrollmentsPerDay,
     topCoursesByEnrollment,
+    proSubscribers: subStats.proCount,
+    freeUsers: subStats.freeCount,
+    churnRate: subStats.churnRate,
+    totalRevenueCents,
   };
 }
 

@@ -18,6 +18,10 @@ interface AdminAnalytics {
   totalEnrollments: number;
   enrollmentsPerDay: EnrollmentTrend[];
   topCoursesByEnrollment: { courseId: string; courseTitle: string; count: number }[];
+  proSubscribers: number;
+  freeUsers: number;
+  churnRate: number;
+  totalRevenueCents: number;
 }
 
 declare const Chart: any;
@@ -186,6 +190,49 @@ export default function AdminAnalyticsPage() {
               {analytics.totalStudents} / {analytics.totalInstructors}
             </div>
             <div className="text-xs text-text-secondary font-medium mt-0.5">Students / Instructors</div>
+          </div>
+        </div>
+
+        {/* Subscription metrics (FLU-224) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-card-bg border border-border rounded-xl p-4 text-center">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2 bg-coral">
+              <CurrencyDollar size={18} weight="fill" color="white" />
+            </div>
+            <div className="font-heading font-bold text-2xl text-text-primary">
+              ${(analytics.totalRevenueCents / 100).toFixed(0)}
+            </div>
+            <div className="text-xs text-text-secondary font-medium mt-0.5">Total Revenue</div>
+          </div>
+
+          <div className="bg-card-bg border border-border rounded-xl p-4 text-center">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2 bg-teal">
+              <Users size={18} weight="fill" color="white" />
+            </div>
+            <div className="font-heading font-bold text-2xl text-text-primary">
+              {analytics.proSubscribers}
+            </div>
+            <div className="text-xs text-text-secondary font-medium mt-0.5">Pro Subscribers</div>
+          </div>
+
+          <div className="bg-card-bg border border-border rounded-xl p-4 text-center">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2 bg-navy">
+              <Users size={18} weight="fill" color="white" />
+            </div>
+            <div className="font-heading font-bold text-2xl text-text-primary">
+              {analytics.freeUsers}
+            </div>
+            <div className="text-xs text-text-secondary font-medium mt-0.5">Free Tier Users</div>
+          </div>
+
+          <div className="bg-card-bg border border-border rounded-xl p-4 text-center">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2 bg-gold">
+              <ChartBar size={18} weight="fill" color="white" />
+            </div>
+            <div className="font-heading font-bold text-2xl text-text-primary">
+              {analytics.churnRate.toFixed(1)}%
+            </div>
+            <div className="text-xs text-text-secondary font-medium mt-0.5">Churn Rate</div>
           </div>
         </div>
 

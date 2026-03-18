@@ -15,6 +15,9 @@ const optional = [
   'SMTP_PORT',
   'SMTP_USER',
   'SMTP_PASS',
+  'STRIPE_SECRET_KEY',
+  'STRIPE_PUBLISHABLE_KEY',
+  'STRIPE_WEBHOOK_SECRET',
 ] as const;
 
 type RequiredKey = (typeof required)[number];

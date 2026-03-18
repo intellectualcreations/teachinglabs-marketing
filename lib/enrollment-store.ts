@@ -1,4 +1,5 @@
 import { getCourseById } from './courses';
+import { getUserById, FREE_TIER_MAX_COURSES } from './users';
 
 export interface Enrollment {
   id: string;
@@ -129,11 +130,27 @@ seed();
 export function enrollStudent(
   studentId: string,
   courseId: string,
+  skipTierCheck = false,
 ): { enrollment: Enrollment; created: boolean } {
   // Check for existing enrollment
   for (const e of enrollments.values()) {
     if (e.studentId === studentId && e.courseId === courseId) {
       return { enrollment: e, created: false };
+    }
+  }
+
+  // Free tier enforcement: max 3 active courses
+  if (!skipTierCheck) {
+    const user = getUserById(studentId);
+    if (user && user.subscriptionTier === 'free') {
+      const activeCount = getEnrollments(studentId).filter(
+        (e) => e.status === 'active',
+      ).length;
+      if (activeCount >= FREE_TIER_MAX_COURSES) {
+        throw new Error(
+          `Free tier limit reached (${FREE_TIER_MAX_COURSES} courses). Upgrade to Pro for unlimited access.`,
+        );
+      }
     }
   }
 

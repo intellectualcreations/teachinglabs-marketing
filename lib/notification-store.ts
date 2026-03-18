@@ -1,6 +1,6 @@
 // ── Types ──────────────────────────────────────────────
 
-export type NotificationType = 'quiz_graded' | 'quiz_submitted' | 'course_completed' | 'new_lesson' | 'enrollment_approved' | 'new_enrollment';
+export type NotificationType = 'quiz_graded' | 'quiz_submitted' | 'course_completed' | 'new_lesson' | 'enrollment_approved' | 'new_enrollment' | 'payment_confirmed' | 'subscription_activated' | 'subscription_cancelled';
 
 export interface Notification {
   id: string;

@@ -7,7 +7,7 @@ import {
   ChatsCircle, ClipboardText, ChatText, Trophy, ChartBar,
   RocketLaunch, Fire, Star, Lightning, Brain, Medal,
   ClockCounterClockwise, HandWaving, HouseSimple, List, X,
-  Backpack, VideoCamera, ArrowSquareOut, Calendar,
+  Backpack, VideoCamera, ArrowSquareOut, Calendar, CurrencyDollar,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
@@ -216,6 +216,13 @@ export default function StudentDashboardPage() {
           >
             <ChartBar size={18} weight="fill" />
             Analytics
+          </Link>
+          <Link
+            href="/student/subscription"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-white/60 font-semibold text-sm hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <CurrencyDollar size={18} weight="fill" />
+            Subscription
           </Link>
         </nav>
 

@@ -1,10 +1,15 @@
 export type UserRole = 'student' | 'instructor' | 'admin';
+export type SubscriptionTier = 'free' | 'pro';
 
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  subscriptionTier: SubscriptionTier;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  subscriptionStartedAt?: string;
 }
 
 /**
@@ -13,32 +18,32 @@ export interface User {
  */
 export const users: User[] = [
   // Instructors (matching course data)
-  { id: 'instructor-harper', name: 'Ms. Harper', email: 'harper@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-park', name: 'Mr. Daniel Park', email: 'park@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-torres', name: 'Ms. Rachel Torres', email: 'torres@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-liu', name: 'Dr. James Liu', email: 'liu@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-sharma', name: 'Ms. Priya Sharma', email: 'sharma@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-chen', name: 'Mr. Alex Chen', email: 'chen@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-gonzalez', name: 'Dr. Maria Gonzalez', email: 'gonzalez@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-grant', name: 'Ms. Olivia Grant', email: 'grant@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-okafor', name: 'Mr. David Okafor', email: 'okafor@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-lee', name: 'Ms. Hannah Lee', email: 'lee@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-johnson', name: 'Mr. Marcus Johnson', email: 'johnson@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-martinez', name: 'Ms. Sofia Martinez', email: 'martinez@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-kim', name: 'Dr. Robert Kim', email: 'kim@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-tanaka', name: 'Ms. Aiko Tanaka', email: 'tanaka@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-patel', name: 'Mr. Kevin Patel', email: 'patel@teachinglabs.io', role: 'instructor' },
-  { id: 'instructor-rivera', name: 'Mr. Carlos Rivera', email: 'rivera@teachinglabs.io', role: 'instructor' },
+  { id: 'instructor-harper', name: 'Ms. Harper', email: 'harper@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-park', name: 'Mr. Daniel Park', email: 'park@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-torres', name: 'Ms. Rachel Torres', email: 'torres@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-liu', name: 'Dr. James Liu', email: 'liu@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-sharma', name: 'Ms. Priya Sharma', email: 'sharma@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-chen', name: 'Mr. Alex Chen', email: 'chen@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-gonzalez', name: 'Dr. Maria Gonzalez', email: 'gonzalez@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-grant', name: 'Ms. Olivia Grant', email: 'grant@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-okafor', name: 'Mr. David Okafor', email: 'okafor@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-lee', name: 'Ms. Hannah Lee', email: 'lee@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-johnson', name: 'Mr. Marcus Johnson', email: 'johnson@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-martinez', name: 'Ms. Sofia Martinez', email: 'martinez@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-kim', name: 'Dr. Robert Kim', email: 'kim@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-tanaka', name: 'Ms. Aiko Tanaka', email: 'tanaka@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-patel', name: 'Mr. Kevin Patel', email: 'patel@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
+  { id: 'instructor-rivera', name: 'Mr. Carlos Rivera', email: 'rivera@teachinglabs.io', role: 'instructor', subscriptionTier: 'free' },
 
   // Students
-  { id: 'demo-student', name: 'Alex Demo', email: 'alex@student.teachinglabs.io', role: 'student' },
-  { id: 'student-emma', name: 'Emma Wilson', email: 'emma@student.teachinglabs.io', role: 'student' },
-  { id: 'student-liam', name: 'Liam Brooks', email: 'liam@student.teachinglabs.io', role: 'student' },
-  { id: 'student-mia', name: 'Mia Rodriguez', email: 'mia@student.teachinglabs.io', role: 'student' },
-  { id: 'student-noah', name: 'Noah Kim', email: 'noah@student.teachinglabs.io', role: 'student' },
+  { id: 'demo-student', name: 'Alex Demo', email: 'alex@student.teachinglabs.io', role: 'student', subscriptionTier: 'free' },
+  { id: 'student-emma', name: 'Emma Wilson', email: 'emma@student.teachinglabs.io', role: 'student', subscriptionTier: 'pro', stripeSubscriptionId: 'sub_demo_emma', subscriptionStartedAt: '2026-02-01T00:00:00Z' },
+  { id: 'student-liam', name: 'Liam Brooks', email: 'liam@student.teachinglabs.io', role: 'student', subscriptionTier: 'free' },
+  { id: 'student-mia', name: 'Mia Rodriguez', email: 'mia@student.teachinglabs.io', role: 'student', subscriptionTier: 'pro', stripeSubscriptionId: 'sub_demo_mia', subscriptionStartedAt: '2026-02-15T00:00:00Z' },
+  { id: 'student-noah', name: 'Noah Kim', email: 'noah@student.teachinglabs.io', role: 'student', subscriptionTier: 'free' },
 
   // Admin
-  { id: 'admin-dottie', name: 'Dottie Stewart', email: 'dottie@teachinglabs.io', role: 'admin' },
+  { id: 'admin-dottie', name: 'Dottie Stewart', email: 'dottie@teachinglabs.io', role: 'admin', subscriptionTier: 'free' },
 ];
 
 /** Map of instructor name → user id for looking up by course.instructor string */
@@ -91,4 +96,51 @@ export function getAllStudents(): User[] {
 
 export function getAllInstructors(): User[] {
   return users.filter((u) => u.role === 'instructor');
+}
+
+/** Free tier course enrollment limit */
+export const FREE_TIER_MAX_COURSES = 3;
+
+/** Pro subscription price in cents */
+export const PRO_PRICE_CENTS = 2999; // $29.99/mo
+
+export function updateUserSubscription(
+  userId: string,
+  tier: SubscriptionTier,
+  stripeSubscriptionId?: string,
+): User | undefined {
+  const user = users.find((u) => u.id === userId);
+  if (!user) return undefined;
+  user.subscriptionTier = tier;
+  if (stripeSubscriptionId) {
+    user.stripeSubscriptionId = stripeSubscriptionId;
+  }
+  if (tier === 'pro') {
+    user.subscriptionStartedAt = new Date().toISOString();
+  }
+  return user;
+}
+
+export function setStripeCustomerId(
+  userId: string,
+  customerId: string,
+): User | undefined {
+  const user = users.find((u) => u.id === userId);
+  if (!user) return undefined;
+  user.stripeCustomerId = customerId;
+  return user;
+}
+
+export function getSubscriptionStats() {
+  const allUsers = users.filter((u) => u.role === 'student');
+  const proUsers = allUsers.filter((u) => u.subscriptionTier === 'pro');
+  const freeUsers = allUsers.filter((u) => u.subscriptionTier === 'free');
+  const mrr = proUsers.length * PRO_PRICE_CENTS;
+  return {
+    totalStudents: allUsers.length,
+    proCount: proUsers.length,
+    freeCount: freeUsers.length,
+    mrrCents: mrr,
+    churnRate: 0, // Would track cancellations over time in production
+  };
 }

@@ -39,20 +39,35 @@ export default function CheckoutPage() {
   async function handlePurchase() {
     if (!info) return;
     setPurchasing(true);
+    setError(null);
     try {
-      const res = await fetch(`/api/checkout/${courseId}/complete`, {
+      const res = await fetch(`/api/checkout/${courseId}/session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId: 'demo-student' }),
       });
-      if (res.ok) {
-        setCompleted(true);
-      } else {
-        const data = await res.json();
-        setError(data.error || 'Purchase failed');
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Checkout failed');
+        return;
       }
+
+      if (data.mode === 'stripe' && data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+        return;
+      }
+
+      // Mock mode: redirect to success
+      if (data.url) {
+        router.push(data.url);
+        return;
+      }
+
+      setCompleted(true);
     } catch {
-      setError('Purchase failed');
+      setError('Checkout failed. Please try again.');
     } finally {
       setPurchasing(false);
     }
@@ -145,7 +160,7 @@ export default function CheckoutPage() {
             {/* Test mode banner */}
             <div className="bg-gold/10 border border-gold/20 rounded-lg px-4 py-3 mb-6">
               <p className="text-xs font-semibold text-gold">
-                🧪 Test Mode — No real payment will be processed
+                🧪 Test Mode — Stripe test checkout (no real charges)
               </p>
             </div>
 
@@ -164,14 +179,30 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Purchase button */}
+            {/* Purchase button — now routes through Stripe */}
             <button
               onClick={handlePurchase}
               disabled={purchasing}
-              className="w-full py-3.5 rounded-xl bg-coral text-white font-heading font-bold text-[15px] hover:bg-coral/90 transition-colors cursor-pointer border-0 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-xl bg-coral text-white font-heading font-bold text-[15px] hover:bg-coral/90 transition-colors cursor-pointer border-0 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {purchasing ? 'Processing...' : 'Complete Purchase (Test)'}
+              {purchasing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Redirecting to Stripe...
+                </>
+              ) : (
+                <>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                    <path d="M3 10h18v2H3v-2zm0 4h12v2H3v-2zm0-8h18v2H3V6z" />
+                  </svg>
+                  Proceed to Checkout
+                </>
+              )}
             </button>
+
+            <p className="text-xs text-text-muted text-center mt-3">
+              Secure payment powered by Stripe
+            </p>
 
             {error && (
               <p className="text-sm text-red-500 mt-3 text-center">{error}</p>
