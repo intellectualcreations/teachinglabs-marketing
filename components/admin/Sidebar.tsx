@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import NotificationBell from '@/components/shared/NotificationBell';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin', icon: 'grid' },
@@ -119,6 +120,7 @@ export default function AdminSidebar() {
               <div className="text-white font-heading font-bold text-sm">TeachingLabs</div>
               <div className="text-coral text-[11px] font-medium">Admin</div>
             </div>
+            <NotificationBell role="admin" />
           </div>
         </div>
 

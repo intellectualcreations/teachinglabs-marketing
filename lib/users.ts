@@ -78,6 +78,9 @@ export function getCurrentUser(roleHint?: string): User {
   if (roleHint === 'student') {
     return users.find((u) => u.id === 'demo-student')!;
   }
+  if (roleHint === 'admin') {
+    return users.find((u) => u.id === 'admin-dottie')!;
+  }
   // Default: demo instructor
   return users.find((u) => u.id === 'instructor-park')!;
 }

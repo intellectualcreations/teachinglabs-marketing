@@ -20,6 +20,12 @@ function sendEmail({ to, subject, body }: EmailPayload): void {
   console.log('╚══════════════════════════════════════════════════════╝\n');
 }
 
+// ── Generic digest email ───────────────────────────────
+
+export function sendDigestEmail({ to, subject, body }: EmailPayload): void {
+  sendEmail({ to, subject, body });
+}
+
 // ── Enrollment confirmation ────────────────────────────
 
 export function sendEnrollmentConfirmation(

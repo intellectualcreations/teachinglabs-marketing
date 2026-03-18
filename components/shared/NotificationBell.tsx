@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell, CheckCircle, Exam, Certificate, Checks } from '@phosphor-icons/react';
+import { Bell, CheckCircle, Exam, Certificate, Checks, BookOpenText, UserPlus } from '@phosphor-icons/react';
 
 interface NotificationItem {
   id: string;
   userId: string;
-  type: 'quiz_graded' | 'quiz_submitted' | 'course_completed';
+  type: 'quiz_graded' | 'quiz_submitted' | 'course_completed' | 'new_lesson' | 'enrollment_approved' | 'new_enrollment';
   message: string;
   read: boolean;
   createdAt: string;
@@ -32,12 +32,18 @@ function NotifIcon({ type }: { type: NotificationItem['type'] }) {
       return <Exam size={16} weight="fill" className="text-coral" />;
     case 'course_completed':
       return <Certificate size={16} weight="fill" className="text-gold" />;
+    case 'new_lesson':
+      return <BookOpenText size={16} weight="fill" className="text-teal" />;
+    case 'enrollment_approved':
+      return <CheckCircle size={16} weight="fill" className="text-teal" />;
+    case 'new_enrollment':
+      return <UserPlus size={16} weight="fill" className="text-coral" />;
     default:
       return <Bell size={16} weight="fill" className="text-text-muted" />;
   }
 }
 
-export default function NotificationBell({ role }: { role: 'student' | 'instructor' }) {
+export default function NotificationBell({ role }: { role: 'student' | 'instructor' | 'admin' }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);

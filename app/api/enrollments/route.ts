@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { enrollStudent } from '@/lib/enrollment-store';
 import { getCourseById } from '@/lib/courses';
 import { getPayment } from '@/lib/payment-store';
+import { getUserById, getInstructorByName } from '@/lib/users';
+import { createNotification } from '@/lib/notification-store';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,6 +42,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Already enrolled in this course', enrollment },
         { status: 409 },
+      );
+    }
+
+    // Notify the student about enrollment
+    const student = getUserById(studentId);
+    if (student) {
+      createNotification(
+        studentId,
+        'enrollment_approved',
+        `You've been enrolled in ${course.title}!`,
+        { courseId },
+      );
+    }
+
+    // Notify the course instructor about the new enrollment
+    const instructor = getInstructorByName(course.instructor);
+    if (instructor) {
+      const studentName = student?.name || studentId;
+      createNotification(
+        instructor.id,
+        'new_enrollment',
+        `${studentName} enrolled in your course ${course.title}`,
+        { courseId, studentId },
       );
     }
 

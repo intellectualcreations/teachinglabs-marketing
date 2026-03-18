@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { togglePublished, getCourseById } from '@/lib/courses';
+import { getEnrollmentsByCourse } from '@/lib/enrollment-store';
+import { createNotification } from '@/lib/notification-store';
 
 /**
  * POST /api/instructor/courses/[id]/publish
@@ -17,5 +19,19 @@ export async function POST(
   }
 
   const updated = togglePublished(id);
+
+  // If the course was just published, notify all enrolled students
+  if (updated && updated.published) {
+    const enrollments = getEnrollmentsByCourse(id);
+    for (const enrollment of enrollments) {
+      createNotification(
+        enrollment.studentId,
+        'new_lesson',
+        `New content available in "${updated.title}"!`,
+        { courseId: id },
+      );
+    }
+  }
+
   return NextResponse.json({ course: updated });
 }
