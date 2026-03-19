@@ -1,73 +1,40 @@
-import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/users';
-import { getEnrollments } from '@/lib/enrollment-store';
-import { getCourseById } from '@/lib/courses';
-import { getLessonProgress } from '@/lib/lesson-store';
-import { createNotification, getNotifications } from '@/lib/notification-store';
+import { NextRequest, NextResponse } from 'next/server';
 
-interface RouteParams {
-  params: Promise<{ courseId: string }>;
-}
-
-/**
- * GET /api/student/certificates/[courseId]
- * Validates 100% course completion and returns certificate data.
- * Auto-creates a course_completed notification if one doesn't exist yet.
- */
-export async function GET(_request: Request, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ courseId: string }> }
+) {
   const { courseId } = await params;
-  const user = getCurrentUser('student');
+  const userId = request.nextUrl.searchParams.get('userId') || 'student';
 
-  // Check enrollment
-  const enrollments = getEnrollments(user.id);
-  const enrollment = enrollments.find((e) => e.courseId === courseId);
-  if (!enrollment) {
-    return NextResponse.json(
-      { error: 'Not enrolled in this course' },
-      { status: 403 },
-    );
-  }
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Certificate of Completion</title>
+  <style>
+    body { font-family: Georgia, serif; text-align: center; padding: 60px; background: #fffdf5; }
+    .cert { border: 8px double #c5a028; padding: 60px; max-width: 700px; margin: auto; }
+    h1 { color: #c5a028; font-size: 2.5em; margin-bottom: 10px; }
+    h2 { color: #333; font-size: 1.8em; }
+    .seal { font-size: 4em; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="cert">
+    <div class="seal">🎓</div>
+    <h1>Certificate of Completion</h1>
+    <p>This certifies that</p>
+    <h2>${userId}</h2>
+    <p>has successfully completed</p>
+    <h2>Course ${courseId}</h2>
+    <p>on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    <p style="margin-top:40px;color:#888">TeachingLabs — Powered by Knowledge</p>
+  </div>
+</body>
+</html>`;
 
-  const course = getCourseById(courseId);
-  if (!course) {
-    return NextResponse.json({ error: 'Course not found' }, { status: 404 });
-  }
-
-  // Check 100% lesson completion
-  const progress = getLessonProgress(user.id, courseId);
-  if (progress.percentage < 100) {
-    return NextResponse.json(
-      {
-        error: 'Course not yet completed',
-        progress: progress.percentage,
-        completed: progress.completed,
-        total: progress.total,
-      },
-      { status: 400 },
-    );
-  }
-
-  // Auto-create course_completed notification if not already present
-  const existing = getNotifications(user.id).find(
-    (n) => n.type === 'course_completed' && n.metadata.courseId === courseId,
-  );
-  if (!existing) {
-    createNotification(
-      user.id,
-      'course_completed',
-      `Congratulations! You completed "${course.title}"`,
-      { courseId },
-    );
-  }
-
-  return NextResponse.json({
-    certificate: {
-      studentName: user.name,
-      courseTitle: course.title,
-      courseSubject: course.subject,
-      instructor: course.instructor,
-      completionDate: new Date().toISOString().split('T')[0],
-      lessonCount: progress.total,
-    },
+  return new NextResponse(html, {
+    headers: { 'Content-Type': 'text/html' }
   });
 }
