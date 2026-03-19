@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Script from 'next/script';
-import { ChartLineUp, ChartBar, CurrencyDollar, Users, DownloadSimple } from '@phosphor-icons/react';
+import { ChartLineUp, ChartBar, CurrencyDollar, Users, DownloadSimple, Wallet, Clock, CheckCircle } from '@phosphor-icons/react';
 
 interface EnrollmentTrend {
   date: string;
@@ -33,12 +33,32 @@ interface InstructorAnalytics {
   totalRevenueCents: number;
 }
 
+interface PayoutRecord {
+  id: string;
+  amount: number;
+  status: 'pending' | 'paid' | 'processing';
+  periodStart: string;
+  periodEnd: string;
+  paidAt: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
+interface PayoutSummary {
+  totalEarned: number;
+  totalPaid: number;
+  pending: number;
+  payoutCount: number;
+}
+
 declare const Chart: any;
 
 export default function InstructorAnalyticsPage() {
   const [analytics, setAnalytics] = useState<InstructorAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [chartReady, setChartReady] = useState(false);
+  const [payouts, setPayouts] = useState<PayoutRecord[]>([]);
+  const [payoutSummary, setPayoutSummary] = useState<PayoutSummary | null>(null);
 
   const enrollmentChartRef = useRef<HTMLCanvasElement>(null);
   const completionChartRef = useRef<HTMLCanvasElement>(null);
@@ -53,6 +73,15 @@ export default function InstructorAnalyticsPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    // Fetch payout history (FLU-242)
+    fetch('/api/instructor/payouts')
+      .then((r) => r.json())
+      .then((data) => {
+        setPayouts(data.payouts || []);
+        setPayoutSummary(data.summary || null);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -276,6 +305,97 @@ export default function InstructorAnalyticsPage() {
             </div>
           </div>
         </div>
+
+        {/* Payout Summary Cards (FLU-242) */}
+        {payoutSummary && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-card-bg border border-border rounded-xl p-4 text-center">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2 bg-teal">
+                <Wallet size={18} weight="fill" color="white" />
+              </div>
+              <div className="font-heading font-bold text-2xl text-text-primary">
+                ${(payoutSummary.totalEarned / 100).toFixed(0)}
+              </div>
+              <div className="text-xs text-text-secondary font-medium mt-0.5">Total Earned</div>
+            </div>
+            <div className="bg-card-bg border border-border rounded-xl p-4 text-center">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2 bg-coral">
+                <Clock size={18} weight="fill" color="white" />
+              </div>
+              <div className="font-heading font-bold text-2xl text-text-primary">
+                ${(payoutSummary.pending / 100).toFixed(0)}
+              </div>
+              <div className="text-xs text-text-secondary font-medium mt-0.5">Pending Payout</div>
+            </div>
+            <div className="bg-card-bg border border-border rounded-xl p-4 text-center">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2 bg-navy">
+                <CheckCircle size={18} weight="fill" color="white" />
+              </div>
+              <div className="font-heading font-bold text-2xl text-text-primary">
+                ${(payoutSummary.totalPaid / 100).toFixed(0)}
+              </div>
+              <div className="text-xs text-text-secondary font-medium mt-0.5">Paid to Date</div>
+            </div>
+          </div>
+        )}
+
+        {/* Payout History Table (FLU-242) */}
+        {payouts.length > 0 && (
+          <div className="bg-card-bg border border-border rounded-xl p-5">
+            <h2 className="font-heading font-bold text-lg text-text-primary flex items-center gap-2 mb-4">
+              <Wallet size={22} weight="fill" className="text-teal" />
+              Payout History
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-text-secondary">
+                    <th className="text-left py-3 px-2 font-medium">Period</th>
+                    <th className="text-right py-3 px-2 font-medium">Amount</th>
+                    <th className="text-center py-3 px-2 font-medium">Status</th>
+                    <th className="text-right py-3 px-2 font-medium">Paid On</th>
+                    <th className="text-left py-3 px-2 font-medium">Note</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payouts.map((p) => (
+                    <tr key={p.id} className="border-b border-border/50">
+                      <td className="py-3 px-2 text-text-primary">
+                        {new Date(p.periodStart).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        {' — '}
+                        {new Date(p.periodEnd).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="py-3 px-2 text-right font-semibold text-text-primary">
+                        ${(p.amount / 100).toFixed(2)}
+                      </td>
+                      <td className="py-3 px-2 text-center">
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            p.status === 'paid'
+                              ? 'bg-teal/10 text-teal'
+                              : p.status === 'pending'
+                                ? 'bg-gold/10 text-gold'
+                                : 'bg-navy/10 text-navy'
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2 text-right text-text-secondary">
+                        {p.paidAt
+                          ? new Date(p.paidAt).toLocaleDateString()
+                          : '—'}
+                      </td>
+                      <td className="py-3 px-2 text-text-muted text-xs">
+                        {p.note || '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* Earnings table */}
         <div className="bg-card-bg border border-border rounded-xl p-5">
