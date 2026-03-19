@@ -81,6 +81,8 @@ export default function StudentDashboardPage() {
   const [enrolledLoading, setEnrolledLoading] = useState(true);
   const [liveSessions, setLiveSessions] = useState<LiveSessionData[]>([]);
   const [liveLoading, setLiveLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<{ courseId: string; title: string; subject: string; reason: string }[]>([]);
+  const [recsLoading, setRecsLoading] = useState(true);
 
   // Onboarding redirect check
   useEffect(() => {
@@ -151,6 +153,15 @@ export default function StudentDashboardPage() {
       setLiveSessions(upcoming);
       setLiveLoading(false);
     });
+
+    // Fetch recommendations (FLU-248)
+    fetch('/api/recommendations?studentId=demo-student')
+      .then((r) => r.json())
+      .then((data) => {
+        setRecommendations(data.recommendations || []);
+        setRecsLoading(false);
+      })
+      .catch(() => setRecsLoading(false));
   }, []);
 
   if (!onboardingChecked) {
@@ -453,6 +464,38 @@ export default function StudentDashboardPage() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Recommended for You (FLU-248) */}
+        {!recsLoading && recommendations.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-3">
+              <Lightning size={16} weight="fill" className="text-coral" />
+              Recommended for You
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {recommendations.map((rec) => (
+                <Link
+                  key={rec.courseId}
+                  href={`/catalog/${rec.courseId}`}
+                  className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-0.5 rounded-full bg-coral/10 text-coral text-[10px] font-bold">
+                      {rec.subject}
+                    </span>
+                  </div>
+                  <h3 className="font-heading font-semibold text-sm text-text-primary mb-1 group-hover:text-teal transition-colors">
+                    {rec.title}
+                  </h3>
+                  <p className="text-xs text-text-muted">{rec.reason}</p>
+                  <div className="mt-3 text-xs font-heading font-bold text-teal group-hover:text-navy transition-colors">
+                    Explore →
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         )}
