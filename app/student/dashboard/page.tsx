@@ -11,6 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
+import NotificationOptIn from '@/components/shared/NotificationOptIn';
 
 const CLASSES = [
   { id: 'math', courseId: 'algebra-1', name: '5th Period Math', teacher: 'Mrs. Martinez', initials: 'MM', avatarColor: '#1F3A5F', Icon: MathOperations, color: '#1F3A5F', badge: 2, progress: 68, totalLessons: 22, completedLessons: 15, lastAccessed: '2 hours ago' },
@@ -313,6 +314,11 @@ export default function StudentDashboardPage() {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Push notification opt-in */}
+        <div className="mb-6">
+          <NotificationOptIn />
         </div>
 
         {/* Class cards with progress */}

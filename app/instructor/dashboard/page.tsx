@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import NotificationOptIn from '@/components/shared/NotificationOptIn';
 
 interface CourseWithStats {
   id: string;
@@ -75,6 +76,11 @@ export default function InstructorDashboardPage() {
             Welcome back, <span className="font-semibold text-teal">{instructor.name}</span>
           </p>
         )}
+      </div>
+
+      {/* Push notification opt-in */}
+      <div className="mb-6">
+        <NotificationOptIn />
       </div>
 
       {/* Quick Stats */}
