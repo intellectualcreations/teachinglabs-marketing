@@ -7,8 +7,29 @@ import {
   ChatText,
   CalendarBlank,
   ArrowLeft,
+  Robot,
+  CaretDown,
+  CaretUp,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
+import AIFeedbackView from '@/components/grading/AIFeedbackView';
+
+interface CriteriaScore {
+  name: string;
+  score: number;
+  maxScore: number;
+  weight: number;
+  feedback: string;
+}
+
+interface AIGradeData {
+  aiScore: number | null;
+  aiCriteriaScores: CriteriaScore[];
+  aiFeedback: string;
+  improvementSuggestions: string[];
+  finalScore: number | null;
+  status: string;
+}
 
 interface Grade {
   submissionId: string;
@@ -46,6 +67,8 @@ function scoreLabel(score: number): string {
 export default function StudentGradesPage() {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedAI, setExpandedAI] = useState<string | null>(null);
+  const [aiGrades, setAiGrades] = useState<Record<string, AIGradeData>>({});
 
   useEffect(() => {
     fetch('/api/student/grades')
@@ -54,6 +77,27 @@ export default function StudentGradesPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  async function toggleAIFeedback(submissionId: string) {
+    if (expandedAI === submissionId) {
+      setExpandedAI(null);
+      return;
+    }
+
+    setExpandedAI(submissionId);
+
+    if (!aiGrades[submissionId]) {
+      try {
+        const res = await fetch(`/api/submissions/${submissionId}/grade`);
+        if (res.ok) {
+          const data = await res.json();
+          setAiGrades((prev) => ({ ...prev, [submissionId]: data.gradeSubmission }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch AI grade:', err);
+      }
+    }
+  }
 
   const avgScore = grades.length > 0
     ? Math.round(grades.reduce((sum, g) => sum + g.score, 0) / grades.length)
@@ -160,6 +204,34 @@ export default function StudentGradesPage() {
                       {g.feedback}
                     </p>
                   </div>
+                </div>
+              )}
+
+              {/* AI Feedback Toggle */}
+              <button
+                onClick={() => toggleAIFeedback(g.submissionId)}
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-teal hover:text-teal/80 transition-colors"
+              >
+                <Robot size={14} />
+                AI Feedback
+                {expandedAI === g.submissionId ? <CaretUp size={12} /> : <CaretDown size={12} />}
+              </button>
+
+              {expandedAI === g.submissionId && aiGrades[g.submissionId] && (
+                <div className="mt-3">
+                  <AIFeedbackView
+                    score={aiGrades[g.submissionId].finalScore}
+                    criteriaScores={aiGrades[g.submissionId].aiCriteriaScores}
+                    feedback={aiGrades[g.submissionId].aiFeedback}
+                    improvementSuggestions={aiGrades[g.submissionId].improvementSuggestions}
+                    status={aiGrades[g.submissionId].status}
+                  />
+                </div>
+              )}
+
+              {expandedAI === g.submissionId && !aiGrades[g.submissionId] && (
+                <div className="mt-3 text-center py-4">
+                  <p className="text-xs text-text-muted">No AI feedback available for this submission.</p>
                 </div>
               )}
             </div>

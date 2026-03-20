@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Exam,
 } from '@phosphor-icons/react';
+import RubricEditor from '@/components/grading/RubricEditor';
 
 interface LessonOption {
   id: string;
@@ -57,6 +58,7 @@ export default function InstructorQuizCreatePage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [createdQuizId, setCreatedQuizId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Fetch lessons for the course
@@ -161,6 +163,8 @@ export default function InstructorQuizCreatePage() {
         return;
       }
 
+      const data = await res.json();
+      setCreatedQuizId(data.quiz?.id || null);
       setSuccess(true);
     } catch {
       setErrorMsg('Network error. Please try again.');
@@ -179,23 +183,36 @@ export default function InstructorQuizCreatePage() {
 
   if (success) {
     return (
-      <div className="max-w-2xl mx-auto py-16 text-center">
-        <div className="w-16 h-16 rounded-full bg-teal/10 flex items-center justify-center mx-auto mb-4">
-          <CheckCircle size={36} weight="fill" className="text-teal" />
+      <div className="max-w-2xl mx-auto py-16">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-full bg-teal/10 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={36} weight="fill" className="text-teal" />
+          </div>
+          <h1 className="font-heading font-bold text-2xl text-text-primary mb-2">
+            Quiz Created!
+          </h1>
+          <p className="text-sm text-text-secondary mb-6">
+            Your quiz &ldquo;{title}&rdquo; has been attached to the lesson.
+            Add a rubric below to enable AI-powered grading.
+          </p>
         </div>
-        <h1 className="font-heading font-bold text-2xl text-text-primary mb-2">
-          Quiz Created!
-        </h1>
-        <p className="text-sm text-text-secondary mb-6">
-          Your quiz &ldquo;{title}&rdquo; has been attached to the lesson.
-        </p>
-        <Link
-          href={`/instructor/courses/${courseId}`}
-          className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
-        >
-          <ArrowLeft size={16} weight="bold" />
-          Back to Course
-        </Link>
+
+        {/* Rubric Editor for AI grading */}
+        {createdQuizId && (
+          <div className="mb-8">
+            <RubricEditor assignmentId={createdQuizId} />
+          </div>
+        )}
+
+        <div className="text-center">
+          <Link
+            href={`/instructor/courses/${courseId}`}
+            className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+          >
+            <ArrowLeft size={16} weight="bold" />
+            Back to Course
+          </Link>
+        </div>
       </div>
     );
   }

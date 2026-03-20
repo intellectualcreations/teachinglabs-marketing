@@ -5,6 +5,9 @@ import { createNotification } from '@/lib/notification-store';
 import { getLessonById } from '@/lib/lesson-store';
 import { getCourseById } from '@/lib/courses';
 import { getInstructorByName } from '@/lib/users';
+import { getRubricByAssignmentId } from '@/lib/rubric-store';
+import { createPendingGradeSubmission, updateWithAIGrade } from '@/lib/grade-submission-store';
+import { gradeWithAI } from '@/lib/ai-grading-service';
 
 interface RouteParams {
   params: Promise<{ quizId: string }>;
@@ -72,10 +75,50 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
   }
 
+  // Auto-trigger AI grading if a rubric exists for this quiz
+  const rubric = getRubricByAssignmentId(quizId);
+  if (rubric) {
+    try {
+      createPendingGradeSubmission(attempt.id, user.id, quizId);
+
+      const answerText = body.answers
+        .map((a) => {
+          const question = quiz.questions.find((q) => q.id === a.questionId);
+          const questionText = question?.text || a.questionId;
+          const answerValue =
+            typeof a.answer === 'number' && question?.options
+              ? question.options[a.answer] || `Option ${a.answer}`
+              : String(a.answer);
+          return `Q: ${questionText}\nA: ${answerValue}`;
+        })
+        .join('\n\n');
+
+      const questionText = quiz.questions.map((q) => q.text).join('\n');
+
+      // Fire and forget: grade asynchronously without blocking the response
+      gradeWithAI(rubric.criteria, answerText, questionText)
+        .then((aiResult) => {
+          updateWithAIGrade(
+            attempt.id,
+            aiResult.score,
+            aiResult.criteriaScores,
+            aiResult.feedback,
+            aiResult.improvementSuggestions,
+          );
+        })
+        .catch((err) => {
+          console.error('Auto AI grading failed for attempt', attempt.id, err);
+        });
+    } catch (err) {
+      console.error('Failed to trigger AI grading:', err);
+    }
+  }
+
   return NextResponse.json({
     score: attempt.score,
     passed: attempt.passed,
     passingScore: quiz.passingScore,
     results,
+    attemptId: attempt.id,
   });
 }
