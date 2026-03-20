@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import RecordButton from '@/components/recording/RecordButton';
 
 interface LiveSession {
   id: string;
@@ -13,14 +14,22 @@ interface LiveSession {
   duration: number;
 }
 
+interface LessonOption {
+  id: string;
+  title: string;
+  moduleTitle: string;
+}
+
 export default function InstructorLiveSessionsPage() {
   const params = useParams();
   const courseId = params.id as string;
 
   const [sessions, setSessions] = useState<LiveSession[]>([]);
+  const [lessons, setLessons] = useState<LessonOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [recordLessonMap, setRecordLessonMap] = useState<Record<string, string>>({});
 
   // Form state
   const [title, setTitle] = useState('');
@@ -43,9 +52,22 @@ export default function InstructorLiveSessionsPage() {
     }
   }, [courseId]);
 
+  const fetchLessons = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/courses/${courseId}/lessons`);
+      if (res.ok) {
+        const data = await res.json();
+        setLessons(data.lessons || []);
+      }
+    } catch {
+      // silent
+    }
+  }, [courseId]);
+
   useEffect(() => {
     fetchSessions();
-  }, [fetchSessions]);
+    fetchLessons();
+  }, [fetchSessions, fetchLessons]);
 
   async function handleCreate() {
     if (!title.trim() || !url.trim() || !date || !time || submitting) return;
@@ -229,7 +251,7 @@ export default function InstructorLiveSessionsPage() {
                       <span>{session.duration} min</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                       past ? 'bg-border text-text-muted' : 'bg-teal/10 text-teal'
                     }`}>
@@ -247,6 +269,29 @@ export default function InstructorLiveSessionsPage() {
                     )}
                   </div>
                 </div>
+                {/* Recording controls */}
+                {!past && (
+                  <div className="mt-3 pt-3 border-t border-border flex items-center gap-3 flex-wrap">
+                    <select
+                      value={recordLessonMap[session.id] || ''}
+                      onChange={(e) => setRecordLessonMap((prev) => ({ ...prev, [session.id]: e.target.value }))}
+                      className="text-xs px-3 py-2 border border-border rounded-lg bg-warm-white text-text-primary focus:outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-colors"
+                    >
+                      <option value="">Link to lesson...</option>
+                      {lessons.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.moduleTitle} — {l.title}
+                        </option>
+                      ))}
+                    </select>
+                    {recordLessonMap[session.id] && (
+                      <RecordButton
+                        sessionId={session.id}
+                        lessonId={recordLessonMap[session.id]}
+                      />
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

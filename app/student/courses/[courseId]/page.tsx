@@ -23,6 +23,7 @@ import {
   VideoCamera,
   Play,
 } from '@phosphor-icons/react';
+import VideoPlayer from '@/components/recording/VideoPlayer';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -603,6 +604,11 @@ export default function CourseViewerPage() {
                   <span>Watch the video lesson above, then read the summary below</span>
                 </div>
               </div>
+            )}
+
+            {/* Session recording player */}
+            {currentLesson && (
+              <VideoPlayer lessonId={currentLesson.id} />
             )}
 
             {/* Module indicator */}
