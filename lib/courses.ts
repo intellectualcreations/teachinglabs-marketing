@@ -330,6 +330,46 @@ export const courses: Course[] = [
     published: false,
     price: 0,
   },
+  {
+    id: 'python-fundamentals',
+    title: 'Python Fundamentals',
+    description:
+      'Learn programming from scratch with Python. Students build real projects while mastering variables, loops, functions, and object-oriented programming — no prior experience required.',
+    subject: 'Electives',
+    tags: ['python', 'programming', 'coding', 'beginner'],
+    modules: [
+      { title: 'Getting Started with Python', lessonCount: 6 },
+      { title: 'Control Flow & Loops', lessonCount: 8 },
+      { title: 'Functions & Scope', lessonCount: 7 },
+      { title: 'Lists, Dicts & File I/O', lessonCount: 8 },
+      { title: 'Final Project: Build a Quiz App', lessonCount: 4 },
+    ],
+    instructor: 'Ms. Priya Nair',
+    gradeLevel: 'Grades 9-12',
+    thumbnail: '#B8860B',
+    published: true,
+    price: 0,
+  },
+  {
+    id: 'digital-marketing',
+    title: 'Digital Marketing Basics',
+    description:
+      'Understand how brands grow online. Students explore SEO, social media strategy, email marketing, content creation, and analytics through hands-on campaigns and real-world case studies.',
+    subject: 'Electives',
+    tags: ['marketing', 'digital', 'social media', 'business'],
+    modules: [
+      { title: 'Marketing Foundations', lessonCount: 5 },
+      { title: 'Social Media Strategy', lessonCount: 7 },
+      { title: 'SEO & Content Marketing', lessonCount: 6 },
+      { title: 'Email & Analytics', lessonCount: 6 },
+      { title: 'Campaign Project', lessonCount: 3 },
+    ],
+    instructor: 'Mr. Trevor Banks',
+    gradeLevel: 'Grades 10-12',
+    thumbnail: '#A0522D',
+    published: true,
+    price: 1499,
+  },
 ];
 
 export function getCourseById(id: string): Course | undefined {
