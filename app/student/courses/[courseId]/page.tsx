@@ -22,6 +22,8 @@ import {
   ChatsCircle,
   VideoCamera,
   Play,
+  Users,
+  GraduationCap,
 } from '@phosphor-icons/react';
 import VideoPlayer from '@/components/recording/VideoPlayer';
 
@@ -445,6 +447,20 @@ export default function CourseViewerPage() {
           >
             <VideoCamera size={16} weight="fill" className="text-coral" />
             Live Sessions
+          </Link>
+          <Link
+            href={`/student/courses/${courseId}/study-groups`}
+            className="flex items-center gap-2 text-xs font-medium text-white/70 hover:text-white transition-colors py-1.5"
+          >
+            <Users size={16} weight="fill" className="text-gold" />
+            Study Groups
+          </Link>
+          <Link
+            href={`/student/courses/${courseId}/tutors`}
+            className="flex items-center gap-2 text-xs font-medium text-white/70 hover:text-white transition-colors py-1.5"
+          >
+            <GraduationCap size={16} weight="fill" className="text-teal" />
+            Peer Tutors
           </Link>
         </div>
 
