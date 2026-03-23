@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: 'Grades', href: '/instructor/grades', icon: 'clipboard' },
   { label: 'AI Grading', href: '/instructor/ai-grading', icon: 'robot' },
   { label: 'Analytics', href: '/instructor/analytics', icon: 'chart' },
+  { label: 'Office Hours', href: '/instructor/office-hours', icon: 'chat' },
   { label: 'Back to App', href: '/app-index', icon: 'arrow-left' },
 ];
 
@@ -55,6 +56,12 @@ function NavIcon({ icon, size = 20 }: { icon: string; size?: number }) {
           <circle cx="15" cy="14" r="1.5" />
           <line x1="12" y1="4" x2="12" y2="8" />
           <circle cx="12" cy="3" r="1" />
+        </svg>
+      );
+    case 'chat':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
       );
     case 'arrow-left':

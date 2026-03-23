@@ -79,6 +79,45 @@ export function sendForumReplyNotification(
 
 // ── Live session reminder ──────────────────────────────
 
+// ── Office hours notification ──────────────────────────
+
+export function sendOfficeHoursNotification(
+  studentEmail: string,
+  studentName: string,
+  sessionTitle: string,
+  courseTitle: string,
+  scheduledAt: string,
+): void {
+  const date = new Date(scheduledAt);
+  const formatted = date.toLocaleString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  sendEmail({
+    to: studentEmail,
+    subject: `Office Hours: "${sessionTitle}" for ${courseTitle}`,
+    body: [
+      `Hi ${studentName},`,
+      '',
+      `Your instructor has scheduled office hours for ${courseTitle}:`,
+      '',
+      `Session: ${sessionTitle}`,
+      `When: ${formatted}`,
+      '',
+      'Come prepared with any questions you have. This is a text-based Q&A session.',
+      '',
+      '— The TeachingLabs Team',
+    ].join('\n'),
+  });
+}
+
+// ── Live session reminder ──────────────────────────────
+
 export function sendLiveSessionReminder(
   studentEmail: string,
   studentName: string,
