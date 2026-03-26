@@ -11,6 +11,7 @@ export interface Lesson {
   content: string;
   order: number;
   videoUrl?: string;
+  starterCode?: string;
 }
 
 export interface LessonCompletion {
@@ -340,7 +341,7 @@ export function isVideoWatched(studentId: string, lessonId: string): boolean {
   );
 }
 
-export function updateLesson(lessonId: string, updates: Partial<Pick<Lesson, 'videoUrl' | 'title' | 'content'>>): Lesson | undefined {
+export function updateLesson(lessonId: string, updates: Partial<Pick<Lesson, 'videoUrl' | 'title' | 'content' | 'starterCode'>>): Lesson | undefined {
   const lesson = lessons.find((l) => l.id === lessonId);
   if (lesson) {
     Object.assign(lesson, updates);
