@@ -10,6 +10,7 @@ import {
   CaretUp,
   Student,
   Exam,
+  Robot,
 } from '@phosphor-icons/react';
 
 interface Submission {
@@ -39,6 +40,10 @@ export default function InstructorGradesPage() {
   const [feedbackInputs, setFeedbackInputs] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'graded'>('all');
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<
+    Record<string, { suggestedScore: number; feedback: string; rubricAnalysis: { criterionName: string; score: number; maxScore: number; weight: number; feedback: string }[]; isMock: boolean }>
+  >({});
 
   useEffect(() => {
     fetch('/api/instructor/submissions')
@@ -87,6 +92,28 @@ export default function InstructorGradesPage() {
       console.error('Grading failed:', err);
     } finally {
       setSubmitting(null);
+    }
+  }
+
+  async function handleAiSuggest(submissionId: string, quizId: string) {
+    setAiLoading(submissionId);
+    try {
+      const res = await fetch(`/api/assignments/${quizId}/ai-grade`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiSuggestions((prev) => ({ ...prev, [submissionId]: data }));
+        // Pre-fill score and feedback inputs
+        setScoreInputs((prev) => ({ ...prev, [submissionId]: String(data.suggestedScore) }));
+        setFeedbackInputs((prev) => ({ ...prev, [submissionId]: data.feedback }));
+      }
+    } catch (err) {
+      console.error('AI suggestion failed:', err);
+    } finally {
+      setAiLoading(null);
     }
   }
 
@@ -303,6 +330,55 @@ export default function InstructorGradesPage() {
                       </div>
                     ) : (
                       <div className="space-y-3">
+                        {/* AI Suggestion button + results */}
+                        <div className="flex items-center gap-3 mb-2">
+                          <button
+                            onClick={() => handleAiSuggest(s.submissionId, s.quizId)}
+                            disabled={aiLoading === s.submissionId || !!aiSuggestions[s.submissionId]}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                          >
+                            <Robot size={16} weight="fill" />
+                            {aiLoading === s.submissionId
+                              ? 'Analyzing...'
+                              : aiSuggestions[s.submissionId]
+                                ? 'AI Suggestion Applied'
+                                : 'Get AI Suggestion'}
+                          </button>
+                          {aiSuggestions[s.submissionId]?.isMock && (
+                            <span className="text-xs text-amber-600 dark:text-amber-400">
+                              Mock grade (AI not configured)
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Show rubric analysis if AI suggestion exists */}
+                        {aiSuggestions[s.submissionId] && (
+                          <div className="bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800/30 rounded-lg p-4 mb-3">
+                            <h5 className="text-sm font-semibold text-indigo-700 dark:text-indigo-400 mb-2 flex items-center gap-1.5">
+                              <Robot size={16} weight="duotone" />
+                              AI Analysis — Suggested Score: {aiSuggestions[s.submissionId].suggestedScore}%
+                            </h5>
+                            {aiSuggestions[s.submissionId].rubricAnalysis.length > 0 && (
+                              <div className="space-y-1.5 mb-3">
+                                {aiSuggestions[s.submissionId].rubricAnalysis.map((ra, i) => (
+                                  <div key={i} className="flex items-center justify-between text-xs">
+                                    <span className="text-text-secondary">{ra.criterionName}</span>
+                                    <span className="font-medium text-text-primary">
+                                      {ra.score}/{ra.maxScore} ({ra.weight}%)
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <p className="text-xs text-text-secondary">
+                              {aiSuggestions[s.submissionId].feedback}
+                            </p>
+                            <p className="text-xs text-text-muted mt-2 italic">
+                              Review and adjust the score/feedback below before submitting.
+                            </p>
+                          </div>
+                        )}
+
                         <div>
                           <label className="block text-sm font-medium text-text-primary mb-1.5">
                             Score (0-100)
