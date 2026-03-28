@@ -1,117 +1,53 @@
-// ── Types ──────────────────────────────────────────────
-
 export interface RubricCriterion {
+  id: string;
   name: string;
+  maxPoints: number;
   description: string;
-  weight: number; // percentage weight (all should sum to 100)
-  maxScore: number;
 }
 
 export interface Rubric {
   id: string;
-  assignmentId: string; // maps to quiz id or assignment id
+  name: string;
   criteria: RubricCriterion[];
   createdAt: string;
-  updatedAt: string;
 }
 
-// ── In-memory store ────────────────────────────────────
-
-const rubrics: Rubric[] = [];
-let nextRubricId = 1;
-
-// ── Query functions ────────────────────────────────────
-
-export function getRubricByAssignmentId(assignmentId: string): Rubric | undefined {
-  return rubrics.find((r) => r.assignmentId === assignmentId);
+export interface RubricGrade {
+  studentId: string;
+  rubricId: string;
+  scores: { criterionId: string; points: number }[];
+  total: number;
+  maxTotal: number;
+  passed: boolean;
+  gradedAt: string;
 }
 
-export function getRubricById(rubricId: string): Rubric | undefined {
-  return rubrics.find((r) => r.id === rubricId);
-}
+const rubrics = new Map<string, Rubric>();
+let rubricIdCtr = 1;
 
-// ── Mutations ──────────────────────────────────────────
-
-export function createOrUpdateRubric(
-  assignmentId: string,
-  criteria: RubricCriterion[],
-): Rubric {
-  if (criteria.length === 0) {
-    throw new Error('Rubric must have at least one criterion');
-  }
-
-  const totalWeight = criteria.reduce((sum, c) => sum + c.weight, 0);
-  if (Math.abs(totalWeight - 100) > 0.01) {
-    throw new Error(`Criteria weights must sum to 100 (got ${totalWeight})`);
-  }
-
-  const existing = rubrics.find((r) => r.assignmentId === assignmentId);
-  const now = new Date().toISOString();
-
-  if (existing) {
-    existing.criteria = criteria;
-    existing.updatedAt = now;
-    return existing;
-  }
-
+export function createRubric(name: string, criteria: Omit<RubricCriterion, 'id'>[]): Rubric {
   const rubric: Rubric = {
-    id: `rubric_${nextRubricId++}`,
-    assignmentId,
-    criteria,
-    createdAt: now,
-    updatedAt: now,
+    id: String(rubricIdCtr++),
+    name,
+    criteria: criteria.map((c, i) => ({ ...c, id: String(i + 1) })),
+    createdAt: new Date().toISOString(),
   };
-
-  rubrics.push(rubric);
+  rubrics.set(rubric.id, rubric);
   return rubric;
 }
 
-// ── Seed data ──────────────────────────────────────────
-
-function seed() {
-  // Rubric for quiz_1 (Variables & Expressions Check)
-  createOrUpdateRubric('quiz_1', [
-    {
-      name: 'Conceptual Understanding',
-      description: 'Demonstrates understanding of variables and algebraic expressions',
-      weight: 40,
-      maxScore: 100,
-    },
-    {
-      name: 'Computation Accuracy',
-      description: 'Correctly evaluates expressions and identifies coefficients',
-      weight: 35,
-      maxScore: 100,
-    },
-    {
-      name: 'Mathematical Reasoning',
-      description: 'Shows logical reasoning in answers and problem-solving approach',
-      weight: 25,
-      maxScore: 100,
-    },
-  ]);
-
-  // Rubric for quiz_3 (One-Step Equations Quiz)
-  createOrUpdateRubric('quiz_3', [
-    {
-      name: 'Equation Solving',
-      description: 'Correctly solves one-step equations using inverse operations',
-      weight: 50,
-      maxScore: 100,
-    },
-    {
-      name: 'Conceptual Knowledge',
-      description: 'Understands the relationship between operations and their inverses',
-      weight: 30,
-      maxScore: 100,
-    },
-    {
-      name: 'Accuracy',
-      description: 'Provides precise numerical answers without errors',
-      weight: 20,
-      maxScore: 100,
-    },
-  ]);
+export function getRubric(id: string): Rubric | undefined {
+  return rubrics.get(id);
 }
 
-seed();
+export function gradeByRubric(rubricId: string, studentId: string, scores: { criterionId: string; points: number }[]): RubricGrade {
+  const rubric = rubrics.get(rubricId);
+  const maxTotal = rubric ? rubric.criteria.reduce((sum, c) => sum + c.maxPoints, 0) : 100;
+  const total = scores.reduce((sum, s) => sum + s.points, 0);
+  return {
+    studentId, rubricId, scores,
+    total, maxTotal,
+    passed: (total / maxTotal) >= 0.6,
+    gradedAt: new Date().toISOString(),
+  };
+}
