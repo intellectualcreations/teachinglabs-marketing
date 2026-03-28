@@ -39,6 +39,21 @@ const STUDENT_NAMES = [
   'Elise Kim', 'Dante Morales',
 ];
 
+async function createAuthUser(id: string, email: string, name: string, role: string) {
+  // Try to create the auth user; if already exists, that's fine
+  const { data, error } = await supabase.auth.admin.createUser({
+    id,
+    email,
+    email_confirm: true,
+    user_metadata: { display_name: name, role },
+  });
+  if (error && !error.message.includes('already been registered')) {
+    console.error(`  Auth user error (${name}):`, error.message);
+    return false;
+  }
+  return true;
+}
+
 async function seed() {
   console.log('Seeding demo data...\n');
 
@@ -53,15 +68,17 @@ async function seed() {
   if (schoolErr) console.error('  School error:', schoolErr.message);
   else console.log('  Lincoln Elementary created');
 
-  // 2. Teacher profile
-  console.log('Creating teacher profile...');
+  // 2. Teacher auth user + profile (trigger auto-creates profile, then we update it)
+  console.log('Creating teacher...');
+  await createAuthUser(IDS.teacher, 'dottie.demo@teachinglabs.com', 'Ms. Dottie Stewart', 'teacher');
+  // Update the auto-created profile with school_id
   const { error: teacherErr } = await supabase.from('profiles').upsert({
     id: IDS.teacher,
     display_name: 'Ms. Dottie Stewart',
     role: 'teacher',
     school_id: IDS.school,
   });
-  if (teacherErr) console.error('  Teacher error:', teacherErr.message);
+  if (teacherErr) console.error('  Teacher profile error:', teacherErr.message);
   else console.log('  Ms. Dottie Stewart created');
 
   // 3. Classes
@@ -83,9 +100,11 @@ async function seed() {
     else console.log(`  ${classData[i].name} created`);
   }
 
-  // 4. Student profiles
-  console.log('Creating student profiles...');
+  // 4. Student auth users + profiles
+  console.log('Creating students...');
   for (let i = 0; i < 10; i++) {
+    const email = `student${i + 1}.demo@teachinglabs.com`;
+    await createAuthUser(IDS.students[i], email, STUDENT_NAMES[i], 'student');
     const { error: studentErr } = await supabase.from('profiles').upsert({
       id: IDS.students[i],
       display_name: STUDENT_NAMES[i],
