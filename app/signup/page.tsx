@@ -159,6 +159,20 @@ export default function SignupPage() {
         })}
       </div>
 
+      {/* Quick signup with magic link */}
+      <div className="flex items-center gap-3 w-full max-w-[960px] mb-6">
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-xs text-text-secondary font-medium">or</span>
+        <div className="flex-1 h-px bg-border" />
+      </div>
+      <Link
+        href="/signup/magic-link"
+        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-teal text-teal font-heading font-semibold text-sm hover:bg-teal/5 transition-colors mb-8"
+      >
+        Quick signup with email link
+        <ArrowRight weight="bold" size={14} />
+      </Link>
+
       {/* Already have account */}
       <p className="text-sm text-text-secondary mb-4">
         Already have an account?{' '}
