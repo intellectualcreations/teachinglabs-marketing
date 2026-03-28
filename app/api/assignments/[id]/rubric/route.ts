@@ -41,16 +41,16 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   // Validate each criterion
   for (const c of body.criteria) {
-    if (!c.name || typeof c.weight !== 'number' || typeof c.maxScore !== 'number') {
+    if (!c.name || typeof c.maxPoints !== 'number') {
       return NextResponse.json(
-        { error: 'Each criterion must have name, weight, and maxScore' },
+        { error: 'Each criterion must have name and maxPoints' },
         { status: 400 },
       );
     }
   }
 
   try {
-    const rubric = createOrUpdateRubric(id, body.criteria);
+    const rubric = createOrUpdateRubric(id, `Rubric for ${id}`, body.criteria);
     return NextResponse.json({ rubric });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to create rubric';
