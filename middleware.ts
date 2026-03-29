@@ -34,6 +34,7 @@ const PUBLIC_PATHS = [
   '/teacher/signup',
   '/teacher/onboarding',
   '/student/signup',
+  '/student/onboarding',
   '/parent/signup',
   '/admin-signup',
   '/forgot-password',
