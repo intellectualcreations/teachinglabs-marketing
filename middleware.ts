@@ -87,8 +87,9 @@ export async function middleware(request: NextRequest) {
         || request.cookies.has('__Secure-next-auth.session-token');
 
       if (!hasNextAuthSession) {
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('callbackUrl', request.url);
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.url;
+        const loginUrl = new URL('/login', baseUrl);
+        loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
         return applySecurityHeaders(NextResponse.redirect(loginUrl));
       }
     }

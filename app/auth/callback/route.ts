@@ -8,9 +8,17 @@ import type { UserRole } from '@/lib/supabase/types';
  * to the appropriate dashboard based on the user's role.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? null;
+
+  // Use the configured site URL or forwarded host, never localhost
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https';
+  const origin = siteUrl
+    || (forwardedHost ? `${forwardedProto}://${forwardedHost}` : null)
+    || request.nextUrl.origin;
 
   if (!code) {
     return NextResponse.redirect(new URL('/login?error=missing_code', origin));
