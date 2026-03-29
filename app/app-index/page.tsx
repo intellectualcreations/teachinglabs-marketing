@@ -24,6 +24,7 @@ const sections = [
     devNote: 'Teacher signup is two screens (profile then auth). School identity is captured before authentication via zip-code-filtered NCES lookup. The Teaching Twin onboarding quiz personalizes the AI agent\'s teaching style. Roster sync (Google Classroom / Microsoft Teams / ClassLink / CSV) should be offered during initial setup. Dashboard uses localStorage for state. All pages share a sidebar layout. Icons are Phosphor Icons (fill weight) on colored circle backgrounds.',
     links: [
       { num: 5, name: 'Teacher Signup (2 screens: profile + auth)', href: '/teacher/signup' },
+      { num: 5.5, name: 'Teaching Twin Onboarding (5-act immersive quiz → personality reveal)', href: '/teacher/onboarding' },
       { num: 6, name: 'Teacher Dashboard (progressive setup flow + alerts when populated)', href: '/teacher/dashboard' },
       { num: 7, name: 'Create Class (icon picker, student picker, join code)', href: '/teacher/create-class' },
       { num: 8, name: 'Edit Class (icon, roster, description, archive)', href: '/teacher/edit-class' },
