@@ -82,6 +82,24 @@ export interface ChatMessage {
   created_at: string;
 }
 
+export interface TeacherSoul {
+  id: string;
+  teacher_id: string;
+  teaching_style: string;
+  classroom_vibe: string[];
+  feedback_approach: string;
+  mistake_response: string;
+  assistant_priorities: string[];
+  struggling_student_note: string | null;
+  why_learn_response: string | null;
+  scenario_responses: Record<string, string> | null;
+  twin_archetype: string | null;
+  twin_traits: Record<string, unknown> | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -153,6 +171,22 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Omit<ChatMessage, "id">>;
+        Relationships: [];
+      };
+      teacher_souls: {
+        Row: TeacherSoul;
+        Insert: Omit<TeacherSoul, "id" | "created_at" | "updated_at" | "completed_at" | "twin_archetype" | "twin_traits" | "struggling_student_note" | "why_learn_response" | "scenario_responses"> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          completed_at?: string | null;
+          twin_archetype?: string | null;
+          twin_traits?: Record<string, unknown> | null;
+          struggling_student_note?: string | null;
+          why_learn_response?: string | null;
+          scenario_responses?: Record<string, string> | null;
+        };
+        Update: Partial<Omit<TeacherSoul, "id">>;
         Relationships: [];
       };
     };
