@@ -340,6 +340,27 @@ export default function StudentSignupPage() {
               Enter your email to create your account
             </p>
 
+            {/* SSO buttons — Coming Soon */}
+            <div className="flex flex-col gap-2.5 mb-5">
+              {['Google', 'Microsoft', 'ClassLink'].map((provider) => (
+                <button
+                  key={provider}
+                  disabled
+                  className="relative flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-xl border border-border bg-surface dark:bg-card-bg font-heading text-sm font-medium text-text-primary opacity-60 cursor-not-allowed"
+                >
+                  Continue with {provider}
+                  <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-text-secondary font-medium">or continue with email</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
             <div className="mb-4">
               <label className="block text-xs font-semibold text-text-primary mb-1.5">Email address</label>
               <input
