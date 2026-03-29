@@ -5,85 +5,94 @@ import { useRouter } from 'next/navigation';
 import {
   SquaresFour, BookOpenText, MathOperations, Flask, GlobeHemisphereWest,
   ChatsCircle, ClipboardText, ChatText, Trophy, ChartBar,
-  RocketLaunch, Fire, Star, Lightning, Brain, Medal,
   ClockCounterClockwise, HandWaving, HouseSimple, List, X,
   Backpack, VideoCamera, ArrowSquareOut, Calendar, CurrencyDollar,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import NotificationOptIn from '@/components/shared/NotificationOptIn';
+import { createClient } from '@/lib/supabase/client';
+import type { Profile, Class, Enrollment, Assignment, Submission, ChatMessage } from '@/lib/supabase/types';
 
-const CLASSES = [
-  { id: 'math', courseId: 'algebra-1', name: '5th Period Math', teacher: 'Mrs. Martinez', initials: 'MM', avatarColor: '#1F3A5F', Icon: MathOperations, color: '#1F3A5F', badge: 2, progress: 68, totalLessons: 22, completedLessons: 15, lastAccessed: '2 hours ago' },
-  { id: 'ela', courseId: 'creative-writing', name: 'English Language Arts', teacher: 'Mr. Davis', initials: 'MD', avatarColor: '#4FA3A5', Icon: BookOpenText, color: '#4FA3A5', badge: 0, progress: 45, totalLessons: 20, completedLessons: 9, lastAccessed: 'Yesterday' },
-  { id: 'science', courseId: 'biology', name: 'Science', teacher: 'Ms. Chen', initials: 'MC', avatarColor: '#7C3AED', Icon: Flask, color: '#7C3AED', badge: 1, progress: 30, totalLessons: 18, completedLessons: 5, lastAccessed: '3 days ago' },
-  { id: 'social', courseId: 'us-history', name: 'Social Studies', teacher: 'Mrs. Thompson', initials: 'MT', avatarColor: '#0891B2', Icon: GlobeHemisphereWest, color: '#0891B2', badge: 0, progress: 12, totalLessons: 16, completedLessons: 2, lastAccessed: 'Last week' },
-];
+// Map subjects to icons/colors for visual consistency
+const SUBJECT_STYLES: Record<string, { Icon: typeof MathOperations; color: string }> = {
+  math: { Icon: MathOperations, color: '#1F3A5F' },
+  mathematics: { Icon: MathOperations, color: '#1F3A5F' },
+  algebra: { Icon: MathOperations, color: '#1F3A5F' },
+  science: { Icon: Flask, color: '#7C3AED' },
+  biology: { Icon: Flask, color: '#7C3AED' },
+  chemistry: { Icon: Flask, color: '#7C3AED' },
+  physics: { Icon: Flask, color: '#7C3AED' },
+  english: { Icon: BookOpenText, color: '#4FA3A5' },
+  ela: { Icon: BookOpenText, color: '#4FA3A5' },
+  reading: { Icon: BookOpenText, color: '#4FA3A5' },
+  writing: { Icon: BookOpenText, color: '#4FA3A5' },
+  social: { Icon: GlobeHemisphereWest, color: '#0891B2' },
+  history: { Icon: GlobeHemisphereWest, color: '#0891B2' },
+  geography: { Icon: GlobeHemisphereWest, color: '#0891B2' },
+};
 
-const STATS = [
-  { label: 'Chat Sessions', value: 12, Icon: ChatsCircle, color: '#4FA3A5' },
-  { label: 'Activities Complete', value: 5, Icon: ClipboardText, color: '#1F3A5F' },
-  { label: 'Personal Chats', value: 7, Icon: ChatText, color: '#8B5CF6' },
-  { label: 'Badges Earned', value: 3, Icon: Trophy, color: '#F59E0B' },
-];
+function getSubjectStyle(subject: string | null) {
+  if (!subject) return { Icon: BookOpenText, color: '#4FA3A5' };
+  const key = subject.toLowerCase();
+  for (const [k, v] of Object.entries(SUBJECT_STYLES)) {
+    if (key.includes(k)) return v;
+  }
+  return { Icon: BookOpenText, color: '#4FA3A5' };
+}
 
-const BADGES = [
-  { name: 'First Chat', date: 'Mar 3', Icon: RocketLaunch, color: '#4FA3A5', locked: false },
-  { name: '3-Day Streak', date: 'Mar 5', Icon: Fire, color: '#E8836B', locked: false },
-  { name: 'Math Whiz', date: 'Mar 7', Icon: Star, color: '#F59E0B', locked: false },
-  { name: 'Speed Reader', date: 'Locked', Icon: Lightning, color: '#94A3B8', locked: true },
-  { name: 'Science Pro', date: 'Locked', Icon: Brain, color: '#94A3B8', locked: true },
-  { name: '10 Lessons', date: 'Locked', Icon: Medal, color: '#94A3B8', locked: true },
-];
+function getInitials(name: string | null): string {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function timeAgo(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHrs = Math.floor(diffMin / 60);
+  if (diffHrs < 24) return `${diffHrs}h ago`;
+  const diffDays = Math.floor(diffHrs / 24);
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+interface EnrichedClass {
+  id: string;
+  name: string;
+  subject: string | null;
+  teacherName: string;
+  initials: string;
+  avatarColor: string;
+  Icon: typeof MathOperations;
+  color: string;
+  assignmentCount: number;
+  completedAssignments: number;
+  progress: number;
+}
 
 const ACTIVITY_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const ACTIVITY_VALUES = [4, 7, 3, 8, 6, 2, 5];
-
-const RECENT_ACTIVITY = [
-  { text: 'Completed Equivalent Fractions lesson in Math', time: '2 hours ago', color: '#10B981' },
-  { text: 'Started a chat about photosynthesis in Science', time: 'Yesterday', color: '#4FA3A5' },
-  { text: "Turned in Book Report: Charlotte's Web in ELA", time: 'Yesterday', color: '#1F3A5F' },
-  { text: 'Earned the Math Whiz badge', time: '2 days ago', color: '#8B5CF6' },
-  { text: 'Chatted about the Civil War in Social Studies', time: '3 days ago', color: '#F59E0B' },
-];
-
-interface LiveSessionData {
-  id: string;
-  courseId: string;
-  title: string;
-  url: string;
-  scheduledAt: string;
-  duration: number;
-}
-
-interface EnrolledCourseData {
-  courseId: string;
-  status: string;
-  progress: number;
-  lessonProgress: { completed: number; total: number; percentage: number };
-  course: {
-    id: string;
-    title: string;
-    subject: string;
-    instructor: string;
-    thumbnail?: string;
-  } | null;
-  nextLessonId?: string;
-}
 
 export default function StudentDashboardPage() {
   const router = useRouter();
-  const chartMax = Math.max(...ACTIVITY_VALUES);
   const barsRef = useRef<HTMLDivElement>(null);
   const [barsVisible, setBarsVisible] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
-  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourseData[]>([]);
-  const [enrolledLoading, setEnrolledLoading] = useState(true);
-  const [liveSessions, setLiveSessions] = useState<LiveSessionData[]>([]);
-  const [liveLoading, setLiveLoading] = useState(true);
-  const [recommendations, setRecommendations] = useState<{ courseId: string; title: string; subject: string; reason: string }[]>([]);
-  const [recsLoading, setRecsLoading] = useState(true);
+
+  // Real data state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [studentName, setStudentName] = useState('');
+  const [studentInitials, setStudentInitials] = useState('');
+  const [classes, setClasses] = useState<EnrichedClass[]>([]);
+  const [stats, setStats] = useState({ chatSessions: 0, activitiesComplete: 0, personalChats: 0 });
+  const [activityValues, setActivityValues] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
+  const [recentActivity, setRecentActivity] = useState<{ text: string; time: string; color: string }[]>([]);
 
   // Onboarding redirect check
   useEffect(() => {
@@ -100,73 +109,221 @@ export default function StudentDashboardPage() {
     return () => clearTimeout(t);
   }, []);
 
-  // Fetch enrolled courses with lesson progress
+  // Fetch real data from Supabase
   useEffect(() => {
-    fetch('/api/student/courses')
-      .then((res) => res.json())
-      .then(async (data) => {
-        const courses: EnrolledCourseData[] = data.enrollments || [];
-        // For each active course, find next uncompleted lesson
-        const enriched = await Promise.all(
-          courses.map(async (c: EnrolledCourseData) => {
-            if (c.course && c.lessonProgress?.percentage < 100) {
-              try {
-                const res = await fetch(`/api/student/courses/${c.course.id}`);
-                if (res.ok) {
-                  const detail = await res.json();
-                  const allLessons = detail.modules.flatMap(
-                    (m: { lessons: { id: string; completed: boolean }[] }) => m.lessons,
-                  );
-                  const next = allLessons.find(
-                    (l: { completed: boolean }) => !l.completed,
-                  );
-                  return { ...c, nextLessonId: next?.id };
-                }
-              } catch {
-                // ignore
-              }
-            }
-            return c;
-          }),
-        );
-        setEnrolledCourses(enriched);
-        setEnrolledLoading(false);
-      })
-      .catch(() => setEnrolledLoading(false));
+    if (!onboardingChecked) return;
 
-    // Fetch upcoming live sessions for enrolled courses
-    const courseIds = ['algebra-1', 'biology', 'creative-writing', 'us-history'];
-    Promise.all(
-      courseIds.map((id) =>
-        fetch(`/api/courses/${id}/live-sessions`)
-          .then((r) => r.ok ? r.json() : { sessions: [] })
-          .catch(() => ({ sessions: [] })),
-      ),
-    ).then((results) => {
-      const allSessions: LiveSessionData[] = results.flatMap((r) => r.sessions || []);
-      const now = new Date();
-      const upcoming = allSessions
-        .filter((s) => {
-          const end = new Date(new Date(s.scheduledAt).getTime() + s.duration * 60000);
-          return end > now;
-        })
-        .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
-      setLiveSessions(upcoming);
-      setLiveLoading(false);
-    });
+    async function fetchData() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push('/login');
+          return;
+        }
 
-    // Fetch recommendations (FLU-248)
-    fetch('/api/recommendations?studentId=demo-student')
-      .then((r) => r.json())
-      .then((data) => {
-        setRecommendations(data.recommendations || []);
-        setRecsLoading(false);
-      })
-      .catch(() => setRecsLoading(false));
-  }, []);
+        // Fetch profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        const profile = profileData as unknown as Profile | null;
+        const displayName = profile?.display_name || 'Student';
+        setStudentName(displayName.split(' ')[0]);
+        setStudentInitials(getInitials(displayName));
+
+        // Fetch enrollments with classes
+        const { data: enrollmentData } = await supabase
+          .from('enrollments')
+          .select('*')
+          .eq('student_id', user.id)
+          .eq('status', 'active');
+
+        const enrollments = (enrollmentData ?? []) as unknown as Enrollment[];
+
+        if (enrollments.length === 0) {
+          setClasses([]);
+          setLoading(false);
+          return;
+        }
+
+        const classIds = enrollments.map(e => e.class_id);
+
+        // Fetch classes
+        const { data: classData } = await supabase
+          .from('classes')
+          .select('*')
+          .in('id', classIds);
+
+        const classRows = (classData ?? []) as unknown as Class[];
+
+        // Fetch teacher profiles
+        const teacherIds = [...new Set(classRows.map(c => c.teacher_id))];
+        const { data: teacherData } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', teacherIds);
+
+        const teachers = (teacherData ?? []) as unknown as Profile[];
+        const teacherMap = new Map(teachers.map(t => [t.id, t]));
+
+        // Fetch assignments for all classes
+        const { data: assignmentData } = await supabase
+          .from('assignments')
+          .select('*')
+          .in('class_id', classIds);
+
+        const assignments = (assignmentData ?? []) as unknown as Assignment[];
+
+        // Fetch submissions for this student
+        const assignmentIds = assignments.map(a => a.id);
+        let submissions: Submission[] = [];
+        if (assignmentIds.length > 0) {
+          const { data: submissionData } = await supabase
+            .from('submissions')
+            .select('*')
+            .eq('student_id', user.id)
+            .in('assignment_id', assignmentIds);
+
+          submissions = (submissionData ?? []) as unknown as Submission[];
+        }
+        const submittedAssignmentIds = new Set(submissions.map(s => s.assignment_id));
+
+        // Fetch chat messages for this student across all classes
+        const { data: chatData } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .in('class_id', classIds)
+          .or(`sender_id.eq.${user.id},message_type.eq.ai`)
+          .order('created_at', { ascending: false })
+          .limit(100);
+
+        const chatMessages = (chatData ?? []) as unknown as ChatMessage[];
+
+        // Build enriched classes
+        const enrichedClasses: EnrichedClass[] = classRows.map(cls => {
+          const style = getSubjectStyle(cls.subject);
+          const teacher = teacherMap.get(cls.teacher_id);
+          const teacherName = teacher?.display_name || 'Teacher';
+          const classAssignments = assignments.filter(a => a.class_id === cls.id);
+          const completedAssignments = classAssignments.filter(a => submittedAssignmentIds.has(a.id)).length;
+          const totalAssignments = classAssignments.length;
+          const progress = totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0;
+
+          return {
+            id: cls.id,
+            name: cls.name,
+            subject: cls.subject,
+            teacherName,
+            initials: getInitials(teacherName),
+            avatarColor: style.color,
+            Icon: style.Icon,
+            color: style.color,
+            assignmentCount: totalAssignments,
+            completedAssignments,
+            progress,
+          };
+        });
+
+        setClasses(enrichedClasses);
+
+        // Compute stats
+        const studentMessages = chatMessages.filter(m => m.sender_id === user.id && m.message_type === 'student');
+        const uniqueChatDays = new Set(studentMessages.map(m => new Date(m.created_at).toDateString()));
+        setStats({
+          chatSessions: uniqueChatDays.size,
+          activitiesComplete: submissions.length,
+          personalChats: studentMessages.length,
+        });
+
+        // Activity chart: count student messages per day for last 7 days
+        const today = new Date();
+        const dayValues: number[] = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toDateString();
+          const count = studentMessages.filter(m => new Date(m.created_at).toDateString() === dateStr).length;
+          dayValues.push(count);
+        }
+        setActivityValues(dayValues);
+
+        // Recent activity: combine recent chat messages and submissions
+        const recentItems: { text: string; time: string; color: string; date: Date }[] = [];
+
+        // Recent chat messages
+        const recentChats = chatMessages.filter(m => m.sender_id === user.id).slice(0, 5);
+        for (const msg of recentChats) {
+          const cls = classRows.find(c => c.id === msg.class_id);
+          recentItems.push({
+            text: `Chatted in ${cls?.name || 'class'}`,
+            time: timeAgo(msg.created_at),
+            color: '#4FA3A5',
+            date: new Date(msg.created_at),
+          });
+        }
+
+        // Recent submissions
+        for (const sub of submissions.slice(0, 5)) {
+          const assignment = assignments.find(a => a.id === sub.assignment_id);
+          recentItems.push({
+            text: `Turned in ${assignment?.title || 'assignment'}`,
+            time: timeAgo(sub.submitted_at),
+            color: '#10B981',
+            date: new Date(sub.submitted_at),
+          });
+        }
+
+        // Sort by date and take top 5
+        recentItems.sort((a, b) => b.date.getTime() - a.date.getTime());
+        setRecentActivity(recentItems.slice(0, 5).map(({ text, time, color }) => ({ text, time, color })));
+
+        setLoading(false);
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+        setError('Something went wrong loading your dashboard. Please try refreshing.');
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [onboardingChecked, router]);
 
   if (!onboardingChecked) {
     return null;
+  }
+
+  const chartMax = Math.max(...activityValues, 1);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-warm-white">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-full border-2 border-teal border-t-transparent animate-spin mx-auto mb-3" />
+          <p className="text-sm text-text-muted">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-warm-white">
+        <div className="text-center max-w-sm bg-card-bg border border-border rounded-2xl shadow-sm px-8 py-10">
+          <div className="text-4xl mb-4">😕</div>
+          <h2 className="font-heading font-bold text-lg text-text-primary mb-2">Oops!</h2>
+          <p className="text-sm text-text-secondary mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-5 py-2 bg-teal text-white rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -209,7 +366,7 @@ export default function StudentDashboardPage() {
           <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center font-heading font-bold text-xs flex-shrink-0">TL</div>
           <div>
             <div className="font-heading font-bold text-sm text-white">TeachingLabs</div>
-            <div className="text-xs text-white/50">Lincoln Elementary</div>
+            <div className="text-xs text-white/50">Student Portal</div>
           </div>
         </div>
 
@@ -244,41 +401,38 @@ export default function StudentDashboardPage() {
             <BookOpenText size={12} weight="fill" className="text-white/40" />
             <span className="text-[10px] font-bold uppercase tracking-wide text-white/50">My Classes</span>
           </div>
-          {CLASSES.map(cls => (
-            <Link
-              key={cls.id}
-              href={`/student/courses/${cls.courseId}`}
-              onClick={() => setMobileOpen(false)}
-              className="flex items-start gap-2.5 px-4 py-2.5 hover:bg-white/[0.12] transition-colors text-white/70 hover:text-white"
-            >
-              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white mt-0.5" style={{ background: cls.avatarColor }}>
-                {cls.initials}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-xs truncate text-white">{cls.name}</div>
-                <div className="text-[11px] text-white/50">{cls.teacher}</div>
-                <div className="text-[10px] text-white/30 mt-0.5">{cls.lastAccessed}</div>
-                {/* Progress bar */}
-                <div className="mt-1.5 h-1 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-teal rounded-full transition-all duration-500" style={{ width: `${cls.progress}%` }} />
+          {classes.length === 0 ? (
+            <div className="px-4 py-3 text-xs text-white/40">No classes yet</div>
+          ) : (
+            classes.map(cls => (
+              <Link
+                key={cls.id}
+                href={`/student/main?class=${cls.id}`}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-start gap-2.5 px-4 py-2.5 hover:bg-white/[0.12] transition-colors text-white/70 hover:text-white"
+              >
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white mt-0.5" style={{ background: cls.avatarColor }}>
+                  {cls.initials}
                 </div>
-                <div className="text-[10px] text-white/40 mt-0.5">{cls.progress}% complete</div>
-              </div>
-              {cls.badge > 0 && (
-                <div className="w-5 h-5 rounded-full bg-teal text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">
-                  {cls.badge}
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-xs truncate text-white">{cls.name}</div>
+                  <div className="text-[11px] text-white/50">{cls.teacherName}</div>
+                  {/* Progress bar */}
+                  <div className="mt-1.5 h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-teal rounded-full transition-all duration-500" style={{ width: `${cls.progress}%` }} />
+                  </div>
+                  <div className="text-[10px] text-white/40 mt-0.5">{cls.progress}% complete</div>
                 </div>
-              )}
-            </Link>
-          ))}
+              </Link>
+            ))
+          )}
         </div>
 
         {/* Student footer */}
         <div className="border-t border-white/10 p-3 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-xs flex-shrink-0">AR</div>
+          <div className="w-8 h-8 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-xs flex-shrink-0">{studentInitials}</div>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-xs text-white">Alex Rivera</div>
-            <div className="text-[11px] text-white/50">5th Grade</div>
+            <div className="font-semibold text-xs text-white">{studentName}</div>
           </div>
           <ThemeToggle className="border-white/20 text-white/60 hover:text-white hover:border-white/40" />
         </div>
@@ -292,12 +446,12 @@ export default function StudentDashboardPage() {
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-navy to-teal" />
           <div className="flex items-center gap-2 mb-1">
             <HandWaving size={24} weight="fill" className="text-teal" />
-            <h1 className="font-heading font-bold text-xl text-text-primary">Hi Alex!</h1>
+            <h1 className="font-heading font-bold text-xl text-text-primary">Hi {studentName}!</h1>
           </div>
-          {CLASSES.length > 0 ? (
+          {classes.length > 0 ? (
             <>
               <p className="text-sm text-text-secondary">
-                You&apos;re enrolled in <strong className="text-text-primary">{CLASSES.length} classes</strong>. Click on a class to get started.
+                You&apos;re enrolled in <strong className="text-text-primary">{classes.length} class{classes.length !== 1 ? 'es' : ''}</strong>. Click on a class to get started.
               </p>
               <div className="flex items-center gap-1.5 mt-3 text-xs font-semibold text-teal">
                 <HouseSimple size={14} weight="fill" />
@@ -309,9 +463,15 @@ export default function StudentDashboardPage() {
               <div className="w-16 h-16 rounded-full bg-teal/10 flex items-center justify-center mb-4">
                 <Backpack size={32} weight="fill" className="text-teal/60" />
               </div>
-              <p className="text-sm text-text-secondary max-w-xs">
-                You&apos;re not enrolled in any classes yet. Ask your teacher for an enrollment code.
+              <p className="text-sm text-text-secondary max-w-xs mb-2">
+                You&apos;re all set! Join a class with your class code to get started.
               </p>
+              <Link
+                href="/student/signup"
+                className="text-sm font-semibold text-teal hover:text-navy transition-colors"
+              >
+                Join a class →
+              </Link>
             </div>
           )}
         </div>
@@ -322,274 +482,132 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Class cards with progress */}
-        {CLASSES.length > 0 && (
+        {classes.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
-            {CLASSES.map(cls => (
-              <Link
-                key={cls.id}
-                href={`/student/courses/${cls.courseId}`}
-                className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: cls.avatarColor }}>
-                    {cls.initials}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-heading font-semibold text-sm text-text-primary truncate group-hover:text-teal transition-colors">{cls.name}</div>
-                    <div className="text-xs text-text-secondary">{cls.teacher}</div>
-                  </div>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.color }}>
-                    <cls.Icon size={16} weight="fill" className="text-white" />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-xs text-text-muted mb-1.5">
-                  <span>{cls.completedLessons} of {cls.totalLessons} lessons</span>
-                  <span className="font-semibold text-text-primary">{cls.progress}%</span>
-                </div>
-                <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
-                  <div className="h-full bg-teal rounded-full transition-all duration-500" style={{ width: `${cls.progress}%` }} />
-                </div>
-                <div className="text-[11px] text-text-muted mt-2">Last opened {cls.lastAccessed}</div>
-                <div className="mt-3 text-xs font-heading font-bold text-teal group-hover:text-navy transition-colors">
-                  Continue →
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* Enrolled courses with Continue Learning */}
-        {!enrolledLoading && enrolledCourses.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-3">
-              <BookOpenText size={16} weight="fill" className="text-teal" />
-              My Enrolled Courses
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {enrolledCourses.map((ec) => {
-                if (!ec.course) return null;
-                const pct = ec.lessonProgress?.percentage ?? ec.progress ?? 0;
-                const isComplete = pct >= 100;
-                return (
-                  <div
-                    key={ec.courseId}
-                    className="bg-card-bg border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div
-                      className="h-1.5 w-full"
-                      style={{ backgroundColor: ec.course.thumbnail || '#4FA3A5' }}
-                    />
-                    <div className="p-5">
-                      <h3 className="font-heading font-semibold text-sm text-text-primary mb-1 truncate">
-                        {ec.course.title}
-                      </h3>
-                      <p className="text-xs text-text-secondary mb-3">{ec.course.instructor}</p>
-                      <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="text-text-muted">
-                          {ec.lessonProgress?.completed ?? 0} of {ec.lessonProgress?.total ?? 0} lessons
-                        </span>
-                        <span className="font-bold text-text-primary">{pct}%</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-border rounded-full overflow-hidden mb-4">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: `${pct}%`,
-                            backgroundColor: isComplete ? '#F0C95D' : '#4FA3A5',
-                          }}
-                        />
-                      </div>
-                      {isComplete ? (
-                        <Link
-                          href={`/student/courses/${ec.courseId}`}
-                          className="inline-flex items-center font-heading text-xs font-semibold text-teal hover:text-navy transition-colors"
-                        >
-                          Review Course →
-                        </Link>
-                      ) : (
-                        <Link
-                          href={
-                            ec.nextLessonId
-                              ? `/student/courses/${ec.courseId}?lesson=${ec.nextLessonId}`
-                              : `/student/courses/${ec.courseId}`
-                          }
-                          className="inline-flex items-center font-heading text-xs font-bold bg-teal text-white px-4 py-2 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
-                        >
-                          Continue Learning
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Upcoming live sessions */}
-        {!liveLoading && liveSessions.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-3">
-              <VideoCamera size={16} weight="fill" className="text-coral" />
-              Upcoming Live Sessions
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {liveSessions.slice(0, 4).map((session) => {
-                const d = new Date(session.scheduledAt);
-                const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                const soon = d.getTime() - Date.now() < 2 * 60 * 60 * 1000 && d.getTime() > Date.now();
-                return (
-                  <div
-                    key={session.id}
-                    className={`bg-card-bg border rounded-xl p-4 ${soon ? 'border-coral shadow-md' : 'border-border'}`}
-                  >
-                    {soon && (
-                      <div className="inline-flex items-center gap-1 text-[10px] font-bold text-coral bg-coral/10 px-2 py-0.5 rounded-full mb-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-coral animate-pulse" />
-                        Starting Soon
-                      </div>
-                    )}
-                    <h3 className="font-heading font-semibold text-sm text-text-primary mb-1 truncate">
-                      {session.title}
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs text-text-muted mb-3">
-                      <Calendar size={12} weight="fill" />
-                      <span>{dateStr} at {timeStr}</span>
-                      <span>· {session.duration} min</span>
-                    </div>
-                    <a
-                      href={session.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 font-heading text-xs font-bold text-teal hover:text-navy transition-colors"
-                    >
-                      <ArrowSquareOut size={14} weight="bold" />
-                      Join Session
-                    </a>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Recommended for You (FLU-248) */}
-        {!recsLoading && recommendations.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-3">
-              <Lightning size={16} weight="fill" className="text-coral" />
-              Recommended for You
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {recommendations.map((rec) => (
+            {classes.map(cls => {
+              const ClassIcon = cls.Icon;
+              return (
                 <Link
-                  key={rec.courseId}
-                  href={`/catalog/${rec.courseId}`}
+                  key={cls.id}
+                  href={`/student/main?class=${cls.id}`}
                   className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group"
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 rounded-full bg-coral/10 text-coral text-[10px] font-bold">
-                      {rec.subject}
-                    </span>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: cls.avatarColor }}>
+                      {cls.initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-heading font-semibold text-sm text-text-primary truncate group-hover:text-teal transition-colors">{cls.name}</div>
+                      <div className="text-xs text-text-secondary">{cls.teacherName}</div>
+                    </div>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.color }}>
+                      <ClassIcon size={16} weight="fill" className="text-white" />
+                    </div>
                   </div>
-                  <h3 className="font-heading font-semibold text-sm text-text-primary mb-1 group-hover:text-teal transition-colors">
-                    {rec.title}
-                  </h3>
-                  <p className="text-xs text-text-muted">{rec.reason}</p>
+                  <div className="flex items-center justify-between text-xs text-text-muted mb-1.5">
+                    <span>{cls.completedAssignments} of {cls.assignmentCount} assignments</span>
+                    <span className="font-semibold text-text-primary">{cls.progress}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                    <div className="h-full bg-teal rounded-full transition-all duration-500" style={{ width: `${cls.progress}%` }} />
+                  </div>
                   <div className="mt-3 text-xs font-heading font-bold text-teal group-hover:text-navy transition-colors">
-                    Explore →
+                    Continue →
                   </div>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
           </div>
         )}
 
         {/* Stats grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
-          {STATS.map(stat => (
-            <div key={stat.label} className="bg-card-bg border border-border rounded-xl p-5 text-center shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center mx-auto mb-2.5" style={{ background: stat.color }}>
-                <stat.Icon size={18} weight="fill" className="text-white" />
+        {classes.length > 0 && (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5 mb-6">
+            {[
+              { label: 'Chat Sessions', value: stats.chatSessions, Icon: ChatsCircle, color: '#4FA3A5' },
+              { label: 'Activities Complete', value: stats.activitiesComplete, Icon: ClipboardText, color: '#1F3A5F' },
+              { label: 'Messages Sent', value: stats.personalChats, Icon: ChatText, color: '#8B5CF6' },
+            ].map(stat => (
+              <div key={stat.label} className="bg-card-bg border border-border rounded-xl p-5 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center mx-auto mb-2.5" style={{ background: stat.color }}>
+                  <stat.Icon size={18} weight="fill" className="text-white" />
+                </div>
+                <div className="font-heading font-bold text-[26px] text-text-primary leading-none">{stat.value}</div>
+                <div className="text-[11px] text-text-secondary font-medium mt-1">{stat.label}</div>
               </div>
-              <div className="font-heading font-bold text-[26px] text-text-primary leading-none">{stat.value}</div>
-              <div className="text-[11px] text-text-secondary font-medium mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Two column: chart + badges */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          {/* Activity chart */}
-          <div className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-4">
-              <ChartBar size={16} weight="fill" className="text-teal" />
-              This Week&apos;s Activity
+        {classes.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            {/* Activity chart */}
+            <div className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-4">
+                <ChartBar size={16} weight="fill" className="text-teal" />
+                This Week&apos;s Activity
+              </div>
+              {chartMax > 0 ? (
+                <div className="flex items-end gap-2 h-[120px]" ref={barsRef}>
+                  {ACTIVITY_DAYS.map((day, i) => {
+                    const val = activityValues[i];
+                    const h = Math.round((val / chartMax) * 100);
+                    const color = val > 5 ? '#4FA3A5' : val > 3 ? '#8FC4C5' : '#BFE0E1';
+                    return (
+                      <div key={day} className="flex-1 flex flex-col items-center gap-1.5">
+                        <div
+                          className="w-full rounded-t min-h-1 transition-all duration-700"
+                          style={{
+                            height: barsVisible ? `${Math.max(h, 4)}%` : '4px',
+                            background: val > 0 ? color : '#E5E7EB',
+                          }}
+                        />
+                        <span className="text-[10px] text-text-muted font-medium">{day}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[120px] text-sm text-text-muted">
+                  No activity yet this week. Start chatting!
+                </div>
+              )}
             </div>
-            <div className="flex items-end gap-2 h-[120px]" ref={barsRef}>
-              {ACTIVITY_DAYS.map((day, i) => {
-                const val = ACTIVITY_VALUES[i];
-                const h = Math.round((val / chartMax) * 100);
-                const color = val > 5 ? '#4FA3A5' : val > 3 ? '#8FC4C5' : '#BFE0E1';
-                return (
-                  <div key={day} className="flex-1 flex flex-col items-center gap-1.5">
-                    <div
-                      className="w-full rounded-t min-h-1 transition-all duration-700"
-                      style={{
-                        height: barsVisible ? `${h}%` : '4px',
-                        background: color,
-                      }}
-                    />
-                    <span className="text-[10px] text-text-muted font-medium">{day}</span>
-                  </div>
-                );
-              })}
+
+            {/* Badges (placeholder) */}
+            <div className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-4">
+                <Trophy size={16} weight="fill" className="text-warning" />
+                Badges
+              </div>
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <Trophy size={40} weight="fill" className="text-text-muted/30 mb-3" />
+                <p className="text-sm text-text-muted">No badges earned yet — keep learning!</p>
+                <p className="text-xs text-text-muted/70 mt-1">Complete activities and chat with your tutor to earn badges.</p>
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Badges */}
+        {/* Recent activity */}
+        {recentActivity.length > 0 && (
           <div className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-4">
-              <Trophy size={16} weight="fill" className="text-warning" />
-              Badges
+              <ClockCounterClockwise size={16} weight="fill" className="text-navy" />
+              Recent Activity
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              {BADGES.map(badge => (
-                <div
-                  key={badge.name}
-                  className={`text-center p-3 rounded-[10px] border border-border bg-warm-white ${badge.locked ? 'opacity-40' : ''}`}
-                >
-                  <div className="mb-1.5">
-                    <badge.Icon size={28} weight="fill" style={{ color: badge.color }} className="mx-auto" />
-                  </div>
-                  <div className="text-[11px] font-semibold text-text-primary">{badge.name}</div>
-                  <div className="text-[10px] text-text-muted">{badge.date}</div>
+            <div className="divide-y divide-border">
+              {recentActivity.map((item, i) => (
+                <div key={i} className="flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-teal/[0.04] transition-colors">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: item.color }} />
+                  <div className="flex-1 text-sm text-text-primary">{item.text}</div>
+                  <div className="text-[11px] text-text-muted flex-shrink-0">{item.time}</div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Recent activity */}
-        <div className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-4">
-            <ClockCounterClockwise size={16} weight="fill" className="text-navy" />
-            Recent Activity
-          </div>
-          <div className="divide-y divide-border">
-            {RECENT_ACTIVITY.map((item, i) => (
-              <div key={i} className="flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-teal/[0.04] transition-colors">
-                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: item.color }} />
-                <div
-                  className="flex-1 text-sm text-text-primary"
-                  dangerouslySetInnerHTML={{ __html: item.text.replace(/([^.]+)/g, (m) => m) }}
-                />
-                <div className="text-[11px] text-text-muted flex-shrink-0">{item.time}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </main>
     </div>
   );
