@@ -62,9 +62,10 @@ export async function GET(
     return NextResponse.json([]);
   }
 
-  const profileResult = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const profileResult = await (supabase
     .from('profiles')
-    .select('*')
+    .select('*') as any)
     .in('id', studentIds);
 
   const profiles = (profileResult.data ?? []) as Profile[];

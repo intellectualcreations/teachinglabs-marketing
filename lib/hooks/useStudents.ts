@@ -53,9 +53,10 @@ export function useStudents(classId?: string) {
 
       const studentIds = typedEnrollments.map((e) => e.student_id);
 
-      const { data: profiles, error: profileErr } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: profiles, error: profileErr } = await (supabase
         .from('profiles')
-        .select('*')
+        .select('*') as any)
         .in('id', studentIds);
 
       if (profileErr) {

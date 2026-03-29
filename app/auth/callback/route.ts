@@ -82,6 +82,15 @@ async function getRedirectForUser(
 
     const role: UserRole = profile?.role ?? 'teacher';
 
+    // New students go to onboarding first
+    if (role === 'student') {
+      // Check if student has completed onboarding already
+      const onboarded = user.user_metadata?.onboarded === true;
+      if (!onboarded) {
+        return new URL('/student/onboarding', origin);
+      }
+    }
+
     const dashboardRoutes: Record<UserRole, string> = {
       admin: '/admin/dashboard',
       teacher: '/teacher/dashboard',

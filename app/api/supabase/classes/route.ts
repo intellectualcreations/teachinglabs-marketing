@@ -37,9 +37,10 @@ export async function GET() {
     return NextResponse.json([]);
   }
 
-  const classResult = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const classResult = await (supabase
     .from('classes')
-    .select('*')
+    .select('*') as any)
     .in('id', classIds);
 
   const classes = (classResult.data ?? []) as Class[];

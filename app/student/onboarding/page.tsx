@@ -904,7 +904,7 @@ export default function OnboardingPage() {
     setMessages(prev => [...prev, { id: makeId(), role: 'student', text }]);
   }, []);
 
-  // Load student info from localStorage
+  // Load student info from localStorage and complete signup enrollment
   useEffect(() => {
     if (initialized) return;
     const name = localStorage.getItem('pending_student_name') || 'there';
@@ -914,6 +914,32 @@ export default function OnboardingPage() {
     setBirthYear(parsedBY);
     setCurrentDifficulty(getStartingDifficulty(parsedBY));
     setInitialized(true);
+
+    // Complete signup: create enrollment and generate student number
+    const pendingClassId = localStorage.getItem('pending_class_id');
+    if (pendingClassId) {
+      fetch('/api/student/complete-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          class_id: pendingClassId,
+          birth_year: parsedBY,
+        }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            // Clear pending data after successful enrollment
+            localStorage.removeItem('pending_class_id');
+            localStorage.removeItem('pending_role');
+            localStorage.removeItem('pending_birth_year');
+            // Keep pending_student_name for the session
+          }
+        })
+        .catch(err => {
+          console.error('Complete signup error:', err);
+        });
+    }
   }, [initialized]);
 
   // Start conversation

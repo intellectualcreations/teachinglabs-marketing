@@ -16,6 +16,7 @@ export interface Profile {
   role: UserRole;
   school_id: string | null;
   avatar_url: string | null;
+  student_number: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -105,9 +106,10 @@ export interface Database {
     Tables: {
       profiles: {
         Row: Profile;
-        Insert: Omit<Profile, "created_at" | "updated_at"> & {
+        Insert: Omit<Profile, "created_at" | "updated_at" | "student_number"> & {
           created_at?: string;
           updated_at?: string;
+          student_number?: string | null;
         };
         Update: Partial<Omit<Profile, "id">>;
         Relationships: [];

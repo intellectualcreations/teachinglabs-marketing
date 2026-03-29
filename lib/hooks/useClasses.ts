@@ -61,9 +61,10 @@ export function useClasses() {
           return;
         }
 
-        const { data, error: err } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error: err } = await (supabase
           .from('classes')
-          .select('*')
+          .select('*') as any)
           .in('id', classIds)
           .order('created_at', { ascending: false });
 
