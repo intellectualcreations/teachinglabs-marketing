@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 function TeachingLabsLogo() {
   return (
@@ -124,7 +125,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12 relative">
+      {/* Theme toggle */}
+      <ThemeToggle className="absolute top-6 right-6" />
+
       {/* Back link */}
       <div className="w-full max-w-[420px] mb-4">
         <Link

@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChalkboardTeacher, ArrowLeft, Eye, EyeSlash, MagnifyingGlass } from '@phosphor-icons/react';
+import { ChalkboardTeacher, ArrowLeft, MagnifyingGlass, CircleNotch, CheckCircle, EnvelopeSimple } from '@phosphor-icons/react';
+import { createClient } from '@/lib/supabase/client';
 
-// ---- Demo data (inline) ----
+// ---- US States (static) ----
 const US_STATES = [
   { abbr: 'AL', name: 'Alabama' }, { abbr: 'AK', name: 'Alaska' }, { abbr: 'AZ', name: 'Arizona' },
   { abbr: 'AR', name: 'Arkansas' }, { abbr: 'CA', name: 'California' }, { abbr: 'CO', name: 'Colorado' },
@@ -26,75 +27,7 @@ const US_STATES = [
   { abbr: 'WI', name: 'Wisconsin' }, { abbr: 'WY', name: 'Wyoming' },
 ];
 
-const DEMO_DISTRICTS: Record<string, { districts: string[]; schools: Record<string, string[]> }> = {
-  IN: {
-    districts: [
-      'Corydon Central Community Schools',
-      'Indianapolis Public Schools',
-      'Fort Wayne Community Schools',
-      'South Harrison Community Schools',
-      'New Albany Floyd County Schools',
-    ],
-    schools: {
-      'Corydon Central Community Schools': [
-        'Corydon Central High School',
-        'Lincoln Elementary School',
-        'South Central Middle School',
-        'Corydon Intermediate School',
-      ],
-      'Indianapolis Public Schools': [
-        'Arsenal Technical High School',
-        'Broad Ripple High School',
-        'George Washington High School',
-        'Shortridge High School',
-      ],
-      'Fort Wayne Community Schools': [
-        'North Side High School',
-        'Northrop High School',
-        'South Side High School',
-        'Wayne High School',
-      ],
-    },
-  },
-  TX: {
-    districts: [
-      'Houston Independent School District',
-      'Dallas Independent School District',
-      'Austin Independent School District',
-      'San Antonio Independent School District',
-    ],
-    schools: {
-      'Houston Independent School District': [
-        'Lamar High School',
-        'Heights High School',
-        'Reagan High School',
-        'Waltrip High School',
-      ],
-      'Dallas Independent School District': [
-        'Bryan Adams High School',
-        'Hillcrest High School',
-        'Lake Highlands High School',
-        'W.T. White High School',
-      ],
-    },
-  },
-  CA: {
-    districts: [
-      'Los Angeles Unified School District',
-      'San Diego Unified School District',
-      'San Francisco Unified School District',
-    ],
-    schools: {
-      'Los Angeles Unified School District': [
-        'Los Angeles High School',
-        'Manual Arts High School',
-        'Fremont High School',
-        'Jefferson High School',
-      ],
-    },
-  },
-};
-
+// ---- SSO icons ----
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" className="flex-shrink-0">
@@ -130,6 +63,7 @@ function ClassLinkIcon() {
   );
 }
 
+// ---- Autocomplete component ----
 interface AutocompleteProps {
   value: string;
   onChange: (val: string) => void;
@@ -138,9 +72,10 @@ interface AutocompleteProps {
   placeholder: string;
   disabled?: boolean;
   hint?: string;
+  loading?: boolean;
 }
 
-function Autocomplete({ value, onChange, onSelect, options, placeholder, disabled, hint }: AutocompleteProps) {
+function Autocomplete({ value, onChange, onSelect, options, placeholder, disabled, hint, loading }: AutocompleteProps) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -161,10 +96,17 @@ function Autocomplete({ value, onChange, onSelect, options, placeholder, disable
   return (
     <div className="mb-4" ref={wrapRef}>
       <div className="relative">
-        <MagnifyingGlass
-          size={16}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-        />
+        {loading ? (
+          <CircleNotch
+            size={16}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-teal animate-spin pointer-events-none"
+          />
+        ) : (
+          <MagnifyingGlass
+            size={16}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+          />
+        )}
         <input
           type="text"
           value={value}
@@ -208,11 +150,21 @@ function Autocomplete({ value, onChange, onSelect, options, placeholder, disable
   );
 }
 
+// ---- School picker with Supabase data ----
+interface SchoolOption {
+  id: string;
+  name: string;
+  city: string | null;
+  zip: string | null;
+}
+
 export default function TeacherSignupPage() {
   const router = useRouter();
-  const [screen, setScreen] = useState<1 | 2>(1);
+  const supabase = createClient();
 
-  // Screen 1 fields
+  const [screen, setScreen] = useState<1 | 2 | 3>(1);
+
+  // Screen 1: name + school
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [firstNameError, setFirstNameError] = useState(false);
@@ -220,44 +172,73 @@ export default function TeacherSignupPage() {
 
   const [schoolMode, setSchoolMode] = useState<'public' | 'other'>('public');
 
-  // Public school search
+  // Cascading school picker
   const [selectedState, setSelectedState] = useState('');
+  const [districts, setDistricts] = useState<string[]>([]);
+  const [districtsLoading, setDistrictsLoading] = useState(false);
   const [districtQuery, setDistrictQuery] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
+  const [schoolsLoading, setSchoolsLoading] = useState(false);
   const [schoolQuery, setSchoolQuery] = useState('');
-  const [selectedSchool, setSelectedSchool] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState<SchoolOption | null>(null);
 
-  // Other / manual school
+  // "Can't find my school" fields
   const [otherZip, setOtherZip] = useState('');
   const [otherCity, setOtherCity] = useState('');
-  const [otherStateDisplay, setOtherStateDisplay] = useState('');
+  const [otherState, setOtherState] = useState('');
   const [otherSchoolType, setOtherSchoolType] = useState('');
   const [otherSchoolName, setOtherSchoolName] = useState('');
 
-  // Screen 2 fields
+  // Screen 2: email + auth
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const stateData = DEMO_DISTRICTS[selectedState];
-  const districtOptions = stateData ? stateData.districts : [];
-  const schoolOptions = selectedDistrict && stateData?.schools[selectedDistrict]
-    ? stateData.schools[selectedDistrict]
-    : [];
+  // Load districts when state changes
+  useEffect(() => {
+    if (!selectedState) { setDistricts([]); return; }
+    setDistrictsLoading(true);
+    setSelectedDistrict('');
+    setDistrictQuery('');
+    setSchools([]);
+    setSchoolQuery('');
+    setSelectedSchool(null);
+
+    fetch(`/api/schools?state=${selectedState}`)
+      .then((r) => r.json())
+      .then((d) => setDistricts(d.districts || []))
+      .catch(() => setDistricts([]))
+      .finally(() => setDistrictsLoading(false));
+  }, [selectedState]);
+
+  // Load schools when district changes
+  useEffect(() => {
+    if (!selectedState || !selectedDistrict) { setSchools([]); return; }
+    setSchoolsLoading(true);
+    setSchoolQuery('');
+    setSelectedSchool(null);
+
+    fetch(`/api/schools?state=${selectedState}&district=${encodeURIComponent(selectedDistrict)}`)
+      .then((r) => r.json())
+      .then((d) => setSchools(d.schools || []))
+      .catch(() => setSchools([]))
+      .finally(() => setSchoolsLoading(false));
+  }, [selectedState, selectedDistrict]);
 
   function handleStateChange(e: React.ChangeEvent<HTMLSelectElement>) {
     setSelectedState(e.target.value);
-    setDistrictQuery('');
-    setSelectedDistrict('');
-    setSchoolQuery('');
-    setSelectedSchool('');
   }
 
   function handleSelectDistrict(val: string) {
     setSelectedDistrict(val);
     setDistrictQuery(val);
-    setSchoolQuery('');
-    setSelectedSchool('');
+  }
+
+  function handleSelectSchool(name: string) {
+    const school = schools.find((s) => s.name === name) || null;
+    setSelectedSchool(school);
+    setSchoolQuery(name);
   }
 
   function validateScreen1() {
@@ -278,11 +259,75 @@ export default function TeacherSignupPage() {
     window.scrollTo(0, 0);
   }
 
-  function handleCreate() {
-    router.push('/teacher/twin-onboarding');
+  async function handleSignup() {
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+
+    try {
+      // If "other" school mode, create the school first
+      let schoolId: string | null = null;
+
+      if (schoolMode === 'public' && selectedSchool) {
+        schoolId = selectedSchool.id;
+      } else if (schoolMode === 'other' && otherSchoolName.trim()) {
+        const res = await fetch('/api/schools/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: otherSchoolName.trim(),
+            state: otherState || null,
+            city: otherCity || null,
+            zip: otherZip || null,
+          }),
+        });
+        const created = await res.json();
+        if (created.school) {
+          schoolId = created.school.id;
+        }
+      }
+
+      // Send magic link with user metadata
+      const { error: authError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            display_name: `${firstName.trim()} ${lastName.trim()}`,
+            role: 'teacher',
+            school_id: schoolId,
+          },
+        },
+      });
+
+      if (authError) {
+        setError(authError.message);
+        setSubmitting(false);
+        return;
+      }
+
+      // If we have a school_id and the user is already confirmed (existing user),
+      // update their profile. For new users, the trigger handles it.
+      // We'll store school_id in localStorage so the callback can update it.
+      if (schoolId) {
+        localStorage.setItem('pending_school_id', schoolId);
+      }
+      localStorage.setItem('pending_role', 'teacher');
+
+      setScreen(3);
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const stepDots = [1, 2, 3];
+  const schoolNames = schools.map((s) => s.name);
 
   return (
     <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12">
@@ -294,12 +339,12 @@ export default function TeacherSignupPage() {
             <ArrowLeft weight="bold" size={16} />
             Choose a different role
           </Link>
-        ) : (
+        ) : screen === 2 ? (
           <button onClick={goToScreen1} className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors">
             <ArrowLeft weight="bold" size={16} />
             Back
           </button>
-        )}
+        ) : null}
       </div>
 
       {/* Logo */}
@@ -345,7 +390,7 @@ export default function TeacherSignupPage() {
           </span>
         </div>
 
-        {/* ======================== SCREEN 1 ======================== */}
+        {/* ======================== SCREEN 1: Profile + School ======================== */}
         {screen === 1 && (
           <div className="animate-[fadeUp_0.3s_ease-out]">
             <h1 className="font-heading text-2xl font-bold text-text-primary text-center mb-2">
@@ -395,7 +440,7 @@ export default function TeacherSignupPage() {
               </div>
             </div>
 
-            {/* Section: Choose school */}
+            {/* ---- Public School Search ---- */}
             <div
               onClick={() => setSchoolMode('public')}
               className={`border-[1.5px] rounded-2xl p-5 mb-3 cursor-pointer transition-all duration-200 ${
@@ -405,14 +450,11 @@ export default function TeacherSignupPage() {
               }`}
             >
               <div className="flex items-center gap-3 mb-1">
-                {/* Radio dot */}
                 <div
                   className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors"
                   style={{ borderColor: schoolMode === 'public' ? '#1F3A5F' : '#E2E8F0' }}
                 >
-                  {schoolMode === 'public' && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-navy" />
-                  )}
+                  {schoolMode === 'public' && <div className="w-2.5 h-2.5 rounded-full bg-navy" />}
                 </div>
                 <span className="font-heading font-semibold text-[15px] text-text-primary">
                   Choose your school
@@ -424,6 +466,7 @@ export default function TeacherSignupPage() {
 
               {schoolMode === 'public' && (
                 <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                  {/* State */}
                   <label className="block font-heading text-sm font-medium text-text-primary mb-1.5">State</label>
                   <select
                     value={selectedState}
@@ -435,36 +478,44 @@ export default function TeacherSignupPage() {
                     {US_STATES.map((s) => <option key={s.abbr} value={s.abbr}>{s.name}</option>)}
                   </select>
 
+                  {/* District */}
                   <label className="block font-heading text-sm font-medium text-text-primary mb-1.5">District</label>
                   <Autocomplete
                     value={districtQuery}
                     onChange={setDistrictQuery}
                     onSelect={handleSelectDistrict}
-                    options={districtOptions}
+                    options={districts}
                     placeholder={selectedState ? 'Start typing your district name...' : 'Select a state first'}
                     disabled={!selectedState}
+                    loading={districtsLoading}
                     hint={selectedState
-                      ? (selectedDistrict ? `Selected: ${selectedDistrict}` : `${districtOptions.length} districts in ${US_STATES.find(s => s.abbr === selectedState)?.name}. Type to search.`)
+                      ? (selectedDistrict
+                        ? `Selected: ${selectedDistrict}`
+                        : `${districts.length} districts in ${US_STATES.find(s => s.abbr === selectedState)?.name || selectedState}. Type to search.`)
                       : 'Choose your state, then start typing your district name'}
                   />
 
+                  {/* School */}
                   <label className="block font-heading text-sm font-medium text-text-primary mb-1.5">School</label>
                   <Autocomplete
                     value={schoolQuery}
                     onChange={setSchoolQuery}
-                    onSelect={(val) => { setSelectedSchool(val); setSchoolQuery(val); }}
-                    options={schoolOptions}
+                    onSelect={handleSelectSchool}
+                    options={schoolNames}
                     placeholder={selectedDistrict ? 'Start typing your school name...' : 'Find your district first'}
                     disabled={!selectedDistrict}
+                    loading={schoolsLoading}
                     hint={selectedDistrict
-                      ? (selectedSchool ? `Selected: ${selectedSchool}` : `${schoolOptions.length} schools in this district. Type to search.`)
+                      ? (selectedSchool
+                        ? `Selected: ${selectedSchool.name}${selectedSchool.city ? ` (${selectedSchool.city})` : ''}`
+                        : `${schools.length} schools in this district. Type to search.`)
                       : 'Choose your district, then start typing your school name'}
                   />
                 </div>
               )}
             </div>
 
-            {/* Section: Can't find school */}
+            {/* ---- Can't find school ---- */}
             <div
               onClick={() => setSchoolMode('other')}
               className={`border-[1.5px] rounded-2xl p-5 mb-4 cursor-pointer transition-all duration-200 ${
@@ -478,9 +529,7 @@ export default function TeacherSignupPage() {
                   className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors"
                   style={{ borderColor: schoolMode === 'other' ? '#1F3A5F' : '#E2E8F0' }}
                 >
-                  {schoolMode === 'other' && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-navy" />
-                  )}
+                  {schoolMode === 'other' && <div className="w-2.5 h-2.5 rounded-full bg-navy" />}
                 </div>
                 <span className="font-heading font-semibold text-[15px] text-text-primary">
                   Can&apos;t find your school? Add it here
@@ -508,19 +557,21 @@ export default function TeacherSignupPage() {
                         type="text"
                         value={otherCity}
                         onChange={(e) => setOtherCity(e.target.value)}
-                        placeholder="Auto-fills from zip"
-                        className="w-full px-4 py-3 rounded-xl border border-border bg-bg-secondary dark:bg-[#1E2A3A] text-text-primary text-sm outline-none"
+                        placeholder="City name"
+                        className="w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg text-text-primary text-sm outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-all"
                       />
                     </div>
                     <div>
                       <label className="block font-heading text-sm font-medium text-text-primary mb-1.5">State</label>
-                      <input
-                        type="text"
-                        value={otherStateDisplay}
-                        onChange={(e) => setOtherStateDisplay(e.target.value)}
-                        placeholder="Auto-fills from zip"
-                        className="w-full px-4 py-3 rounded-xl border border-border bg-bg-secondary dark:bg-[#1E2A3A] text-text-primary text-sm outline-none"
-                      />
+                      <select
+                        value={otherState}
+                        onChange={(e) => setOtherState(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg text-text-primary text-sm outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-all cursor-pointer appearance-none"
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center', paddingRight: 36 }}
+                      >
+                        <option value="">State</option>
+                        {US_STATES.map((s) => <option key={s.abbr} value={s.abbr}>{s.name}</option>)}
+                      </select>
                     </div>
                   </div>
                   <label className="block font-heading text-sm font-medium text-text-primary mb-1.5">School type</label>
@@ -562,7 +613,7 @@ export default function TeacherSignupPage() {
           </div>
         )}
 
-        {/* ======================== SCREEN 2 ======================== */}
+        {/* ======================== SCREEN 2: Auth ======================== */}
         {screen === 2 && (
           <div className="animate-[fadeUp_0.3s_ease-out]">
             <h1 className="font-heading text-2xl font-bold text-text-primary text-center mb-2">
@@ -572,7 +623,7 @@ export default function TeacherSignupPage() {
               Connect your account to finish setup.
             </p>
 
-            {/* SSO */}
+            {/* SSO buttons */}
             <div className="flex flex-col gap-3 mb-6">
               {[
                 { icon: <GoogleIcon />, label: 'Continue with Google' },
@@ -581,8 +632,9 @@ export default function TeacherSignupPage() {
               ].map(({ icon, label }) => (
                 <button
                   key={label}
-                  onClick={handleCreate}
-                  className="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-bg-secondary dark:hover:bg-[#1E2A3A] transition-colors font-heading text-sm font-medium text-text-primary"
+                  className="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-bg-secondary dark:hover:bg-[#1E2A3A] transition-colors font-heading text-sm font-medium text-text-primary opacity-50 cursor-not-allowed"
+                  disabled
+                  title="Coming soon"
                 >
                   {icon}
                   {label}
@@ -593,7 +645,7 @@ export default function TeacherSignupPage() {
             {/* Divider */}
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-text-secondary font-medium">or create with email</span>
+              <span className="text-xs text-text-secondary font-medium">or continue with email</span>
               <div className="flex-1 h-px bg-border" />
             </div>
 
@@ -602,44 +654,69 @@ export default function TeacherSignupPage() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setError(''); }}
                 placeholder="you@school.edu"
                 className="w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg text-text-primary placeholder:text-text-muted text-sm outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-all"
               />
+              <p className="text-xs text-text-muted mt-1.5">
+                We&apos;ll send you a magic link to verify your email. No password needed.
+              </p>
             </div>
 
-            <div className="mb-2">
-              <label className="block font-heading text-sm font-medium text-text-primary mb-1.5">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password"
-                  className="w-full px-4 py-3 pr-12 rounded-xl border border-border bg-surface dark:bg-card-bg text-text-primary placeholder:text-text-muted text-sm outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
-                >
-                  {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
-                </button>
+            {error && (
+              <div className="mb-4 px-4 py-3 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm">
+                {error}
               </div>
-              <p className="text-xs text-text-muted mt-1.5">At least 8 characters with a number and symbol</p>
-            </div>
+            )}
 
             <button
-              onClick={handleCreate}
-              className="w-full mt-4 py-3.5 rounded-xl bg-navy hover:bg-navy/90 text-white font-heading font-semibold text-[15px] transition-colors"
+              onClick={handleSignup}
+              disabled={submitting}
+              className="w-full mt-2 py-3.5 rounded-xl bg-navy hover:bg-navy/90 disabled:opacity-60 disabled:cursor-not-allowed text-white font-heading font-semibold text-[15px] transition-colors flex items-center justify-center gap-2"
             >
-              Create account
+              {submitting ? (
+                <>
+                  <CircleNotch size={18} className="animate-spin" />
+                  Sending magic link...
+                </>
+              ) : (
+                'Send magic link'
+              )}
             </button>
 
             <p className="text-center text-sm text-text-secondary mt-5">
               Already have an account?{' '}
               <Link href="/login" className="text-teal font-medium hover:underline">Log in</Link>
             </p>
+          </div>
+        )}
+
+        {/* ======================== SCREEN 3: Check Email ======================== */}
+        {screen === 3 && (
+          <div className="animate-[fadeUp_0.3s_ease-out] text-center">
+            <div className="w-16 h-16 rounded-full bg-teal/10 flex items-center justify-center mx-auto mb-6">
+              <EnvelopeSimple size={32} weight="duotone" className="text-teal" />
+            </div>
+            <h1 className="font-heading text-2xl font-bold text-text-primary mb-2">
+              Check your email
+            </h1>
+            <p className="text-text-secondary text-[15px] mb-6">
+              We sent a magic link to <strong className="text-text-primary">{email}</strong>.
+              Click the link in the email to sign in and complete your account setup.
+            </p>
+            <div className="flex items-start gap-3 bg-card-bg dark:bg-[#1A2332] rounded-xl p-4 text-left mb-6">
+              <CheckCircle size={20} weight="fill" className="text-teal flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-text-secondary">
+                <p className="mb-1">Don&apos;t see it? Check your spam folder.</p>
+                <p>The link expires in 24 hours.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => { setScreen(2); setError(''); }}
+              className="text-teal font-medium text-sm hover:underline"
+            >
+              Use a different email
+            </button>
           </div>
         )}
       </div>

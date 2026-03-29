@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { SquaresFour } from '@phosphor-icons/react';
 import NotificationBell from '@/components/shared/NotificationBell';
+import PostAuthHandler from '@/components/shared/PostAuthHandler';
 
 export default function StudentLayout({
   children,
@@ -19,6 +20,7 @@ export default function StudentLayout({
 
   return (
     <div className="min-h-screen bg-warm-white">
+      <PostAuthHandler />
       {/* Dashboard button ONLY on student dashboard and mainchat (course viewer has its own nav) */}
       {(isDashboard || isMain) && !isCourseViewer && !isCertificate && (
         <div className="sticky top-0 z-40 bg-warm-white border-b border-border px-4 py-2.5 flex items-center justify-between">

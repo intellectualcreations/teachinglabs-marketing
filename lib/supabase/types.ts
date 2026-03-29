@@ -26,6 +26,10 @@ export interface School {
   district: string | null;
   address: string | null;
   admin_id: string | null;
+  state: string | null;
+  nces_id: string | null;
+  city: string | null;
+  zip: string | null;
   created_at: string;
 }
 
@@ -88,14 +92,20 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Omit<Profile, "id">>;
+        Relationships: [];
       };
       schools: {
         Row: School;
-        Insert: Omit<School, "id" | "created_at"> & {
+        Insert: Omit<School, "id" | "created_at" | "state" | "nces_id" | "city" | "zip"> & {
           id?: string;
           created_at?: string;
+          state?: string | null;
+          nces_id?: string | null;
+          city?: string | null;
+          zip?: string | null;
         };
         Update: Partial<Omit<School, "id">>;
+        Relationships: [];
       };
       classes: {
         Row: Class;
@@ -105,6 +115,7 @@ export interface Database {
           join_code?: string;
         };
         Update: Partial<Omit<Class, "id">>;
+        Relationships: [];
       };
       enrollments: {
         Row: Enrollment;
@@ -114,6 +125,7 @@ export interface Database {
           status?: EnrollmentStatus;
         };
         Update: Partial<Omit<Enrollment, "id">>;
+        Relationships: [];
       };
       assignments: {
         Row: Assignment;
@@ -123,6 +135,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Omit<Assignment, "id">>;
+        Relationships: [];
       };
       submissions: {
         Row: Submission;
@@ -131,6 +144,7 @@ export interface Database {
           submitted_at?: string;
         };
         Update: Partial<Omit<Submission, "id">>;
+        Relationships: [];
       };
       chat_messages: {
         Row: ChatMessage;
@@ -139,6 +153,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Omit<ChatMessage, "id">>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

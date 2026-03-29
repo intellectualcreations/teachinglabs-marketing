@@ -8,6 +8,7 @@ import {
   UsersThree,
   ArrowRight,
 } from '@phosphor-icons/react';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 interface RoleCard {
   href: string;
@@ -78,7 +79,9 @@ const ROLES: RoleCard[] = [
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-16">
+    <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-16 relative">
+      {/* Theme toggle */}
+      <ThemeToggle className="absolute top-6 right-6" />
 
       {/* Logo */}
       <Link href="/" className="flex items-center gap-3 mb-10">
