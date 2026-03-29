@@ -84,10 +84,22 @@ async function getRedirectForUser(
 
     // New students go to onboarding first
     if (role === 'student') {
-      // Check if student has completed onboarding already
       const onboarded = user.user_metadata?.onboarded === true;
       if (!onboarded) {
         return new URL('/student/onboarding', origin);
+      }
+    }
+
+    // New teachers go to onboarding (soul quiz) first
+    if (role === 'teacher') {
+      const { data: soul } = await supabase
+        .from('teacher_souls')
+        .select('completed_at')
+        .eq('teacher_id', user.id)
+        .single();
+
+      if (!soul?.completed_at) {
+        return new URL('/teacher/onboarding', origin);
       }
     }
 
