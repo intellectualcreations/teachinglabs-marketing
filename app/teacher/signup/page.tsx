@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChalkboardTeacher, ArrowLeft, MagnifyingGlass, CircleNotch, CheckCircle, EnvelopeSimple } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 // ---- US States (static) ----
 const US_STATES = [
@@ -117,8 +118,8 @@ function Autocomplete({ value, onChange, onSelect, options, placeholder, disable
           className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg text-text-primary placeholder:text-text-muted text-sm outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         />
         {open && !disabled && filtered.length > 0 && (
-          <div className="absolute top-full left-0 right-0 bg-surface dark:bg-card-bg border border-border border-t-0 rounded-b-xl max-h-56 overflow-y-auto z-50 shadow-lg">
-            <div className="px-3 py-2 text-[11px] text-text-muted bg-bg-secondary dark:bg-[#1E2A3A] sticky top-0 border-b border-border font-medium">
+          <div className="absolute top-full left-0 right-0 bg-white dark:bg-[#1A2332] border border-border border-t-0 rounded-b-xl max-h-56 overflow-y-auto z-50 shadow-lg">
+            <div className="px-3 py-2 text-[11px] text-text-muted bg-gray-50 dark:bg-[#162030] sticky top-0 border-b border-border font-medium">
               {filtered.length} result{filtered.length !== 1 ? 's' : ''}
             </div>
             {filtered.map((opt) => {
@@ -194,6 +195,15 @@ export default function TeacherSignupPage() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Fetch states that have schools in database
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
+  useEffect(() => {
+    fetch('/api/schools?states=true')
+      .then((r) => r.json())
+      .then((d) => setAvailableStates(d.states || []))
+      .catch(() => setAvailableStates([]));
+  }, []);
 
   // Load districts when state changes
   useEffect(() => {
@@ -330,7 +340,9 @@ export default function TeacherSignupPage() {
   const schoolNames = schools.map((s) => s.name);
 
   return (
-    <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12 relative">
+      {/* Theme toggle */}
+      <ThemeToggle className="absolute top-6 right-6" />
 
       {/* Back link */}
       <div className="w-full max-w-[460px] mb-4">
@@ -414,7 +426,7 @@ export default function TeacherSignupPage() {
                     const v = e.target.value.trim();
                     if (v) setFirstName(v.charAt(0).toUpperCase() + v.slice(1).toLowerCase());
                   }}
-                  placeholder="Jane"
+                  placeholder="First"
                   className={`w-full px-4 py-3 rounded-xl border bg-surface dark:bg-card-bg text-text-primary placeholder:text-text-muted text-sm outline-none focus:ring-2 focus:ring-teal/30 transition-all ${
                     firstNameError ? 'border-danger' : 'border-border focus:border-teal'
                   }`}
@@ -432,7 +444,7 @@ export default function TeacherSignupPage() {
                     const v = e.target.value.trim();
                     if (v) setLastName(v.charAt(0).toUpperCase() + v.slice(1).toLowerCase());
                   }}
-                  placeholder="Johnson"
+                  placeholder="Last"
                   className={`w-full px-4 py-3 rounded-xl border bg-surface dark:bg-card-bg text-text-primary placeholder:text-text-muted text-sm outline-none focus:ring-2 focus:ring-teal/30 transition-all ${
                     lastNameError ? 'border-danger' : 'border-border focus:border-teal'
                   }`}
@@ -475,7 +487,11 @@ export default function TeacherSignupPage() {
                     style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center', paddingRight: 36 }}
                   >
                     <option value="">Select your state</option>
-                    {US_STATES.map((s) => <option key={s.abbr} value={s.abbr}>{s.name}</option>)}
+                    {US_STATES.map((s) => (
+                      <option key={s.abbr} value={s.abbr}>
+                        {s.name}{availableStates.length > 0 && !availableStates.includes(s.abbr) ? ' (no schools yet)' : ''}
+                      </option>
+                    ))}
                   </select>
 
                   {/* District */}
@@ -733,6 +749,19 @@ export default function TeacherSignupPage() {
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        /* Fix native select/option dark mode contrast */
+        .dark select,
+        .dark select option {
+          background-color: #1A2332;
+          color: #ffffff;
+        }
+        .dark select option:checked {
+          background-color: #2A3A4A;
+        }
+        select option {
+          background-color: #ffffff;
+          color: #1a1a2e;
         }
       `}</style>
     </div>
