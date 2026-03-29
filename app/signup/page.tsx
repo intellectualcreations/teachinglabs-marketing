@@ -20,6 +20,7 @@ interface RoleCard {
   iconBg: string;
   btnBg: string;
   roleClass: string;
+  comingSoon?: boolean;
 }
 
 const ROLES: RoleCard[] = [
@@ -48,28 +49,30 @@ const ROLES: RoleCard[] = [
     roleClass: 'teacher',
   },
   {
-    href: '/admin-signup',
+    href: '/admin/signup',
     icon: Buildings,
     title: 'Administrator',
     desc: 'Manage your district, monitor progress, scale what works.',
-    cta: 'Get started',
+    cta: 'Coming soon',
     accentColor: '#D97706',
     bgColor: 'rgba(245,158,11,0.05)',
     iconBg: 'rgba(245,158,11,0.1)',
     btnBg: '#D97706',
     roleClass: 'admin',
+    comingSoon: true,
   },
   {
     href: '/parent/signup',
     icon: UsersThree,
     title: 'Parent',
     desc: "Stay connected to your child's learning journey.",
-    cta: 'Get started',
+    cta: 'Coming soon',
     accentColor: '#E8836B',
     bgColor: 'rgba(232,131,107,0.05)',
     iconBg: 'rgba(232,131,107,0.1)',
     btnBg: '#E8836B',
     roleClass: 'parent',
+    comingSoon: true,
   },
 ];
 
@@ -103,15 +106,30 @@ export default function SignupPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full max-w-[960px] mb-10">
         {ROLES.map((role, idx) => {
           const Icon = role.icon;
+          const CardWrapper = role.comingSoon ? 'div' : Link;
+          const cardProps = role.comingSoon
+            ? {}
+            : { href: role.href };
           return (
-            <Link
+            <CardWrapper
               key={role.roleClass}
-              href={role.href}
-              className="group relative flex flex-col items-center text-center rounded-[18px] p-8 border-[1.5px] border-border bg-surface dark:bg-card-bg cursor-pointer no-underline transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-transparent overflow-hidden"
+              {...(cardProps as any)}
+              className={`group relative flex flex-col items-center text-center rounded-[18px] p-8 border-[1.5px] border-border bg-surface dark:bg-card-bg no-underline transition-all duration-300 overflow-hidden ${
+                role.comingSoon
+                  ? 'opacity-60 cursor-default'
+                  : 'cursor-pointer hover:-translate-y-1.5 hover:shadow-xl hover:border-transparent'
+              }`}
               style={{
                 animationDelay: `${0.08 + idx * 0.08}s`,
               }}
             >
+              {/* Coming Soon badge */}
+              {role.comingSoon && (
+                <span className="absolute top-3 right-3 text-[10px] font-heading font-bold uppercase tracking-wider bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2.5 py-1 rounded-full z-10">
+                  Coming Soon
+                </span>
+              )}
+
               {/* Top accent bar on hover */}
               <span
                 className="absolute top-0 left-0 right-0 h-1 rounded-t-[18px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -144,34 +162,24 @@ export default function SignupPage() {
 
               {/* CTA Button */}
               <span
-                className="relative inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-heading text-sm font-medium text-white transition-shadow duration-200 group-hover:shadow-md"
-                style={{ background: role.btnBg }}
+                className={`relative inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-heading text-sm font-medium text-white transition-shadow duration-200 ${
+                  role.comingSoon ? '' : 'group-hover:shadow-md'
+                }`}
+                style={{ background: role.comingSoon ? '#9CA3AF' : role.btnBg }}
               >
                 {role.cta}
-                <ArrowRight
-                  weight="bold"
-                  size={14}
-                  className="transition-transform duration-200 group-hover:translate-x-0.5"
-                />
+                {!role.comingSoon && (
+                  <ArrowRight
+                    weight="bold"
+                    size={14}
+                    className="transition-transform duration-200 group-hover:translate-x-0.5"
+                  />
+                )}
               </span>
-            </Link>
+            </CardWrapper>
           );
         })}
       </div>
-
-      {/* Quick signup with magic link */}
-      <div className="flex items-center gap-3 w-full max-w-[960px] mb-6">
-        <div className="flex-1 h-px bg-border" />
-        <span className="text-xs text-text-secondary font-medium">or</span>
-        <div className="flex-1 h-px bg-border" />
-      </div>
-      <Link
-        href="/signup/magic-link"
-        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-teal text-teal font-heading font-semibold text-sm hover:bg-teal/5 transition-colors mb-8"
-      >
-        Quick signup with email link
-        <ArrowRight weight="bold" size={14} />
-      </Link>
 
       {/* Already have account */}
       <p className="text-sm text-text-secondary mb-4">
