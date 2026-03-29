@@ -1,28 +1,20 @@
-# TASK-COMPLETE — FLU-319: Phase 28 Live Coding Sandbox
+# Phase 44 — Student Attendance Tracking ✅
 
-**Status:** ✅ Complete  
-**Commit:** 565c00f  
-**Date:** 2026-03-25  
+## Completed: 2026-03-29
 
-## What Was Built
+### What was built:
+- `lib/attendance-store.ts` — in-memory store for class sessions and attendance records
+- `POST /api/v1/courses/:courseId/sessions` — create a class session (date, topic)
+- `GET /api/v1/courses/:courseId/sessions` — list sessions for a course
+- `POST /api/v1/sessions/:sessionId/attendance` — mark attendance (single or array of {studentId, status})
+- `GET /api/v1/sessions/:sessionId/attendance` — get all attendance for a session
+- `GET /api/v1/courses/:courseId/students/:studentId/attendance` — student history + attendance percentage
+- `POST /api/v1/sessions/:sessionId/attendance/bulk-present` — marks all enrolled students as present
 
-### New Files
-- **lib/sandbox-store.ts** — In-memory store for sandbox execution history
-- **app/api/sandbox/run/route.ts** — POST endpoint to execute JS (vm.runInNewContext) or Python (child_process.spawn) with 5-second timeout
-- **app/api/sandbox/history/[lessonId]/route.ts** — GET endpoint returning last 10 runs per user+lesson
-- **app/api/sandbox/starter-code/[lessonId]/route.ts** — PATCH endpoint for instructors to set starter code on lessons
-- **components/CodePlayground.tsx** — Client component with Monaco Editor, language selector, run button, output panel, and run history
-
-### Modified Files
-- **lib/lesson-store.ts** — Added `starterCode` field to Lesson interface and updateLesson function
-- **app/lesson/[id]/page.tsx** — Embedded CodePlayground component, displays lesson content and code sandbox
-
-## Definition of Done
-- [x] Monaco Editor renders on lesson pages
-- [x] POST /api/sandbox/run accepts {language, code, lessonId}, returns {stdout, stderr, exitCode}
-- [x] 5-second timeout enforced (vm timeout for JS, spawn timeout for Python)
-- [x] GET /api/sandbox/history/:lessonId returns last 10 runs
-- [x] Instructor can set starter_code via PATCH /api/sandbox/starter-code/:lessonId; playground pre-fills it
-- [x] npm run build passes
-- [x] git commit done
-- [x] TASK-COMPLETE.md updated
+### Key details:
+- Follows existing in-memory store pattern (like discussion-store.ts)
+- Attendance supports upsert (re-marking updates existing record)
+- Status options: present, absent, late
+- Attendance percentage counts both "present" and "late" as attended
+- Bulk-present uses enrollment-store to find enrolled students
+- `npm run build` passes ✅
