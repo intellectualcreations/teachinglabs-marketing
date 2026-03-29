@@ -283,7 +283,7 @@ export default function StudentSignupPage() {
                       value={firstName}
                       onChange={e => setFirstName(e.target.value)}
                       onBlur={e => setFirstName(formatName(e.target.value))}
-                      placeholder="Alex"
+                      placeholder="First"
                       className="w-full px-3.5 py-2.5 border border-border rounded-lg text-sm bg-card-bg dark:bg-[#1A2332] text-text-primary outline-none focus:border-teal transition-colors"
                     />
                   </div>
@@ -296,7 +296,7 @@ export default function StudentSignupPage() {
                       value={lastName}
                       onChange={e => setLastName(e.target.value)}
                       onBlur={e => setLastName(formatName(e.target.value))}
-                      placeholder="Rivera"
+                      placeholder="Last"
                       className="w-full px-3.5 py-2.5 border border-border rounded-lg text-sm bg-card-bg dark:bg-[#1A2332] text-text-primary outline-none focus:border-teal transition-colors"
                     />
                   </div>
