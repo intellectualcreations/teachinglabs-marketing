@@ -70,6 +70,7 @@ export default function StudentSignupPage() {
   const [classInfo, setClassInfo] = useState<ClassInfo | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [birthYear, setBirthYear] = useState('');
   const codeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Screen 2: Email
@@ -117,7 +118,10 @@ export default function StudentSignupPage() {
     return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
   };
 
-  const canProceed = classInfo !== null && firstName.trim() && lastName.trim();
+  const currentYear = new Date().getFullYear();
+  const birthYears = Array.from({ length: 21 }, (_, i) => currentYear - i);
+
+  const canProceed = classInfo !== null && firstName.trim() && lastName.trim() && birthYear !== '';
 
   function goToScreen2() {
     if (!canProceed) return;
@@ -143,6 +147,7 @@ export default function StudentSignupPage() {
           data: {
             display_name: `${firstName.trim()} ${lastName.trim()}`,
             role: 'student',
+            birth_year: birthYear,
           },
         },
       });
@@ -158,6 +163,8 @@ export default function StudentSignupPage() {
         localStorage.setItem('pending_class_id', classInfo.id);
       }
       localStorage.setItem('pending_role', 'student');
+      localStorage.setItem('pending_birth_year', birthYear);
+      localStorage.setItem('pending_student_name', `${firstName.trim()} ${lastName.trim()}`);
 
       setScreen(3);
     } catch {
@@ -341,6 +348,23 @@ export default function StudentSignupPage() {
                       className="w-full px-3.5 py-2.5 border border-border rounded-lg text-sm bg-card-bg dark:bg-[#1A2332] text-text-primary outline-none focus:border-teal transition-colors"
                     />
                   </div>
+                </div>
+
+                {/* Birth year */}
+                <div className="mb-5">
+                  <label className="block text-xs font-semibold text-text-primary mb-1.5">
+                    Birth Year <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    value={birthYear}
+                    onChange={e => setBirthYear(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-border rounded-lg text-sm bg-card-bg dark:bg-[#1A2332] text-text-primary outline-none focus:border-teal transition-colors appearance-none"
+                  >
+                    <option value="">Select your birth year</option>
+                    {birthYears.map(year => (
+                      <option key={year} value={String(year)}>{year}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             )}
