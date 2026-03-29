@@ -37,6 +37,7 @@ const PUBLIC_PATHS = [
   '/student/onboarding',
   '/parent/signup',
   '/admin-signup',
+  '/welcome',
   '/forgot-password',
   '/auth/callback',
   '/api/auth',       // NextAuth routes (keep working during migration)
