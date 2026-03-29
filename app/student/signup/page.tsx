@@ -45,30 +45,20 @@ export default function StudentSignupPage() {
     setCodeStatus('checking');
     codeTimerRef.current = setTimeout(async () => {
       try {
-        const { data, error: fetchError } = await supabase
-          .from('classes')
-          .select(`
-            id, name, subject,
-            teacher:profiles!classes_teacher_id_fkey ( display_name ),
-            school:schools!classes_school_id_fkey ( name )
-          `)
-          .eq('join_code', classCode.toLowerCase())
-          .single();
+        const resp = await fetch(`/api/classes/lookup?code=${encodeURIComponent(classCode.trim())}`);
+        const result = await resp.json();
 
-        if (fetchError || !data) {
+        if (!result.found) {
           setCodeStatus('invalid');
           setClassInfo(null);
         } else {
           setCodeStatus('valid');
-          const row = data as unknown as Record<string, unknown>;
-          const teacherArr = row.teacher as { display_name: string }[] | null;
-          const schoolArr = row.school as { name: string }[] | null;
           setClassInfo({
-            id: row.id as string,
-            name: row.name as string,
-            subject: (row.subject as string) ?? null,
-            teacher_name: teacherArr?.[0]?.display_name ?? null,
-            school_name: schoolArr?.[0]?.name ?? null,
+            id: result.classInfo.id,
+            name: result.classInfo.name,
+            subject: result.classInfo.subject ?? null,
+            teacher_name: result.classInfo.teacherName ?? null,
+            school_name: result.classInfo.schoolName ?? null,
           });
         }
       } catch {
@@ -214,12 +204,12 @@ export default function StudentSignupPage() {
               <input
                 type="text"
                 value={classCode}
-                onChange={e => setClassCode(e.target.value.toUpperCase().slice(0, 8))}
-                placeholder="CLASS CODE"
-                maxLength={8}
+                onChange={e => setClassCode(e.target.value.toUpperCase().slice(0, 14))}
+                placeholder="TL-XXXX-XXXX"
+                maxLength={14}
                 autoComplete="off"
                 spellCheck={false}
-                className={`w-full font-heading font-bold text-3xl tracking-[6px] text-center uppercase py-5 px-4
+                className={`w-full font-heading font-bold text-2xl tracking-[4px] text-center uppercase py-5 px-4
                   border-2 rounded-[14px] bg-card-bg dark:bg-[#1A2332] text-text-primary outline-none transition-all
                   placeholder:text-sm placeholder:tracking-[3px] placeholder:font-normal placeholder:text-text-muted placeholder:opacity-50
                   focus:border-teal focus:shadow-[0_0_0_3px_rgba(79,163,165,0.15)]
