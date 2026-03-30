@@ -427,19 +427,11 @@ export default function TeacherOnboardingPage() {
 
         {/* Act 4a: Scenario */}
         {screen === 5 && (
-          <SelectionScreen
-            title="A student has asked the same question three different ways and still doesn't get it. What do you do?"
-            actLabel="Your Voice & Values"
-            options={[
-              { key: 'different-approach', icon: <ArrowsClockwise size={28} weight="fill" className="text-teal" />, label: 'Try a completely different approach: visual, hands-on, real-world' },
-              { key: 'peer-help', icon: <Handshake size={28} weight="fill" className="text-teal" />, label: 'Pair them with a classmate who gets it' },
-              { key: 'break-down', icon: <Scissors size={28} weight="fill" className="text-teal" />, label: 'Break it into the smallest possible pieces and go one step at a time' },
-              { key: 'build-up', icon: <Lightbulb size={28} weight="fill" className="text-teal" />, label: 'Ask THEM to explain what they DO understand, then build from there' },
-            ]}
-            selected={answers.mistakeResponse}
+          <ScenarioWithOtherScreen
+            answers={answers}
             onSelect={(key) => setAnswers(a => ({ ...a, mistakeResponse: key }))}
+            onOtherChange={(text) => setAnswers(a => ({ ...a, mistakeResponse: `other:${text}` }))}
             onNext={goNext}
-            canAdvance={!!answers.mistakeResponse}
           />
         )}
 
@@ -615,6 +607,107 @@ function FreeTextScreen({
       </div>
 
       <div className="mt-8 flex justify-end onb-fade-up" style={{ animationDelay: '0.3s' }}>
+        <button
+          onClick={onNext}
+          disabled={!canAdvance}
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
+            canAdvance
+              ? 'bg-teal text-white hover:bg-teal/90 shadow-md hover:shadow-lg'
+              : 'bg-border text-text-muted cursor-not-allowed'
+          }`}
+        >
+          Continue
+          <ArrowRight size={18} weight="bold" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ScenarioWithOtherScreen({
+  answers,
+  onSelect,
+  onOtherChange,
+  onNext,
+}: {
+  answers: Answers;
+  onSelect: (key: string) => void;
+  onOtherChange: (text: string) => void;
+  onNext: () => void;
+}) {
+  const [showOther, setShowOther] = useState(false);
+  const [otherText, setOtherText] = useState('');
+
+  const options = [
+    { key: 'different-approach', icon: <ArrowsClockwise size={28} weight="fill" className="text-teal" />, label: 'Try a completely different approach: visual, hands-on, real-world' },
+    { key: 'peer-help', icon: <Handshake size={28} weight="fill" className="text-teal" />, label: 'Pair them with a classmate who gets it' },
+    { key: 'break-down', icon: <Scissors size={28} weight="fill" className="text-teal" />, label: 'Break it into the smallest possible pieces and go one step at a time' },
+    { key: 'build-up', icon: <Lightbulb size={28} weight="fill" className="text-teal" />, label: 'Ask THEM to explain what they DO understand, then build from there' },
+  ];
+
+  const selected = answers.mistakeResponse;
+  const isOtherSelected = selected.startsWith('other:');
+  const canAdvance = isOtherSelected ? otherText.length > 5 : !!selected;
+
+  return (
+    <div className="max-w-2xl mx-auto w-full">
+      <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Voice & Values</p>
+      <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-8 onb-fade-up" style={{ animationDelay: '0.05s' }}>
+        A student has asked the same question three different ways and still doesn&apos;t get it. Of these options, what would you most likely do first?
+      </h2>
+
+      <div className="grid gap-4">
+        {options.map((opt, i) => (
+          <button
+            key={opt.key}
+            onClick={() => { setShowOther(false); setOtherText(''); onSelect(opt.key); }}
+            className={`flex items-start gap-4 p-5 rounded-xl border-2 text-left transition-all cursor-pointer onb-card-in ${
+              selected === opt.key
+                ? 'border-teal bg-teal/5 shadow-md'
+                : 'border-border bg-card-bg/30 hover:border-teal/40 hover:bg-card-bg/60'
+            }`}
+            style={{ animationDelay: `${0.1 + i * 0.08}s` }}
+          >
+            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-teal/10 flex items-center justify-center mt-0.5">
+              {opt.icon}
+            </div>
+            <span className="text-text-primary font-medium text-base leading-relaxed">{opt.label}</span>
+          </button>
+        ))}
+
+        {/* Other option */}
+        <button
+          onClick={() => { setShowOther(true); onOtherChange(''); }}
+          className={`flex items-start gap-4 p-5 rounded-xl border-2 text-left transition-all cursor-pointer onb-card-in ${
+            isOtherSelected
+              ? 'border-teal bg-teal/5 shadow-md'
+              : 'border-border bg-card-bg/30 hover:border-teal/40 hover:bg-card-bg/60'
+          }`}
+          style={{ animationDelay: `${0.1 + options.length * 0.08}s` }}
+        >
+          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-teal/10 flex items-center justify-center mt-0.5">
+            <NotePencil size={28} weight="fill" className="text-teal" />
+          </div>
+          <span className="text-text-primary font-medium text-base leading-relaxed">Something else entirely</span>
+        </button>
+
+        {/* Other text input */}
+        {showOther && (
+          <div className="onb-fade-up">
+            <textarea
+              autoFocus
+              value={otherText}
+              onChange={(e) => { setOtherText(e.target.value); onOtherChange(e.target.value); }}
+              placeholder="Tell us what you'd actually do..."
+              rows={3}
+              className="w-full px-4 py-3 border-2 border-teal/30 rounded-xl text-base bg-card-bg/30 text-text-primary
+                outline-none focus:border-teal transition-colors resize-none placeholder:text-text-muted"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="mt-8 flex justify-end onb-fade-up" style={{ animationDelay: '0.5s' }}>
         <button
           onClick={onNext}
           disabled={!canAdvance}
