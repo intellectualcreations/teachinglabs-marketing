@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ScrollReveal from '@/components/shared/ScrollReveal';
 import MarketingNav from '@/components/shared/MarketingNav';
+import WaitlistForm from '@/app/_components/WaitlistForm';
 
 export const metadata: Metadata = {
   title: 'Teaching Labs — AI-Powered Teaching Platform for K-12',
@@ -88,27 +89,6 @@ function IconStar() {
   );
 }
 
-/* ─── Feature image placeholders ─── */
-function FeatureImagePlaceholder({ label, colors }: { label: string; colors: string }) {
-  return (
-    <div
-      className={`w-full h-full flex items-center justify-center rounded-2xl ${colors}`}
-      aria-label={label}
-    >
-      <div className="text-center p-8 opacity-60">
-        <div className="w-16 h-16 rounded-full bg-white/30 mx-auto mb-3 flex items-center justify-center">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8 text-white">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <path d="M21 15l-5-5L5 21" />
-          </svg>
-        </div>
-        <p className="text-white/80 text-sm font-medium">{label}</p>
-      </div>
-    </div>
-  );
-}
-
 /* ─── Card component ─── */
 function Card({
   icon,
@@ -133,7 +113,7 @@ function Card({
 /* ─── Bridge quote ─── */
 function Bridge({ children }: { children: React.ReactNode }) {
   return (
-    <div className="border-l-4 border-[#FF6B6B] bg-[rgba(79,163,165,0.04)] rounded-xl p-8 pl-6 max-w-3xl font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary mt-12 max-md:text-xl max-md:p-6 max-md:pl-5">
+    <div className="border-l-4 border-coral bg-[rgba(79,163,165,0.04)] dark:bg-[rgba(79,163,165,0.06)] rounded-xl p-8 pl-6 max-w-3xl font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary mt-12 max-md:text-xl max-md:p-6 max-md:pl-5">
       {children}
     </div>
   );
@@ -154,11 +134,11 @@ export default function HomePage() {
   return (
     <>
       <MarketingNav />
-    <div className="min-h-screen bg-warm-white text-text-secondary overflow-x-hidden" style={{ fontFamily: "var(--font-open-sans, 'Open Sans', sans-serif)" }}>
+      <ScrollReveal />
 
       {/* ── HERO ── */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-warm-white">
-        {/* Decorative blobs — v4 uses higher opacity in dark mode (0.15/0.12) */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy">
+        {/* Decorative blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div className="blob-teal absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px] opacity-[0.08] dark:opacity-[0.15]"
             style={{ background: '#4FA3A5', filter: 'blur(80px)' }} />
@@ -176,7 +156,7 @@ export default function HomePage() {
           </div>
 
           {/* Headline */}
-          <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary mb-6"
+          <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.05] text-text-primary mb-6"
             style={{ fontSize: 'clamp(52px, 8vw, 88px)' }}>
             <span className="hero-word hero-word-0 mr-3">Your</span>
             <span className="hero-word hero-word-1 mr-3">Teaching</span>
@@ -188,36 +168,37 @@ export default function HomePage() {
           </h1>
 
           {/* Subtitle */}
-          <p className="hero-subtitle-anim font-body text-xl leading-[1.7] text-text-secondary mb-10 max-w-[620px] mx-auto">
+          <p className="hero-subtitle-anim font-body text-xl leading-[1.7] text-text-secondary dark:text-white/70 mb-10 max-w-[620px] mx-auto">
             Not another edtech tool. A teaching assistant built from your expertise.
           </p>
 
-          {/* Buttons */}
-          <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8">
-            <Link
-              href="/how-it-works"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
-            >
-              Meet Your Twin
-            </Link>
+          {/* Buttons — matching v4: gold primary + teal outline */}
+          <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8 max-sm:flex-col max-sm:items-center">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] transition-all duration-300 max-sm:w-full max-sm:justify-center"
             >
               Join the Waitlist
             </Link>
+            <Link
+              href="/how-it-works"
+              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-teal dark:text-white px-10 py-4 rounded-full border-2 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300 max-sm:w-full max-sm:justify-center"
+            >
+              See How It Works
+            </Link>
           </div>
 
-
+          {/* Footnote */}
+          <p className="hero-footnote-anim font-heading text-[13px] text-text-muted">
+            Trusted by 2,500+ educators on the waitlist
+          </p>
         </div>
       </section>
 
-      {/* ── MAIN CONTENT ── */}
-      <ScrollReveal />
       <main>
 
         {/* Intro line */}
-        <div className="bg-warm-white">
+        <div className="bg-warm-white dark:bg-deep-navy fade-up">
           <p className="max-w-[700px] mx-auto px-12 py-14 text-[19px] leading-[1.7] text-text-primary text-center max-md:px-6 max-md:py-10 max-md:text-[17px]">
             Teaching Labs learns how you teach and helps every student get the support they need,
             while you focus on the moments that matter most.
@@ -225,9 +206,9 @@ export default function HomePage() {
         </div>
 
         {/* ── PROBLEM SECTION ── */}
-        <section className="bg-warm-white fade-up">
+        <section className="bg-warm-white dark:bg-deep-navy fade-up">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14">
+            <div className="text-center mb-14 fade-up">
               <Eyebrow>The Challenge</Eyebrow>
               <h2 className="section-title-underline font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary inline-block"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -235,7 +216,7 @@ export default function HomePage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
+            <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1 fade-up">
               <Card
                 floatClass="card-icon-float-1"
                 icon={<IconDiverge />}
@@ -256,14 +237,16 @@ export default function HomePage() {
               />
             </div>
 
-            <Bridge>Teachers already know how to reach every student. They just need the support to do it.</Bridge>
+            <div className="fade-up">
+              <Bridge>Teachers already know how to reach every student. They just need the support to do it.</Bridge>
+            </div>
           </div>
         </section>
 
         {/* ── SOLUTION SECTION ── */}
-        <section className="bg-bg-secondary fade-up">
+        <section className="bg-bg-secondary dark:bg-[#0D1B30] fade-up">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14">
+            <div className="text-center mb-14 fade-up">
               <Eyebrow>Our Approach</Eyebrow>
               <h2 className="section-title-underline font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary inline-block"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -271,7 +254,7 @@ export default function HomePage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
+            <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1 fade-up">
               <Card
                 floatClass="card-icon-float-1"
                 icon={<IconOrbit />}
@@ -292,14 +275,16 @@ export default function HomePage() {
               />
             </div>
 
-            <Bridge>Finally, a teaching assistant that learns from you, and helps you reach every student.</Bridge>
+            <div className="fade-up">
+              <Bridge>Finally, a teaching assistant that learns from you, and helps you reach every student.</Bridge>
+            </div>
           </div>
         </section>
 
         {/* ── FEATURES WALKTHROUGH ── */}
-        <section className="bg-bg-feature fade-up">
+        <section className="bg-bg-feature dark:bg-transparent fade-up">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="mb-14">
+            <div className="mb-14 fade-up">
               <Eyebrow>How It Works</Eyebrow>
               <h2 className="section-title-underline font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary inline-block mb-4"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -308,11 +293,11 @@ export default function HomePage() {
               <p className="text-lg leading-[1.7] text-text-secondary max-w-[680px] mb-3">
                 Teaching Labs combines proven learning science with your teaching style to create an assistant that reflects how you guide students.
               </p>
-              <p className="font-heading text-xl font-semibold text-gold">Your expertise. Extended.</p>
+              <p className="font-heading text-xl font-semibold text-gold mb-16">Your expertise. Extended.</p>
             </div>
 
             {/* Step 01 */}
-            <div className="grid grid-cols-2 gap-16 items-center mb-20 max-md:grid-cols-1 max-md:gap-8 max-md:mb-12">
+            <div className="grid grid-cols-2 gap-16 items-center mb-20 max-md:grid-cols-1 max-md:gap-8 max-md:mb-12 fade-up">
               <div>
                 <div className="font-heading text-[13px] font-extrabold tracking-[3px] uppercase text-coral mb-3">Step 01</div>
                 <h3 className="font-heading font-extrabold tracking-[-1px] text-text-primary mb-4 leading-[1.2]"
@@ -325,14 +310,14 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="feat-photo-hover relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]" style={{ aspectRatio: '4/3' }}>
-                <Image src="/images/teacher-twin-reflection.jpg" alt="Teacher training their digital twin" width={560} height={400} className="w-full h-full object-cover rounded-2xl" />
+                <Image src="/images/teacher-twin-reflection.jpg" alt="A teacher interacting with the Teaching Labs system, training their digital teaching twin" width={560} height={420} className="w-full h-full object-cover" />
               </div>
             </div>
 
             {/* Step 02 (reversed) */}
-            <div className="grid grid-cols-2 gap-16 items-center mb-20 max-md:grid-cols-1 max-md:gap-8 max-md:mb-12">
+            <div className="grid grid-cols-2 gap-16 items-center mb-20 max-md:grid-cols-1 max-md:gap-8 max-md:mb-12 fade-up">
               <div className="feat-photo-hover relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)] max-md:order-2" style={{ aspectRatio: '4/3' }}>
-                <Image src="/images/student-getting-help.jpg" alt="Student receiving personalized help" width={560} height={400} className="w-full h-full object-cover rounded-2xl" />
+                <Image src="/images/student-getting-help.jpg" alt="A student receiving personalized help from their teacher's AI teaching twin" width={560} height={420} className="w-full h-full object-cover" />
               </div>
               <div className="max-md:order-1">
                 <div className="font-heading text-[13px] font-extrabold tracking-[3px] uppercase text-coral mb-3">Step 02</div>
@@ -348,7 +333,7 @@ export default function HomePage() {
             </div>
 
             {/* Step 03 */}
-            <div className="grid grid-cols-2 gap-16 items-center mb-12 max-md:grid-cols-1 max-md:gap-8">
+            <div className="grid grid-cols-2 gap-16 items-center mb-12 max-md:grid-cols-1 max-md:gap-8 fade-up">
               <div>
                 <div className="font-heading text-[13px] font-extrabold tracking-[3px] uppercase text-coral mb-3">Step 03</div>
                 <h3 className="font-heading font-extrabold tracking-[-1px] text-text-primary mb-4 leading-[1.2]"
@@ -361,11 +346,13 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="feat-photo-hover relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]" style={{ aspectRatio: '4/3' }}>
-                <Image src="/images/teacher-viewing-data.jpg" alt="Teacher reviewing classroom insights" width={560} height={400} className="w-full h-full object-cover rounded-2xl" />
+                <Image src="/images/teacher-viewing-data.jpg" alt="A teacher reviewing classroom insights and data from Teaching Labs dashboard" width={560} height={420} className="w-full h-full object-cover" />
               </div>
             </div>
 
-            <Bridge>Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student.</Bridge>
+            <div className="fade-up">
+              <Bridge>Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student.</Bridge>
+            </div>
           </div>
         </section>
 
@@ -386,12 +373,7 @@ export default function HomePage() {
             <p className="text-lg leading-[1.7] text-white/65 mb-10 max-w-[600px] mx-auto">
               Be among the first to bring Teaching Labs into your classroom. No credit card. No commitment. Just better teaching.
             </p>
-            <Link
-              href="/waitlist"
-              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
-            >
-              Join the Waitlist
-            </Link>
+            <WaitlistForm variant="cta" />
           </div>
         </section>
 
@@ -479,8 +461,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-
-    </div>
     </>
   );
 }

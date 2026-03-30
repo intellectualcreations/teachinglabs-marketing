@@ -12,14 +12,6 @@ export const metadata: Metadata = {
 
 /* ─── SVG Icons ─── */
 
-function IconChevronDown() {
-  return (
-    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-3 h-3">
-      <path d="M3 5l3 3 3-3" />
-    </svg>
-  );
-}
-
 function IconStar() {
   return (
     <svg viewBox="0 0 14 14" fill="currentColor" className="w-3.5 h-3.5">
@@ -97,28 +89,10 @@ function ScenarioResolve({ children }: { children: React.ReactNode }) {
   );
 }
 
-/* ─── Photo placeholder ─── */
-function ScenarioPhoto({ alt, colors }: { alt: string; colors: string }) {
-  return (
-    <div className={`rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)] ${colors} flex items-center justify-center`} style={{ minHeight: '280px' }}>
-      <div className="text-center p-8 opacity-60">
-        <div className="w-16 h-16 rounded-full bg-white/30 mx-auto mb-3 flex items-center justify-center">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8 text-white">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <path d="M21 15l-5-5L5 21" />
-          </svg>
-        </div>
-        <p className="text-white/80 text-sm font-medium">{alt}</p>
-      </div>
-    </div>
-  );
-}
-
 /* ─── Bridge quote ─── */
 function Bridge({ children }: { children: React.ReactNode }) {
   return (
-    <div className="border-l-4 border-[#FF6B6B] bg-[rgba(79,163,165,0.04)] rounded-xl p-8 pl-6 max-w-3xl font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary mx-auto max-md:text-xl max-md:p-6 max-md:pl-5">
+    <div className="border-l-4 border-coral rounded-xl p-8 pl-6 max-w-3xl font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary mx-auto max-md:text-xl max-md:p-6 max-md:pl-5 bg-[rgba(0,246,237,0.04)] dark:bg-[rgba(0,246,237,0.06)]">
       {children}
     </div>
   );
@@ -128,15 +102,7 @@ function Bridge({ children }: { children: React.ReactNode }) {
 function GainItem({ word, children }: { word: string; children: React.ReactNode }) {
   return (
     <div className="text-center">
-      <div
-        className="font-heading text-[40px] font-extrabold tracking-[-0.5px] mb-3"
-        style={{
-          background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
+      <div className="font-heading text-[40px] font-extrabold tracking-[-0.5px] mb-3 bg-gradient-to-br from-teal to-gold bg-clip-text text-transparent">
         {word}
       </div>
       <p className="text-base text-text-secondary leading-[1.7]">{children}</p>
@@ -147,23 +113,23 @@ function GainItem({ word, children }: { word: string; children: React.ReactNode 
 /* ─── Main Page ─── */
 export default function ForTeachersPage() {
   return (
-    <div className="min-h-screen bg-warm-white text-text-secondary overflow-x-hidden" style={{ fontFamily: "var(--font-open-sans, 'Open Sans', sans-serif)" }}>
+    <div className="min-h-screen bg-warm-white dark:bg-deep-navy text-text-secondary overflow-x-hidden" style={{ fontFamily: "var(--font-open-sans, 'Open Sans', sans-serif)" }}>
 
       {/* ── NAV ── */}
       <MarketingNav />
 
       {/* ── HERO ── */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-warm-white">
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy">
 
         {/* Blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div
             className="blob-teal absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px]"
-            style={{ background: '#4FA3A5', filter: 'blur(80px)', opacity: 'var(--blob-teal-opacity, 0.08)' }}
+            style={{ background: 'var(--color-teal)', filter: 'blur(80px)', opacity: 0.08 }}
           />
           <div
             className="blob-gold absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px]"
-            style={{ background: '#F0C95D', filter: 'blur(80px)', opacity: 'var(--blob-gold-opacity, 0.10)' }}
+            style={{ background: 'var(--color-gold)', filter: 'blur(80px)', opacity: 0.10 }}
           />
         </div>
 
@@ -177,52 +143,34 @@ export default function ForTeachersPage() {
 
           {/* Headline — word-by-word reveal */}
           <h1
-            className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary mb-6"
+            className="font-heading font-extrabold tracking-[-2px] leading-[1.05] text-text-primary mb-6"
             style={{ fontSize: 'clamp(42px, 7vw, 76px)' }}
           >
             <span className="hero-word hero-word-0 mr-3">Support</span>
             <span className="hero-word hero-word-1 mr-3">for</span>
             <span className="hero-word hero-word-2 mr-3">the</span>
             <span className="hero-word hero-word-3 mr-3">Moments</span>
-            <span className="hero-word mr-3" style={{ animationDelay: '0.9s' }}>Teachers</span>
-            <span className="hero-word mr-3" style={{ animationDelay: '1.02s' }}>Face</span>{' '}
+            <span className="hero-word hero-word-4 mr-3">Teachers</span>
+            <span className="hero-word hero-word-5 mr-3">Face</span>{' '}
             <span
-              className="hero-word"
-              style={{
-                animationDelay: '1.14s',
-                background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
+              className="hero-word bg-gradient-to-br from-teal to-gold bg-clip-text text-transparent"
+              style={{ animationDelay: '1.2s' }}
             >
               Every Day
             </span>
           </h1>
 
           {/* Subtitle */}
-          <p
-            className="font-body text-xl leading-[1.7] text-text-secondary mb-10 max-w-[620px] mx-auto"
-            style={{ animation: 'fadeSlideUp 0.6s ease forwards', animationDelay: '1.4s', opacity: 0 }}
-          >
+          <p className="hero-subtitle-anim font-body text-xl leading-[1.7] text-text-secondary dark:text-white/70 mb-10 max-w-[620px] mx-auto">
             Teaching Labs learns how you teach and helps extend that guidance across your classroom.
             So every student keeps learning, even when you&apos;re helping someone else.
           </p>
 
-          {/* CTA */}
-          <div
-            className="flex gap-4 justify-center flex-wrap mb-8"
-            style={{ animation: 'fadeSlideUp 0.6s ease forwards', animationDelay: '1.6s', opacity: 0 }}
-          >
-            <Link
-              href="/how-it-works"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
-            >
-              Meet Your Twin
-            </Link>
+          {/* CTA — single primary button matching v4 */}
+          <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
             >
               Join the Waitlist
             </Link>
@@ -231,11 +179,11 @@ export default function ForTeachersPage() {
       </section>
 
       {/* ── MAIN CONTENT ── */}
-            <ScrollReveal />
+      <ScrollReveal />
       <main>
 
         {/* ── It Starts With You ── */}
-        <ScenarioSection bg="bg-warm-white">
+        <ScenarioSection bg="bg-warm-white dark:bg-deep-navy">
           <ScenarioHeading>It Starts With You</ScenarioHeading>
           <ScenarioBody>Teaching Labs doesn&apos;t come preloaded with someone else&apos;s curriculum. It learns from you.</ScenarioBody>
           <ScenarioBody>
@@ -246,14 +194,14 @@ export default function ForTeachersPage() {
         </ScenarioSection>
 
         {/* ── Photo 1 ── */}
-        <div className="bg-warm-white">
-          <div className="fade-up feat-photo-hover max-w-[760px] mx-auto px-12 py-12 max-md:px-6">
+        <div className="bg-warm-white dark:bg-deep-navy">
+          <div className="fade-up feat-photo-hover max-w-[760px] mx-auto px-12 pb-12 max-md:px-6 max-md:pb-8">
             <Image src="/images/homepage-hero-teacher.jpg" alt="Confident teacher engaging her classroom" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" />
           </div>
         </div>
 
         {/* ── You See Your Whole Classroom ── */}
-        <ScenarioSection bg="bg-bg-secondary">
+        <ScenarioSection bg="bg-bg-secondary dark:bg-[#0D1B30]">
           <ScenarioHeading>You See Your Whole Classroom</ScenarioHeading>
           <ScenarioBody>Not 47 charts. Not another dashboard you&apos;ll never open.</ScenarioBody>
           <ScenarioBody>Teaching Labs gives you clear, simple signals about what&apos;s happening across your class right now:</ScenarioBody>
@@ -266,7 +214,7 @@ export default function ForTeachersPage() {
         </ScenarioSection>
 
         {/* ── You Know What Students Are Asking ── */}
-        <ScenarioSection bg="bg-warm-white">
+        <ScenarioSection bg="bg-warm-white dark:bg-deep-navy">
           <ScenarioHeading>You Know What Students Are Asking</ScenarioHeading>
           <ScenarioBody>
             For the first time, you have a window into the questions students ask when you&apos;re not standing next to them.
@@ -284,7 +232,7 @@ export default function ForTeachersPage() {
         </ScenarioSection>
 
         {/* ── Your Voice in the Room ── */}
-        <ScenarioSection bg="bg-bg-secondary">
+        <ScenarioSection bg="bg-bg-secondary dark:bg-[#0D1B30]">
           <ScenarioHeading>Your Voice in the Room, Even When You&apos;re Not</ScenarioHeading>
           <ScenarioBody>Students don&apos;t hear a robot. They hear you.</ScenarioBody>
           <ScenarioBody>
@@ -296,14 +244,14 @@ export default function ForTeachersPage() {
         </ScenarioSection>
 
         {/* ── Photo 2 ── */}
-        <div className="bg-bg-secondary">
-          <div className="fade-up feat-photo-hover max-w-[760px] mx-auto px-12 py-12 max-md:px-6">
+        <div className="bg-bg-secondary dark:bg-[#0D1B30]">
+          <div className="fade-up feat-photo-hover max-w-[760px] mx-auto px-12 pb-12 max-md:px-6 max-md:pb-8">
             <Image src="/images/teacher-with-student.jpg" alt="Teacher kneeling beside a student for one-on-one guidance" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" />
           </div>
         </div>
 
         {/* ── You Stay in Control ── */}
-        <ScenarioSection bg="bg-warm-white">
+        <ScenarioSection bg="bg-warm-white dark:bg-deep-navy">
           <ScenarioHeading>You Stay in Control</ScenarioHeading>
           <ScenarioBody>You set the boundaries. You define what the assistant can and can&apos;t do. You see every conversation.</ScenarioBody>
           <div className="flex flex-col gap-3.5 mb-7">
@@ -315,14 +263,14 @@ export default function ForTeachersPage() {
         </ScenarioSection>
 
         {/* ── Bridge Quote ── */}
-        <div className="bg-warm-white">
+        <div className="bg-warm-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 pb-16 max-md:px-6 max-md:pb-10">
             <Bridge>Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student.</Bridge>
           </div>
         </div>
 
         {/* ── Teacher Twin section (dark) ── */}
-        <section style={{ background: '#14213D' }} className="fade-up text-center">
+        <section className="fade-up text-center bg-deep-navy dark:bg-[#0D1B30]">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="max-w-[700px] mx-auto">
               <Eyebrow light>The Technology Behind It</Eyebrow>
@@ -344,7 +292,7 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── What Teachers Gain Back ── */}
-        <section className="fade-up bg-warm-white">
+        <section className="fade-up bg-warm-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-12">
               <Eyebrow>What You Gain Back</Eyebrow>
@@ -364,7 +312,7 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── Closing Line ── */}
-        <section className="fade-up bg-bg-secondary">
+        <section className="fade-up bg-bg-secondary dark:bg-[#0D1B30]">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center max-w-[760px] mx-auto">
               <p
@@ -382,13 +330,13 @@ export default function ForTeachersPage() {
         {/* ── CTA Section ── */}
         <section
           className="fade-up relative overflow-hidden"
-          style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}
+          style={{ background: 'linear-gradient(145deg, #0a1128 0%, #1a3a4a 50%, #1d4a52 100%)' }}
         >
           {/* Radial glow */}
           <div
             className="absolute inset-0 pointer-events-none"
             aria-hidden="true"
-            style={{ background: 'radial-gradient(ellipse at center, rgba(240,201,93,0.12) 0%, transparent 70%)' }}
+            style={{ background: 'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)' }}
           />
 
           <div className="relative z-10 max-w-[800px] mx-auto px-12 py-36 text-center max-md:px-6 max-md:py-20">
@@ -407,7 +355,7 @@ export default function ForTeachersPage() {
             </p>
             <Link
               href="/contact"
-              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
+              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
             >
               Get Early Access
             </Link>
@@ -417,7 +365,7 @@ export default function ForTeachersPage() {
       </main>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)', borderTop: '1px solid rgba(240,201,93,0.2)' }}>
+      <footer className="border-t border-[rgba(64,86,244,0.2)]" style={{ background: 'linear-gradient(180deg, #0a1128 0%, #0e1a35 100%)' }}>
         <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
           <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-12 max-md:grid-cols-1 max-md:gap-8">
 
@@ -427,7 +375,7 @@ export default function ForTeachersPage() {
               <p className="text-sm leading-[1.7] text-white/55 mb-5 max-w-[280px]">
                 AI-powered teaching platform that learns how you teach and helps every student get the support they need.
               </p>
-              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(79,163,165,0.1)] px-4 py-2 rounded-full border border-[rgba(79,163,165,0.2)]">
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(0,246,237,0.2)]">
                 <IconStar />
                 FERPA &amp; COPPA Compliant
               </div>

@@ -3,40 +3,62 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import MarketingNav from '@/components/shared/MarketingNav';
+import { createClient } from '@/lib/supabase/client';
 
-interface CourseModule {
-  title: string;
-  lessonCount: number;
-}
-
-interface EnrollmentWithCourse {
+interface EnrolledCourse {
   id: string;
-  studentId: string;
-  courseId: string;
+  classId: string;
   enrolledAt: string;
   status: 'active' | 'completed';
-  progress: number;
-  completedModules: string[];
-  course: {
-    title: string;
-    subject: string;
-    instructor: string;
-    gradeLevel: string;
-    thumbnail?: string;
-    modules: CourseModule[];
-  } | null;
+  className: string;
+  subject: string | null;
+  gradeLevel: string | null;
+  teacherName: string;
 }
 
 const SUBJECT_COLORS: Record<string, string> = {
   Math: 'bg-teal text-white',
+  Mathematics: 'bg-teal text-white',
+  Algebra: 'bg-teal text-white',
   Science: 'bg-[#059669] text-white',
+  Biology: 'bg-[#059669] text-white',
+  Chemistry: 'bg-[#059669] text-white',
+  Physics: 'bg-[#059669] text-white',
   English: 'bg-coral text-white',
+  ELA: 'bg-coral text-white',
+  Reading: 'bg-coral text-white',
+  Writing: 'bg-coral text-white',
   'Social Studies': 'bg-navy text-white',
+  History: 'bg-navy text-white',
+  Geography: 'bg-navy text-white',
   Electives: 'bg-gold text-deep-navy',
 };
 
-function SubjectBadge({ subject }: { subject: string }) {
-  const colors = SUBJECT_COLORS[subject] ?? 'bg-gray-200 text-gray-800';
+function getSubjectColor(subject: string | null): string {
+  if (!subject) return 'bg-gray-200 text-gray-800';
+  // Check exact match first
+  if (SUBJECT_COLORS[subject]) return SUBJECT_COLORS[subject];
+  // Check partial match
+  const key = subject.toLowerCase();
+  for (const [k, v] of Object.entries(SUBJECT_COLORS)) {
+    if (key.includes(k.toLowerCase())) return v;
+  }
+  return 'bg-gray-200 text-gray-800';
+}
+
+function getSubjectBarColor(subject: string | null): string {
+  if (!subject) return '#4FA3A5';
+  const key = subject.toLowerCase();
+  if (key.includes('math') || key.includes('algebra')) return '#4FA3A5';
+  if (key.includes('science') || key.includes('bio') || key.includes('chem') || key.includes('phys')) return '#059669';
+  if (key.includes('english') || key.includes('ela') || key.includes('read') || key.includes('writ')) return '#E8735A';
+  if (key.includes('social') || key.includes('history') || key.includes('geo')) return '#1F3A5F';
+  return '#4FA3A5';
+}
+
+function SubjectBadge({ subject }: { subject: string | null }) {
+  if (!subject) return null;
+  const colors = getSubjectColor(subject);
   return (
     <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded-full ${colors}`}>
       {subject}
@@ -44,61 +66,84 @@ function SubjectBadge({ subject }: { subject: string }) {
   );
 }
 
-function CheckIcon({ checked }: { checked: boolean }) {
-  if (checked) {
-    return (
-      <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-teal flex-shrink-0">
-        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-text-muted/40 flex-shrink-0">
-      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clipRule="evenodd" />
-    </svg>
-  );
-}
-
 export default function MyCoursesPage() {
-  const [enrollments, setEnrollments] = useState<EnrollmentWithCourse[]>([]);
+  const [courses, setCourses] = useState<EnrolledCourse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [togglingModule, setTogglingModule] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/enrollments/student/demo-student')
-      .then((res) => res.json())
-      .then((data) => {
-        setEnrollments(data.enrollments || []);
+    async function fetchEnrolledCourses() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        // Fetch active enrollments for this student
+        const { data: enrollmentData } = await supabase
+          .from('enrollments')
+          .select('*')
+          .eq('student_id', user.id)
+          .eq('status', 'active');
+
+        const enrollments = enrollmentData ?? [];
+
+        if (enrollments.length === 0) {
+          setCourses([]);
+          setLoading(false);
+          return;
+        }
+
+        const classIds = enrollments.map((e: { class_id: string }) => e.class_id);
+
+        // Fetch classes
+        const { data: classData } = await supabase
+          .from('classes')
+          .select('*')
+          .in('id', classIds);
+
+        const classRows = classData ?? [];
+
+        // Fetch teacher profiles
+        const teacherIds = [...new Set(classRows.map((c: { teacher_id: string }) => c.teacher_id))];
+        const { data: teacherData } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', teacherIds);
+
+        const teachers = teacherData ?? [];
+        const teacherMap = new Map(teachers.map((t: { id: string; display_name: string }) => [t.id, t]));
+        const classMap = new Map(classRows.map((c: { id: string }) => [c.id, c]));
+
+        // Build enrolled courses
+        const enriched: EnrolledCourse[] = enrollments.map((enrollment: { id: string; class_id: string; enrolled_at: string; status: string }) => {
+          const cls = classMap.get(enrollment.class_id) as { id: string; name: string; subject: string | null; grade_level: string | null; teacher_id: string } | undefined;
+          const teacher = cls ? teacherMap.get(cls.teacher_id) as { display_name: string } | undefined : undefined;
+
+          return {
+            id: enrollment.id,
+            classId: enrollment.class_id,
+            enrolledAt: enrollment.enrolled_at,
+            status: enrollment.status as 'active' | 'completed',
+            className: cls?.name || 'Unknown Class',
+            subject: cls?.subject || null,
+            gradeLevel: cls?.grade_level || null,
+            teacherName: teacher?.display_name || 'Teacher',
+          };
+        });
+
+        setCourses(enriched);
+      } catch (err) {
+        console.error('Error fetching enrolled courses:', err);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
-  async function handleModuleToggle(enrollment: EnrollmentWithCourse, moduleTitle: string) {
-    if (enrollment.completedModules.includes(moduleTitle)) return;
-    const key = `${enrollment.id}:${moduleTitle}`;
-    setTogglingModule(key);
-
-    try {
-      const res = await fetch(`/api/enrollments/${enrollment.id}/progress`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ moduleTitle }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setEnrollments((prev) =>
-          prev.map((e) =>
-            e.id === enrollment.id
-              ? { ...e, ...data.enrollment, course: e.course }
-              : e,
-          ),
-        );
       }
-    } finally {
-      setTogglingModule(null);
     }
-  }
+
+    fetchEnrolledCourses();
+  }, []);
 
   return (
     <>
@@ -132,7 +177,7 @@ export default function MyCoursesPage() {
             <div className="flex items-center justify-center py-20">
               <div className="w-8 h-8 border-3 border-teal border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : enrollments.length === 0 ? (
+          ) : courses.length === 0 ? (
             /* Empty state */
             <div className="bg-card-bg border border-border rounded-2xl p-12 text-center">
               <div className="w-16 h-16 rounded-full bg-teal/10 flex items-center justify-center mx-auto mb-4">
@@ -141,141 +186,73 @@ export default function MyCoursesPage() {
                 </svg>
               </div>
               <h2 className="font-heading font-bold text-lg text-text-primary mb-2">
-                You haven&apos;t enrolled in any courses yet.
+                You&apos;re not enrolled in any courses yet.
               </h2>
               <p className="text-sm text-text-secondary mb-6">
-                Browse our catalog to find courses that interest you.
+                Join a class with your class code to get started.
               </p>
               <Link
-                href="/catalog"
+                href="/student/signup"
                 className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
               >
-                Browse Catalog
+                Join a Class
               </Link>
             </div>
           ) : (
             /* Enrollment cards grid */
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {enrollments.map((enrollment) => {
-                const course = enrollment.course;
-                if (!course) return null;
-
-                return (
+              {courses.map((course) => (
+                <div
+                  key={course.id}
+                  className="bg-card-bg border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                >
+                  {/* Color bar */}
                   <div
-                    key={enrollment.id}
-                    className="bg-card-bg border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    {/* Color bar */}
-                    <div
-                      className="h-1.5 w-full"
-                      style={{ backgroundColor: course.thumbnail || '#4FA3A5' }}
-                    />
+                    className="h-1.5 w-full"
+                    style={{ backgroundColor: getSubjectBarColor(course.subject) }}
+                  />
 
-                    <div className="p-6">
-                      {/* Header: badge + completed marker */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <SubjectBadge subject={course.subject} />
+                  <div className="p-6">
+                    {/* Header: badge + grade */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <SubjectBadge subject={course.subject} />
+                        {course.gradeLevel && (
                           <span className="text-xs text-text-muted">
                             {course.gradeLevel}
                           </span>
-                        </div>
-                        {enrollment.status === 'completed' && (
-                          <span className="inline-flex items-center gap-1 text-xs font-bold bg-gold/20 text-gold px-3 py-1 rounded-full border border-gold/30">
-                            Completed ✓
-                          </span>
                         )}
                       </div>
-
-                      {/* Title + instructor */}
-                      <h2 className="font-heading font-bold text-lg text-text-primary mb-1">
-                        {course.title}
-                      </h2>
-                      <p className="text-sm text-text-secondary mb-4">
-                        {course.instructor}
-                      </p>
-
-                      {/* Progress bar */}
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between text-xs mb-1.5">
-                          <span className="text-text-muted font-medium">Progress</span>
-                          <span className="font-bold text-text-primary">
-                            {enrollment.progress}%
-                          </span>
-                        </div>
-                        <div className="h-2 w-full bg-border rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{
-                              width: `${enrollment.progress}%`,
-                              backgroundColor:
-                                enrollment.status === 'completed'
-                                  ? '#F0C95D'
-                                  : '#4FA3A5',
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Module checklist */}
-                      <div className="mb-5">
-                        <h3 className="text-xs font-bold text-text-muted uppercase tracking-wide mb-2">
-                          Modules
-                        </h3>
-                        <div className="space-y-1.5">
-                          {course.modules.map((mod) => {
-                            const done = enrollment.completedModules.includes(mod.title);
-                            const toggling = togglingModule === `${enrollment.id}:${mod.title}`;
-                            return (
-                              <button
-                                key={mod.title}
-                                onClick={() => handleModuleToggle(enrollment, mod.title)}
-                                disabled={done || toggling}
-                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors ${
-                                  done
-                                    ? 'bg-teal/5 cursor-default'
-                                    : 'hover:bg-teal/5 cursor-pointer'
-                                } ${toggling ? 'opacity-50' : ''}`}
-                              >
-                                <CheckIcon checked={done} />
-                                <span
-                                  className={`text-sm ${
-                                    done
-                                      ? 'text-text-secondary line-through'
-                                      : 'text-text-primary'
-                                  }`}
-                                >
-                                  {mod.title}
-                                </span>
-                                <span className="text-xs text-text-muted ml-auto">
-                                  {mod.lessonCount} lessons
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* CTA */}
-                      {enrollment.status !== 'completed' ? (
-                        <Link
-                          href={`/student/courses/${enrollment.courseId}`}
-                          className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
-                        >
-                          Continue Learning
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`/student/courses/${enrollment.courseId}`}
-                          className="inline-flex items-center font-heading text-sm font-semibold text-teal hover:text-navy transition-colors"
-                        >
-                          View Course →
-                        </Link>
+                      {course.status === 'completed' && (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold bg-gold/20 text-gold px-3 py-1 rounded-full border border-gold/30">
+                          Completed ✓
+                        </span>
                       )}
                     </div>
+
+                    {/* Title + instructor */}
+                    <h2 className="font-heading font-bold text-lg text-text-primary mb-1">
+                      {course.className}
+                    </h2>
+                    <p className="text-sm text-text-secondary mb-4">
+                      {course.teacherName}
+                    </p>
+
+                    {/* Enrolled date */}
+                    <p className="text-xs text-text-muted mb-5">
+                      Enrolled {new Date(course.enrolledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+
+                    {/* CTA */}
+                    <Link
+                      href={`/student/main?class=${course.classId}`}
+                      className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                    >
+                      Go to Class
+                    </Link>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>

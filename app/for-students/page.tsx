@@ -7,7 +7,7 @@ import ScrollReveal from '@/components/shared/ScrollReveal';
 export const metadata: Metadata = {
   title: 'For Students — Teaching Labs',
   description:
-    'Every student supported. Every student moving forward. Teaching Labs helps students get guidance when they need it, without interrupting the flow of your classroom.',
+    'Every student supported. Every student moving forward. Teaching Labs helps students get guidance when they need it.',
 };
 
 /* ─── Inline SVG icons ─── */
@@ -20,55 +20,12 @@ function IconStar() {
   );
 }
 
-function IconChevronDown() {
-  return (
-    <svg
-      viewBox="0 0 12 12"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      className="w-3 h-3"
-    >
-      <path d="M3 5l3 3 3-3" />
-    </svg>
-  );
-}
-
 /* ─── Scenario moment bullet ─── */
 function MomentItem({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3.5 font-body text-base text-text-secondary leading-[1.6]">
       <span className="w-2 h-2 rounded-full bg-teal flex-shrink-0 opacity-70" />
       <span>{children}</span>
-    </div>
-  );
-}
-
-/* ─── Photo placeholder (replaces the actual img tags from the HTML) ─── */
-function ScenarioPhoto({ label, gradient }: { label: string; gradient: string }) {
-  return (
-    <div
-      className={`w-full h-64 md:h-80 flex items-center justify-center rounded-[20px] ${gradient}`}
-      role="img"
-      aria-label={label}
-    >
-      <div className="text-center p-8 opacity-60">
-        <div className="w-16 h-16 rounded-full bg-white/30 mx-auto mb-3 flex items-center justify-center">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="w-8 h-8 text-white"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <path d="M21 15l-5-5L5 21" />
-          </svg>
-        </div>
-        <p className="text-white/80 text-sm font-medium">{label}</p>
-      </div>
     </div>
   );
 }
@@ -130,12 +87,12 @@ export default function ForStudentsPage() {
         {/* Animated blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div
-            className="blob-teal absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px]"
-            style={{ background: '#4FA3A5', filter: 'blur(80px)', opacity: '0.08' }}
+            className="blob-teal absolute rounded-full top-[10%] left-[15%] w-[500px] h-[500px] max-md:w-[300px] max-md:h-[300px]"
+            style={{ background: '#4FA3A5', filter: 'blur(80px)', opacity: 0.08 }}
           />
           <div
-            className="blob-gold absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px]"
-            style={{ background: '#F0C95D', filter: 'blur(80px)', opacity: '0.10' }}
+            className="blob-gold absolute rounded-full top-[30%] right-[10%] w-[450px] h-[450px] max-md:w-[280px] max-md:h-[280px]"
+            style={{ background: '#F0C95D', filter: 'blur(80px)', opacity: 0.10 }}
           />
         </div>
 
@@ -146,23 +103,19 @@ export default function ForStudentsPage() {
             For Students
           </div>
 
-          {/* Headline — 6 words with staggered reveal */}
+          {/* Headline */}
           <h1
-            className="font-heading font-extrabold leading-[1.15] text-text-primary mb-6"
+            className="font-heading font-extrabold leading-[1.05] text-text-primary mb-6"
             style={{ fontSize: 'clamp(42px, 7vw, 76px)', letterSpacing: '-2px' }}
           >
-            <span className="hero-word hero-word-0 mr-2">Every</span>{' '}
-            <span className="hero-word hero-word-1 mr-2">Student</span>{' '}
-            <span className="hero-word hero-word-2 mr-2">Supported.</span>{' '}
-            <span className="hero-word hero-word-3 mr-2">Every</span>{' '}
-            {/* Words 4–5 extend the pattern with inline delays */}
-            <span className="hero-word mr-2" style={{ animationDelay: '0.9s' }}>
-              Student
-            </span>{' '}
+            <span className="hero-word hero-word-0">Every </span>
+            <span className="hero-word hero-word-1">Student </span>
+            <span className="hero-word hero-word-2">Supported. </span>
+            <span className="hero-word hero-word-3">Every </span>
+            <span className="hero-word hero-word-4">Student </span>
             <span
-              className="hero-word"
+              className="hero-word hero-word-5"
               style={{
-                animationDelay: '1.05s',
                 background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -191,22 +144,16 @@ export default function ForStudentsPage() {
             Your teaching. Extended to every student.
           </p>
 
-          {/* CTA button */}
+          {/* CTA button — single gold primary button matching v4 */}
           <div
             className="hero-buttons-anim flex gap-4 justify-center flex-wrap"
             style={{ animationDelay: '1.8s' }}
           >
             <Link
               href="/see-the-difference"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] transition-all duration-300"
             >
-              What Is Different
-            </Link>
-            <Link
-              href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
-            >
-              Join the Waitlist
+              See How It Works
             </Link>
           </div>
         </div>
@@ -234,9 +181,16 @@ export default function ForStudentsPage() {
         </ScenarioSection>
 
         {/* Photo 1 */}
-        <div className="fade-up bg-warm-white py-12 px-12 max-md:px-6">
-          <div className="feat-photo-hover max-w-[760px] mx-auto rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]">
-            <Image src="/images/classroom-wide-angle.jpg" alt="Busy classroom with students working on laptops while teacher instructs" width={760} height={400} className="w-full object-cover" />
+        <div className="fade-up bg-warm-white px-12 max-md:px-6" style={{ padding: '0 48px 48px' }}>
+          <div className="feat-photo-hover max-w-[760px] mx-auto rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)] max-md:mx-6">
+            <Image
+              src="/images/classroom-wide-angle.jpg"
+              alt="Busy classroom with students working on laptops while teacher instructs"
+              width={760}
+              height={400}
+              className="w-full object-cover"
+              loading="lazy"
+            />
           </div>
         </div>
 
@@ -278,9 +232,16 @@ export default function ForStudentsPage() {
         </ScenarioSection>
 
         {/* Photo 2 */}
-        <div className="fade-up bg-warm-white py-12 px-12 max-md:px-6">
+        <div className="fade-up bg-warm-white" style={{ padding: '0 48px 48px' }}>
           <div className="feat-photo-hover max-w-[760px] mx-auto rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]">
-            <Image src="/images/student-independent-learning.jpg" alt="Student focused on independent learning with headphones and laptop" width={760} height={400} className="w-full object-cover" />
+            <Image
+              src="/images/student-independent-learning.jpg"
+              alt="Student focused on independent learning with headphones and laptop"
+              width={760}
+              height={400}
+              className="w-full object-cover"
+              loading="lazy"
+            />
           </div>
         </div>
 
@@ -316,9 +277,14 @@ export default function ForStudentsPage() {
         {/* ── GAINS SECTION (dark navy bg) ── */}
         <section className="fade-up" style={{ background: '#0B1426' }}>
           <div className="max-w-[1200px] mx-auto px-12 py-24 text-center max-md:px-6 max-md:py-16">
-            <div className="inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-12"
-              style={{ color: 'rgba(255,255,255,0.5)' }}>
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: 'rgba(255,255,255,0.3)' }} />
+            <div
+              className="inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-12"
+              style={{ color: 'rgba(255,255,255,0.5)' }}
+            >
+              <span
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.3)' }}
+              />
               What This Means for Your Students
             </div>
             <div className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9">
@@ -352,11 +318,12 @@ export default function ForStudentsPage() {
           </div>
         </section>
 
-
         {/* ── CTA SECTION ── */}
         <section
           className="fade-up relative overflow-hidden"
-          style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}
+          style={{
+            background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)',
+          }}
         >
           {/* Radial glow */}
           <div
@@ -369,8 +336,10 @@ export default function ForStudentsPage() {
           />
 
           <div className="relative z-10 max-w-[800px] mx-auto px-12 py-36 text-center max-md:px-6 max-md:py-20">
-            <div className="font-heading text-xs font-bold tracking-[4px] uppercase mb-5"
-              style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <div
+              className="font-heading text-xs font-bold tracking-[4px] uppercase mb-5"
+              style={{ color: 'rgba(255,255,255,0.5)' }}
+            >
               Early Access
             </div>
             <h2
@@ -410,8 +379,10 @@ export default function ForStudentsPage() {
             {/* Brand */}
             <div>
               <div className="font-heading text-xl font-bold text-white mb-4">Teaching Labs</div>
-              <p className="text-sm leading-[1.7] mb-5 max-w-[280px]"
-                style={{ color: 'rgba(255,255,255,0.55)' }}>
+              <p
+                className="text-sm leading-[1.7] mb-5 max-w-[280px]"
+                style={{ color: 'rgba(255,255,255,0.55)' }}
+              >
                 AI-powered teaching platform that learns how you teach and helps every student get
                 the support they need.
               </p>

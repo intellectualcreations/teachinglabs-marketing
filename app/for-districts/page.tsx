@@ -12,21 +12,6 @@ export const metadata: Metadata = {
 
 /* ─── Inline SVG icons ─── */
 
-function IconChevronDown() {
-  return (
-    <svg
-      viewBox="0 0 12 12"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      className="w-3 h-3"
-    >
-      <path d="M3 5l3 3 3-3" />
-    </svg>
-  );
-}
-
 function IconStar() {
   return (
     <svg viewBox="0 0 14 14" fill="currentColor" className="w-3.5 h-3.5">
@@ -38,64 +23,64 @@ function IconStar() {
 /* Governance principle icons */
 function IconTeacherGuided() {
   return (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true" className="text-teal">
       <ellipse
         cx="20" cy="20" rx="16" ry="7"
-        stroke="#4FA3A5" strokeWidth="1.5" opacity="0.7"
+        stroke="currentColor" strokeWidth="1.5" opacity="0.7"
         transform="rotate(20 20 20)"
       />
       <ellipse
         cx="20" cy="20" rx="16" ry="7"
-        stroke="currentColor" strokeWidth="1.5" opacity="0.4"
+        stroke="var(--color-text-primary)" strokeWidth="1.5" opacity="0.4"
         transform="rotate(-20 20 20)"
       />
-      <circle cx="20" cy="20" r="3" fill="#4FA3A5" opacity="0.9" />
+      <circle cx="20" cy="20" r="3" fill="currentColor" opacity="0.9" />
     </svg>
   );
 }
 
 function IconStudentData() {
   return (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-      <circle cx="20" cy="20" r="16" stroke="#4FA3A5" strokeWidth="1.5" opacity="0.2" />
-      <circle cx="20" cy="20" r="11" stroke="#4FA3A5" strokeWidth="1.5" opacity="0.45" />
-      <circle cx="20" cy="20" r="6" stroke="#4FA3A5" strokeWidth="2" opacity="0.7" />
-      <circle cx="20" cy="20" r="2" fill="#4FA3A5" />
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true" className="text-teal">
+      <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="1.5" opacity="0.2" />
+      <circle cx="20" cy="20" r="11" stroke="currentColor" strokeWidth="1.5" opacity="0.45" />
+      <circle cx="20" cy="20" r="6" stroke="currentColor" strokeWidth="2" opacity="0.7" />
+      <circle cx="20" cy="20" r="2" fill="currentColor" />
     </svg>
   );
 }
 
 function IconTransparent() {
   return (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true" className="text-teal">
       <path
         d="M 6 20 Q 14 8 20 20"
-        stroke="#4FA3A5" strokeWidth="2" strokeLinecap="round" opacity="0.85"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.85"
       />
       <path
         d="M 20 20 Q 26 32 34 20"
-        stroke="#4FA3A5" strokeWidth="2" strokeLinecap="round" opacity="0.4"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.4"
       />
       <path
         d="M 10 28 Q 20 16 30 28"
-        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3"
+        stroke="var(--color-text-primary)" strokeWidth="1.5" strokeLinecap="round" opacity="0.3"
       />
-      <circle cx="20" cy="20" r="2.5" fill="#4FA3A5" />
+      <circle cx="20" cy="20" r="2.5" fill="currentColor" />
     </svg>
   );
 }
 
 function IconOversight() {
   return (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-      <circle cx="20" cy="12" r="3" fill="#4FA3A5" opacity="0.9" />
-      <circle cx="10" cy="28" r="2.5" fill="#4FA3A5" opacity="0.5" />
-      <circle cx="30" cy="28" r="2.5" fill="#4FA3A5" opacity="0.5" />
-      <line x1="20" y1="12" x2="10" y2="28" stroke="#4FA3A5" strokeWidth="1.5" opacity="0.4" />
-      <line x1="20" y1="12" x2="30" y2="28" stroke="#4FA3A5" strokeWidth="1.5" opacity="0.4" />
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true" className="text-teal">
+      <circle cx="20" cy="12" r="3" fill="currentColor" opacity="0.9" />
+      <circle cx="10" cy="28" r="2.5" fill="currentColor" opacity="0.5" />
+      <circle cx="30" cy="28" r="2.5" fill="currentColor" opacity="0.5" />
+      <line x1="20" y1="12" x2="10" y2="28" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
+      <line x1="20" y1="12" x2="30" y2="28" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
       <line
         x1="10" y1="28" x2="30" y2="28"
-        stroke="currentColor" strokeWidth="1" opacity="0.25"
+        stroke="var(--color-text-primary)" strokeWidth="1" opacity="0.25"
       />
     </svg>
   );
@@ -117,33 +102,6 @@ function MomentItem({ children }: { children: React.ReactNode }) {
     <div className="flex items-center gap-3.5 font-body text-base text-text-secondary leading-[1.6]">
       <span className="w-2 h-2 rounded-full bg-teal flex-shrink-0 opacity-70" />
       <span>{children}</span>
-    </div>
-  );
-}
-
-/* Photo placeholder matching the HTML image slots */
-function PhotoPlaceholder({ label, colors }: { label: string; colors: string }) {
-  return (
-    <div
-      className={`w-full h-full flex items-center justify-center rounded-[20px] ${colors}`}
-      aria-label={label}
-    >
-      <div className="text-center p-8 opacity-60">
-        <div className="w-16 h-16 rounded-full bg-white/30 mx-auto mb-3 flex items-center justify-center">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="w-8 h-8 text-white"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <path d="M21 15l-5-5L5 21" />
-          </svg>
-        </div>
-        <p className="text-white/80 text-sm font-medium">{label}</p>
-      </div>
     </div>
   );
 }
@@ -197,11 +155,11 @@ export default function ForDistrictsPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div
             className="blob-teal absolute w-[500px] h-[500px] rounded-full opacity-[0.08] top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px] max-md:opacity-[0.056]"
-            style={{ background: '#4FA3A5', filter: 'blur(80px)' }}
+            style={{ background: 'var(--color-teal)', filter: 'blur(80px)' }}
           />
           <div
             className="blob-gold absolute w-[450px] h-[450px] rounded-full opacity-[0.10] top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px] max-md:opacity-[0.07]"
-            style={{ background: '#F0C95D', filter: 'blur(80px)' }}
+            style={{ background: 'var(--color-gold)', filter: 'blur(80px)' }}
           />
         </div>
 
@@ -224,7 +182,7 @@ export default function ForDistrictsPage() {
             <span
               className="hero-word hero-word-4"
               style={{
-                background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
+                background: 'linear-gradient(135deg, var(--color-teal), var(--color-gold))',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -254,14 +212,8 @@ export default function ForDistrictsPage() {
           {/* CTA */}
           <div className="hero-buttons-anim-late flex gap-4 justify-center flex-wrap">
             <Link
-              href="/see-the-difference"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
-            >
-              What Is Different
-            </Link>
-            <Link
               href="/contact"
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
             >
               Request District Access
             </Link>
@@ -492,7 +444,7 @@ export default function ForDistrictsPage() {
 
 
         {/* ── What Districts Gain ── */}
-        <section className="fade-up" style={{ background: '#0B1426' }}>
+        <section className="fade-up bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center">
               {/* Eyebrow (light on dark) */}
@@ -524,7 +476,7 @@ export default function ForDistrictsPage() {
                     <div
                       className="font-heading text-[26px] font-extrabold tracking-[-0.3px] mb-3 whitespace-nowrap"
                       style={{
-                        background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
+                        background: 'linear-gradient(135deg, var(--color-teal), var(--color-gold))',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text',
@@ -577,7 +529,7 @@ export default function ForDistrictsPage() {
         <section
           className="fade-up relative overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)',
+            background: 'linear-gradient(145deg, var(--color-deep-navy) 0%, #0e2a3a 50%, #0e3540 100%)',
           }}
         >
           {/* Radial glow */}
@@ -586,7 +538,7 @@ export default function ForDistrictsPage() {
             aria-hidden="true"
             style={{
               background:
-                'radial-gradient(ellipse at center, rgba(240,201,93,0.12) 0%, transparent 70%)',
+                'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)',
             }}
           />
 
@@ -619,9 +571,9 @@ export default function ForDistrictsPage() {
           FOOTER
       ════════════════════════════════════════ */}
       <footer
+        className="border-t border-gold/20"
         style={{
-          background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)',
-          borderTop: '1px solid rgba(240,201,93,0.2)',
+          background: 'linear-gradient(180deg, var(--color-deep-navy) 0%, #0e1a35 100%)',
         }}
       >
         <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
@@ -634,7 +586,7 @@ export default function ForDistrictsPage() {
                 AI-powered teaching platform that learns how you teach and helps every student get the
                 support they need.
               </p>
-              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(79,163,165,0.1)] px-4 py-2 rounded-full border border-[rgba(79,163,165,0.2)]">
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-teal/10 px-4 py-2 rounded-full border border-teal/20">
                 <IconStar />
                 FERPA &amp; COPPA Compliant
               </div>
