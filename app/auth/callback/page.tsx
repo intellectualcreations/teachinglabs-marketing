@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 /**
- * Client-side auth callback page.
+ * Auth callback page — handles ALL Supabase auth redirects:
  *
- * With implicit flow, Supabase redirects here with tokens in the URL hash:
- *   /auth/callback#access_token=...&refresh_token=...&type=signup
+ * 1. Hash fragment: #access_token=...  (implicit flow)
+ * 2. Query param:   ?code=...          (PKCE flow)
+ * 3. Query param:   ?token_hash=...    (custom email template)
+ * 4. Error:         ?error=... or #error=...
  *
- * This page detects the hash, sets the session, then routes the user
- * to onboarding or dashboard based on their role.
+ * After authentication, routes to onboarding or dashboard.
  */
 export default function AuthCallbackPage() {
   const [status, setStatus] = useState('Signing you in...');
@@ -19,65 +20,94 @@ export default function AuthCallbackPage() {
     async function handleCallback() {
       const supabase = createClient();
       const hash = window.location.hash;
+      const params = new URLSearchParams(window.location.search);
 
-      // Implicit flow: tokens arrive in hash fragment
-      if (hash && (hash.includes('access_token') || hash.includes('refresh_token'))) {
-        // Supabase JS auto-detects and processes hash tokens when we call getSession
-        // after the client is initialized. The createBrowserClient handles this.
-        // Just wait a moment for it to process.
-        await new Promise(r => setTimeout(r, 500));
-      }
+      // Log for debugging
+      console.log('Auth callback - hash:', hash ? 'present' : 'none');
+      console.log('Auth callback - search params:', window.location.search);
 
-      // Check for error in hash (e.g. expired link)
-      if (hash && hash.includes('error')) {
-        const params = new URLSearchParams(hash.substring(1));
-        const errorDesc = params.get('error_description');
+      // Check for error in hash or query
+      if (hash?.includes('error') || params.get('error')) {
+        const hashParams = hash ? new URLSearchParams(hash.substring(1)) : null;
+        const errorDesc = params.get('error_description')
+          || hashParams?.get('error_description')
+          || 'Unknown error';
         console.error('Auth error:', errorDesc);
         setStatus('Link expired or invalid. Redirecting to signup...');
-        setTimeout(() => {
-          window.location.href = '/teacher/signup';
-        }, 2000);
+        setTimeout(() => { window.location.href = '/teacher/signup'; }, 2500);
         return;
       }
 
-      // Check for code in URL params (PKCE fallback)
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
+      // Method 1: token_hash from custom email template
+      const tokenHash = params.get('token_hash');
+      const type = params.get('type') as 'signup' | 'magiclink' | 'email' | undefined;
+      if (tokenHash && type) {
+        console.log('Auth callback - verifying token_hash, type:', type);
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: type === 'signup' ? 'email' : 'magiclink',
+        });
+        if (error) {
+          console.error('Token verification failed:', error.message);
+          setStatus('Link expired or invalid. Redirecting to signup...');
+          setTimeout(() => { window.location.href = '/teacher/signup'; }, 2500);
+          return;
+        }
+        // Session is now set
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setStatus('Setting up your account...');
+          await redirectUser(supabase, session.user);
+          return;
+        }
+      }
+
+      // Method 2: code from PKCE flow
+      const code = params.get('code');
       if (code) {
+        console.log('Auth callback - exchanging code');
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
           console.error('Code exchange failed:', error.message);
           setStatus('Link expired or invalid. Redirecting to signup...');
-          setTimeout(() => {
-            window.location.href = '/teacher/signup';
-          }, 2000);
+          setTimeout(() => { window.location.href = '/teacher/signup'; }, 2500);
           return;
         }
       }
 
-      // Try to get the session (hash tokens should be processed by now)
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // Method 3: hash fragment with access_token (implicit flow)
+      if (hash?.includes('access_token')) {
+        console.log('Auth callback - hash has access_token, waiting for Supabase to process');
+        // Supabase JS auto-detects hash tokens
+        await new Promise(r => setTimeout(r, 1000));
+      }
 
-      if (sessionError || !session?.user) {
-        // One more try after a longer wait
-        await new Promise(r => setTimeout(r, 1500));
-        const { data: { session: retrySession } } = await supabase.auth.getSession();
-
-        if (!retrySession?.user) {
-          setStatus('Link expired or invalid. Redirecting to signup...');
-          setTimeout(() => {
-            window.location.href = '/teacher/signup';
-          }, 2000);
-          return;
-        }
-
+      // Check if we have a session now
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         setStatus('Setting up your account...');
-        await redirectUser(supabase, retrySession.user);
+        await redirectUser(supabase, session.user);
         return;
       }
 
-      setStatus('Setting up your account...');
-      await redirectUser(supabase, session.user);
+      // Last resort: listen for auth state change
+      console.log('Auth callback - waiting for auth state change...');
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (event === 'SIGNED_IN' && session?.user) {
+            subscription.unsubscribe();
+            setStatus('Setting up your account...');
+            await redirectUser(supabase, session.user);
+          }
+        }
+      );
+
+      // Timeout after 8 seconds
+      setTimeout(() => {
+        subscription.unsubscribe();
+        setStatus('Link expired or invalid. Redirecting to signup...');
+        setTimeout(() => { window.location.href = '/teacher/signup'; }, 2500);
+      }, 8000);
     }
 
     handleCallback();
@@ -98,7 +128,6 @@ async function redirectUser(
   user: { id: string; user_metadata?: Record<string, unknown> }
 ) {
   try {
-    // Check profile for role
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -107,7 +136,6 @@ async function redirectUser(
 
     const role: string = (profile as { role?: string } | null)?.role ?? 'teacher';
 
-    // New students go to onboarding
     if (role === 'student') {
       const onboarded = user.user_metadata?.onboarded === true;
       if (!onboarded) {
@@ -116,7 +144,6 @@ async function redirectUser(
       }
     }
 
-    // New teachers go to soul quiz
     if (role === 'teacher') {
       const { data: soul } = await supabase
         .from('teacher_souls')
