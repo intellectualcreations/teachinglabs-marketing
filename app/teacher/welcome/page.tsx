@@ -3,27 +3,25 @@
 import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
-  Chalkboard,
+  Star,
   UsersThree,
-  LinkSimple,
-  ChatCircleDots,
-  Eye,
-  Bell,
-  RocketLaunch,
+  ChatText,
+  ChartBar,
   EnvelopeSimple,
-  TestTube,
+  Sparkle,
+  RocketLaunch,
 } from '@phosphor-icons/react';
 
 export default function TeacherWelcomePage() {
   const router = useRouter();
 
   const features = [
-    { icon: <Chalkboard size={24} weight="fill" />, text: 'Create one class (limit during early access)' },
-    { icon: <UsersThree size={24} weight="fill" />, text: 'Add up to 30 students per class' },
-    { icon: <LinkSimple size={24} weight="fill" />, text: 'Students get a join code to connect' },
-    { icon: <ChatCircleDots size={24} weight="fill" />, text: 'Students can chat with your teaching twin for help' },
-    { icon: <Eye size={24} weight="fill" />, text: 'You\'ll see all chat conversations' },
-    { icon: <Bell size={24} weight="fill" />, text: 'Your twin will alert you if a student needs extra help' },
+    { icon: Star, text: 'Create one class (limit during early access)' },
+    { icon: UsersThree, text: 'Add up to 30 students per class' },
+    { icon: Sparkle, text: 'Students get a join code to connect' },
+    { icon: ChatText, text: 'Students can chat with your teaching twin for help' },
+    { icon: ChartBar, text: "You'll see all chat conversations" },
+    { icon: RocketLaunch, text: 'Your twin will alert you if a student needs extra help' },
   ];
 
   return (
@@ -31,14 +29,14 @@ export default function TeacherWelcomePage() {
       {/* Background accents */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-teal/5" />
-        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-gold/5" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-teal/5" />
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto px-6 py-16 md:py-24">
         {/* Early Access Badge */}
         <div className="flex justify-center mb-8">
           <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal/10 border border-teal/20 text-teal text-sm font-semibold">
-            <TestTube size={16} weight="fill" />
+            <Sparkle size={16} weight="fill" />
             Early Access
           </span>
         </div>
@@ -55,17 +53,20 @@ export default function TeacherWelcomePage() {
 
         {/* Features list */}
         <div className="space-y-4 mb-12">
-          {features.map((feature, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-4 p-4 rounded-xl bg-white/60 dark:bg-white/5 border border-border/50 backdrop-blur-sm"
-            >
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-teal/10 flex items-center justify-center text-teal">
-                {feature.icon}
+          {features.map((feature, i) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={i}
+                className="flex items-start gap-4 p-4 rounded-xl bg-white/60 dark:bg-white/5 border border-border/50 backdrop-blur-sm"
+              >
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-teal/10 flex items-center justify-center text-teal">
+                  <Icon size={24} weight="fill" />
+                </div>
+                <p className="text-text-primary font-medium text-base pt-1.5">{feature.text}</p>
               </div>
-              <p className="text-text-primary font-medium text-base pt-1.5">{feature.text}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* What to expect */}
@@ -75,7 +76,7 @@ export default function TeacherWelcomePage() {
             <h2 className="font-heading text-lg font-bold text-text-primary">What to expect</h2>
           </div>
           <p className="text-text-secondary text-sm leading-relaxed pl-[34px]">
-            This is an early version and we&apos;re actively building. Give it a test and share your feedback &mdash; it helps our team improve!
+            This is an early version and we&apos;re actively building. Give it a test drive and share your feedback — it helps our team build exactly what you need!
           </p>
         </div>
 
