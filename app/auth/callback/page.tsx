@@ -6,12 +6,11 @@ import { createClient } from '@/lib/supabase/client';
 /**
  * Client-side auth callback page.
  *
- * Supabase email links (confirm signup / magic link) redirect here.
- * The auth tokens arrive in the URL hash fragment (#access_token=...),
- * which only the browser can read. This page:
- *   1. Lets Supabase JS detect the hash and set the session automatically
- *   2. Looks up the user's role in the profiles table
- *   3. Redirects to the appropriate onboarding or dashboard page
+ * With implicit flow, Supabase redirects here with tokens in the URL hash:
+ *   /auth/callback#access_token=...&refresh_token=...&type=signup
+ *
+ * This page detects the hash, sets the session, then routes the user
+ * to onboarding or dashboard based on their role.
  */
 export default function AuthCallbackPage() {
   const [status, setStatus] = useState('Signing you in...');
@@ -19,52 +18,66 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     async function handleCallback() {
       const supabase = createClient();
+      const hash = window.location.hash;
 
-      // Supabase JS auto-detects hash fragments and exchanges them for a session.
-      // We just need to listen for the auth state change.
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (event === 'SIGNED_IN' && session?.user) {
-            subscription.unsubscribe();
-            setStatus('Setting up your account...');
-            await redirectUser(supabase, session.user);
-          }
-        }
-      );
+      // Implicit flow: tokens arrive in hash fragment
+      if (hash && (hash.includes('access_token') || hash.includes('refresh_token'))) {
+        // Supabase JS auto-detects and processes hash tokens when we call getSession
+        // after the client is initialized. The createBrowserClient handles this.
+        // Just wait a moment for it to process.
+        await new Promise(r => setTimeout(r, 500));
+      }
 
-      // Also check if there's already a session (e.g. code exchange already happened)
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        subscription.unsubscribe();
-        setStatus('Setting up your account...');
-        await redirectUser(supabase, session.user);
+      // Check for error in hash (e.g. expired link)
+      if (hash && hash.includes('error')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const errorDesc = params.get('error_description');
+        console.error('Auth error:', errorDesc);
+        setStatus('Link expired or invalid. Redirecting to signup...');
+        setTimeout(() => {
+          window.location.href = '/teacher/signup';
+        }, 2000);
         return;
       }
 
-      // If hash has tokens, Supabase will pick them up via onAuthStateChange above.
-      // If not, and there's a code in the URL params, try exchanging it.
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
+      // Check for code in URL params (PKCE fallback)
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
           console.error('Code exchange failed:', error.message);
-          setStatus('Link expired or invalid. Please sign up again.');
+          setStatus('Link expired or invalid. Redirecting to signup...');
           setTimeout(() => {
             window.location.href = '/teacher/signup';
-          }, 3000);
+          }, 2000);
           return;
         }
-        // Session will be picked up by onAuthStateChange
       }
 
-      // Give it a few seconds to process, then show error
-      setTimeout(() => {
-        setStatus('Link may have expired. Redirecting to signup...');
-        setTimeout(() => {
-          window.location.href = '/teacher/signup';
-        }, 2000);
-      }, 8000);
+      // Try to get the session (hash tokens should be processed by now)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user) {
+        // One more try after a longer wait
+        await new Promise(r => setTimeout(r, 1500));
+        const { data: { session: retrySession } } = await supabase.auth.getSession();
+
+        if (!retrySession?.user) {
+          setStatus('Link expired or invalid. Redirecting to signup...');
+          setTimeout(() => {
+            window.location.href = '/teacher/signup';
+          }, 2000);
+          return;
+        }
+
+        setStatus('Setting up your account...');
+        await redirectUser(supabase, retrySession.user);
+        return;
+      }
+
+      setStatus('Setting up your account...');
+      await redirectUser(supabase, session.user);
     }
 
     handleCallback();
