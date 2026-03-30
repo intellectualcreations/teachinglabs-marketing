@@ -40,6 +40,7 @@ const PUBLIC_PATHS = [
   '/welcome',
   '/teacher/welcome',
   '/forgot-password',
+  '/waitlist',
   '/auth/callback',
   '/api/auth',       // NextAuth routes (keep working during migration)
 ];
