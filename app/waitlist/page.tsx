@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Sparkle, Users, Eye, Megaphone, CheckCircle, ArrowRight } from '@phosphor-icons/react';
+import { Sparkle, Users, Eye, Megaphone, ArrowRight } from '@phosphor-icons/react';
 import ScrollReveal from '@/components/shared/ScrollReveal';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 
@@ -73,6 +74,7 @@ export default function WaitlistPage() {
     state: '',
     howHeard: '',
   });
+  const router = useRouter();
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error' | 'duplicate'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -93,9 +95,11 @@ export default function WaitlistPage() {
       });
 
       if (res.ok) {
-        setStatus('success');
+        router.push('/waitlist/confirmed');
+        return;
       } else if (res.status === 409) {
-        setStatus('duplicate');
+        router.push('/waitlist/confirmed');
+        return;
       } else {
         const data = await res.json();
         setErrorMessage(data.error || 'Something went wrong.');
@@ -197,30 +201,8 @@ export default function WaitlistPage() {
         </div>
       </section>
 
-      {/* ── Form / Success ── */}
+      {/* ── Form ── */}
       <section className="max-w-2xl mx-auto px-6 pb-20" id="signup">
-        {status === 'success' || status === 'duplicate' ? (
-          <div className="fade-up bg-card-bg rounded-2xl border border-border p-10 md:p-14 text-center shadow-sm">
-            <div className="w-16 h-16 rounded-full bg-teal/10 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle size={36} weight="duotone" className="text-teal" />
-            </div>
-            <h2 className="font-heading font-bold text-text-primary text-2xl md:text-3xl mb-4">
-              {status === 'success' ? "You're on the list! 🎉" : "You're already on the list! 🎉"}
-            </h2>
-            <p className="text-text-secondary text-lg leading-relaxed max-w-md mx-auto mb-8">
-              {status === 'success'
-                ? "We'll email you when it's your turn. In the meantime, tell a fellow teacher about Teaching Labs."
-                : "We already have your email. Sit tight, we'll reach out when it's your turn."}
-            </p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-teal font-heading font-semibold text-sm hover:underline"
-            >
-              Learn more about Teaching Labs
-              <ArrowRight size={16} weight="bold" />
-            </Link>
-          </div>
-        ) : (
           <div className="fade-up bg-card-bg rounded-2xl border border-border p-8 md:p-12 shadow-sm">
             <div className="text-center mb-8">
               <h2 className="font-heading font-bold text-text-primary text-2xl md:text-3xl tracking-[-0.5px] mb-2">
@@ -380,7 +362,6 @@ export default function WaitlistPage() {
               </button>
             </form>
           </div>
-        )}
       </section>
 
       {/* ── Footer ── */}
