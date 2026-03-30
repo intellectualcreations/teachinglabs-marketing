@@ -1,26 +1,20 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   MathOperations, BookOpenText, Flask, GlobeHemisphereWest, PencilLine,
   Palette, MusicNotes, Desktop, Calculator, Article, TestTube, Planet,
   Dna, ChartBar, Bank, MapTrifold, Translate, ChatsCircle, Basketball,
   PersonSimpleRun, Books, MaskHappy, Heartbeat, Leaf, Robot,
-  Ruler, Target, Lightbulb, Star, HouseLine, MagnifyingGlass, Check,
+  Ruler, Target, Lightbulb, Star, HouseLine, Check, Copy, UsersThree,
 } from '@phosphor-icons/react';
+import { createClient } from '@/lib/supabase/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Student {
-  first: string;
-  last: string;
-  id: string;
-  grade: string;
-}
-
 interface IconOption {
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   bg: string;
   label: string;
   val: string;
@@ -61,76 +55,11 @@ const ICON_OPTIONS: IconOption[] = [
   { icon: HouseLine, bg: '#64748B', label: 'Homeroom', val: 'homeroom' },
 ];
 
-const ALL_STUDENTS: Student[] = [
-  { first: 'Emma', last: 'Johnson', id: 'STU-10042', grade: '5' },
-  { first: 'Liam', last: 'Martinez', id: 'STU-10087', grade: '5' },
-  { first: 'Sophia', last: 'Williams', id: 'STU-10103', grade: '5' },
-  { first: 'Noah', last: 'Brown', id: 'STU-10156', grade: '5' },
-  { first: 'Olivia', last: 'Garcia', id: 'STU-10201', grade: '5' },
-  { first: 'Aiden', last: 'Davis', id: 'STU-10245', grade: '5' },
-  { first: 'Isabella', last: 'Rodriguez', id: 'STU-10302', grade: '4' },
-  { first: 'Mason', last: 'Wilson', id: 'STU-10367', grade: '4' },
-  { first: 'Ava', last: 'Anderson', id: 'STU-10412', grade: '4' },
-  { first: 'Ethan', last: 'Thomas', id: 'STU-10458', grade: '5' },
-  { first: 'Mia', last: 'Jackson', id: 'STU-10503', grade: '5' },
-  { first: 'Lucas', last: 'White', id: 'STU-10547', grade: '4' },
-  { first: 'Amelia', last: 'Harris', id: 'STU-10602', grade: '5' },
-  { first: 'James', last: 'Clark', id: 'STU-10651', grade: '5' },
-  { first: 'Harper', last: 'Lewis', id: 'STU-10703', grade: '4' },
-  { first: 'Benjamin', last: 'Robinson', id: 'STU-10756', grade: '5' },
-  { first: 'Ella', last: 'Walker', id: 'STU-10801', grade: '5' },
-  { first: 'Alexander', last: 'Young', id: 'STU-10845', grade: '4' },
-  { first: 'Charlotte', last: 'Allen', id: 'STU-10902', grade: '5' },
-  { first: 'Daniel', last: 'King', id: 'STU-10958', grade: '5' },
-  { first: 'Scarlett', last: 'Wright', id: 'STU-11003', grade: '4' },
-  { first: 'Henry', last: 'Scott', id: 'STU-11047', grade: '5' },
-  { first: 'Grace', last: 'Adams', id: 'STU-11102', grade: '4' },
-  { first: 'Sebastian', last: 'Baker', id: 'STU-11156', grade: '5' },
-  { first: 'Chloe', last: 'Gonzalez', id: 'STU-11201', grade: '5' },
-];
-
 function generateCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
   for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
   return code;
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function StepsBar({ step }: { step: 'create' | 'code' }) {
-  const steps = [
-    { label: 'Add students', state: 'done' },
-    { label: 'Create classes', state: step === 'create' ? 'active' : 'done' },
-    { label: 'Share join codes', state: step === 'code' ? 'active' : 'idle' },
-  ] as const;
-
-  return (
-    <div className="flex items-center mb-8">
-      {steps.map((s, i) => (
-        <div key={s.label} className="flex items-center flex-1 last:flex-none">
-          <div className="flex items-center gap-2 text-[14px] font-medium"
-            style={{ color: s.state === 'idle' ? 'var(--text-secondary)' : s.state === 'active' ? 'var(--color-navy)' : 'var(--color-teal)' }}>
-            <div
-              className="w-7 h-7 rounded-full border-2 flex items-center justify-center font-heading font-semibold text-[13px] shrink-0"
-              style={{
-                background: s.state === 'done' ? 'var(--color-teal)' : s.state === 'active' ? 'var(--color-navy)' : 'transparent',
-                borderColor: s.state === 'done' ? 'var(--color-teal)' : s.state === 'active' ? 'var(--color-navy)' : 'var(--border)',
-                color: s.state !== 'idle' ? 'white' : 'var(--text-secondary)',
-              }}
-            >
-              {s.state === 'done' ? '✓' : i + 1}
-            </div>
-            {s.label}
-          </div>
-          {i < steps.length - 1 && (
-            <div className="flex-1 h-0.5 mx-3"
-              style={{ background: s.state === 'done' ? 'var(--color-teal)' : 'var(--border)' }} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -145,101 +74,103 @@ export default function CreateClassPage() {
   const [subject, setSubject] = useState('');
   const [grade, setGrade] = useState('');
   const [desc, setDesc] = useState('');
-  const [search, setSearch] = useState('');
-  const [gradeFilter, setGradeFilter] = useState<'all' | '4' | '5'>('all');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [classes, setClasses] = useState<Array<{
-    name: string; subject: string; grade: string; count: number; code: string;
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [createdClass, setCreatedClass] = useState<{
+    name: string; subject: string; grade: string; code: string;
     iconIdx: number; desc: string;
-  }>>([]);
-  const [copied, setCopied] = useState<string | null>(null);
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  // Filtered students
-  const filtered = useMemo(() => {
-    return ALL_STUDENTS.filter((s) => {
-      if (gradeFilter !== 'all' && s.grade !== gradeFilter) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        if (!(s.first + ' ' + s.last).toLowerCase().includes(q) && !s.id.toLowerCase().includes(q)) return false;
+  async function createClass() {
+    if (!className.trim()) return;
+
+    setSaving(true);
+    setError('');
+
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError('You must be signed in to create a class.');
+        setSaving(false);
+        return;
       }
-      return true;
-    });
-  }, [search, gradeFilter]);
 
-  function toggleStudent(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }
+      const joinCode = generateCode();
 
-  function selectAll() {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      filtered.forEach((s) => next.add(s.id));
-      return next;
-    });
-  }
+      const { error: insertError } = await (supabase.from as any)('classes').insert({ // eslint-disable-line @typescript-eslint/no-explicit-any
+        teacher_id: user.id,
+        name: className.trim(),
+        subject: subject || null,
+        grade_level: grade || null,
+        description: desc.trim() || null,
+        join_code: joinCode,
+        icon: ICON_OPTIONS[selectedIcon].val,
+      });
 
-  function clearSelection() {
-    setSelected(new Set());
-  }
+      if (insertError) {
+        console.error('Create class error:', insertError);
+        setError('Something went wrong. Please try again.');
+        setSaving(false);
+        return;
+      }
 
-  function createClass() {
-    const cls = {
-      name: className.trim() || 'Untitled Class',
-      subject,
-      grade,
-      count: selected.size,
-      code: generateCode(),
-      iconIdx: selectedIcon,
-      desc: desc.trim(),
-    };
-    setClasses((prev) => [...prev, cls]);
-    setScreen('code');
-    window.scrollTo(0, 0);
-  }
-
-  function addAnother() {
-    setClassName('');
-    setSubject('');
-    setGrade('');
-    setDesc('');
-    setSelected(new Set());
-    setSelectedIcon(0);
-    setSearch('');
-    setGradeFilter('all');
-    setScreen('create');
-    window.scrollTo(0, 0);
+      setCreatedClass({
+        name: className.trim(),
+        subject,
+        grade,
+        code: joinCode,
+        iconIdx: selectedIcon,
+        desc: desc.trim(),
+      });
+      setScreen('code');
+      window.scrollTo(0, 0);
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   function copyCode(code: string) {
     navigator.clipboard.writeText(code).catch(() => {});
-    setCopied(code);
-    setTimeout(() => setCopied(null), 2000);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   const IconComp = ICON_OPTIONS[selectedIcon].icon;
   const iconBg = ICON_OPTIONS[selectedIcon].bg;
 
   return (
-    <div className="max-w-[900px] w-full mx-auto py-8 px-6">
-
-      <StepsBar step={screen} />
+    <div className="max-w-[700px] w-full mx-auto py-8 px-6">
 
       {/* ── SCREEN: Create ── */}
       {screen === 'create' && (
         <div>
           <div className="mb-8">
             <h1 className="font-heading text-[28px] font-bold text-text-primary mb-1.5">Create a class</h1>
-            <p className="text-[15px] text-text-secondary">Name your class, then pick students from your school roster.</p>
+            <p className="text-[15px] text-text-secondary">Set up your class and get a join code. Students will use the code to connect.</p>
           </div>
 
           {/* Class details card */}
           <div className="bg-card-bg border border-border rounded-2xl p-8 mb-6">
-            <div className="font-heading font-semibold text-[17px] text-text-primary mb-1">Class details</div>
-            <div className="text-[14px] text-text-secondary mb-5">What should students see when they join?</div>
+            {/* Preview */}
+            <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border">
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: iconBg }}>
+                <IconComp size={28} weight="fill" color="white" />
+              </div>
+              <div>
+                <div className="font-heading font-semibold text-[17px] text-text-primary">
+                  {className.trim() || 'Your Class Name'}
+                </div>
+                <div className="text-[13px] text-text-secondary">
+                  {[grade, subject].filter(Boolean).join(' · ') || 'Subject · Grade'}
+                </div>
+              </div>
+            </div>
 
             {/* Icon picker */}
             <div className="mb-5">
@@ -270,7 +201,7 @@ export default function CreateClassPage() {
               </div>
             </div>
 
-            {/* 3-col row */}
+            {/* Form fields */}
             <div className="grid grid-cols-3 gap-3 mb-6 max-sm:grid-cols-1">
               <div>
                 <label className="block text-[13px] font-semibold text-text-primary mb-1.5">
@@ -323,7 +254,7 @@ export default function CreateClassPage() {
               </div>
             </div>
 
-            <div>
+            <div className="mb-6">
               <label className="block text-[13px] font-semibold text-text-primary mb-1.5">
                 Description <span className="font-normal text-text-secondary">(optional)</span>
               </label>
@@ -336,175 +267,89 @@ export default function CreateClassPage() {
                   bg-surface text-text-primary outline-none focus:border-navy transition-colors resize-y"
               />
             </div>
-          </div>
 
-          {/* Student picker card */}
-          <div className="bg-card-bg border border-border rounded-2xl p-8 mb-6">
-            <div className="font-heading font-semibold text-[17px] text-text-primary mb-1">Add students to this class</div>
-            <div className="text-[14px] text-text-secondary mb-5">
-              Select students from your school roster (25 students at Lincoln Elementary)
-            </div>
-
-            {/* Toolbar */}
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
-                <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
-                <input
-                  type="text"
-                  placeholder="Search by name or ID..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 border-[1.5px] border-border rounded-lg text-[14px]
-                    bg-surface text-text-primary outline-none focus:border-navy transition-colors"
-                />
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </div>
-              <div className="flex gap-1.5">
-                {(['all', '4', '5'] as const).map((g) => (
-                  <button
-                    key={g}
-                    onClick={() => setGradeFilter(g)}
-                    className={`px-3.5 py-1.5 rounded-full border-[1.5px] text-[13px] font-medium transition-all cursor-pointer
-                      ${gradeFilter === g
-                        ? 'bg-navy border-navy text-white'
-                        : 'bg-transparent border-border text-text-secondary hover:border-navy hover:text-navy'
-                      }`}
-                  >
-                    {g === 'all' ? 'All' : `${g}th`}
-                  </button>
-                ))}
+            )}
+
+            {/* How students join info */}
+            <div className="p-4 rounded-xl bg-teal/[0.06] border border-teal/20 mb-6">
+              <div className="flex items-start gap-3">
+                <UsersThree size={24} weight="fill" className="text-teal shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[14px] font-medium text-text-primary mb-1">How do students join?</p>
+                  <p className="text-[13px] text-text-secondary leading-relaxed">
+                    After creating your class, you&apos;ll get a unique join code. Share it with your students and they&apos;ll use it to sign up and connect to your class automatically.
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Select actions */}
-            <div className="flex items-center gap-3 text-[13px] text-text-secondary mb-3">
-              <button onClick={selectAll} className="text-teal font-medium hover:underline cursor-pointer">Select all</button>
-              <span>·</span>
-              <button onClick={clearSelection} className="text-teal font-medium hover:underline cursor-pointer">Clear selection</button>
-              <span className="ml-auto">Showing {filtered.length} students</span>
-            </div>
-
-            {/* Student list */}
-            <div className="border border-border rounded-lg max-h-[420px] overflow-y-auto">
-              {filtered.map((s, i) => {
-                const isSelected = selected.has(s.id);
-                const initials = s.first[0] + s.last[0];
-                return (
-                  <div
-                    key={s.id}
-                    onClick={() => toggleStudent(s.id)}
-                    className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors
-                      ${i < filtered.length - 1 ? 'border-b border-border' : ''}
-                      ${isSelected ? 'bg-teal/[0.06]' : 'hover:bg-teal/[0.03]'}`}
-                  >
-                    {/* Checkbox */}
-                    <div
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all
-                        ${isSelected ? 'bg-teal border-teal' : 'border-border'}`}
-                    >
-                      {isSelected && <Check size={12} weight="bold" color="white" />}
-                    </div>
-
-                    {/* Avatar */}
-                    <div className="w-8 h-8 rounded-full bg-surface text-navy flex items-center justify-center
-                      font-heading font-semibold text-[12px] shrink-0">
-                      {initials}
-                    </div>
-
-                    {/* Name */}
-                    <div className="flex-1">
-                      <div className="font-medium text-[14px] text-text-primary">{s.first} {s.last}</div>
-                      <div className="text-[12px] text-text-secondary font-heading">{s.id}</div>
-                    </div>
-
-                    {/* Grade badge */}
-                    <span className="px-2.5 py-0.5 rounded-full bg-navy/[0.08] text-[12px] font-semibold text-navy">
-                      {s.grade}th
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Selected bar */}
-            <div className="flex items-center justify-between px-4 py-3 bg-teal/[0.06] border border-teal/20
-              rounded-lg mt-4 text-[14px]">
-              <span>
-                <span className="font-semibold text-teal">{selected.size}</span> students selected
-              </span>
-              <button
-                onClick={createClass}
-                disabled={selected.size === 0}
-                className="px-6 py-2 bg-navy text-white font-heading font-semibold text-[14px] rounded-lg
-                  hover:bg-navy/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Create class
-              </button>
-            </div>
+            <button
+              onClick={createClass}
+              disabled={!className.trim() || saving}
+              className="w-full px-6 py-3 bg-navy text-white font-heading font-semibold text-[15px] rounded-lg
+                hover:bg-navy/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {saving ? 'Creating...' : 'Create Class & Get Join Code'}
+            </button>
           </div>
         </div>
       )}
 
       {/* ── SCREEN: Code ── */}
-      {screen === 'code' && (
+      {screen === 'code' && createdClass && (
         <div>
-          <div className="mb-8">
-            <h1 className="font-heading text-[28px] font-bold text-text-primary mb-1.5">Your classes</h1>
-            <p className="text-[15px] text-text-secondary">Share these join codes with your students so they can create their accounts.</p>
+          <div className="mb-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center"
+              style={{ background: ICON_OPTIONS[createdClass.iconIdx]?.bg ?? '#4FA3A5' }}>
+              {(() => {
+                const Ic = ICON_OPTIONS[createdClass.iconIdx]?.icon ?? Star;
+                return <Ic size={32} weight="fill" color="white" />;
+              })()}
+            </div>
+            <h1 className="font-heading text-[28px] font-bold text-text-primary mb-1.5">
+              {createdClass.name} is ready!
+            </h1>
+            <p className="text-[15px] text-text-secondary">
+              Share this join code with your students so they can connect.
+            </p>
           </div>
 
-          <div className="flex flex-col gap-3 mb-6">
-            {classes.map((c) => {
-              const Ic = ICON_OPTIONS[c.iconIdx]?.icon ?? Star;
-              const bg = ICON_OPTIONS[c.iconIdx]?.bg ?? '#4FA3A5';
-              return (
-                <div key={c.code}
-                  className="flex items-center justify-between px-5 py-4 border-[1.5px] border-border
-                    rounded-2xl bg-card-bg hover:border-teal transition-colors">
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0"
-                      style={{ background: bg }}>
-                      <Ic size={20} weight="fill" color="white" />
-                    </div>
-                    <div>
-                      <div className="font-heading font-semibold text-[15px] text-text-primary">{c.name}</div>
-                      <div className="text-[13px] text-text-secondary">
-                        {[c.grade, c.subject, `${c.count} students`].filter(Boolean).join(' · ')}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => copyCode(c.code)}
-                      className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-teal/[0.08] border border-teal/20
-                        rounded-lg font-heading font-bold text-[15px] tracking-[2px] text-teal cursor-pointer
-                        hover:bg-teal/[0.14] transition-colors"
-                    >
-                      {c.code}
-                      {copied === c.code
-                        ? <Check size={14} weight="bold" />
-                        : <span className="text-[11px] font-normal tracking-normal ml-1">copy</span>
-                      }
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+          {/* Join code card */}
+          <div className="bg-card-bg border border-border rounded-2xl p-8 mb-6 text-center">
+            <p className="text-[13px] font-semibold text-text-secondary uppercase tracking-wider mb-3">Student Join Code</p>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <span className="font-heading font-bold text-[40px] tracking-[6px] text-navy dark:text-teal">
+                {createdClass.code}
+              </span>
+            </div>
+            <button
+              onClick={() => copyCode(createdClass.code)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal/[0.08] border border-teal/20
+                rounded-lg font-medium text-[14px] text-teal cursor-pointer
+                hover:bg-teal/[0.14] transition-colors"
+            >
+              {copied ? <Check size={16} weight="bold" /> : <Copy size={16} weight="bold" />}
+              {copied ? 'Copied!' : 'Copy code'}
+            </button>
+
+            <div className="mt-6 pt-6 border-t border-border">
+              <p className="text-[14px] text-text-secondary leading-relaxed">
+                Students go to the signup page, enter this code, and they&apos;re connected to your class. You&apos;ll see them appear on your dashboard as they join.
+              </p>
+            </div>
           </div>
 
           <div className="flex gap-3">
             <button
-              onClick={addAnother}
-              className="px-5 py-2.5 bg-transparent border-[1.5px] border-border rounded-lg text-[14px]
-                font-medium text-text-secondary hover:border-navy hover:text-navy transition-colors cursor-pointer"
-            >
-              + Create another class
-            </button>
-            <button
               onClick={() => router.push('/teacher/dashboard')}
-              className="px-6 py-2.5 bg-teal text-white rounded-lg font-heading font-semibold text-[14px]
-                hover:bg-teal/90 transition-colors cursor-pointer"
+              className="flex-1 px-6 py-3 bg-teal text-white rounded-lg font-heading font-semibold text-[14px]
+                hover:bg-teal/90 transition-colors cursor-pointer text-center"
             >
-              Go to dashboard →
+              Go to Dashboard →
             </button>
           </div>
         </div>
