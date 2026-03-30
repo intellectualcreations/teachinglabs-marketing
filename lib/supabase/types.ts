@@ -9,6 +9,7 @@
 export type UserRole = "admin" | "teacher" | "student" | "parent";
 export type EnrollmentStatus = "active" | "inactive" | "withdrawn";
 export type MessageType = "student" | "ai" | "teacher";
+export type AttendanceStatusType = "present" | "absent" | "late";
 
 export interface Profile {
   id: string;
@@ -101,6 +102,21 @@ export interface TeacherSoul {
   updated_at: string;
 }
 
+export interface DbAttendanceSession {
+  id: string;
+  course_id: string;
+  date: string;
+  created_at: string;
+}
+
+export interface DbAttendanceRecord {
+  id: string;
+  session_id: string;
+  student_id: string;
+  status: AttendanceStatusType;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -189,6 +205,24 @@ export interface Database {
           scenario_responses?: Record<string, string> | null;
         };
         Update: Partial<Omit<TeacherSoul, "id">>;
+        Relationships: [];
+      };
+      attendance_sessions: {
+        Row: DbAttendanceSession;
+        Insert: Omit<DbAttendanceSession, "id" | "created_at"> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<Omit<DbAttendanceSession, "id">>;
+        Relationships: [];
+      };
+      attendance_records: {
+        Row: DbAttendanceRecord;
+        Insert: Omit<DbAttendanceRecord, "id" | "created_at"> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<Omit<DbAttendanceRecord, "id">>;
         Relationships: [];
       };
     };

@@ -1,110 +1,104 @@
-// ── Types ──────────────────────────────────────────────
+/**
+ * Attendance tracking types and helpers for TeachingLabs.
+ *
+ * Includes both type definitions (used by Supabase-backed routes) and
+ * in-memory store helpers (used by v1 API routes).
+ */
 
-export interface ClassSession {
-  id: string;
-  courseId: string;
-  date: string;
-  topic: string;
-  createdAt: string;
-}
-
-export type AttendanceStatus = 'present' | 'absent' | 'late';
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 export interface AttendanceRecord {
   id: string;
+  courseId: string;
   sessionId: string;
   studentId: string;
-  status: AttendanceStatus;
-  markedAt: string;
+  status: 'present' | 'absent' | 'late';
+  timestamp: string;
 }
 
-// ── In-memory stores ───────────────────────────────────
+export interface AttendanceSession {
+  id: string;
+  courseId: string;
+  date: string;
+  topic?: string;
+  created_at: string;
+}
 
-const sessions = new Map<string, ClassSession>();
-const attendance = new Map<string, AttendanceRecord>();
+export type AttendanceStatus = AttendanceRecord['status'];
 
-let nextSessionId = 1;
-let nextAttendanceId = 1;
+export const VALID_STATUSES: AttendanceStatus[] = ['present', 'absent', 'late'];
 
-// ── Session mutations ──────────────────────────────────
+export function isValidStatus(status: string): status is AttendanceStatus {
+  return VALID_STATUSES.includes(status as AttendanceStatus);
+}
 
-export function createSession(
-  courseId: string,
-  date: string,
-  topic: string,
-): ClassSession {
-  const now = new Date().toISOString();
-  const session: ClassSession = {
-    id: `session_${nextSessionId++}`,
+// ---------------------------------------------------------------------------
+// In-memory store (used by v1 API routes)
+// ---------------------------------------------------------------------------
+
+const sessions: AttendanceSession[] = [];
+const records: AttendanceRecord[] = [];
+
+export function createSession(courseId: string, date: string, topic: string): AttendanceSession {
+  const session: AttendanceSession = {
+    id: crypto.randomUUID(),
     courseId,
     date,
     topic,
-    createdAt: now,
+    created_at: new Date().toISOString(),
   };
-  sessions.set(session.id, session);
+  sessions.push(session);
   return session;
 }
 
-// ── Session queries ────────────────────────────────────
-
-export function getSession(sessionId: string): ClassSession | undefined {
-  return sessions.get(sessionId);
+export function getSession(sessionId: string): AttendanceSession | undefined {
+  return sessions.find((s) => s.id === sessionId);
 }
 
-export function getSessionsForCourse(courseId: string): ClassSession[] {
-  return Array.from(sessions.values())
-    .filter((s) => s.courseId === courseId)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+export function getSessionsForCourse(courseId: string): AttendanceSession[] {
+  return sessions.filter((s) => s.courseId === courseId);
 }
-
-// ── Attendance mutations ───────────────────────────────
 
 export function markAttendance(
   sessionId: string,
   studentId: string,
   status: AttendanceStatus,
 ): AttendanceRecord {
-  // Upsert — if a record already exists for this student+session, update it
-  for (const rec of attendance.values()) {
-    if (rec.sessionId === sessionId && rec.studentId === studentId) {
-      rec.status = status;
-      rec.markedAt = new Date().toISOString();
-      return rec;
-    }
+  const session = getSession(sessionId);
+  const existing = records.find(
+    (r) => r.sessionId === sessionId && r.studentId === studentId,
+  );
+  if (existing) {
+    existing.status = status;
+    existing.timestamp = new Date().toISOString();
+    return existing;
   }
   const record: AttendanceRecord = {
-    id: `att_${nextAttendanceId++}`,
+    id: crypto.randomUUID(),
+    courseId: session?.courseId ?? '',
     sessionId,
     studentId,
     status,
-    markedAt: new Date().toISOString(),
+    timestamp: new Date().toISOString(),
   };
-  attendance.set(record.id, record);
+  records.push(record);
   return record;
 }
 
-// ── Attendance queries ─────────────────────────────────
-
 export function getAttendanceForSession(sessionId: string): AttendanceRecord[] {
-  return Array.from(attendance.values())
-    .filter((a) => a.sessionId === sessionId)
-    .sort((a, b) => a.studentId.localeCompare(b.studentId));
+  return records.filter((r) => r.sessionId === sessionId);
 }
 
 export function getStudentAttendance(
   courseId: string,
   studentId: string,
-): { records: AttendanceRecord[]; total: number; present: number; percentage: number } {
+): { sessions: AttendanceSession[]; records: AttendanceRecord[] } {
   const courseSessions = getSessionsForCourse(courseId);
   const sessionIds = new Set(courseSessions.map((s) => s.id));
-
-  const records = Array.from(attendance.values())
-    .filter((a) => sessionIds.has(a.sessionId) && a.studentId === studentId)
-    .sort((a, b) => new Date(b.markedAt).getTime() - new Date(a.markedAt).getTime());
-
-  const total = courseSessions.length;
-  const present = records.filter((r) => r.status === 'present' || r.status === 'late').length;
-  const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
-
-  return { records, total, present, percentage };
+  const studentRecords = records.filter(
+    (r) => r.studentId === studentId && sessionIds.has(r.sessionId),
+  );
+  return { sessions: courseSessions, records: studentRecords };
 }
