@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from '@/components/shared/ThemeToggle';
-import UserMenu from '@/components/shared/UserMenu';
 import MobileMenu from '@/app/_components/MobileMenu';
 
 function NavLogo() {
@@ -44,15 +43,13 @@ export default function MarketingNav() {
           <NavLogo />
 
           {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-8 list-none">
+          <ul className="hidden lg:flex items-center gap-6 list-none">
             {[
               { href: '/', label: 'Home' },
               { href: '/for-teachers', label: 'For Teachers' },
               { href: '/for-students', label: 'For Students' },
               { href: '/for-districts', label: 'For Districts' },
               { href: '/for-parents', label: 'For Parents' },
-              { href: '/catalog', label: 'Catalog' },
-              { href: '/student/my-courses', label: 'My Courses' },
             ].map(({ href, label }) => (
               <li key={href}>
                 <Link href={href} className={`font-heading text-[15px] font-semibold transition-colors duration-200 ${pathname === href ? 'text-teal dark:text-gold font-bold' : 'text-text-primary dark:text-text-secondary hover:text-teal dark:hover:text-gold'}`}>
@@ -92,14 +89,13 @@ export default function MarketingNav() {
           </ul>
 
           {/* Desktop right */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4">
             <Link
               href="/waitlist"
               className="font-heading text-sm font-semibold bg-gold text-deep-navy px-6 py-2.5 rounded-full hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)] transition-all duration-200"
             >
               Join Waitlist
             </Link>
-            <UserMenu />
             <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
           </div>
 
