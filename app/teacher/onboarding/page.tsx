@@ -61,48 +61,66 @@ const INITIAL_ANSWERS: Answers = {
    Archetype computation
    ──────────────────────────────────────── */
 
+function parseStyleFromText(text: string): string {
+  const lower = text.toLowerCase();
+  if (/\b(lecture|direct|step[- ]by[- ]step|explicit|structured instruction)\b/.test(lower)) return 'direct';
+  if (/\b(question|inquiry|discover|socratic|wonder|explore)\b/.test(lower)) return 'inquiry';
+  if (/\b(group|team|collaborat|together|peer|partner)\b/.test(lower)) return 'collaborative';
+  if (/\b(hands[- ]on|real[- ]world|project|experiential|build|create|maker)\b/.test(lower)) return 'experiential';
+  return 'inquiry'; // default
+}
+
 function computeArchetype(answers: Answers): { name: string; traits: Record<string, unknown> } {
-  const { teachingStyle, classroomVibe, feedbackApproach } = answers;
+  const { classroomVibe, feedbackApproach } = answers;
   const vibes = new Set(classroomVibe);
+  const teachingStyle = parseStyleFromText(answers.teachingStyle);
+
+  // Energy signals from single-word vibes
+  const hasHighEnergy = vibes.has('High Energy') || vibes.has('Fast Paced');
+  const hasStructured = vibes.has('Structured') || vibes.has('Focused') || vibes.has('Rigorous');
+  const hasWarm = vibes.has('Warm') || vibes.has('Encouraging');
+  const hasChill = vibes.has('Chill') || vibes.has('Conversational');
+  const hasCreative = vibes.has('Creative') || vibes.has('Free Flowing');
+  const hasChallenging = vibes.has('Challenging') || vibes.has('Rigorous');
 
   // Priority checks — most specific first
-  if (vibes.has('High-Energy & Fast-Paced')) {
+  if (hasHighEnergy) {
     return {
       name: 'The Energetic Motivator',
       traits: { energy: 'high', style: teachingStyle, approach: feedbackApproach, strengths: ['engagement', 'motivation', 'enthusiasm'] },
     };
   }
-  if (teachingStyle === 'direct' && feedbackApproach === 'detailed' && vibes.has('Challenging & Rigorous')) {
+  if (teachingStyle === 'direct' && feedbackApproach === 'detailed' && hasChallenging) {
     return {
       name: 'The Precision Expert',
       traits: { energy: 'focused', style: 'direct', approach: 'detailed', strengths: ['rigor', 'precision', 'thoroughness'] },
     };
   }
-  if ((teachingStyle === 'experiential' || teachingStyle === 'collaborative') && vibes.has('Creative & Unpredictable') && feedbackApproach === 'growth') {
+  if ((teachingStyle === 'experiential' || teachingStyle === 'collaborative') && hasCreative && feedbackApproach === 'growth') {
     return {
       name: 'The Adaptive Innovator',
       traits: { energy: 'creative', style: teachingStyle, approach: 'growth', strengths: ['innovation', 'adaptability', 'creativity'] },
     };
   }
-  if (teachingStyle === 'experiential' && vibes.has('Creative & Unpredictable')) {
+  if (teachingStyle === 'experiential' && hasCreative) {
     return {
       name: 'The Creative Explorer',
       traits: { energy: 'creative', style: 'experiential', approach: feedbackApproach, strengths: ['creativity', 'real-world', 'exploration'] },
     };
   }
-  if (teachingStyle === 'direct' && vibes.has('Structured & Focused')) {
+  if (teachingStyle === 'direct' && hasStructured) {
     return {
       name: 'The Structured Guide',
       traits: { energy: 'steady', style: 'direct', approach: feedbackApproach, strengths: ['clarity', 'organization', 'consistency'] },
     };
   }
-  if (teachingStyle === 'collaborative' && vibes.has('Warm & Encouraging')) {
+  if (teachingStyle === 'collaborative' && hasWarm) {
     return {
       name: 'The Collaborative Coach',
       traits: { energy: 'warm', style: 'collaborative', approach: feedbackApproach, strengths: ['teamwork', 'support', 'community'] },
     };
   }
-  if ((teachingStyle === 'inquiry' || teachingStyle === 'collaborative') && vibes.has('Chill & Conversational')) {
+  if ((teachingStyle === 'inquiry' || teachingStyle === 'collaborative') && hasChill) {
     return {
       name: 'The Calm Mentor',
       traits: { energy: 'calm', style: teachingStyle, approach: feedbackApproach, strengths: ['patience', 'reflection', 'depth'] },
@@ -276,8 +294,8 @@ export default function TeacherOnboardingPage() {
   const canAdvance = (): boolean => {
     switch (screen) {
       case 0: return true;
-      case 1: return !!answers.teachingStyle;
-      case 2: return answers.classroomVibe.length === 2;
+      case 1: return answers.teachingStyle.length > 10;
+      case 2: return answers.classroomVibe.length >= 4;
       case 3: return !!answers.feedbackApproach;
       case 4: return answers.assistantPriorities.length === 3;
       case 5: return !!answers.mistakeResponse;
@@ -341,21 +359,13 @@ export default function TeacherOnboardingPage() {
         {/* Act 1: The Hook */}
         {screen === 0 && <HookScreen onBegin={goNext} />}
 
-        {/* Act 2a: Teaching Style */}
+        {/* Act 2a: Teaching Style — Free Text */}
         {screen === 1 && (
-          <SelectionScreen
-            title="When introducing a brand-new concept, you're most likely to:"
-            actLabel="Your Teaching DNA"
-            options={[
-              { key: 'direct', icon: <ListChecks size={28} weight="fill" className="text-teal" />, label: 'Explain step by step, then practice together' },
-              { key: 'inquiry', icon: <Question size={28} weight="fill" className="text-teal" />, label: 'Ask a thought-provoking question and let students wrestle with it' },
-              { key: 'collaborative', icon: <UsersThree size={28} weight="fill" className="text-teal" />, label: 'Have students explore in groups and discover the pattern' },
-              { key: 'experiential', icon: <GlobeHemisphereWest size={28} weight="fill" className="text-teal" />, label: 'Give them a real-world problem that requires the concept' },
-            ]}
-            selected={answers.teachingStyle}
-            onSelect={(key) => setAnswers(a => ({ ...a, teachingStyle: key }))}
+          <FreeTextScreen
+            value={answers.teachingStyle}
+            onChange={(v) => setAnswers(a => ({ ...a, teachingStyle: v }))}
             onNext={goNext}
-            canAdvance={!!answers.teachingStyle}
+            canAdvance={answers.teachingStyle.length > 10}
           />
         )}
 
@@ -369,12 +379,12 @@ export default function TeacherOnboardingPage() {
                 if (current.includes(vibe)) {
                   return { ...a, classroomVibe: current.filter(v => v !== vibe) };
                 }
-                if (current.length >= 2) return a;
+                if (current.length >= 6) return a;
                 return { ...a, classroomVibe: [...current, vibe] };
               });
             }}
             onNext={goNext}
-            canAdvance={answers.classroomVibe.length === 2}
+            canAdvance={answers.classroomVibe.length >= 4}
           />
         )}
 
@@ -462,7 +472,7 @@ export default function TeacherOnboardingPage() {
             archetype={archetype}
             answers={answers}
             revealed={revealed}
-            onContinue={() => router.push('/teacher/dashboard')}
+            onContinue={() => router.push('/teacher/welcome')}
           />
         )}
       </div>
@@ -541,15 +551,15 @@ function HookScreen({ onBegin }: { onBegin: () => void }) {
           Meet Your Teaching Twin
         </h1>
         <p className="text-text-secondary text-lg md:text-xl mb-12 leading-relaxed max-w-xl mx-auto">
-          In the next few minutes, we&apos;ll learn how you teach, think, and connect with students — then build an AI assistant that does it your way.
+          Let&apos;s start building your teaching twin. This short conversation helps us understand how you teach, think, and connect with students so your AI assistant can match your style. The more you share, the better it learns.
         </p>
       </div>
 
       <div className="grid gap-6 mb-12 max-w-md mx-auto">
         {[
-          { icon: <Brain size={28} weight="fill" className="text-teal" />, text: 'Research-based questions capture your teaching DNA' },
-          { icon: <UsersFour size={28} weight="fill" className="text-teal" />, text: 'We build a digital twin that thinks like you' },
-          { icon: <RocketLaunch size={28} weight="fill" className="text-teal" />, text: 'Your twin helps every student, the way YOU would' },
+          { icon: <Brain size={28} weight="fill" className="text-teal" />, text: 'A few questions capture your unique teaching DNA' },
+          { icon: <UsersFour size={28} weight="fill" className="text-teal" />, text: 'We build a digital twin that teaches like you' },
+          { icon: <RocketLaunch size={28} weight="fill" className="text-teal" />, text: 'Your twin helps every student, exactly the way you would' },
         ].map((item, i) => (
           <div
             key={i}
@@ -572,6 +582,52 @@ function HookScreen({ onBegin }: { onBegin: () => void }) {
         Let&apos;s Begin
         <ArrowRight size={20} weight="bold" />
       </button>
+    </div>
+  );
+}
+
+function FreeTextScreen({
+  value,
+  onChange,
+  onNext,
+  canAdvance,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onNext: () => void;
+  canAdvance: boolean;
+}) {
+  return (
+    <div className="max-w-2xl mx-auto w-full">
+      <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Teaching DNA</p>
+      <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-8 onb-fade-up" style={{ animationDelay: '0.05s' }}>
+        Tell us about yourself &mdash; what do you teach, what grade level, and how would you describe your teaching approach?
+      </h2>
+
+      <div className="onb-card-in" style={{ animationDelay: '0.15s' }}>
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="e.g., I teach 7th grade math. I like to use real-world examples and hands-on activities to help students discover concepts on their own..."
+          className="w-full p-5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none font-body text-base leading-relaxed"
+          rows={6}
+        />
+      </div>
+
+      <div className="mt-8 flex justify-end onb-fade-up" style={{ animationDelay: '0.3s' }}>
+        <button
+          onClick={onNext}
+          disabled={!canAdvance}
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
+            canAdvance
+              ? 'bg-teal text-white hover:bg-teal/90 shadow-md hover:shadow-lg'
+              : 'bg-border text-text-muted cursor-not-allowed'
+          }`}
+        >
+          Continue
+          <ArrowRight size={18} weight="bold" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -639,12 +695,18 @@ function SelectionScreen({
 }
 
 const VIBE_OPTIONS = [
-  'Structured & Focused',
-  'Warm & Encouraging',
-  'High-Energy & Fast-Paced',
-  'Chill & Conversational',
-  'Challenging & Rigorous',
-  'Creative & Unpredictable',
+  'Structured',
+  'Focused',
+  'Warm',
+  'Encouraging',
+  'High Energy',
+  'Fast Paced',
+  'Chill',
+  'Conversational',
+  'Challenging',
+  'Rigorous',
+  'Creative',
+  'Free Flowing',
 ];
 
 function VibeScreen({
@@ -662,10 +724,10 @@ function VibeScreen({
     <div className="max-w-2xl mx-auto w-full">
       <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Teaching DNA</p>
       <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-2 onb-fade-up" style={{ animationDelay: '0.05s' }}>
-        Pick the TWO words that best describe your classroom:
+        Pick the words that best describe your classroom:
       </h2>
       <p className="text-text-muted text-sm mb-8 onb-fade-up" style={{ animationDelay: '0.1s' }}>
-        {selected.length}/2 selected
+        {selected.length}/6 selected (pick at least 4)
       </p>
 
       <div className="flex flex-wrap gap-3 mb-6">
@@ -678,7 +740,7 @@ function VibeScreen({
               className={`px-5 py-3 rounded-full font-medium text-sm transition-all cursor-pointer border-2 onb-card-in ${
                 isSelected
                   ? 'border-teal bg-teal/10 text-teal shadow-sm'
-                  : selected.length >= 2
+                  : selected.length >= 6
                   ? 'border-border bg-card-bg/20 text-text-muted cursor-not-allowed opacity-50'
                   : 'border-border bg-card-bg/30 text-text-primary hover:border-teal/40'
               }`}
@@ -688,12 +750,6 @@ function VibeScreen({
             </button>
           );
         })}
-      </div>
-
-      <div className="p-4 rounded-xl bg-teal/5 border border-teal/20 mb-8 onb-fade-up" style={{ animationDelay: '0.4s' }}>
-        <p className="text-text-secondary text-sm leading-relaxed">
-          <span className="font-semibold text-teal">Why this matters:</span> Your AI twin matches your energy. A calm teacher&apos;s twin won&apos;t suddenly start giving pep rallies.
-        </p>
       </div>
 
       <div className="flex justify-end onb-fade-up" style={{ animationDelay: '0.5s' }}>
@@ -849,7 +905,7 @@ function WritingScreen({
       </div>
 
       <div className="mt-6 p-3 rounded-lg bg-teal/5 border border-teal/20 onb-fade-up" style={{ animationDelay: '0.35s' }}>
-        <p className="text-text-secondary text-sm text-center">Your Teaching Twin will learn to communicate like you do.</p>
+        <p className="text-text-secondary text-sm text-center">The more detail you share here, the better your twin will understand how you respond and interact with students and parents.</p>
       </div>
 
       <div className="mt-8 flex justify-end onb-fade-up" style={{ animationDelay: '0.45s' }}>
@@ -954,8 +1010,9 @@ function RevealScreen({
   onContinue: () => void;
 }) {
   const traits = archetype.traits as { strengths?: string[]; style?: string; approach?: string };
+  const parsedStyle = parseStyleFromText(answers.teachingStyle);
   const subtitle = [
-    getStyleLabel(answers.teachingStyle),
+    getStyleLabel(parsedStyle),
     getFeedbackLabel(answers.feedbackApproach),
     'Student-first',
   ].join(' · ');
@@ -976,7 +1033,7 @@ function RevealScreen({
       {/* Profile grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {[
-          { label: 'Teaching Style', value: getStyleLabel(answers.teachingStyle) },
+          { label: 'Teaching Style', value: getStyleLabel(parsedStyle) },
           { label: 'Classroom Vibe', value: answers.classroomVibe.join(', ') },
           { label: 'Feedback Approach', value: getFeedbackLabel(answers.feedbackApproach) },
           { label: 'Top Priority', value: getPriorityLabel(answers.assistantPriorities[0]) },
@@ -1015,7 +1072,7 @@ function RevealScreen({
           </div>
           <div className="flex justify-start">
             <div className="max-w-sm px-4 py-3 rounded-2xl rounded-bl-md bg-teal/10 text-text-primary text-sm border border-teal/20">
-              {getSampleResponse(answers.teachingStyle)}
+              {getSampleResponse(parsedStyle)}
             </div>
           </div>
         </div>
@@ -1027,7 +1084,7 @@ function RevealScreen({
           onClick={onContinue}
           className="inline-flex items-center gap-2 px-8 py-4 bg-teal text-white font-heading font-semibold text-lg rounded-full hover:bg-teal/90 transition-all cursor-pointer shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
         >
-          Continue to Dashboard
+          Continue
           <ArrowRight size={20} weight="bold" />
         </button>
       </div>
