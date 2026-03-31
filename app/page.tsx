@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ScrollReveal from '@/components/shared/ScrollReveal';
 import MarketingNav from '@/components/shared/MarketingNav';
-import WaitlistForm from '@/app/_components/WaitlistForm';
+
 
 export const metadata: Metadata = {
   title: 'Teaching Labs — AI-Powered Teaching Platform for K-12',
@@ -156,12 +156,10 @@ export default function HomePage() {
           </div>
 
           {/* Headline */}
-          <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.05] text-text-primary mb-6"
+          <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary dark:text-white mb-6"
             style={{ fontSize: 'clamp(52px, 8vw, 88px)' }}>
-            <span className="hero-word hero-word-0 mr-3">Your</span>
-            <span className="hero-word hero-word-1 mr-3">Teaching</span>
-            <span className="hero-word hero-word-2 mr-3">Power,</span>
-            <span className="hero-word hero-word-3"
+            <span className="block">Your Teaching Power,</span>
+            <span className="block pb-1"
               style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Multiplied
             </span>
@@ -172,26 +170,21 @@ export default function HomePage() {
             Not another edtech tool. A teaching assistant built from your expertise.
           </p>
 
-          {/* Buttons — matching v4: gold primary + teal outline */}
+          {/* Buttons — matching v4: outline styles with 4px borders */}
           <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8 max-sm:flex-col max-sm:items-center">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-white px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300 max-sm:w-full max-sm:justify-center"
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300 max-sm:w-full max-sm:justify-center"
             >
               Join the Waitlist
             </Link>
             <Link
               href="/how-it-works"
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-teal dark:text-white px-10 py-4 rounded-full border-2 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300 max-sm:w-full max-sm:justify-center"
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-coral dark:border-teal dark:shadow-[0_0_20px_rgba(0,246,237,0.15)] hover:bg-coral dark:hover:bg-teal hover:text-white dark:hover:text-deep-navy hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(86,31,55,0.3)] dark:hover:shadow-[0_6px_28px_rgba(0,246,237,0.35)] transition-all duration-300 max-sm:w-full max-sm:justify-center"
             >
               See How It Works
             </Link>
           </div>
-
-          {/* Footnote */}
-          <p className="hero-footnote-anim font-heading text-[13px] text-text-muted">
-            Trusted by 2,500+ educators on the waitlist
-          </p>
         </div>
       </section>
 
@@ -368,12 +361,17 @@ export default function HomePage() {
             </div>
             <h2 className="font-heading font-extrabold tracking-[-1.5px] text-white mb-5 leading-[1.15]"
               style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
-              Join 2,500+ Teachers Already on the Waitlist
+              Join the Waitlist
             </h2>
             <p className="text-lg leading-[1.7] text-white/65 mb-10 max-w-[600px] mx-auto">
               Be among the first to bring Teaching Labs into your classroom. No credit card. No commitment. Just better teaching.
             </p>
-            <WaitlistForm variant="cta" />
+            <Link
+              href="/waitlist"
+              className="inline-flex justify-center items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300 shadow-[0_4px_20px_rgba(64,86,244,0.3)]"
+            >
+              Join the Waitlist
+            </Link>
           </div>
         </section>
 
