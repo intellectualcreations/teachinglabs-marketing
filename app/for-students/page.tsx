@@ -104,25 +104,18 @@ export default function ForStudentsPage() {
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase text-coral mb-6">
+          <div className="inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase text-teal mb-6">
             <span className="w-2 h-2 rounded-full bg-gold flex-shrink-0" />
             For Students
           </div>
 
-          {/* Headline — matches v4 HTML exactly:
-              Desktop: clamp(42px, 7vw, 76px), letter-spacing -2px
-              Mobile (<900px): clamp(36px, 8vw, 52px), letter-spacing -1px
-              Each word inline-block so "Moving Forward." stays together */}
+          {/* Headline */}
           <h1
             className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms] text-[clamp(36px,8vw,52px)] tracking-[-1px] min-[900px]:text-[clamp(42px,7vw,76px)] min-[900px]:tracking-[-2px]"
           >
-            <span className="inline-block">Every </span>
-            <span className="inline-block">Student </span>
-            <span className="inline-block">Supported. </span>
-            <span className="inline-block">Every </span>
-            <span className="inline-block">Student </span>
+            Every Student Supported. Every Student{' '}
             <span
-              className="inline-block pb-2"
+              className="pb-2 whitespace-nowrap"
               style={{
                 background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
