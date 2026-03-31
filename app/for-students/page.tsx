@@ -105,7 +105,7 @@ export default function ForStudentsPage() {
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase text-teal mb-6">
+          <div className="inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase text-coral mb-6">
             <span className="w-2 h-2 rounded-full bg-gold flex-shrink-0" />
             For Students
           </div>
@@ -113,7 +113,7 @@ export default function ForStudentsPage() {
           {/* Headline */}
           <h1
             className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms]"
-            style={{ fontSize: 'clamp(42px, 7vw, 76px)', letterSpacing: '-2px' }}
+            style={{ fontSize: 'clamp(52px, 8vw, 88px)', letterSpacing: '-2px' }}
           >
             Every Student Supported. Every Student{' '}
             <span
