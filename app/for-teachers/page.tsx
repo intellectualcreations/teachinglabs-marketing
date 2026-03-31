@@ -141,21 +141,15 @@ export default function ForTeachersPage() {
             For Teachers
           </div>
 
-          {/* Headline — word-by-word reveal */}
+          {/* Headline — matching v4 3-line layout */}
           <h1
-            className="font-heading font-extrabold tracking-[-2px] leading-[1.05] text-text-primary mb-6"
+            className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary dark:text-white mb-6"
             style={{ fontSize: 'clamp(42px, 7vw, 76px)' }}
           >
-            <span className="hero-word hero-word-0 mr-3">Support</span>
-            <span className="hero-word hero-word-1 mr-3">for</span>
-            <span className="hero-word hero-word-2 mr-3">the</span>
-            <span className="hero-word hero-word-3 mr-3">Moments</span>
-            <span className="hero-word hero-word-4 mr-3">Teachers</span>
-            <span className="hero-word hero-word-5 mr-3">Face</span>{' '}
-            <span
-              className="hero-word bg-gradient-to-br from-teal to-gold bg-clip-text text-transparent"
-              style={{ animationDelay: '1.2s' }}
-            >
+            <span className="block">Support for the Moments</span>
+            <span className="block">Teachers Face</span>
+            <span className="block pb-1"
+              style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Every Day
             </span>
           </h1>
@@ -166,11 +160,11 @@ export default function ForTeachersPage() {
             So every student keeps learning, even when you&apos;re helping someone else.
           </p>
 
-          {/* CTA — single primary button matching v4 */}
+          {/* CTA — outline primary button matching v4 */}
           <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-white px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300"
             >
               Join the Waitlist
             </Link>
