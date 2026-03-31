@@ -103,18 +103,14 @@ export default function ForStudentsPage() {
             For Students
           </div>
 
-          {/* Headline */}
+          {/* Headline — matching v4 3-line layout */}
           <h1
-            className="font-heading font-extrabold leading-[1.05] text-text-primary mb-6"
+            className="font-heading font-extrabold leading-[1.15] text-text-primary dark:text-white mb-6"
             style={{ fontSize: 'clamp(42px, 7vw, 76px)', letterSpacing: '-2px' }}
           >
-            <span className="hero-word hero-word-0">Every </span>
-            <span className="hero-word hero-word-1">Student </span>
-            <span className="hero-word hero-word-2">Supported. </span>
-            <span className="hero-word hero-word-3">Every </span>
-            <span className="hero-word hero-word-4">Student </span>
-            <span
-              className="hero-word hero-word-5"
+            <span className="block">Every Student Supported.</span>
+            <span className="block">Every Student</span>
+            <span className="block pb-1"
               style={{
                 background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
@@ -144,14 +140,14 @@ export default function ForStudentsPage() {
             Your teaching. Extended to every student.
           </p>
 
-          {/* CTA button — single gold primary button matching v4 */}
+          {/* CTA button — outline primary button matching v4 */}
           <div
             className="hero-buttons-anim flex gap-4 justify-center flex-wrap"
             style={{ animationDelay: '1.8s' }}
           >
             <Link
-              href="/see-the-difference"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-white px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
+              href="/waitlist"
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300"
             >
               See How It Works
             </Link>
