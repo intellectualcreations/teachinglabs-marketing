@@ -289,7 +289,7 @@ export default function SeeTheDifferencePage() {
             </p>
             <Link
               href="/join-waitlist"
-              className="inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-white border-4 border-gold hover:bg-gold px-12 py-4 rounded-full animate-[gentlePulse_2.5s_ease-in-out_infinite] hover:-translate-y-0.5 transition-transform duration-300"
+              className="inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-white border-2 border-gold hover:bg-gold px-12 py-4 rounded-full animate-[gentlePulse_2.5s_ease-in-out_infinite] hover:-translate-y-0.5 transition-transform duration-300"
             >
               Get Early Access
             </Link>

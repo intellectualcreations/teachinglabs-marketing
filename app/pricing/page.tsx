@@ -75,7 +75,7 @@ export default function PricingPage() {
             </ul>
             <Link
               href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="inline-block px-7 py-3 rounded-full font-heading text-sm font-bold bg-transparent text-deep-navy dark:text-white border-4 border-coral hover:bg-coral hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(86,31,55,0.35)] transition-all duration-300"
+              className="inline-block px-7 py-3 rounded-full font-heading text-sm font-bold bg-transparent text-deep-navy dark:text-white border-2 border-coral hover:bg-coral hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(86,31,55,0.35)] transition-all duration-300"
             >
               Get Started Free
             </Link>
@@ -113,7 +113,7 @@ export default function PricingPage() {
             </ul>
             <Link
               href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="inline-block px-7 py-3 rounded-full font-heading text-sm font-bold bg-transparent text-white border-4 border-gold hover:bg-gold hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)] transition-all duration-300"
+              className="inline-block px-7 py-3 rounded-full font-heading text-sm font-bold bg-transparent text-white border-2 border-gold hover:bg-gold hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)] transition-all duration-300"
             >
               Join Waitlist
             </Link>
@@ -145,7 +145,7 @@ export default function PricingPage() {
             </ul>
             <Link
               href="/contact"
-              className="inline-block px-7 py-3 rounded-full font-heading text-sm font-bold bg-transparent text-deep-navy dark:text-teal border-4 border-coral dark:border-teal hover:bg-coral dark:hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
+              className="inline-block px-7 py-3 rounded-full font-heading text-sm font-bold bg-transparent text-deep-navy dark:text-teal border-2 border-coral dark:border-teal hover:bg-coral dark:hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
             >
               Contact Us
             </Link>
@@ -177,7 +177,7 @@ export default function PricingPage() {
             </ul>
             <Link
               href="/contact"
-              className="inline-block px-7 py-3 rounded-full font-heading text-sm font-bold bg-transparent text-deep-navy dark:text-teal border-4 border-coral dark:border-teal hover:bg-coral dark:hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
+              className="inline-block px-7 py-3 rounded-full font-heading text-sm font-bold bg-transparent text-deep-navy dark:text-teal border-2 border-coral dark:border-teal hover:bg-coral dark:hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all duration-300"
             >
               Contact Us
             </Link>
@@ -234,7 +234,7 @@ export default function PricingPage() {
           </p>
           <Link
             href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-            className="inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-white border-4 border-gold hover:bg-gold px-12 py-4 rounded-full animate-[gentlePulse_2.5s_ease-in-out_infinite] hover:-translate-y-0.5 transition-transform duration-300"
+            className="inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-white border-2 border-gold hover:bg-gold px-12 py-4 rounded-full animate-[gentlePulse_2.5s_ease-in-out_infinite] hover:-translate-y-0.5 transition-transform duration-300"
           >
             Join Waitlist
           </Link>

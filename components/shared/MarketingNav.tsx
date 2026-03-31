@@ -107,7 +107,7 @@ export default function MarketingNav() {
           <div className="hidden lg:flex items-center gap-4">
             <Link
               href="/waitlist"
-              className="font-heading text-sm font-semibold bg-transparent text-deep-navy dark:text-white px-6 py-2.5 rounded-full border-3 border-gold hover:bg-gold hover:text-white hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)] transition-all duration-200"
+              className="font-heading text-sm font-semibold bg-transparent text-deep-navy dark:text-white px-6 py-2.5 rounded-full border-2 border-gold hover:bg-gold hover:text-white hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)] transition-all duration-200"
             >
               Join Waitlist
             </Link>
