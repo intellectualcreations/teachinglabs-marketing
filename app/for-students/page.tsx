@@ -114,9 +114,9 @@ export default function ForStudentsPage() {
             className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms]"
             style={{ fontSize: 'clamp(42px, 7vw, 76px)', letterSpacing: '-2px' }}
           >
-            Every Student Supported. Every Student
+            Every Student Supported. Every Student{' '}
             <span
-              className="pb-2 whitespace-nowrap"
+              className="pb-2"
               style={{
                 background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
