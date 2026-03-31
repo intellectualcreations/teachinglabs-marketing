@@ -112,11 +112,11 @@ export default function ForStudentsPage() {
           {/* Headline */}
           <h1
             className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms]"
-            style={{ fontSize: 'clamp(52px, 8vw, 88px)', letterSpacing: '-2px' }}
+            style={{ fontSize: 'clamp(42px, 7vw, 76px)', letterSpacing: '-2px' }}
           >
-            Every Student Supported. Every Student<br />
+            Every Student Supported. Every Student
             <span
-              className="pb-2"
+              className="pb-2 whitespace-nowrap"
               style={{
                 background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
@@ -144,7 +144,7 @@ export default function ForStudentsPage() {
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-2 border-gold hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
             >
               See How It Works
             </Link>
