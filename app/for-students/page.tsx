@@ -90,16 +90,15 @@ export default function ForStudentsPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div
             className="absolute rounded-full top-[10%] left-[15%] w-[500px] h-[500px] max-md:w-[300px] max-md:h-[300px]"
-            style={{ background: '#00F6ED', filter: 'blur(80px)', opacity: 0.08 }}
+            style={{ background: '#00F6ED', filter: 'blur(80px)', opacity: 0.15 }}
           />
           <div
             className="absolute rounded-full top-[30%] right-[10%] w-[450px] h-[450px] max-md:w-[280px] max-md:h-[280px]"
-            style={{ background: '#4056F4', filter: 'blur(80px)', opacity: 0.10 }}
+            style={{ background: '#4056F4', filter: 'blur(80px)', opacity: 0.15 }}
           />
-          {/* Coral blob — dark mode only in v4, but present in DOM */}
           <div
-            className="absolute rounded-full top-[40%] left-[40%] w-[350px] h-[350px] opacity-0 dark:opacity-[0.06] max-md:hidden"
-            style={{ background: '#561F37', filter: 'blur(80px)' }}
+            className="absolute rounded-full top-[50%] left-[30%] w-[350px] h-[350px] max-md:hidden"
+            style={{ background: '#561F37', filter: 'blur(100px)', opacity: 0.08 }}
           />
         </div>
 
@@ -115,7 +114,7 @@ export default function ForStudentsPage() {
             className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms]"
             style={{ fontSize: 'clamp(52px, 8vw, 88px)', letterSpacing: '-2px' }}
           >
-            Every Student Supported. Every Student{' '}
+            Every Student Supported. Every Student<br />
             <span
               className="pb-2"
               style={{
@@ -352,7 +351,7 @@ export default function ForStudentsPage() {
             </p>
             <Link
               href="/contact"
-              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-white border-2 border-gold hover:bg-gold px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
+              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
             >
               Get Early Access
             </Link>
@@ -364,7 +363,7 @@ export default function ForStudentsPage() {
       {/* ── FOOTER ── */}
       <footer
         style={{
-          background: 'linear-gradient(180deg, var(--color-deep-navy) 0%, #1a2a45 100%)',
+          background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)',
           borderTop: '1px solid rgba(64,86,244,0.2)',
         }}
       >
