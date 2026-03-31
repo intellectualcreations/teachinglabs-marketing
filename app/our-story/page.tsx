@@ -59,10 +59,10 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function IconSignal() {
   return (
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <path d="M24,8 A16,16 0 0 1 40,24" stroke="var(--teal,#4FA3A5)" strokeWidth="2" strokeLinecap="round" />
-      <path d="M24,13 A11,11 0 0 1 35,24" stroke="var(--teal,#4FA3A5)" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
-      <path d="M24,18 A6,6 0 0 1 30,24" stroke="var(--teal,#4FA3A5)" strokeWidth="1.4" strokeLinecap="round" opacity="0.35" />
-      <circle cx="24" cy="24" r="3.5" fill="var(--teal,#4FA3A5)" />
+      <path d="M24,8 A16,16 0 0 1 40,24" stroke="var(--teal,#00F6ED)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M24,13 A11,11 0 0 1 35,24" stroke="var(--teal,#00F6ED)" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+      <path d="M24,18 A6,6 0 0 1 30,24" stroke="var(--teal,#00F6ED)" strokeWidth="1.4" strokeLinecap="round" opacity="0.35" />
+      <circle cx="24" cy="24" r="3.5" fill="var(--teal,#00F6ED)" />
     </svg>
   );
 }
@@ -73,15 +73,15 @@ function IconOrbit() {
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
       <ellipse
         cx="24" cy="24" rx="19" ry="8"
-        stroke="var(--teal,#4FA3A5)" strokeWidth="2"
+        stroke="var(--teal,#00F6ED)" strokeWidth="2"
         transform="rotate(35 24 24)" opacity="0.85"
       />
       <ellipse
         cx="24" cy="24" rx="19" ry="8"
-        stroke="var(--teal,#4FA3A5)" strokeWidth="1.4"
+        stroke="var(--teal,#00F6ED)" strokeWidth="1.4"
         transform="rotate(-35 24 24)" opacity="0.4"
       />
-      <circle cx="24" cy="24" r="3.5" fill="var(--teal,#4FA3A5)" />
+      <circle cx="24" cy="24" r="3.5" fill="var(--teal,#00F6ED)" />
     </svg>
   );
 }
@@ -90,15 +90,15 @@ function IconOrbit() {
 function IconNetwork() {
   return (
     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <circle cx="24" cy="24" r="4" fill="var(--teal,#4FA3A5)" />
-      <circle cx="24" cy="10" r="2.5" fill="var(--teal,#4FA3A5)" opacity="0.5" />
-      <circle cx="24" cy="38" r="2.5" fill="var(--teal,#4FA3A5)" opacity="0.5" />
-      <circle cx="10" cy="24" r="2.5" fill="var(--teal,#4FA3A5)" opacity="0.5" />
-      <circle cx="38" cy="24" r="2.5" fill="var(--teal,#4FA3A5)" opacity="0.5" />
-      <circle cx="14.4" cy="14.4" r="2" fill="var(--teal,#4FA3A5)" opacity="0.28" />
-      <circle cx="33.6" cy="33.6" r="2" fill="var(--teal,#4FA3A5)" opacity="0.28" />
-      <circle cx="14.4" cy="33.6" r="2" fill="var(--teal,#4FA3A5)" opacity="0.28" />
-      <circle cx="33.6" cy="14.4" r="2" fill="var(--teal,#4FA3A5)" opacity="0.28" />
+      <circle cx="24" cy="24" r="4" fill="var(--teal,#00F6ED)" />
+      <circle cx="24" cy="10" r="2.5" fill="var(--teal,#00F6ED)" opacity="0.5" />
+      <circle cx="24" cy="38" r="2.5" fill="var(--teal,#00F6ED)" opacity="0.5" />
+      <circle cx="10" cy="24" r="2.5" fill="var(--teal,#00F6ED)" opacity="0.5" />
+      <circle cx="38" cy="24" r="2.5" fill="var(--teal,#00F6ED)" opacity="0.5" />
+      <circle cx="14.4" cy="14.4" r="2" fill="var(--teal,#00F6ED)" opacity="0.28" />
+      <circle cx="33.6" cy="33.6" r="2" fill="var(--teal,#00F6ED)" opacity="0.28" />
+      <circle cx="14.4" cy="33.6" r="2" fill="var(--teal,#00F6ED)" opacity="0.28" />
+      <circle cx="33.6" cy="14.4" r="2" fill="var(--teal,#00F6ED)" opacity="0.28" />
     </svg>
   );
 }
@@ -121,7 +121,7 @@ export default function OurStoryPage() {
           <div
             className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px]"
             style={{
-              background: '#4FA3A5',
+              background: '#00F6ED',
               filter: 'blur(80px)',
               opacity: 'var(--blob-teal-opacity, 0.08)',
             }}
@@ -129,7 +129,7 @@ export default function OurStoryPage() {
           <div
             className="absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px]"
             style={{
-              background: '#F0C95D',
+              background: '#4056F4',
               filter: 'blur(80px)',
               opacity: 'var(--blob-gold-opacity, 0.10)',
             }}
@@ -180,7 +180,7 @@ export default function OurStoryPage() {
             <span
               className="inline-block mr-[0.25em]"
               style={{
-                background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
+                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -227,7 +227,7 @@ export default function OurStoryPage() {
           >
             <Link
               href="/see-the-difference"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-text-primary px-10 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-white transition-all duration-300"
             >
               What Is Different
             </Link>
@@ -267,8 +267,8 @@ export default function OurStoryPage() {
             50%      { transform: translateY(-6px); }
           }
           @keyframes gentlePulse {
-            0%, 100% { box-shadow: 0 4px 20px rgba(240,201,93,0.3); }
-            50%       { box-shadow: 0 4px 40px rgba(240,201,93,0.5); }
+            0%, 100% { box-shadow: 0 4px 20px rgba(64,86,244,0.3); }
+            50%       { box-shadow: 0 4px 40px rgba(64,86,244,0.5); }
           }
         `}</style>
       </section>
@@ -346,7 +346,7 @@ export default function OurStoryPage() {
 
                 {/* Pull quote */}
                 <blockquote
-                  className="font-heading font-medium italic leading-[1.4] text-text-primary border-l-4 border-[#FF6B6B] bg-[rgba(79,163,165,0.04)] rounded-xl p-6 pl-7 mb-10 tracking-[-0.5px]"
+                  className="font-heading font-medium italic leading-[1.4] text-text-primary border-l-4 border-[#FF6B6B] bg-[rgba(0,246,237,0.04)] rounded-xl p-6 pl-7 mb-10 tracking-[-0.5px]"
                   style={{ fontSize: 'clamp(22px, 2.4vw, 36px)' }}
                 >
                   &ldquo;I&apos;ve spent almost thirty years inside education technology, and the same
@@ -467,7 +467,7 @@ export default function OurStoryPage() {
         <section
           className="fade-up relative overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)',
+            background: 'linear-gradient(145deg, #0a1128 0%, #1a3a4a 50%, #1d4a52 100%)',
           }}
         >
           {/* Radial glow */}
@@ -475,7 +475,7 @@ export default function OurStoryPage() {
             className="absolute inset-0 pointer-events-none"
             aria-hidden="true"
             style={{
-              background: 'radial-gradient(ellipse at center, rgba(240,201,93,0.12) 0%, transparent 70%)',
+              background: 'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)',
             }}
           />
 
@@ -491,7 +491,7 @@ export default function OurStoryPage() {
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center font-heading text-[17px] font-bold bg-gold text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
+              className="inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
               style={{ animation: 'gentlePulse 2.5s ease-in-out infinite' }}
             >
               Get in Touch
@@ -504,8 +504,8 @@ export default function OurStoryPage() {
       {/* ── FOOTER ── */}
       <footer
         style={{
-          background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)',
-          borderTop: '1px solid rgba(240,201,93,0.2)',
+          background: 'linear-gradient(180deg, #0a1128 0%, #1a2a45 100%)',
+          borderTop: '1px solid rgba(64,86,244,0.2)',
         }}
       >
         <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
@@ -518,7 +518,7 @@ export default function OurStoryPage() {
                 AI-powered teaching platform that learns how you teach and helps every student get the
                 support they need.
               </p>
-              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(79,163,165,0.1)] px-4 py-2 rounded-full border border-[rgba(79,163,165,0.2)]">
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(0,246,237,0.2)]">
                 <IconStar />
                 FERPA &amp; COPPA Compliant
               </div>

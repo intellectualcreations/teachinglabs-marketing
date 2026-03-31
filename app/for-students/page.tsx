@@ -88,11 +88,11 @@ export default function ForStudentsPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div
             className="blob-teal absolute rounded-full top-[10%] left-[15%] w-[500px] h-[500px] max-md:w-[300px] max-md:h-[300px]"
-            style={{ background: '#4FA3A5', filter: 'blur(80px)', opacity: 0.08 }}
+            style={{ background: '#00F6ED', filter: 'blur(80px)', opacity: 0.08 }}
           />
           <div
             className="blob-gold absolute rounded-full top-[30%] right-[10%] w-[450px] h-[450px] max-md:w-[280px] max-md:h-[280px]"
-            style={{ background: '#F0C95D', filter: 'blur(80px)', opacity: 0.10 }}
+            style={{ background: '#4056F4', filter: 'blur(80px)', opacity: 0.10 }}
           />
         </div>
 
@@ -116,7 +116,7 @@ export default function ForStudentsPage() {
             <span
               className="hero-word hero-word-5"
               style={{
-                background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
+                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -151,7 +151,7 @@ export default function ForStudentsPage() {
           >
             <Link
               href="/see-the-difference"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-white px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
             >
               See How It Works
             </Link>
@@ -297,7 +297,7 @@ export default function ForStudentsPage() {
                   <div
                     className="font-heading text-[40px] font-extrabold mb-3 leading-tight"
                     style={{
-                      background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
+                      background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
@@ -322,7 +322,7 @@ export default function ForStudentsPage() {
         <section
           className="fade-up relative overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)',
+            background: 'linear-gradient(145deg, var(--color-deep-navy) 0%, #1a3a4a 50%, #1d4a52 100%)',
           }}
         >
           {/* Radial glow */}
@@ -331,7 +331,7 @@ export default function ForStudentsPage() {
             aria-hidden="true"
             style={{
               background:
-                'radial-gradient(ellipse at center, rgba(240,201,93,0.12) 0%, transparent 70%)',
+                'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)',
             }}
           />
 
@@ -357,7 +357,7 @@ export default function ForStudentsPage() {
             </p>
             <Link
               href="/contact"
-              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
+              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
             >
               Get Early Access
             </Link>
@@ -369,8 +369,8 @@ export default function ForStudentsPage() {
       {/* ── FOOTER ── */}
       <footer
         style={{
-          background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)',
-          borderTop: '1px solid rgba(240,201,93,0.2)',
+          background: 'linear-gradient(180deg, var(--color-deep-navy) 0%, #1a2a45 100%)',
+          borderTop: '1px solid rgba(64,86,244,0.2)',
         }}
       >
         <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
@@ -386,7 +386,7 @@ export default function ForStudentsPage() {
                 AI-powered teaching platform that learns how you teach and helps every student get
                 the support they need.
               </p>
-              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(79,163,165,0.1)] px-4 py-2 rounded-full border border-[rgba(79,163,165,0.2)]">
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(0,246,237,0.2)]">
                 <IconStar />
                 FERPA &amp; COPPA Compliant
               </div>

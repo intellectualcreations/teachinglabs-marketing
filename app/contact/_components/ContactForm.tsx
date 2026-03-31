@@ -157,7 +157,7 @@ export default function ContactForm() {
           disabled={submitted}
           className="w-full mt-2 py-[15px] rounded-full font-heading text-sm font-semibold tracking-[2px] uppercase transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(79,163,165,0.35)] disabled:cursor-not-allowed"
           style={{
-            background: submitted ? '#2D9B6F' : '#4FA3A5',
+            background: submitted ? '#2D9B6F' : '#00F6ED',
             color: '#ffffff',
           }}
         >

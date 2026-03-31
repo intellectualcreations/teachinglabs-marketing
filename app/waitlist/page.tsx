@@ -334,7 +334,7 @@ export default function WaitlistPage() {
                   />
                   <button
                     type="submit"
-                    className="font-heading text-[15px] font-bold text-deep-navy dark:text-white px-6 py-3 rounded-full border-4 border-gold dark:border-teal bg-transparent hover:bg-gold dark:hover:bg-teal hover:text-white dark:hover:text-deep-navy hover:-translate-y-0.5 transition-all duration-300 whitespace-nowrap cursor-pointer"
+                    className="font-heading text-[15px] font-bold text-white dark:text-white px-6 py-3 rounded-full border-4 border-gold dark:border-teal bg-transparent hover:bg-gold dark:hover:bg-teal hover:text-white dark:hover:text-white hover:-translate-y-0.5 transition-all duration-300 whitespace-nowrap cursor-pointer"
                   >
                     Join the Waitlist →
                   </button>
@@ -393,7 +393,7 @@ export default function WaitlistPage() {
                   />
                   <button
                     type="submit"
-                    className="w-full font-heading text-[15px] font-bold text-deep-navy dark:text-white px-6 py-3.5 rounded-full border-4 border-gold dark:border-teal bg-transparent hover:bg-gold dark:hover:bg-teal hover:text-white dark:hover:text-deep-navy transition-all duration-300 cursor-pointer"
+                    className="w-full font-heading text-[15px] font-bold text-white dark:text-white px-6 py-3.5 rounded-full border-4 border-gold dark:border-teal bg-transparent hover:bg-gold dark:hover:bg-teal hover:text-white dark:hover:text-white transition-all duration-300 cursor-pointer"
                   >
                     Join the Waitlist →
                   </button>
@@ -456,7 +456,7 @@ export default function WaitlistPage() {
                 {/* Share button */}
                 <button
                   onClick={handleShare}
-                  className="font-heading text-[15px] font-bold text-deep-navy dark:text-white px-8 py-3 rounded-full border-4 border-gold dark:border-teal bg-transparent hover:bg-gold dark:hover:bg-teal hover:text-white dark:hover:text-deep-navy hover:-translate-y-0.5 transition-all duration-300 cursor-pointer success-fade-up"
+                  className="font-heading text-[15px] font-bold text-white dark:text-white px-8 py-3 rounded-full border-4 border-gold dark:border-teal bg-transparent hover:bg-gold dark:hover:bg-teal hover:text-white dark:hover:text-white hover:-translate-y-0.5 transition-all duration-300 cursor-pointer success-fade-up"
                   style={{ animationDelay: '1.7s' }}
                 >
                   Tell a colleague →

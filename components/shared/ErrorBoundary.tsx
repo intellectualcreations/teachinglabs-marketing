@@ -4,7 +4,7 @@
  * React Error Boundary with friendly fallback UI.
  * FLU-215: Production hardening
  *
- * Uses TeachingLabs theme tokens: teal (#4FA3A5), coral (#E8836B), navy (#1F3A5F).
+ * Uses TeachingLabs theme tokens: teal (#00F6ED), coral (#561F37), navy (#1a5276).
  */
 
 import React, { Component, type ReactNode } from 'react';
@@ -59,7 +59,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <div
             style={{
               backgroundColor: '#FEF2F0',
-              border: '1px solid #E8836B',
+              border: '1px solid #561F37',
               borderRadius: '14px',
               padding: '2rem',
               maxWidth: '480px',
@@ -68,7 +68,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           >
             <h2
               style={{
-                color: '#1F3A5F',
+                color: '#1a5276',
                 fontSize: '1.25rem',
                 fontWeight: 600,
                 marginTop: 0,
@@ -91,7 +91,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <button
               onClick={this.handleRetry}
               style={{
-                backgroundColor: '#4FA3A5',
+                backgroundColor: '#00F6ED',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '8px',
@@ -105,7 +105,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 ((e.target as HTMLButtonElement).style.backgroundColor = '#3F8E90')
               }
               onMouseOut={(e) =>
-                ((e.target as HTMLButtonElement).style.backgroundColor = '#4FA3A5')
+                ((e.target as HTMLButtonElement).style.backgroundColor = '#00F6ED')
               }
             >
               Try Again

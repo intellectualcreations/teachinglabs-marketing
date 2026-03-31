@@ -52,7 +52,7 @@ export default function ContactPage() {
           <div
             className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px]"
             style={{
-              background: '#4FA3A5',
+              background: '#00F6ED',
               filter: 'blur(80px)',
               opacity: 'var(--blob-teal-opacity, 0.08)',
               animation: 'blobDrift1 12s ease-in-out infinite',
@@ -61,7 +61,7 @@ export default function ContactPage() {
           <div
             className="absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px]"
             style={{
-              background: '#F0C95D',
+              background: '#4056F4',
               filter: 'blur(80px)',
               opacity: 'var(--blob-gold-opacity, 0.10)',
               animation: 'blobDrift2 14s ease-in-out infinite',
@@ -93,7 +93,7 @@ export default function ContactPage() {
             Let&apos;s Start a{' '}
             <span
               style={{
-                background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
+                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -112,7 +112,7 @@ export default function ContactPage() {
           <div className="flex gap-4 justify-center flex-wrap mb-5 max-sm:flex-col max-sm:items-center">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] hover:bg-[#f2d06e] transition-all duration-300 max-sm:w-full max-sm:justify-center"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-white px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] hover:bg-[#f2d06e] transition-all duration-300 max-sm:w-full max-sm:justify-center"
             >
               Join the Waitlist
             </Link>
@@ -141,7 +141,7 @@ export default function ContactPage() {
 
             {/* Email card */}
             <div className="card-accent flex gap-[18px] items-start p-6 rounded-[20px] mb-4 bg-card-bg shadow-[var(--card-shadow,0_2px_20px_rgba(20,33,61,0.05))] hover:-translate-y-1 hover:shadow-[var(--card-hover-shadow,0_8px_40px_rgba(20,33,61,0.10))] transition-all duration-300 relative overflow-hidden">
-              <div className="w-11 h-11 bg-[rgba(79,163,165,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
+              <div className="w-11 h-11 bg-[rgba(0,246,237,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
                 ✉️
               </div>
               <div>
@@ -159,7 +159,7 @@ export default function ContactPage() {
 
             {/* District & School Partnerships card */}
             <div className="card-accent flex gap-[18px] items-start p-6 rounded-[20px] mb-4 bg-card-bg shadow-[var(--card-shadow,0_2px_20px_rgba(20,33,61,0.05))] hover:-translate-y-1 hover:shadow-[var(--card-hover-shadow,0_8px_40px_rgba(20,33,61,0.10))] transition-all duration-300 relative overflow-hidden">
-              <div className="w-11 h-11 bg-[rgba(79,163,165,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
+              <div className="w-11 h-11 bg-[rgba(0,246,237,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
                 🏫
               </div>
               <div>
@@ -174,7 +174,7 @@ export default function ContactPage() {
 
             {/* Speaking & Press card */}
             <div className="card-accent flex gap-[18px] items-start p-6 rounded-[20px] mb-4 bg-card-bg shadow-[var(--card-shadow,0_2px_20px_rgba(20,33,61,0.05))] hover:-translate-y-1 hover:shadow-[var(--card-hover-shadow,0_8px_40px_rgba(20,33,61,0.10))] transition-all duration-300 relative overflow-hidden">
-              <div className="w-11 h-11 bg-[rgba(79,163,165,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
+              <div className="w-11 h-11 bg-[rgba(0,246,237,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
                 🎤
               </div>
               <div>
@@ -221,8 +221,8 @@ export default function ContactPage() {
       {/* ── FOOTER ── */}
       <footer
         style={{
-          background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)',
-          borderTop: '1px solid rgba(240,201,93,0.2)',
+          background: 'linear-gradient(180deg, #0a1128 0%, #1a2a45 100%)',
+          borderTop: '1px solid rgba(64,86,244,0.2)',
         }}
       >
         <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6 max-md:py-12">
@@ -234,7 +234,7 @@ export default function ContactPage() {
               <p className="text-sm leading-[1.7] text-white/55 mb-5 max-w-[280px]">
                 AI-powered teaching platform that learns how you teach and helps every student get the support they need.
               </p>
-              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(79,163,165,0.1)] px-4 py-2 rounded-full border border-[rgba(79,163,165,0.2)]">
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(0,246,237,0.2)]">
                 <IconStar />
                 FERPA &amp; COPPA Compliant
               </div>

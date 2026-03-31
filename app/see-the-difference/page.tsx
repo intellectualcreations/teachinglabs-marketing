@@ -25,11 +25,11 @@ export default function SeeTheDifferencePage() {
         <div className="pointer-events-none absolute inset-0">
           <div
             className="absolute top-[15%] left-[10%] w-[400px] h-[400px] rounded-full opacity-[var(--blob-teal-opacity,0.08)]"
-            style={{ background: '#4FA3A5', filter: 'blur(80px)' }}
+            style={{ background: '#00F6ED', filter: 'blur(80px)' }}
           />
           <div
             className="absolute bottom-[20%] right-[15%] w-[350px] h-[350px] rounded-full opacity-[var(--blob-gold-opacity,0.10)]"
-            style={{ background: '#F0C95D', filter: 'blur(80px)' }}
+            style={{ background: '#4056F4', filter: 'blur(80px)' }}
           />
           <div
             className="absolute top-[60%] left-[60%] w-[300px] h-[300px] rounded-full opacity-[0.06] max-md:hidden"
@@ -43,7 +43,7 @@ export default function SeeTheDifferencePage() {
           </p>
           <h1 className="hero-title-anim font-heading text-[clamp(40px,6vw,72px)] font-bold text-text-primary leading-[1.1] tracking-[-1px] mb-6 max-md:text-[32px]" style={{ animationDelay: '0.5s' }}>
             Every AI Can Answer a Question.{' '}
-            <span className="bg-gradient-to-r from-teal to-[#F0C95D] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-teal to-[#4056F4] bg-clip-text text-transparent">
               Only One Teaches.
             </span>
           </h1>
@@ -105,7 +105,7 @@ export default function SeeTheDifferencePage() {
                   <span className="inline-block font-heading text-sm font-bold text-teal tracking-[0.1em] uppercase">Teaching Labs</span>
                 </div>
                 <p className="font-body text-xs text-teal/60 mb-4">Teaches the student</p>
-                <div className="rounded-[16px] overflow-hidden shadow-[0_8px_40px_rgba(79,163,165,0.2)] border border-teal/20">
+                <div className="rounded-[16px] overflow-hidden shadow-[0_8px_40px_rgba(0,246,237,0.2)] border border-teal/20">
                   <Image src="/images/teachinglabspng.png" alt="Teaching Labs refuses to write the report and coaches the student through research" width={400} height={600} className="w-full object-cover" />
                 </div>
                 <p className="mt-4 font-body text-[17px] text-teal leading-[1.6]">
@@ -287,12 +287,12 @@ export default function SeeTheDifferencePage() {
         {/* ── CTA ── */}
         <section
           className="fade-up relative overflow-hidden"
-          style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}
+          style={{ background: 'linear-gradient(145deg, #0a1128 0%, #1a3a4a 50%, #1d4a52 100%)' }}
         >
           <div className="pointer-events-none absolute inset-0">
             <div
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(79,163,165,0.15) 0%, transparent 70%)' }}
+              style={{ background: 'radial-gradient(circle, rgba(0,246,237,0.15) 0%, transparent 70%)' }}
             />
           </div>
           <div className="relative max-w-[800px] mx-auto text-center px-12 py-[100px] max-md:px-6 max-md:py-[60px]">
@@ -307,7 +307,7 @@ export default function SeeTheDifferencePage() {
             </p>
             <Link
               href="/waitlist"
-              className="cta-button-pulse inline-flex items-center font-heading text-[20px] font-bold bg-gold text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
+              className="cta-button-pulse inline-flex items-center font-heading text-[20px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
             >
               Get Early Access
               <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 ml-2">

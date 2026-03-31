@@ -3,7 +3,7 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Brand Colors — Copy 13: Indigo + Cyan + Plum */
+  /* Brand Colors — Approved Indigo + Cyan + Plum */
   --color-navy: #1a5276;
   --color-deep-navy: #0a1128;
   --color-navy-mid: #1a5276;
@@ -15,8 +15,8 @@
   --color-coral-bright: #561F37;
   --color-plum: #561F37;
   --color-text-dark: #0a1128;
-  --color-text-body: #1e2d3d;
-  --color-text-muted: #4a5568;
+  --color-text-body: #334155;
+  --color-text-muted: #8896A6;
   --color-bg-secondary: #e8e6de;
   --color-bg-feature: #f0eeea;
 

@@ -62,7 +62,7 @@ export default function HowItWorksPage() {
           <div
             className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px]"
             style={{
-              background: '#4FA3A5',
+              background: '#00F6ED',
               filter: 'blur(80px)',
               opacity: 'var(--blob-teal-opacity, 0.08)',
             }}
@@ -70,7 +70,7 @@ export default function HowItWorksPage() {
           <div
             className="absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px]"
             style={{
-              background: '#F0C95D',
+              background: '#4056F4',
               filter: 'blur(80px)',
               opacity: 'var(--blob-gold-opacity, 0.10)',
             }}
@@ -100,7 +100,7 @@ export default function HowItWorksPage() {
             Meet Your{' '}
             <span
               style={{
-                background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
+                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -185,7 +185,7 @@ export default function HowItWorksPage() {
             {/* Bridge quote */}
             <blockquote
               className="border-l-4 rounded-xl p-8 pl-6 max-w-[800px] font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary max-md:text-xl max-md:p-6 max-md:pl-5"
-              style={{ borderColor: '#FF6B6B', background: 'var(--bridge-bg, rgba(79,163,165,0.04))' }}
+              style={{ borderColor: '#FF6B6B', background: 'var(--bridge-bg, rgba(0,246,237,0.04))' }}
             >
               Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every
               student.
@@ -196,7 +196,7 @@ export default function HowItWorksPage() {
         {/* ── CTA SECTION ── */}
         <section
           className="fade-up relative overflow-hidden"
-          style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}
+          style={{ background: 'linear-gradient(145deg, #0a1128 0%, #1a3a4a 50%, #1d4a52 100%)' }}
         >
           {/* Radial glow */}
           <div
@@ -204,7 +204,7 @@ export default function HowItWorksPage() {
             aria-hidden="true"
             style={{
               background:
-                'radial-gradient(ellipse at center, rgba(240,201,93,0.12) 0%, transparent 70%)',
+                'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)',
             }}
           />
 
@@ -220,7 +220,7 @@ export default function HowItWorksPage() {
             </p>
             <Link
               href="/see-the-difference"
-              className="inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-text-primary px-12 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-deep-navy transition-all duration-300"
+              className="inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-text-primary px-12 py-4 rounded-full border-4 border-gold hover:-translate-y-0.5 hover:bg-gold hover:text-white transition-all duration-300"
             >
               What Is Different
             </Link>
@@ -237,8 +237,8 @@ export default function HowItWorksPage() {
       {/* ── FOOTER ── */}
       <footer
         style={{
-          background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)',
-          borderTop: '1px solid rgba(240,201,93,0.2)',
+          background: 'linear-gradient(180deg, #0a1128 0%, #1a2a45 100%)',
+          borderTop: '1px solid rgba(64,86,244,0.2)',
         }}
       >
         <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
@@ -250,7 +250,7 @@ export default function HowItWorksPage() {
                 AI-powered teaching platform that learns how you teach and helps every student get
                 the support they need.
               </p>
-              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(79,163,165,0.1)] px-4 py-2 rounded-full border border-[rgba(79,163,165,0.2)]">
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(0,246,237,0.2)]">
                 <IconStar />
                 FERPA &amp; COPPA Compliant
               </div>

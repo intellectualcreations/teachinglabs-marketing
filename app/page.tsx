@@ -113,7 +113,7 @@ function Card({
 /* ─── Bridge quote ─── */
 function Bridge({ children }: { children: React.ReactNode }) {
   return (
-    <div className="border-l-4 border-coral bg-[rgba(79,163,165,0.04)] dark:bg-[rgba(79,163,165,0.06)] rounded-xl p-8 pl-6 max-w-3xl font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary mt-12 max-md:text-xl max-md:p-6 max-md:pl-5">
+    <div className="border-l-4 border-coral bg-[rgba(0,246,237,0.04)] dark:bg-[rgba(0,246,237,0.06)] rounded-xl p-8 pl-6 max-w-3xl font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary mt-12 max-md:text-xl max-md:p-6 max-md:pl-5">
       {children}
     </div>
   );
@@ -141,9 +141,9 @@ export default function HomePage() {
         {/* Decorative blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div className="blob-teal absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px] opacity-[0.08] dark:opacity-[0.15]"
-            style={{ background: '#4FA3A5', filter: 'blur(80px)' }} />
+            style={{ background: '#00F6ED', filter: 'blur(80px)' }} />
           <div className="blob-gold absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px] opacity-[0.10] dark:opacity-[0.12]"
-            style={{ background: '#F0C95D', filter: 'blur(80px)' }} />
+            style={{ background: '#4056F4', filter: 'blur(80px)' }} />
           <div className="absolute w-[350px] h-[350px] rounded-full top-[40%] left-[40%] opacity-0 dark:opacity-[0.06] max-md:hidden"
             style={{ background: '#FF6B6B', filter: 'blur(80px)', animation: 'blobDrift3 10s ease-in-out infinite' }} />
         </div>
@@ -162,7 +162,7 @@ export default function HomePage() {
             <span className="hero-word hero-word-1 mr-3">Teaching</span>
             <span className="hero-word hero-word-2 mr-3">Power,</span>
             <span className="hero-word hero-word-3"
-              style={{ background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Multiplied
             </span>
           </h1>
@@ -176,7 +176,7 @@ export default function HomePage() {
           <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8 max-sm:flex-col max-sm:items-center">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-deep-navy px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(240,201,93,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(240,201,93,0.45)] transition-all duration-300 max-sm:w-full max-sm:justify-center"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-white px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300 max-sm:w-full max-sm:justify-center"
             >
               Join the Waitlist
             </Link>
@@ -357,10 +357,10 @@ export default function HomePage() {
         </section>
 
         {/* ── CTA SECTION ── */}
-        <section className="relative overflow-hidden fade-up" style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}>
+        <section className="relative overflow-hidden fade-up" style={{ background: 'linear-gradient(145deg, var(--color-deep-navy) 0%, #1a3a4a 50%, #1d4a52 100%)' }}>
           {/* Radial glow */}
           <div className="absolute inset-0 pointer-events-none" aria-hidden="true"
-            style={{ background: 'radial-gradient(ellipse at center, rgba(240,201,93,0.12) 0%, transparent 70%)' }} />
+            style={{ background: 'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)' }} />
 
           <div className="relative z-10 max-w-[800px] mx-auto px-12 py-36 text-center max-md:px-6 max-md:py-20">
             <div className="font-heading text-xs font-bold tracking-[4px] uppercase text-white/50 mb-5">
@@ -380,7 +380,7 @@ export default function HomePage() {
       </main>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)', borderTop: '1px solid rgba(240,201,93,0.2)' }}>
+      <footer style={{ background: 'linear-gradient(180deg, var(--color-deep-navy) 0%, #1a2a45 100%)', borderTop: '1px solid rgba(64,86,244,0.2)' }}>
         <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
           <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-12 max-md:grid-cols-1 max-md:gap-8">
 
@@ -390,7 +390,7 @@ export default function HomePage() {
               <p className="text-sm leading-[1.7] text-white/55 mb-5 max-w-[280px]">
                 AI-powered teaching platform that learns how you teach and helps every student get the support they need.
               </p>
-              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(79,163,165,0.1)] px-4 py-2 rounded-full border border-[rgba(79,163,165,0.2)]">
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(0,246,237,0.2)]">
                 <IconStar />
                 FERPA &amp; COPPA Compliant
               </div>

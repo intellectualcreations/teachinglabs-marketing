@@ -65,7 +65,7 @@ export default function WaitlistForm({ variant = 'cta' }: { variant?: 'cta' | 'h
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="cta-button-pulse inline-flex items-center justify-center font-heading text-[17px] font-bold bg-gold text-deep-navy px-10 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300 disabled:opacity-60"
+          className="cta-button-pulse inline-flex items-center justify-center font-heading text-[17px] font-bold bg-gold text-white px-10 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300 disabled:opacity-60"
         >
           {status === 'loading' ? 'Joining...' : 'Join the Waitlist'}
         </button>

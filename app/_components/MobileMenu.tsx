@@ -58,7 +58,7 @@ export default function MobileMenu() {
           <Link
             href="/teacher/dashboard"
             onClick={() => setOpen(false)}
-            className="block mt-4 bg-[#F0C95D] text-[#0B1426] text-center py-3 px-8 rounded-full font-['Inter',sans-serif] font-semibold text-base"
+            className="block mt-4 bg-[#4056F4] text-[#ffffff] text-center py-3 px-8 rounded-full font-['Inter',sans-serif] font-semibold text-base"
           >
             Get Started Free
           </Link>

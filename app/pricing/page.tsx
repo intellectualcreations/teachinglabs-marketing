@@ -71,11 +71,11 @@ function PricingCard({
 }: PricingCardProps) {
   const ctaClasses = {
     primary:
-      'bg-teal text-white hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(79,163,165,0.35)]',
+      'bg-teal text-white hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(0,246,237,0.35)]',
     secondary:
       'bg-transparent text-teal border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5',
     amber:
-      'bg-gold text-deep-navy hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(240,201,93,0.35)]',
+      'bg-gold text-white hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)]',
   };
 
   return (
@@ -84,7 +84,7 @@ function PricingCard({
         'card-accent relative bg-card-bg rounded-[20px] px-7 py-10 text-center overflow-hidden',
         'shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)]',
         'hover:-translate-y-1.5 transition-all duration-300',
-        featured ? 'border border-teal shadow-[0_4px_20px_rgba(79,163,165,0.15)]' : 'border border-border',
+        featured ? 'border border-teal shadow-[0_4px_20px_rgba(0,246,237,0.15)]' : 'border border-border',
       ].join(' ')}
     >
       {/* Light mode left accent bar */}
@@ -148,11 +148,11 @@ export default function PricingPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div
             className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px]"
-            style={{ background: '#4FA3A5', opacity: 'var(--blob-teal-opacity, 0.08)', filter: 'blur(80px)', animation: 'blobDrift1 12s ease-in-out infinite' }}
+            style={{ background: '#00F6ED', opacity: 'var(--blob-teal-opacity, 0.08)', filter: 'blur(80px)', animation: 'blobDrift1 12s ease-in-out infinite' }}
           />
           <div
             className="absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px]"
-            style={{ background: '#F0C95D', opacity: 'var(--blob-gold-opacity, 0.10)', filter: 'blur(80px)', animation: 'blobDrift2 14s ease-in-out infinite' }}
+            style={{ background: '#4056F4', opacity: 'var(--blob-gold-opacity, 0.10)', filter: 'blur(80px)', animation: 'blobDrift2 14s ease-in-out infinite' }}
           />
         </div>
 
@@ -169,7 +169,7 @@ export default function PricingPage() {
             style={{ fontSize: 'clamp(40px, 6vw, 72px)' }}
           >
             Simple, Transparent{' '}
-            <span style={{ background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            <span style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Pricing
             </span>
           </h1>
@@ -302,13 +302,13 @@ export default function PricingPage() {
       {/* ── CTA SECTION ── */}
       <section
         className="fade-up relative overflow-hidden"
-        style={{ background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)' }}
+        style={{ background: 'linear-gradient(145deg, #0a1128 0%, #1a3a4a 50%, #1d4a52 100%)' }}
       >
         {/* Radial glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           aria-hidden="true"
-          style={{ background: 'radial-gradient(ellipse at center, rgba(240,201,93,0.12) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)' }}
         />
 
         <div className="relative z-10 max-w-[800px] mx-auto px-12 py-[120px] text-center max-md:px-6 max-md:py-20">
@@ -326,7 +326,7 @@ export default function PricingPage() {
           </p>
           <Link
             href="/waitlist"
-            className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
+            className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
           >
             Join Waitlist
           </Link>
@@ -334,7 +334,7 @@ export default function PricingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)', borderTop: '1px solid rgba(240,201,93,0.2)' }}>
+      <footer style={{ background: 'linear-gradient(180deg, #0a1128 0%, #1a2a45 100%)', borderTop: '1px solid rgba(64,86,244,0.2)' }}>
         <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
           <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-12 max-md:grid-cols-1 max-md:gap-8">
 
@@ -344,7 +344,7 @@ export default function PricingPage() {
               <p className="text-sm leading-[1.7] text-white/55 mb-5 max-w-[280px]">
                 AI-powered teaching platform that learns how you teach and helps every student get the support they need.
               </p>
-              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(79,163,165,0.1)] px-4 py-2 rounded-full border border-[rgba(79,163,165,0.2)]">
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(0,246,237,0.2)]">
                 <IconStar />
                 FERPA &amp; COPPA Compliant
               </div>
