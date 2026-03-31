@@ -109,14 +109,20 @@ export default function ForStudentsPage() {
             For Students
           </div>
 
-          {/* Headline */}
+          {/* Headline — matches v4 HTML exactly:
+              Desktop: clamp(42px, 7vw, 76px), letter-spacing -2px
+              Mobile (<900px): clamp(36px, 8vw, 52px), letter-spacing -1px
+              Each word inline-block so "Moving Forward." stays together */}
           <h1
-            className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms]"
-            style={{ fontSize: 'clamp(42px, 7vw, 76px)', letterSpacing: '-2px' }}
+            className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms] text-[clamp(36px,8vw,52px)] tracking-[-1px] min-[900px]:text-[clamp(42px,7vw,76px)] min-[900px]:tracking-[-2px]"
           >
-            Every Student Supported. Every Student{' '}
+            <span className="inline-block">Every </span>
+            <span className="inline-block">Student </span>
+            <span className="inline-block">Supported. </span>
+            <span className="inline-block">Every </span>
+            <span className="inline-block">Student </span>
             <span
-              className="pb-2"
+              className="inline-block pb-2"
               style={{
                 background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
