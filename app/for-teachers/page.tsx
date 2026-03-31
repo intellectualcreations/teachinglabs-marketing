@@ -149,7 +149,7 @@ export default function ForTeachersPage() {
             <span className="block">Support for the Moments</span>
             <span className="block">Teachers Face</span>
             <span className="block pb-1"
-              style={{ background: 'linear-gradient(135deg, #561F37, #8B3A62)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Every Day
             </span>
           </h1>

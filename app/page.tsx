@@ -160,7 +160,7 @@ export default function HomePage() {
             style={{ fontSize: 'clamp(52px, 8vw, 88px)' }}>
             <span className="block">Your Teaching Power,</span>
             <span className="block pb-2"
-              style={{ background: 'linear-gradient(135deg, #561F37, #8B3A62)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Multiplied
             </span>
           </h1>

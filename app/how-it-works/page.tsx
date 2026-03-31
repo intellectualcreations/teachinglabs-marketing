@@ -28,7 +28,7 @@ export default function HowItWorks() {
           </div>
           <h1 className="font-heading text-[clamp(44px,7vw,80px)] font-extrabold tracking-[-2px] leading-[1.1] text-dark dark:text-white mb-6">
             Meet Your{' '}
-            <span style={{ background: 'linear-gradient(135deg, #561F37, #8B3A62)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            <span style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Teacher Twin
             </span>
           </h1>

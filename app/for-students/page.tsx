@@ -110,20 +110,16 @@ export default function ForStudentsPage() {
             For Students
           </div>
 
-          {/* Headline — individual words that flow/wrap naturally, matching v4 */}
+          {/* Headline */}
           <h1
             className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms]"
             style={{ fontSize: 'clamp(42px, 7vw, 76px)', letterSpacing: '-2px' }}
           >
-            <span className="inline-block">Every </span>
-            <span className="inline-block">Student </span>
-            <span className="inline-block">Supported. </span>
-            <span className="inline-block">Every </span>
-            <span className="inline-block">Student </span>
+            Every Student Supported. Every Student{' '}
             <span
-              className="inline-block pb-2"
+              className="pb-2"
               style={{
-                background: 'linear-gradient(135deg, #561F37, #8B3A62)',
+                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -145,11 +141,11 @@ export default function ForStudentsPage() {
             Your teaching. Extended to every student.
           </p>
 
-          {/* CTA — dark outline, white text, fills on hover */}
-          <div className="flex gap-4 justify-center flex-wrap max-[500px]:flex-col max-[500px]:items-center">
+          {/* CTA — dark outline, dark text in light / white text in dark, fills on hover */}
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-white px-10 py-4 rounded-full border-4 border-gold hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
             >
               See How It Works
             </Link>

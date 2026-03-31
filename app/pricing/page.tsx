@@ -29,7 +29,7 @@ export default function PricingPage() {
             Simple, Transparent{' '}
             <span
               style={{
-                background: 'linear-gradient(135deg, #561F37, #8B3A62)',
+                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
