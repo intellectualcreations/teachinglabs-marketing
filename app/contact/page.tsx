@@ -58,7 +58,7 @@ export default function ContactPage() {
             Let&apos;s Start a{' '}
             <span
               style={{
-                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
+                background: 'linear-gradient(135deg, #561F37, #8B3A62)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -75,13 +75,13 @@ export default function ContactPage() {
           <div className="flex gap-4 justify-center flex-wrap mb-5 max-[500px]:flex-col max-[500px]:items-center">
             <Link
               href="/see-the-difference"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-white px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all max-[500px]:w-full max-[500px]:justify-center"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white border-4 border-gold hover:bg-gold px-10 py-4 rounded-full hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all"
             >
               See How It Works
             </Link>
             <Link
               href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
-              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-teal px-10 py-4 rounded-full border-2 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all max-[500px]:w-full max-[500px]:justify-center"
+              className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-teal px-10 py-4 rounded-full border-4 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all"
             >
               Join the Waitlist
             </Link>

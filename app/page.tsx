@@ -140,12 +140,12 @@ export default function HomePage() {
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy">
         {/* Decorative blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <div className="blob-teal absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px] opacity-[0.08] dark:opacity-[0.15]"
+          <div className="blob-teal absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px] opacity-[0.12] dark:opacity-[0.15]"
             style={{ background: '#00F6ED', filter: 'blur(80px)' }} />
-          <div className="blob-gold absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px] opacity-[0.10] dark:opacity-[0.12]"
+          <div className="blob-gold absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px] opacity-[0.14] dark:opacity-[0.12]"
             style={{ background: '#4056F4', filter: 'blur(80px)' }} />
-          <div className="absolute w-[350px] h-[350px] rounded-full top-[40%] left-[40%] opacity-0 dark:opacity-[0.06] max-md:hidden"
-            style={{ background: '#FF6B6B', filter: 'blur(80px)', animation: 'blobDrift3 10s ease-in-out infinite' }} />
+          <div className="absolute w-[350px] h-[350px] rounded-full top-[50%] left-[30%] opacity-[0.06] dark:opacity-[0.06] max-md:hidden"
+            style={{ background: '#561F37', filter: 'blur(100px)' }} />
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
@@ -159,8 +159,8 @@ export default function HomePage() {
           <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.15] text-text-primary dark:text-white mb-6"
             style={{ fontSize: 'clamp(52px, 8vw, 88px)' }}>
             <span className="block">Your Teaching Power,</span>
-            <span className="block pb-1"
-              style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            <span className="block pb-2"
+              style={{ background: 'linear-gradient(135deg, #561F37, #8B3A62)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Multiplied
             </span>
           </h1>
@@ -171,16 +171,16 @@ export default function HomePage() {
           </p>
 
           {/* Buttons — matching v4: outline styles with 4px borders */}
-          <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8 max-sm:flex-col max-sm:items-center">
+          <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8">
             <Link
               href="/waitlist"
-              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300 max-sm:w-full max-sm:justify-center"
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300"
             >
               Join the Waitlist
             </Link>
             <Link
               href="/how-it-works"
-              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-coral dark:border-teal dark:shadow-[0_0_20px_rgba(0,246,237,0.15)] hover:bg-coral dark:hover:bg-teal hover:text-white dark:hover:text-deep-navy hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(86,31,55,0.3)] dark:hover:shadow-[0_6px_28px_rgba(0,246,237,0.35)] transition-all duration-300 max-sm:w-full max-sm:justify-center"
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-coral dark:border-teal dark:shadow-[0_0_20px_rgba(0,246,237,0.15)] hover:bg-coral dark:hover:bg-teal hover:text-white dark:hover:text-deep-navy hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(86,31,55,0.3)] dark:hover:shadow-[0_6px_28px_rgba(0,246,237,0.35)] transition-all duration-300"
             >
               See How It Works
             </Link>
@@ -368,7 +368,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/waitlist"
-              className="inline-flex justify-center items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300 shadow-[0_4px_20px_rgba(64,86,244,0.3)]"
+              className="inline-flex justify-center items-center font-heading text-[17px] font-bold bg-transparent text-deep-navy dark:text-white border-4 border-gold hover:bg-gold px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300 shadow-[0_4px_20px_rgba(64,86,244,0.3)]"
             >
               Join the Waitlist
             </Link>

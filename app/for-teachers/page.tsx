@@ -149,7 +149,7 @@ export default function ForTeachersPage() {
             <span className="block">Support for the Moments</span>
             <span className="block">Teachers Face</span>
             <span className="block pb-1"
-              style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              style={{ background: 'linear-gradient(135deg, #561F37, #8B3A62)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Every Day
             </span>
           </h1>
@@ -349,7 +349,7 @@ export default function ForTeachersPage() {
             </p>
             <Link
               href="/contact"
-              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
+              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-white border-4 border-gold hover:bg-gold px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
             >
               Get Early Access
             </Link>

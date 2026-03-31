@@ -213,7 +213,7 @@ export default function ForDistrictsPage() {
           <div className="hero-buttons-anim-late flex gap-4 justify-center flex-wrap">
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-white px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white border-4 border-gold hover:bg-gold px-10 py-4 rounded-full hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
             >
               Request District Access
             </Link>
@@ -557,7 +557,7 @@ export default function ForDistrictsPage() {
             </p>
             <Link
               href="/contact"
-              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
+              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-white border-4 border-gold hover:bg-gold px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
             >
               Request District Access
             </Link>

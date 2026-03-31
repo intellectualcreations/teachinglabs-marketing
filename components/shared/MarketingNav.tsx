@@ -107,15 +107,18 @@ export default function MarketingNav() {
           <div className="hidden lg:flex items-center gap-4">
             <Link
               href="/waitlist"
-              className="font-heading text-sm font-semibold bg-gold text-white px-6 py-2.5 rounded-full hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)] transition-all duration-200"
+              className="font-heading text-sm font-semibold bg-transparent text-deep-navy dark:text-white px-6 py-2.5 rounded-full border-3 border-gold hover:bg-gold hover:text-white hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)] transition-all duration-200"
             >
               Join Waitlist
             </Link>
             <ThemeToggle className="w-10 h-10 rounded-full flex items-center justify-center bg-[rgba(128,128,128,0.08)] hover:bg-[rgba(128,128,128,0.15)] hover:rotate-[15deg] transition-all duration-300" />
           </div>
 
-          {/* Mobile hamburger */}
-          <MobileMenu />
+          {/* Mobile: toggle + hamburger */}
+          <div className="flex lg:hidden items-center gap-3">
+            <ThemeToggle className="w-10 h-10 rounded-full flex items-center justify-center bg-[rgba(128,128,128,0.08)] hover:bg-[rgba(128,128,128,0.15)] hover:rotate-[15deg] transition-all duration-300" />
+            <MobileMenu />
+          </div>
         </div>
       </nav>
       <div className="h-0" /> {/* nav is sticky not fixed, no spacer needed */}

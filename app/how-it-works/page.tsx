@@ -28,7 +28,7 @@ export default function HowItWorks() {
           </div>
           <h1 className="font-heading text-[clamp(44px,7vw,80px)] font-extrabold tracking-[-2px] leading-[1.1] text-dark dark:text-white mb-6">
             Meet Your{' '}
-            <span style={{ background: 'linear-gradient(135deg, #00F6ED, #4056F4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            <span style={{ background: 'linear-gradient(135deg, #561F37, #8B3A62)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Teacher Twin
             </span>
           </h1>
@@ -115,7 +115,7 @@ export default function HowItWorks() {
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
+              className="inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-white border-4 border-gold hover:bg-gold px-12 py-4 rounded-full hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
             >
               Get Early Access
             </Link>

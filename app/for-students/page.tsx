@@ -110,15 +110,20 @@ export default function ForStudentsPage() {
             For Students
           </div>
 
-          {/* Headline */}
+          {/* Headline — individual words that flow/wrap naturally, matching v4 */}
           <h1
             className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms]"
             style={{ fontSize: 'clamp(42px, 7vw, 76px)', letterSpacing: '-2px' }}
           >
-            Every Student Supported. Every Student{' '}
+            <span className="inline-block">Every </span>
+            <span className="inline-block">Student </span>
+            <span className="inline-block">Supported. </span>
+            <span className="inline-block">Every </span>
+            <span className="inline-block">Student </span>
             <span
+              className="inline-block pb-2"
               style={{
-                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
+                background: 'linear-gradient(135deg, #561F37, #8B3A62)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -140,11 +145,11 @@ export default function ForStudentsPage() {
             Your teaching. Extended to every student.
           </p>
 
-          {/* CTA — filled primary button matching v4 */}
+          {/* CTA — dark outline, white text, fills on hover */}
           <div className="flex gap-4 justify-center flex-wrap max-[500px]:flex-col max-[500px]:items-center">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-gold text-white px-10 py-4 rounded-full shadow-[0_4px_20px_rgba(64,86,244,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300 max-[500px]:w-full max-[500px]:justify-center"
+              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-white px-10 py-4 rounded-full border-4 border-gold hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
             >
               See How It Works
             </Link>
@@ -351,7 +356,7 @@ export default function ForStudentsPage() {
             </p>
             <Link
               href="/contact"
-              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
+              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-transparent text-white border-4 border-gold hover:bg-gold px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
             >
               Get Early Access
             </Link>
