@@ -161,7 +161,7 @@ export default function Pricing() {
                 >
                   {/* Row 1: Title — bottom-aligned, bigger than price */}
                   <div className="min-h-[64px] flex items-end justify-center text-center w-full">
-                    <h3 className="font-heading text-[22px] font-bold tracking-[2px] uppercase text-coral dark:text-teal leading-tight">
+                    <h3 className="font-heading text-[22px] font-bold tracking-[2px] uppercase leading-tight">
                       {plan.title}
                     </h3>
                   </div>

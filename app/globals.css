@@ -140,12 +140,11 @@ h1, h2, h3, h4, h5, h6 {
 .pricing-card p,
 .pricing-card li,
 .pricing-card span,
-.pricing-card h3,
 .pricing-card div {
   color: #000000 !important;
 }
 .pricing-card h3 {
-  color: var(--color-coral) !important;
+  color: #666666 !important;
 }
 :is(.dark) .pricing-card {
   background: rgba(255, 255, 255, 0.04);
@@ -157,7 +156,7 @@ h1, h2, h3, h4, h5, h6 {
   color: rgba(255, 255, 255, 0.7) !important;
 }
 :is(.dark) .pricing-card h3 {
-  color: var(--color-teal) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
 }
 :is(.dark) .pricing-card .font-extrabold {
   color: #ffffff !important;
