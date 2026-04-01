@@ -12,77 +12,106 @@ export const metadata: Metadata = {
     'Teaching Labs learns how you teach and helps every student get the support they need. AI-powered K-12 teaching platform.',
 };
 
-/* ─── Inline SVG icons ─── */
+/* ─── Inline SVG icons (indigo → plum gradient in light, teal in dark) ─── */
 
 function IconDiverge() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
-      <path d="M24 8 C16 16, 8 28, 8 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
-      <path d="M24 8 C24 18, 24 28, 24 38" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
-      <path d="M24 8 C32 16, 40 28, 40 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.4" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
+      <defs>
+        <linearGradient id="gd1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <path d="M24 8 C16 16, 8 28, 8 36" stroke="url(#gd1)" strokeWidth="2.5" strokeLinecap="round" className="dark:stroke-teal" />
+      <path d="M24 8 C24 18, 24 28, 24 38" stroke="url(#gd1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" className="dark:stroke-teal" />
+      <path d="M24 8 C32 16, 40 28, 40 36" stroke="url(#gd1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.5" className="dark:stroke-teal" />
     </svg>
   );
 }
 
 function IconConcentric() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
-      <circle cx="24" cy="24" r="8" stroke="currentColor" strokeWidth="2.5" opacity="0.9" />
-      <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="2" opacity="0.6" />
-      <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1.5" opacity="0.35" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
+      <defs>
+        <linearGradient id="gc1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="24" r="8" stroke="url(#gc1)" strokeWidth="2.5" className="dark:stroke-teal" />
+      <circle cx="24" cy="24" r="14" stroke="url(#gc1)" strokeWidth="2" opacity="0.7" className="dark:stroke-teal" />
+      <circle cx="24" cy="24" r="20" stroke="url(#gc1)" strokeWidth="1.5" opacity="0.45" className="dark:stroke-teal" />
     </svg>
   );
 }
 
 function IconNetwork() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
-      <circle cx="14" cy="14" r="4" stroke="currentColor" strokeWidth="2" opacity="0.7" />
-      <circle cx="34" cy="14" r="4" stroke="currentColor" strokeWidth="2" opacity="0.7" />
-      <circle cx="24" cy="30" r="4" stroke="currentColor" strokeWidth="2" opacity="0.9" />
-      <circle cx="10" cy="38" r="3" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
-      <circle cx="38" cy="38" r="3" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
-      <line x1="14" y1="18" x2="24" y2="26" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
-      <line x1="34" y1="18" x2="24" y2="26" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
-      <line x1="24" y1="34" x2="10" y2="35" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
-      <line x1="24" y1="34" x2="38" y2="35" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
+      <defs>
+        <linearGradient id="gn1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <circle cx="14" cy="14" r="4" stroke="url(#gn1)" strokeWidth="2" className="dark:stroke-teal" />
+      <circle cx="34" cy="14" r="4" stroke="url(#gn1)" strokeWidth="2" className="dark:stroke-teal" />
+      <circle cx="24" cy="30" r="4" stroke="url(#gn1)" strokeWidth="2" className="dark:stroke-teal" />
+      <circle cx="10" cy="38" r="3" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.6" className="dark:stroke-teal" />
+      <circle cx="38" cy="38" r="3" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.6" className="dark:stroke-teal" />
+      <line x1="14" y1="18" x2="24" y2="26" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.6" className="dark:stroke-teal" />
+      <line x1="34" y1="18" x2="24" y2="26" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.6" className="dark:stroke-teal" />
+      <line x1="24" y1="34" x2="10" y2="35" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.5" className="dark:stroke-teal" />
+      <line x1="24" y1="34" x2="38" y2="35" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.5" className="dark:stroke-teal" />
     </svg>
   );
 }
 
 function IconOrbit() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
-      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="currentColor" strokeWidth="2" opacity="0.4" transform="rotate(-30 24 24)" />
-      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="currentColor" strokeWidth="2" opacity="0.6" transform="rotate(30 24 24)" />
-      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="currentColor" strokeWidth="2" opacity="0.8" transform="rotate(90 24 24)" />
-      <circle cx="24" cy="24" r="4" fill="currentColor" opacity="0.9" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
+      <defs>
+        <linearGradient id="go1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="url(#go1)" strokeWidth="2" opacity="0.5" transform="rotate(-30 24 24)" className="dark:stroke-teal" />
+      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="url(#go1)" strokeWidth="2" opacity="0.7" transform="rotate(30 24 24)" className="dark:stroke-teal" />
+      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="url(#go1)" strokeWidth="2" opacity="0.9" transform="rotate(90 24 24)" className="dark:stroke-teal" />
     </svg>
   );
 }
 
 function IconFunnel() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
-      <path d="M8 12 Q18 24, 24 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
-      <path d="M24 12 Q24 24, 24 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
-      <path d="M40 12 Q30 24, 24 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
-      <circle cx="24" cy="38" r="3" fill="currentColor" opacity="0.9" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
+      <defs>
+        <linearGradient id="gf1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <path d="M6 8 L42 8 L28 24 L28 38 L20 42 L20 24 Z" stroke="url(#gf1)" strokeWidth="2" strokeLinejoin="round" className="dark:stroke-teal" />
     </svg>
   );
 }
 
 function IconVenn() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
-      <circle cx="18" cy="24" r="10" stroke="currentColor" strokeWidth="2" opacity="0.6" />
-      <circle cx="30" cy="24" r="10" stroke="currentColor" strokeWidth="2" opacity="0.6" />
-      <circle cx="24" cy="16" r="10" stroke="currentColor" strokeWidth="2" opacity="0.4" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
+      <defs>
+        <linearGradient id="gv1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <circle cx="18" cy="24" r="12" stroke="url(#gv1)" strokeWidth="2" opacity="0.8" className="dark:stroke-teal" />
+      <circle cx="30" cy="24" r="12" stroke="url(#gv1)" strokeWidth="2" opacity="0.8" className="dark:stroke-teal" />
     </svg>
   );
 }
-
-
 /* ─── Card component ─── */
 function Card({
   icon,
