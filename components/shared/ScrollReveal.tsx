@@ -16,7 +16,7 @@ export default function ScrollReveal() {
           }
         });
       },
-      { threshold: 0.01, rootMargin: '0px 0px 150px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px 0px 0px' }
     );
 
     fadeEls.forEach((el) => observer.observe(el));
