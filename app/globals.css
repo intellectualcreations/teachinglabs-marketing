@@ -410,3 +410,32 @@ h1, h2, h3, h4, h5, h6 {
 .dark .logo-dark-bg {
   display: block !important;
 }
+
+/* ── Section blend fades ──
+   Add .section-blend to any <section> with blobs.
+   Creates smooth fade-to-white (light) / fade-to-navy (dark)
+   at top and bottom edges so sections never hard-stop. */
+.section-blend::before,
+.section-blend::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 200px;
+  pointer-events: none;
+  z-index: 1;
+}
+.section-blend::before {
+  top: 0;
+  background: linear-gradient(to bottom, #ffffff, transparent);
+}
+.section-blend::after {
+  bottom: 0;
+  background: linear-gradient(to top, #ffffff, transparent);
+}
+.dark .section-blend::before {
+  background: linear-gradient(to bottom, var(--color-deep-navy), transparent);
+}
+.dark .section-blend::after {
+  background: linear-gradient(to top, var(--color-deep-navy), transparent);
+}

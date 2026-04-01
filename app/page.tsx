@@ -131,7 +131,7 @@ export default function HomePage() {
       <ScrollReveal />
 
       {/* ── HERO ── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy">
+      <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
         {/* Decorative blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[8%] left-[5%] max-md:w-[350px] max-md:h-[350px] opacity-[0.15] dark:opacity-[0.10]"
@@ -140,10 +140,6 @@ export default function HomePage() {
             style={{ background: '#4056F4', filter: 'blur(100px)' }} />
           <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.07] dark:opacity-[0.1] max-md:hidden"
             style={{ background: '#561F37', filter: 'blur(100px)' }} />
-          {/* Bottom fade to blend hero into next section */}
-          <div className="absolute bottom-0 left-0 right-0 h-[200px] dark:hidden"
-            style={{ background: 'linear-gradient(to bottom, transparent, #F7F7F8)' }} />
-          <div className="absolute bottom-0 left-0 right-0 h-[200px] hidden dark:block"
             style={{ background: 'linear-gradient(to bottom, transparent, #0a1128)' }} />
         </div>
 
@@ -286,17 +282,11 @@ export default function HomePage() {
         </section>
 
         {/* ── CTA SECTION ── */}
-        <section className="relative overflow-hidden bg-warm-white dark:bg-transparent">
-          {/* Top fade to blend with section above */}
-          <div className="absolute top-0 left-0 right-0 h-[200px] dark:hidden pointer-events-none"
-            style={{ background: 'linear-gradient(to bottom, #F7F7F8, transparent)' }} />
-          <div className="absolute top-0 left-0 right-0 h-[200px] hidden dark:block pointer-events-none z-[2]"
-            style={{ background: 'linear-gradient(to bottom, #0a1128, transparent)' }} />
-          {/* Light mode: radiant blobs like hero */}
+        <section className="section-blend relative overflow-hidden bg-white dark:bg-transparent">
           <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
-            <div className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[-10%] opacity-[0.25]"
+            <div className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[-10%] opacity-[0.15]"
               style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
-            <div className="absolute w-[450px] h-[450px] rounded-full top-[5%] right-[-8%] opacity-[0.25]"
+            <div className="absolute w-[450px] h-[450px] rounded-full top-[5%] right-[-8%] opacity-[0.15]"
               style={{ background: '#4056F4', filter: 'blur(120px)' }} />
             <div className="absolute w-[350px] h-[350px] rounded-full bottom-[10%] left-[40%] opacity-[0.07]"
               style={{ background: '#7B2D4A', filter: 'blur(120px)' }} />
