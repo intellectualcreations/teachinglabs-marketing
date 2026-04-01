@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import FadeUp from '@/components/shared/FadeUp';
+import ScrollReveal from '@/components/shared/ScrollReveal';
 import MarketingNav from '@/components/shared/MarketingNav';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
@@ -110,7 +110,7 @@ export default function HowItWorks() {
   return (
     <>
       <MarketingNav />
-      
+      <ScrollReveal />
 
       {/* ── HERO ── */}
       <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
@@ -176,16 +176,16 @@ export default function HowItWorks() {
         {/* ── THREE STEPS SECTION ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">
+            <div className="text-center mb-14 fade-up">
               <Eyebrow>Your Teacher Twin</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 How Teaching Labs Works
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </FadeUp>
+            </div>
 
-            <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
+            <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1 fade-up">
               <Card
                 floatClass="card-icon-float-1"
                 icon={<IconTeach />}
@@ -204,12 +204,12 @@ export default function HowItWorks() {
                 title="You stay in control of what matters."
                 text="With routine support handled, you see where students are struggling, what questions they're asking, and where your attention will make the biggest difference. Teaching Labs doesn't replace your judgment. It gives you better information to act on."
               />
-            </FadeUp>
+            </div>
 
-            <FadeUp>
+            <div className="fade-up">
               <Bridge>Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student.</Bridge>
-            </FadeUp>
-          </FadeUp>
+            </div>
+          </div>
         </section>
 
         {/* ── CTA SECTION ── */}

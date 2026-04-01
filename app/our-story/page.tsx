@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import MarketingNav from '@/components/shared/MarketingNav';
-import FadeUp from '@/components/shared/FadeUp';
+import ScrollReveal from '@/components/shared/ScrollReveal';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
 export const metadata: Metadata = {
@@ -56,7 +56,7 @@ export default function OurStoryPage() {
   return (
     <>
       <MarketingNav />
-      
+      <ScrollReveal />
 
       {/* ── HERO ── */}
       <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
@@ -123,15 +123,15 @@ export default function OurStoryPage() {
         {/* ── OUR MISSION ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">
+            <div className="text-center mb-14 fade-up">
               <Eyebrow>Our Mission</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 We Believe Every Teacher Deserves a Platform That Puts Learning First
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </FadeUp>
-            <FadeUp className="max-w-[760px] mx-auto">
+            </div>
+            <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Most educational technology is sold to administrators and used by teachers who had no say in the purchase. The tools don&apos;t reflect how teaching actually works — they don&apos;t account for the thirty different learners in a single classroom, the prep time that bleeds into evenings, or the invisible labor that keeps a room functioning.
               </p>
@@ -148,22 +148,22 @@ export default function OurStoryPage() {
                   className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]"
                 />
               </div>
-            </FadeUp>
-          </FadeUp>
+            </div>
+          </div>
         </section>
 
         {/* ── OUR STORY ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">
+            <div className="text-center mb-14 fade-up">
               <Eyebrow>Our Story</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Nearly Three Decades in the Making
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </FadeUp>
-            <FadeUp className="max-w-[760px] mx-auto">
+            </div>
+            <div className="max-w-[760px] mx-auto fade-up">
               <Bridge>&ldquo;I&apos;ve spent almost thirty years inside education technology, and the same question has followed me the entire time: does this actually help students learn?&rdquo;</Bridge>
 
               <div className="mt-10 space-y-5">
@@ -200,22 +200,22 @@ export default function OurStoryPage() {
                   className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]"
                 />
               </div>
-            </FadeUp>
-          </FadeUp>
+            </div>
+          </div>
         </section>
 
         {/* ── WHAT WE BELIEVE ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">
+            <div className="text-center mb-14 fade-up">
               <Eyebrow>What We Believe</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 The Principles That Guide Every Decision
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </FadeUp>
-            <FadeUp className="grid grid-cols-3 gap-8 max-md:grid-cols-1">
+            </div>
+            <div className="grid grid-cols-3 gap-8 max-md:grid-cols-1 fade-up">
               <ValueCard
                 icon={
                   <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
@@ -256,8 +256,8 @@ export default function OurStoryPage() {
                 title="Student Agency Drives Outcomes"
                 text="Research is consistent: students learn more deeply when they have agency over the process. We build student agency into the architecture — not as a feature, as a foundation."
               />
-            </FadeUp>
-          </FadeUp>
+            </div>
+          </div>
         </section>
 
         {/* ── CTA SECTION ── */}

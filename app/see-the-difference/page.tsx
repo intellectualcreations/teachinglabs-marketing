@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import MarketingNav from '@/components/shared/MarketingNav';
-import FadeUp from '@/components/shared/FadeUp';
+import ScrollReveal from '@/components/shared/ScrollReveal';
 
 export const metadata: Metadata = {
   title: 'See the Difference — Teaching Labs',
@@ -50,13 +50,13 @@ function Bridge({ children }: { children: React.ReactNode }) {
 /* ─── Step card ─── */
 function StepCard({ step, title, children }: { step: string; title: string; children: React.ReactNode }) {
   return (
-    <FadeUp className="card-accent bg-card-bg rounded-[20px] p-8 shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300">
+    <div className="card-accent bg-card-bg rounded-[20px] p-8 shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300 fade-up">
       <div className="font-heading text-xs font-bold tracking-[4px] uppercase text-coral dark:text-teal mb-3">
         {step}
       </div>
       <h3 className="font-heading text-xl font-bold text-text-primary mb-3">{title}</h3>
       <p className="text-base text-text-secondary leading-[1.7]">{children}</p>
-    </FadeUp>
+    </div>
   );
 }
 
@@ -75,7 +75,7 @@ function CompareCard({
   children: React.ReactNode;
 }) {
   return (
-    <FadeUp className="card-accent bg-card-bg rounded-[20px] p-8 shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300  flex flex-col">
+    <div className="card-accent bg-card-bg rounded-[20px] p-8 shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300 fade-up flex flex-col">
       <h3 className="font-heading text-2xl font-bold text-text-primary mb-3 text-center">{name}</h3>
       <div className="flex justify-center mb-5">
         <span className="font-heading text-xs font-bold tracking-[2px] uppercase px-4 py-1.5 rounded-full" style={{ color: verdictColor, border: `2px solid ${verdictColor}` }}>
@@ -88,7 +88,7 @@ function CompareCard({
         </div>
       )}
       <p className="text-base text-text-secondary leading-[1.7]">{children}</p>
-    </FadeUp>
+    </div>
   );
 }
 
@@ -107,7 +107,7 @@ export default function SeeTheDifferencePage() {
   return (
     <>
       <MarketingNav />
-      
+      <ScrollReveal />
 
       {/* ── HERO ── */}
       <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
@@ -183,9 +183,7 @@ export default function SeeTheDifferencePage() {
           <div className="relative z-10 max-w-[1200px] mx-auto px-12 max-md:px-6">
             <Eyebrow>Side by Side</Eyebrow>
             <h2
-              <FadeUp>
-              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary text-center mb-16 "
-              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary text-center mb-16 "
+              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary text-center mb-16 fade-up"
               style={{ fontSize: 'clamp(30px, 4vw, 48px)' }}
             >
               Three AI Tools. One Prompt. <br className="max-md:hidden" />
@@ -216,7 +214,7 @@ export default function SeeTheDifferencePage() {
             <Bridge>
               But here&apos;s what the others will never show you. ChatGPT and Gemini are black boxes. The student gets an answer, and the teacher never knows it happened. With Teaching Labs, every interaction flows back to the person who matters most: you.
             </Bridge>
-          </FadeUp>
+          </div>
         </section>
 
         {/* ── WHAT HAPPENS NEXT (Steps) ── */}
@@ -229,9 +227,7 @@ export default function SeeTheDifferencePage() {
           <div className="relative z-10 max-w-[1000px] mx-auto px-12 max-md:px-6">
             <Eyebrow>Watch What Happens</Eyebrow>
             <h2
-              <FadeUp>
-              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary text-center mb-6 "
-              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary text-center mb-6 "
+              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary text-center mb-6 fade-up"
               style={{ fontSize: 'clamp(30px, 4vw, 48px)' }}
             >
               AI Should Help Students{' '}
@@ -247,11 +243,9 @@ export default function SeeTheDifferencePage() {
               </span>
               , Not Think for Them
             </h2>
-            <FadeUp>
-            <p className="text-center text-text-secondary text-lg leading-[1.7] mb-16 max-w-[700px] mx-auto ">
+            <p className="text-center text-text-secondary text-lg leading-[1.7] mb-16 max-w-[700px] mx-auto fade-up">
               A student pastes an AI-generated report into Teaching Labs. Instead of giving a grade, Teaching Labs turns it into a learning moment. Here&apos;s what happens next.
             </p>
-            </FadeUp>
 
             <div className="grid grid-cols-1 gap-6">
               <StepCard step="Step 01" title="The Paste">
@@ -265,12 +259,12 @@ export default function SeeTheDifferencePage() {
               </StepCard>
             </div>
 
-            <FadeUp className="mt-16">
+            <div className="mt-16 fade-up">
               <Bridge>
                 Other AI tools give the answers. Teaching Labs makes learning happen.
               </Bridge>
-            </FadeUp>
-          </FadeUp>
+            </div>
+          </div>
         </section>
 
         {/* ── TEACHER DASHBOARD VIEW ── */}
@@ -283,9 +277,7 @@ export default function SeeTheDifferencePage() {
           <div className="relative z-10 max-w-[1000px] mx-auto px-12 max-md:px-6">
             <Eyebrow>The Teacher&apos;s View</Eyebrow>
             <h2
-              <FadeUp>
-              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary text-center mb-6 "
-              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary text-center mb-6 "
+              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary text-center mb-6 fade-up"
               style={{ fontSize: 'clamp(30px, 4vw, 48px)' }}
             >
               You See the{' '}
@@ -300,15 +292,13 @@ export default function SeeTheDifferencePage() {
                 Whole Learning Process
               </span>
             </h2>
-            <FadeUp>
-            <p className="text-center text-text-secondary text-lg leading-[1.7] mb-16 max-w-[700px] mx-auto ">
+            <p className="text-center text-text-secondary text-lg leading-[1.7] mb-16 max-w-[700px] mx-auto fade-up">
               With other AI platforms, the teacher sees the final product.
               With Teaching Labs, you understand the process.
             </p>
-            </FadeUp>
 
             {/* Dashboard mockup */}
-            <FadeUp className="card-accent bg-card-bg rounded-[20px] p-8 max-md:p-5 shadow-[0_2px_20px_rgba(20,33,61,0.05)]">
+            <div className="card-accent bg-card-bg rounded-[20px] p-8 max-md:p-5 shadow-[0_2px_20px_rgba(20,33,61,0.05)] fade-up">
               {/* Header */}
               <div className="flex items-center gap-4 mb-6 pb-4 border-b border-black/5 dark:border-white/10">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal to-gold flex items-center justify-center text-white font-heading font-bold text-lg">
@@ -368,8 +358,8 @@ export default function SeeTheDifferencePage() {
                   </div>
                 </div>
               </div>
-            </FadeUp>
-          </FadeUp>
+            </div>
+          </div>
         </section>
 
         {/* ── CTA ── */}
@@ -382,9 +372,7 @@ export default function SeeTheDifferencePage() {
           <div className="relative z-10 max-w-[800px] mx-auto px-12 max-md:px-6 text-center">
             <Eyebrow>See for Yourself</Eyebrow>
             <h2
-              <FadeUp>
-              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary mb-6 "
-              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary mb-6 "
+              className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary mb-6 fade-up"
               style={{ fontSize: 'clamp(30px, 4vw, 48px)' }}
             >
               Ready to See Your Classroom{' '}
@@ -399,12 +387,10 @@ export default function SeeTheDifferencePage() {
                 Like This?
               </span>
             </h2>
-            <FadeUp>
-            <p className="text-text-secondary text-lg leading-[1.7] mb-10 ">
+            <p className="text-text-secondary text-lg leading-[1.7] mb-10 fade-up">
               Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student, and proves it.
             </p>
-            </FadeUp>
-            <FadeUp className="flex gap-4 justify-center flex-wrap">
+            <div className="flex gap-4 justify-center flex-wrap fade-up">
               <Link
                 href="/waitlist"
                 className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300"
@@ -417,8 +403,8 @@ export default function SeeTheDifferencePage() {
               >
                 Contact Us
               </Link>
-            </FadeUp>
-          </FadeUp>
+            </div>
+          </div>
         </section>
       </main>
 
