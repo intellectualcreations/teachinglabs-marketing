@@ -10,22 +10,22 @@
   --color-teal: #00F6ED;
   --color-gold: #4056F4;
   --color-gold-light: #edeeff;
-  --color-warm-white: #f5f4ef;
+  --color-warm-white: #F7F7F8;
   --color-coral: #561F37;
   --color-coral-bright: #561F37;
   --color-plum: #561F37;
-  --color-text-dark: #0a1128;
-  --color-text-body: #334155;
+  --color-text-dark: #000000;
+  --color-text-body: #000000;
   --color-text-muted: #8896A6;
-  --color-bg-secondary: #e8e6de;
-  --color-bg-feature: #f0eeea;
+  --color-bg-secondary: #EFEFEF;
+  --color-bg-feature: #F7F7F8;
 
   /* Semantic */
   --color-card-bg: #F0F4F8;
   --color-surface: #FFFFFF;
   --color-border: #E2E8F0;
-  --color-text-primary: #1E293B;
-  --color-text-secondary: #334155;
+  --color-text-primary: #000000;
+  --color-text-secondary: #000000;
   --color-text-muted: #64748B;
 
   /* Status */
@@ -64,6 +64,14 @@
   --color-gold-light: rgba(64, 86, 244, 0.12);
 }
 
+/* Nav background — nearly opaque, matching v4 stable */
+:root {
+  --bg-nav: rgba(247, 247, 248, 0.97);
+}
+.dark {
+  --bg-nav: rgba(10, 17, 40, 0.95);
+}
+
 /* Base styles */
 html {
   scroll-behavior: smooth;
@@ -72,7 +80,7 @@ html {
 body {
   font-family: var(--font-open-sans, 'Open Sans'), sans-serif;
   color: var(--color-text-primary);
-  background: #f5f4ef;
+  background: #F7F7F8;
 }
 
 .dark body {
@@ -124,11 +132,42 @@ h1, h2, h3, h4, h5, h6 {
   50% { transform: translateY(-6px); }
 }
 
+/* ── Pricing cards ── */
+.pricing-card {
+  background: #FFFFFF;
+  color: #000000 !important;
+}
+.pricing-card p,
+.pricing-card li,
+.pricing-card span,
+.pricing-card h3,
+.pricing-card div {
+  color: #000000 !important;
+}
+.pricing-card h3 {
+  color: var(--color-coral) !important;
+}
+:is(.dark) .pricing-card {
+  background: rgba(255, 255, 255, 0.04);
+}
+:is(.dark) .pricing-card p,
+:is(.dark) .pricing-card li,
+:is(.dark) .pricing-card span,
+:is(.dark) .pricing-card div {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+:is(.dark) .pricing-card h3 {
+  color: var(--color-teal) !important;
+}
+:is(.dark) .pricing-card .font-extrabold {
+  color: #ffffff !important;
+}
+
 /* ── Scroll reveal animations (matching v4) ── */
 .fade-up {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateY(16px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 .fade-up.visible {
@@ -183,9 +222,15 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0;
 }
 
+.hero-intro-anim {
+  animation: fadeSlideUp 0.6s ease forwards;
+  animation-delay: 1.15s;
+  opacity: 0;
+}
+
 .hero-buttons-anim {
   animation: fadeSlideUp 0.6s ease forwards;
-  animation-delay: 1.25s;
+  animation-delay: 1.35s;
   opacity: 0;
 }
 
@@ -258,8 +303,10 @@ h1, h2, h3, h4, h5, h6 {
   display: block;
   width: 40px;
   height: 3px;
-  background: #F0C95D;
+  background: #561F37;
   margin-top: 12px;
+  margin-left: auto;
+  margin-right: auto;
   border-radius: 2px;
 }
 
@@ -363,4 +410,53 @@ h1, h2, h3, h4, h5, h6 {
 @keyframes successFadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero text: black in light, white in dark */
+.hero-text-black {
+  color: #000000 !important;
+}
+.dark .hero-text-black {
+  color: #ffffff !important;
+}
+.dark .hero-text-black-sub {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Gradient text — using @utility with !important to beat all overrides */
+@utility gradient-text {
+  background: linear-gradient(135deg, #00F6ED 0%, #4056F4 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+
+/* Eyebrow text: plum in light, cyan in dark — must use !important to beat body color inheritance */
+.eyebrow-plum {
+  color: #7B2D4A !important;
+  font-weight: 800 !important;
+}
+.eyebrow-dot {
+  background-color: #7B2D4A !important;
+}
+.dark .eyebrow-plum {
+  color: #00F6ED !important;
+}
+.dark .eyebrow-dot {
+  background-color: #00F6ED !important;
+}
+
+/* Logo visibility — must override Tailwind v4 @layer specificity */
+.logo-light-bg {
+  display: block !important;
+}
+.logo-dark-bg {
+  display: none !important;
+}
+.dark .logo-light-bg {
+  display: none !important;
+}
+.dark .logo-dark-bg {
+  display: block !important;
 }

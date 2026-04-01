@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     'Every student supported. Every student moving forward. Teaching Labs helps students get guidance when they need it.',
 };
 
-/* ─── Inline SVG icon ─── */
+/* ─── SVG Icons ─── */
 function IconStar() {
   return (
     <svg viewBox="0 0 14 14" fill="currentColor" className="w-3.5 h-3.5">
@@ -19,65 +19,56 @@ function IconStar() {
   );
 }
 
-/* ─── Scenario moment bullet ─── */
+/* ─── Eyebrow label (matches homepage) ─── */
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="eyebrow-plum flex items-center justify-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-4">
+      <span className="eyebrow-dot w-2 h-2 rounded-full flex-shrink-0" />
+      {children}
+    </div>
+  );
+}
+
+/* ─── Moment bullet item ─── */
 function MomentItem({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3.5 font-body text-base text-text-secondary dark:text-white/70 leading-[1.6] transition-colors duration-[400ms]">
+    <div className="flex items-center gap-3.5 text-base text-text-secondary leading-[1.6]">
       <span className="w-2 h-2 rounded-full bg-teal flex-shrink-0 opacity-70" />
       <span>{children}</span>
     </div>
   );
 }
 
-/* ─── Scenario section wrapper ─── */
-function ScenarioSection({
-  bg,
-  children,
-}: {
-  bg: string;
-  children: React.ReactNode;
-}) {
+/* ─── Bridge quote (matches homepage) ─── */
+function Bridge({ children }: { children: React.ReactNode }) {
   return (
-    <section className={`fade-up transition-colors duration-[400ms] ${bg}`}>
-      <div className="max-w-[1200px] mx-auto px-12 py-[100px] max-md:px-6 max-md:py-[60px]">
-        <div className="max-w-[760px] mx-auto">{children}</div>
+    <div className="border-l-4 border-coral bg-[rgba(0,246,237,0.04)] dark:bg-[rgba(0,246,237,0.06)] rounded-xl p-8 pl-6 max-w-3xl font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary mx-auto max-md:text-xl max-md:p-6 max-md:pl-5">
+      {children}
+    </div>
+  );
+}
+
+/* ─── Gain item ─── */
+function GainItem({ word, children }: { word: string; children: React.ReactNode }) {
+  return (
+    <div className="text-center">
+      <div
+        className="font-heading text-[40px] font-extrabold tracking-[-0.5px] mb-3"
+        style={{
+          background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+        }}
+      >
+        {word}
       </div>
-    </section>
+      <p className="text-base text-text-secondary leading-[1.7]">{children}</p>
+    </div>
   );
 }
 
-function ScenarioHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <h2
-      className="font-heading font-extrabold text-text-primary dark:text-white mb-6 leading-[1.2] transition-colors duration-[400ms]"
-      style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', letterSpacing: '-1px' }}
-    >
-      {children}
-    </h2>
-  );
-}
-
-function ScenarioLead({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-body text-lg text-text-secondary dark:text-white/70 leading-[1.7] mb-7 transition-colors duration-[400ms]">{children}</p>
-  );
-}
-
-function ScenarioBody({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-body text-[17px] text-text-secondary dark:text-white/70 leading-[1.8] mb-4 transition-colors duration-[400ms]">{children}</p>
-  );
-}
-
-function ScenarioResolve({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-heading text-[17px] font-semibold text-text-primary dark:text-white leading-[1.6] transition-colors duration-[400ms]">
-      {children}
-    </p>
-  );
-}
-
-/* ─── Page ─── */
+/* ─── Main Page ─── */
 export default function ForStudentsPage() {
   return (
     <>
@@ -85,39 +76,41 @@ export default function ForStudentsPage() {
       <ScrollReveal />
 
       {/* ── HERO ── */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy transition-colors duration-[400ms]">
-        {/* Animated blobs */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy">
+        {/* Decorative blobs — matching homepage */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <div
-            className="absolute rounded-full top-[10%] left-[15%] w-[500px] h-[500px] max-md:w-[300px] max-md:h-[300px]"
-            style={{ background: '#00F6ED', filter: 'blur(80px)', opacity: 0.15 }}
-          />
-          <div
-            className="absolute rounded-full top-[30%] right-[10%] w-[450px] h-[450px] max-md:w-[280px] max-md:h-[280px]"
-            style={{ background: '#4056F4', filter: 'blur(80px)', opacity: 0.15 }}
-          />
-          <div
-            className="absolute rounded-full top-[50%] left-[30%] w-[350px] h-[350px] max-md:hidden"
-            style={{ background: '#561F37', filter: 'blur(100px)', opacity: 0.08 }}
-          />
+          <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[8%] left-[5%] max-md:w-[350px] max-md:h-[350px] opacity-[0.3] dark:opacity-[0.2]"
+            style={{ background: '#00F6ED', filter: 'blur(100px)' }} />
+          <div className="blob-gold absolute w-[550px] h-[550px] rounded-full top-[20%] right-[2%] max-md:w-[320px] max-md:h-[320px] opacity-[0.3] dark:opacity-[0.18]"
+            style={{ background: '#4056F4', filter: 'blur(100px)' }} />
+          <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.15] dark:opacity-[0.1] max-md:hidden"
+            style={{ background: '#561F37', filter: 'blur(100px)' }} />
+          {/* Bottom fade */}
+          <div className="absolute bottom-0 left-0 right-0 h-[200px] dark:hidden"
+            style={{ background: 'linear-gradient(to bottom, transparent, #F7F7F8)' }} />
+          <div className="absolute bottom-0 left-0 right-0 h-[200px] hidden dark:block"
+            style={{ background: 'linear-gradient(to bottom, transparent, #0a1128)' }} />
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase text-teal mb-6">
-            <span className="w-2 h-2 rounded-full bg-gold flex-shrink-0" />
+          <div className="eyebrow-plum inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-6">
+            <span className="eyebrow-dot w-2 h-2 rounded-full flex-shrink-0" />
             For Students
           </div>
 
           {/* Headline */}
           <h1
-            className="font-heading font-extrabold leading-[1.05] text-text-primary dark:text-white mb-6 transition-colors duration-[400ms] text-[clamp(36px,8vw,52px)] tracking-[-1px] min-[900px]:text-[clamp(42px,7vw,76px)] min-[900px]:tracking-[-2px]"
+            className="font-heading font-extrabold tracking-[-2px] leading-[1.15] mb-6"
+            style={{ fontSize: 'clamp(38px, 6vw, 68px)' }}
           >
-            Every Student Supported. Every Student{' '}
+            <span className="hero-text-black hero-word hero-word-0 dark:text-white">Every Student Supported.</span>
+            <br />
+            <span className="hero-text-black hero-word hero-word-1 dark:text-white">Every Student</span>{' '}
             <span
-              className="pb-2 whitespace-nowrap"
+              className="hero-word hero-word-2"
               style={{
-                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
+                background: 'linear-gradient(135deg, #00F6ED 0%, #4056F4 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -128,22 +121,23 @@ export default function ForStudentsPage() {
           </h1>
 
           {/* Subtitle */}
-          <p className="font-body text-xl leading-[1.7] text-text-secondary dark:text-white/70 mb-4 max-w-[620px] mx-auto transition-colors duration-[400ms]">
+          <p className="hero-subtitle-anim hero-text-black font-body text-xl leading-[1.7] mb-10 max-w-[620px] mx-auto dark:!text-white/70">
             Teaching Labs helps your students get guidance when they need it, without interrupting
             the flow of your classroom. When one student needs extra help and another is ready to
             move ahead, Teaching Labs helps keep everyone learning.
           </p>
 
-          {/* Tagline */}
-          <p className="font-heading text-xl font-bold text-gold mb-8">
-            Your teaching. Extended to every student.
-          </p>
-
-          {/* CTA — dark outline, dark text in light / white text in dark, fills on hover */}
-          <div className="flex gap-4 justify-center flex-wrap">
+          {/* Buttons — matching homepage style */}
+          <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8">
             <Link
               href="/waitlist"
-              className="inline-flex items-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300"
+            >
+              Join the Waitlist
+            </Link>
+            <Link
+              href="/how-it-works"
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-coral dark:border-teal dark:shadow-[0_0_20px_rgba(0,246,237,0.15)] hover:bg-coral dark:hover:bg-teal hover:text-white dark:hover:text-deep-navy hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(86,31,55,0.3)] dark:hover:shadow-[0_6px_28px_rgba(0,246,237,0.35)] transition-all duration-300"
             >
               See How It Works
             </Link>
@@ -151,236 +145,259 @@ export default function ForStudentsPage() {
         </div>
       </section>
 
-      {/* ── MAIN CONTENT ── */}
       <main>
 
-        {/* ── SCENARIO 1: When You're Helping One Student ── */}
-        <ScenarioSection bg="bg-warm-white dark:bg-deep-navy">
-          <ScenarioHeading>When You&apos;re Helping One Student...</ScenarioHeading>
-          <ScenarioLead>Across the classroom, other students are still learning.</ScenarioLead>
-          <div className="flex flex-col gap-3.5 mb-7">
-            <MomentItem>A student gets stuck on the next step</MomentItem>
-            <MomentItem>Another finishes early with nothing to do</MomentItem>
-            <MomentItem>A third needs a different explanation than the one you gave</MomentItem>
-          </div>
-          <ScenarioResolve>
-            Teaching Labs helps guide those moments using your teaching style, so students keep
-            moving forward even when you&apos;re focused elsewhere.
-          </ScenarioResolve>
-        </ScenarioSection>
-
-        {/* Photo 1 */}
-        <div className="fade-up bg-warm-white dark:bg-deep-navy transition-colors duration-[400ms]" style={{ padding: '0 48px 48px' }}>
-          <div className="max-w-[760px] mx-auto max-md:mx-6">
-            <div className="rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]">
-              <Image
-                src="/images/classroom-wide-angle.jpg"
-                alt="Busy classroom with students working on laptops while teacher instructs"
-                width={760}
-                height={400}
-                className="w-full object-cover hover:scale-[1.03] transition-transform duration-[600ms]"
-                loading="lazy"
-              />
+        {/* ── WHEN YOU'RE HELPING ONE STUDENT ── */}
+        <section className="bg-warm-white dark:bg-deep-navy">
+          <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
+            <div className="text-center mb-14 fade-up">
+              <Eyebrow>The Classroom Reality</Eyebrow>
+              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
+                style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
+                When You&apos;re Helping One Student...
+              </h2>
+              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
             </div>
-          </div>
-        </div>
-
-        {/* ── SCENARIO 2: Students Get Help Without Waiting ── */}
-        <ScenarioSection bg="bg-bg-secondary dark:bg-[#0D1B30]">
-          <ScenarioHeading>Students Get Help Without Waiting</ScenarioHeading>
-          <ScenarioBody>
-            Students can ask questions, practice skills, and work through challenges without waiting
-            for the teacher to become available.
-          </ScenarioBody>
-          <ScenarioBody>Support reflects how you teach, not generic responses.</ScenarioBody>
-          <ScenarioBody>Students can:</ScenarioBody>
-          <div className="flex flex-col gap-3.5 mb-7">
-            <MomentItem>Ask for help</MomentItem>
-            <MomentItem>Try again</MomentItem>
-            <MomentItem>See the idea explained a different way</MomentItem>
-          </div>
-          <ScenarioResolve>
-            All without needing to raise their hand or stop the lesson.
-          </ScenarioResolve>
-        </ScenarioSection>
-
-        {/* ── SCENARIO 3: Strong Students Keep Moving ── */}
-        <ScenarioSection bg="bg-warm-white dark:bg-deep-navy">
-          <ScenarioHeading>Strong Students Keep Moving</ScenarioHeading>
-          <ScenarioBody>
-            When students are ready to go further, Teaching Labs provides deeper challenges and
-            extensions of the lesson.
-          </ScenarioBody>
-          <ScenarioBody>
-            No more early finishers sitting idle. No extra preparation required.
-          </ScenarioBody>
-          <ScenarioBody>Students can explore:</ScenarioBody>
-          <div className="flex flex-col gap-3.5">
-            <MomentItem>Enrichment activities that extend the lesson</MomentItem>
-            <MomentItem>Deeper exploration at their pace</MomentItem>
-            <MomentItem>Advanced challenges connected to what they&apos;re learning</MomentItem>
-          </div>
-        </ScenarioSection>
-
-        {/* Photo 2 */}
-        <div className="fade-up bg-warm-white dark:bg-deep-navy transition-colors duration-[400ms]" style={{ padding: '0 48px 48px' }}>
-          <div className="max-w-[760px] mx-auto max-md:mx-6">
-            <div className="rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]">
-              <Image
-                src="/images/student-independent-learning.jpg"
-                alt="Student focused on independent learning with headphones and laptop"
-                width={760}
-                height={400}
-                className="w-full object-cover hover:scale-[1.03] transition-transform duration-[600ms]"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ── SCENARIO 4: Guidance That Feels Familiar ── */}
-        <ScenarioSection bg="bg-bg-secondary dark:bg-[#0D1B30]">
-          <ScenarioHeading>Students Learn With Guidance That Feels Familiar</ScenarioHeading>
-          <ScenarioBody>
-            Teaching Labs reflects how you explain ideas, guide students, and respond when they
-            struggle.
-          </ScenarioBody>
-          <ScenarioBody>
-            That means the support students receive stays connected to your classroom and your
-            teaching style.
-          </ScenarioBody>
-          <ScenarioResolve>
-            Students are never learning from a random system. They&apos;re learning through guidance
-            built from their teacher.
-          </ScenarioResolve>
-        </ScenarioSection>
-
-        {/* ── SCENARIO 5: Learning Doesn't Stop ── */}
-        <ScenarioSection bg="bg-warm-white dark:bg-deep-navy">
-          <ScenarioHeading>Learning Doesn&apos;t Stop When Class Ends</ScenarioHeading>
-          <ScenarioBody>
-            Whether students are working independently, reviewing a lesson, or exploring something
-            new, Teaching Labs helps them keep learning.
-          </ScenarioBody>
-          <ScenarioResolve>
-            The support they receive stays connected to the way you teach in class.
-          </ScenarioResolve>
-        </ScenarioSection>
-
-        {/* ── GAINS SECTION ── */}
-        <section className="fade-up bg-deep-navy dark:bg-[#0D1B30] transition-colors duration-[400ms]">
-          <div className="max-w-[1200px] mx-auto px-12 py-[100px] text-center max-md:px-6 max-md:py-[60px]">
-            <div
-              className="inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-12"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
-            >
-              <span
-                className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ background: 'rgba(255,255,255,0.3)' }}
-              />
-              What This Means for Your Students
-            </div>
-            <div className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9">
-              {[
-                { word: 'Confidence', desc: 'More confidence when they get stuck.' },
-                { word: 'Challenge', desc: "More challenge when they're ready." },
-                { word: 'Opportunity', desc: 'More opportunities to keep learning.' },
-              ].map(({ word, desc }) => (
-                <div key={word} className="text-center">
-                  <div
-                    className="font-heading text-[40px] font-extrabold mb-3 leading-tight"
-                    style={{
-                      background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      letterSpacing: '-0.5px',
-                    }}
-                  >
-                    {word}
-                  </div>
-                  <p
-                    className="font-body text-base leading-[1.7]"
-                    style={{ color: 'rgba(255,255,255,0.72)' }}
-                  >
-                    {desc}
-                  </p>
-                </div>
-              ))}
+            <div className="max-w-[760px] mx-auto fade-up">
+              <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
+                Across the classroom, other students are still learning.
+              </p>
+              <div className="flex flex-col gap-3.5 mb-7">
+                <MomentItem>A student gets stuck on the next step</MomentItem>
+                <MomentItem>Another finishes early with nothing to do</MomentItem>
+                <MomentItem>A third needs a different explanation than the one you gave</MomentItem>
+              </div>
+              <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-8">
+                Teaching Labs helps guide those moments using your teaching style, so students keep
+                moving forward even when you&apos;re focused elsewhere.
+              </p>
+              {/* Photo */}
+              <div className="feat-photo-hover">
+                <Image src="/images/classroom-wide-angle.jpg" alt="Busy classroom with students working on laptops while teacher instructs" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" loading="lazy" />
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ── CTA SECTION ── */}
-        <section
-          className="fade-up relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(145deg, #14213D 0%, #1a3a4a 50%, #1d4a52 100%)',
-          }}
-        >
-          {/* Radial glow */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            aria-hidden="true"
-            style={{
-              background:
-                'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)',
-            }}
-          />
+        {/* ── STUDENTS GET HELP WITHOUT WAITING ── */}
+        <section className="bg-warm-white dark:bg-deep-navy">
+          <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
+            <div className="text-center mb-14 fade-up">
+              <Eyebrow>No More Waiting</Eyebrow>
+              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
+                style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
+                Students Get Help Without Waiting
+              </h2>
+              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+            </div>
+            <div className="max-w-[760px] mx-auto fade-up">
+              <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
+                Students can ask questions, practice skills, and work through challenges without waiting
+                for the teacher to become available.
+              </p>
+              <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
+                Support reflects how you teach, not generic responses. Students can:
+              </p>
+              <div className="flex flex-col gap-3.5 mb-7">
+                <MomentItem>Ask for help</MomentItem>
+                <MomentItem>Try again</MomentItem>
+                <MomentItem>See the idea explained a different way</MomentItem>
+              </div>
+              <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6]">
+                All without needing to raise their hand or stop the lesson.
+              </p>
+            </div>
+          </div>
+        </section>
 
-          <div className="relative z-10 max-w-[800px] mx-auto px-12 py-[140px] text-center max-md:px-6 max-md:py-20">
-            <div
-              className="font-heading text-xs font-bold tracking-[4px] uppercase mb-5"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
-            >
+        {/* ── STRONG STUDENTS KEEP MOVING ── */}
+        <section className="bg-warm-white dark:bg-deep-navy">
+          <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
+            <div className="text-center mb-14 fade-up">
+              <Eyebrow>No Ceiling</Eyebrow>
+              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
+                style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
+                Strong Students Keep Moving
+              </h2>
+              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+            </div>
+            <div className="max-w-[760px] mx-auto fade-up">
+              <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
+                When students are ready to go further, Teaching Labs provides deeper challenges and
+                extensions of the lesson.
+              </p>
+              <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
+                No more early finishers sitting idle. No extra preparation required. Students can explore:
+              </p>
+              <div className="flex flex-col gap-3.5 mb-7">
+                <MomentItem>Enrichment activities that extend the lesson</MomentItem>
+                <MomentItem>Deeper exploration at their pace</MomentItem>
+                <MomentItem>Advanced challenges connected to what they&apos;re learning</MomentItem>
+              </div>
+              {/* Photo */}
+              <div className="feat-photo-hover">
+                <Image src="/images/student-independent-learning.jpg" alt="Student focused on independent learning with headphones and laptop" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" loading="lazy" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── GUIDANCE THAT FEELS FAMILIAR ── */}
+        <section className="bg-warm-white dark:bg-deep-navy">
+          <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
+            <div className="text-center mb-14 fade-up">
+              <Eyebrow>Your Voice, Extended</Eyebrow>
+              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
+                style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
+                Guidance That Feels Familiar
+              </h2>
+              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+            </div>
+            <div className="max-w-[760px] mx-auto fade-up">
+              <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
+                Teaching Labs reflects how you explain ideas, guide students, and respond when they struggle.
+              </p>
+              <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
+                That means the support students receive stays connected to your classroom and your teaching style.
+              </p>
+              <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6]">
+                Students are never learning from a random system. They&apos;re learning through guidance built from their teacher.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── LEARNING DOESN'T STOP ── */}
+        <section className="bg-warm-white dark:bg-deep-navy">
+          <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
+            <div className="text-center mb-14 fade-up">
+              <Eyebrow>Beyond the Bell</Eyebrow>
+              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
+                style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
+                Learning Doesn&apos;t Stop When<br />Class Ends
+              </h2>
+              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+            </div>
+            <div className="max-w-[760px] mx-auto fade-up">
+              <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
+                Whether students are working independently, reviewing a lesson, or exploring something
+                new, Teaching Labs helps them keep learning.
+              </p>
+              <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6]">
+                The support they receive stays connected to the way you teach in class.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Bridge Quote ── */}
+        <section className="bg-warm-white dark:bg-deep-navy">
+          <div className="max-w-[1200px] mx-auto px-12 pb-24 max-md:px-6 max-md:pb-16 fade-up">
+            <Bridge>Every student deserves support that reflects how their teacher teaches. Teaching Labs makes that possible.</Bridge>
+          </div>
+        </section>
+
+        {/* ── WHAT THIS MEANS FOR YOUR STUDENTS ── */}
+        <section className="bg-warm-white dark:bg-deep-navy">
+          <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
+            <div className="text-center mb-14 fade-up">
+              <Eyebrow>What This Means</Eyebrow>
+              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
+                style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
+                Confidence. Challenge. Opportunity.
+              </h2>
+              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+            </div>
+            <div className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9 fade-up">
+              <GainItem word="Confidence">
+                More confidence when they get stuck.
+              </GainItem>
+              <GainItem word="Challenge">
+                More challenge when they&apos;re ready.
+              </GainItem>
+              <GainItem word="Opportunity">
+                More opportunities to keep learning.
+              </GainItem>
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA SECTION — matches homepage ── */}
+        <section className="relative overflow-hidden bg-warm-white dark:bg-transparent">
+          {/* Top fade */}
+          <div className="absolute top-0 left-0 right-0 h-[200px] dark:hidden pointer-events-none"
+            style={{ background: 'linear-gradient(to bottom, #F7F7F8, transparent)' }} />
+          <div className="absolute top-0 left-0 right-0 h-[200px] hidden dark:block pointer-events-none z-[2]"
+            style={{ background: 'linear-gradient(to bottom, #0a1128, transparent)' }} />
+          {/* Light mode: radiant blobs */}
+          <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
+            <div className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[-10%] opacity-[0.25]"
+              style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
+            <div className="absolute w-[450px] h-[450px] rounded-full top-[5%] right-[-8%] opacity-[0.25]"
+              style={{ background: '#4056F4', filter: 'blur(120px)' }} />
+            <div className="absolute w-[350px] h-[350px] rounded-full bottom-[10%] left-[40%] opacity-[0.12]"
+              style={{ background: '#7B2D4A', filter: 'blur(120px)' }} />
+          </div>
+          {/* Dark mode: gradient */}
+          <div className="absolute inset-0 pointer-events-none hidden dark:block" aria-hidden="true"
+            style={{ background: 'linear-gradient(180deg, #1a3a4a 0%, #152a3a 40%, #0a1128 100%)' }} />
+          <div className="absolute inset-0 pointer-events-none hidden dark:block" aria-hidden="true"
+            style={{ background: 'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)' }} />
+
+          <div className="relative z-10 max-w-[800px] mx-auto px-12 py-36 text-center max-md:px-6 max-md:py-20">
+            <div className="eyebrow-plum font-heading text-xs font-bold tracking-[4px] uppercase mb-5 dark:text-white/50">
               Early Access
             </div>
-            <h2
-              className="font-heading font-extrabold text-white mb-5 leading-[1.15]"
-              style={{ fontSize: 'clamp(36px, 5vw, 56px)', letterSpacing: '-1.5px' }}
-            >
+            <h2 className="hero-text-black font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"
+              style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
               Ready to See Every Student Supported?
             </h2>
-            <p
-              className="text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto"
-              style={{ color: 'rgba(255,255,255,0.65)' }}
-            >
-              Get early access to Teaching Labs and give your students guidance that reflects how
-              you teach.
+            <p className="hero-text-black text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto dark:!text-white/65">
+              Get early access to Teaching Labs and give your students guidance that reflects how you teach.
             </p>
             <Link
-              href="/contact"
-              className="cta-button-pulse inline-flex items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.45)] transition-all duration-300"
+              href="/waitlist"
+              className="inline-flex justify-center items-center font-heading text-[17px] font-bold bg-transparent text-deep-navy dark:text-white border-4 border-gold hover:bg-gold hover:text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300 shadow-[0_4px_20px_rgba(64,86,244,0.3)]"
             >
-              Get Early Access
+              Join the Waitlist
             </Link>
           </div>
         </section>
 
       </main>
 
-      {/* ── FOOTER ── */}
-      <footer
-        style={{
-          background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)',
-          borderTop: '1px solid rgba(64,86,244,0.2)',
-        }}
-      >
-        <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
+      {/* ── FOOTER — matches homepage ── */}
+      <footer className="relative overflow-hidden bg-warm-white dark:bg-transparent">
+        {/* Light mode: subtle blobs */}
+        <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
+          <div className="absolute w-[500px] h-[500px] rounded-full top-[-20%] left-[-5%] opacity-[0.2]"
+            style={{ background: '#00F6ED', filter: 'blur(130px)' }} />
+          <div className="absolute w-[450px] h-[450px] rounded-full bottom-[-10%] right-[-5%] opacity-[0.2]"
+            style={{ background: '#4056F4', filter: 'blur(130px)' }} />
+        </div>
+        {/* Dark mode: gradient with top blend */}
+        <div className="absolute top-0 left-0 right-0 h-[200px] hidden dark:block pointer-events-none z-[2]"
+          style={{ background: 'linear-gradient(to bottom, #0a1128, transparent)' }} />
+        <div className="absolute inset-0 pointer-events-none hidden dark:block" aria-hidden="true"
+          style={{ background: 'linear-gradient(180deg, var(--color-deep-navy) 0%, #1a2a45 100%)' }} />
+        <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
           <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-12 max-md:grid-cols-1 max-md:gap-8">
+
+            {/* Brand */}
             <div>
-              <div className="font-heading text-xl font-bold text-white mb-4">Teaching Labs</div>
-              <p className="text-sm leading-[1.7] text-white/55 mb-5 max-w-[280px]">
-                AI-powered teaching platform that learns how you teach and helps every student get
-                the support they need.
+              <div className="font-heading text-xl font-bold text-black dark:text-white mb-4">Teaching Labs</div>
+              <p className="text-sm leading-[1.7] text-black/60 dark:text-white/55 mb-5 max-w-[280px]">
+                AI-powered teaching platform that learns how you teach and helps every student get the support they need.
               </p>
-              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(0,246,237,0.2)]">
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-gold dark:text-teal bg-[rgba(64,86,244,0.08)] dark:bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(64,86,244,0.15)] dark:border-[rgba(0,246,237,0.2)]">
                 <IconStar />
                 FERPA &amp; COPPA Compliant
               </div>
             </div>
+
+            {/* Platform */}
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-white/35 mb-5">Platform</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/40 dark:text-white/35 mb-5">Platform</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '/for-teachers', label: 'For Teachers' },
@@ -389,13 +406,17 @@ export default function ForStudentsPage() {
                   { href: '/for-parents', label: 'For Parents' },
                 ].map(({ href, label }) => (
                   <li key={href}>
-                    <Link href={href} className="text-sm text-white/55 hover:text-gold transition-colors duration-200">{label}</Link>
+                    <Link href={href} className="text-sm text-black/60 dark:text-white/55 hover:text-gold transition-colors duration-200">
+                      {label}
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
+
+            {/* Company */}
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-white/35 mb-5">Company</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/40 dark:text-white/35 mb-5">Company</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '/our-story', label: 'Our Story' },
@@ -404,13 +425,17 @@ export default function ForStudentsPage() {
                   { href: '/contact', label: 'Contact' },
                 ].map(({ href, label }) => (
                   <li key={href}>
-                    <Link href={href} className="text-sm text-white/55 hover:text-gold transition-colors duration-200">{label}</Link>
+                    <Link href={href} className="text-sm text-black/60 dark:text-white/55 hover:text-gold transition-colors duration-200">
+                      {label}
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
+
+            {/* Legal */}
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-white/35 mb-5">Legal</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/40 dark:text-white/35 mb-5">Legal</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '#', label: 'Privacy Policy' },
@@ -419,13 +444,18 @@ export default function ForStudentsPage() {
                   { href: '#', label: 'Accessibility' },
                 ].map(({ href, label }) => (
                   <li key={label}>
-                    <Link href={href} className="text-sm text-white/55 hover:text-gold transition-colors duration-200">{label}</Link>
+                    <Link href={href} className="text-sm text-black/60 dark:text-white/55 hover:text-gold transition-colors duration-200">
+                      {label}
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
+
           </div>
-          <div className="border-t border-white/[0.08] pt-8 text-center text-[13px] text-white/35">
+
+          {/* Bottom bar */}
+          <div className="border-t border-black/10 dark:border-white/[0.08] pt-8 text-center text-[13px] text-black/40 dark:text-white/35">
             &copy; 2026 Intellectual Creations / Teaching Labs. All rights reserved.
           </div>
         </div>

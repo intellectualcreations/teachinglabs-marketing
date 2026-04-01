@@ -31,7 +31,7 @@ export default function MarketingNav() {
               alt="Teaching Labs"
               width={180}
               height={44}
-              className="h-[44px] w-auto transition-[filter] duration-[400ms] block dark:hidden hover:[filter:drop-shadow(0_0_12px_rgba(64,86,244,0.5))]"
+              className="h-[56px] w-auto transition-[filter] duration-[400ms] logo-light-bg hover:[filter:drop-shadow(0_0_12px_rgba(64,86,244,0.5))]"
               priority
             />
             <Image
@@ -39,27 +39,27 @@ export default function MarketingNav() {
               alt="Teaching Labs"
               width={180}
               height={44}
-              className="h-[44px] w-auto transition-[filter] duration-[400ms] hidden dark:block hover:[filter:drop-shadow(0_0_16px_rgba(0,246,237,0.5))]"
+              className="h-[56px] w-auto transition-[filter] duration-[400ms] logo-dark-bg hover:[filter:drop-shadow(0_0_16px_rgba(0,246,237,0.5))]"
               priority
             />
           </Link>
 
           {/* Desktop links */}
-          <ul className="hidden lg:flex items-center gap-6 list-none">
+          <ul className="hidden xl:flex items-center gap-6 list-none whitespace-nowrap">
             {[
               { href: '/', label: 'Home' },
-              { href: '/for-teachers', label: 'For Teachers' },
-              { href: '/for-students', label: 'For Students' },
-              { href: '/for-districts', label: 'For Districts' },
-              { href: '/for-parents', label: 'For Parents' },
+              { href: '/for-teachers', label: 'Teachers' },
+              { href: '/for-students', label: 'Students' },
+              { href: '/for-districts', label: 'Districts' },
+              { href: '/for-parents', label: 'Parents' },
             ].map(({ href, label }) => (
               <li key={href}>
                 <Link
                   href={href}
-                  className={`font-heading text-[13px] font-medium transition-colors duration-300 ${
+                  className={`font-heading text-[15px] font-medium transition-colors duration-300 ${
                     pathname === href
                       ? 'text-gold font-bold dark:text-teal dark:font-bold'
-                      : 'text-text-secondary hover:text-gold dark:hover:text-teal'
+                      : 'text-black hover:text-gold dark:text-white/80 dark:hover:text-teal'
                   }`}
                 >
                   {label}
@@ -69,10 +69,10 @@ export default function MarketingNav() {
             {/* About dropdown */}
             <li className="group relative">
               <button
-                className={`flex items-center gap-1 font-heading text-[14px] font-medium transition-colors duration-300 cursor-pointer bg-transparent border-0 p-0 group-hover:text-gold ${
+                className={`flex items-center gap-1 font-heading text-[15px] font-medium transition-colors duration-300 cursor-pointer bg-transparent border-0 p-0 group-hover:text-gold ${
                   isAboutActive
                     ? 'text-gold font-bold dark:text-teal dark:font-bold'
-                    : 'text-text-secondary'
+                    : 'text-black dark:text-white/80'
                 }`}
               >
                 About <IconChevronDown />
@@ -88,6 +88,7 @@ export default function MarketingNav() {
                       {label}
                     </Link>
                   ))}
+                  <span className="block px-5 py-2.5 text-sm font-medium text-text-secondary/50 pointer-events-none">Activities <span className="text-[11px] text-[var(--text-muted)]">(Coming Soon)</span></span>
                   <span className="block px-5 py-2.5 text-sm font-medium text-text-secondary/50 pointer-events-none">Team <span className="text-[11px] text-[var(--text-muted)]">(Coming Soon)</span></span>
                   <span className="block px-5 py-2.5 text-sm font-medium text-text-secondary/50 pointer-events-none">Testimonials <span className="text-[11px] text-[var(--text-muted)]">(Coming Soon)</span></span>
                   <Link href="/see-the-difference" className="block px-5 py-2.5 text-sm font-medium text-text-secondary hover:bg-[rgba(0,246,237,0.08)] hover:text-gold transition-colors duration-150">
@@ -97,14 +98,14 @@ export default function MarketingNav() {
               </div>
             </li>
             <li>
-              <Link href="/contact" className={`font-heading text-[13px] font-medium transition-colors duration-300 ${pathname === '/contact' ? 'text-gold font-bold dark:text-teal dark:font-bold' : 'text-text-secondary hover:text-gold dark:hover:text-teal'}`}>
+              <Link href="/contact" className={`font-heading text-[15px] font-medium transition-colors duration-300 ${pathname === '/contact' ? 'text-gold font-bold dark:text-teal dark:font-bold' : 'text-black hover:text-gold dark:text-white/80 dark:hover:text-teal'}`}>
                 Contact
               </Link>
             </li>
           </ul>
 
           {/* Desktop right */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden xl:flex items-center gap-4">
             <Link
               href="/waitlist"
               className="font-heading text-sm font-semibold bg-transparent text-deep-navy dark:text-white px-6 py-2.5 rounded-full border-2 border-gold hover:bg-gold hover:text-white hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)] transition-all duration-200"
@@ -115,7 +116,7 @@ export default function MarketingNav() {
           </div>
 
           {/* Mobile: toggle + hamburger */}
-          <div className="flex lg:hidden items-center gap-3">
+          <div className="flex xl:hidden items-center gap-3">
             <ThemeToggle className="w-10 h-10 rounded-full flex items-center justify-center bg-[rgba(128,128,128,0.08)] hover:bg-[rgba(128,128,128,0.15)] hover:rotate-[15deg] transition-all duration-300" />
             <MobileMenu />
           </div>
