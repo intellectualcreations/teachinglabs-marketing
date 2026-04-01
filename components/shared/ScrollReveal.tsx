@@ -1,39 +1,24 @@
 'use client';
 
 import { useEffect } from 'react';
+import { animate, inView } from 'framer-motion';
 
 export default function ScrollReveal() {
   useEffect(() => {
-    // Immediately reveal any .fade-up elements already in viewport
-    // and set up observer for the rest
-    document.documentElement.classList.add('scroll-ready');
+    document.querySelectorAll('.fade-up').forEach((el) => {
+      // Set initial state immediately
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.opacity = '0';
+      htmlEl.style.transform = 'translateY(30px)';
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.05 }
-    );
-
-    function observeAll() {
-      document.querySelectorAll('.fade-up:not(.visible)').forEach((el) => {
-        observer.observe(el);
-      });
-    }
-
-    observeAll();
-    const mutation = new MutationObserver(() => observeAll());
-    mutation.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      observer.disconnect();
-      mutation.disconnect();
-    };
+      inView(el, () => {
+        animate(
+          el,
+          { opacity: 1, transform: 'translateY(0px)' },
+          { duration: 0.6, easing: 'ease-out' }
+        );
+      }, { amount: 0.15 });
+    });
   }, []);
 
   return null;
