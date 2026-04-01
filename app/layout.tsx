@@ -46,6 +46,22 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${inter.variable} ${openSans.variable} antialiased`}>
+        <script dangerouslySetInnerHTML={{ __html: `
+          document.documentElement.classList.add('scroll-ready');
+          var io = new IntersectionObserver(function(entries) {
+            entries.forEach(function(e) {
+              if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                io.unobserve(e.target);
+              }
+            });
+          }, { threshold: 0.05 });
+          new MutationObserver(function() {
+            document.querySelectorAll('.fade-up:not(.visible)').forEach(function(el) {
+              io.observe(el);
+            });
+          }).observe(document.documentElement, { childList: true, subtree: true });
+        `}} />
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
             <ServiceWorkerRegistrar />
