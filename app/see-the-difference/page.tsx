@@ -76,9 +76,9 @@ function CompareCard({
 }) {
   return (
     <div className="card-accent bg-card-bg rounded-[20px] p-8 shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300 fade-up flex flex-col">
-      <div className="flex items-center gap-3 mb-4">
-        <h3 className="font-heading text-xl font-bold text-text-primary">{name}</h3>
-        <span className="font-heading text-xs font-bold tracking-[2px] uppercase px-3 py-1 rounded-full" style={{ color: verdictColor, border: `2px solid ${verdictColor}` }}>
+      <h3 className="font-heading text-2xl font-bold text-text-primary mb-3 text-center">{name}</h3>
+      <div className="flex justify-center mb-5">
+        <span className="font-heading text-xs font-bold tracking-[2px] uppercase px-4 py-1.5 rounded-full" style={{ color: verdictColor, border: `2px solid ${verdictColor}` }}>
           {verdict}
         </span>
       </div>
