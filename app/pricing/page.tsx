@@ -118,7 +118,7 @@ export default function Pricing() {
             style={{ background: '#00F6ED', filter: 'blur(100px)' }} />
           <div className="blob-gold absolute w-[550px] h-[550px] rounded-full top-[10%] right-[2%] max-md:w-[320px] max-md:h-[320px] opacity-[0.15] dark:opacity-[0.10]"
             style={{ background: '#4056F4', filter: 'blur(100px)' }} />
-          <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.15] dark:opacity-[0.1] max-md:hidden"
+          <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.07] dark:opacity-[0.1] max-md:hidden"
             style={{ background: '#561F37', filter: 'blur(100px)' }} />
         </div>
 
@@ -250,7 +250,7 @@ export default function Pricing() {
               style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
             <div className="absolute w-[450px] h-[450px] rounded-full top-[5%] right-[-8%] opacity-[0.25]"
               style={{ background: '#4056F4', filter: 'blur(120px)' }} />
-            <div className="absolute w-[350px] h-[350px] rounded-full bottom-[10%] left-[40%] opacity-[0.12]"
+            <div className="absolute w-[350px] h-[350px] rounded-full bottom-[10%] left-[40%] opacity-[0.07]"
               style={{ background: '#7B2D4A', filter: 'blur(120px)' }} />
           </div>
           <div className="absolute inset-0 pointer-events-none hidden dark:block" aria-hidden="true"

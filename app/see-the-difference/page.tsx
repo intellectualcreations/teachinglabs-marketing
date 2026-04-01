@@ -117,7 +117,7 @@ export default function SeeTheDifferencePage() {
             style={{ background: '#00F6ED', filter: 'blur(100px)' }} />
           <div className="blob-gold absolute w-[550px] h-[550px] rounded-full top-[20%] right-[2%] max-md:w-[320px] max-md:h-[320px] opacity-[0.15] dark:opacity-[0.10]"
             style={{ background: '#4056F4', filter: 'blur(100px)' }} />
-          <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.15] dark:opacity-[0.1] max-md:hidden"
+          <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.07] dark:opacity-[0.1] max-md:hidden"
             style={{ background: '#561F37', filter: 'blur(100px)' }} />
           <div className="absolute bottom-0 left-0 right-0 h-[200px] dark:hidden"
             style={{ background: 'linear-gradient(to bottom, transparent, #F7F7F8)' }} />
@@ -274,7 +274,7 @@ export default function SeeTheDifferencePage() {
         {/* ── TEACHER DASHBOARD VIEW ── */}
         <section className="relative py-28 max-md:py-16 bg-warm-white dark:bg-deep-navy overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-            <div className="absolute w-[500px] h-[500px] rounded-full top-[20%] left-[10%] opacity-[0.12] dark:opacity-[0.06]"
+            <div className="absolute w-[500px] h-[500px] rounded-full top-[20%] left-[10%] opacity-[0.07] dark:opacity-[0.06]"
               style={{ background: '#561F37', filter: 'blur(100px)' }} />
           </div>
 

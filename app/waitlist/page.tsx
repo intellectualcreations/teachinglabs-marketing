@@ -229,7 +229,7 @@ export default function WaitlistPage() {
             style={{ background: '#00F6ED', filter: 'blur(50px)' }} />
           <div className="blob-gold absolute w-[500px] h-[500px] rounded-full top-[20%] right-[5%] max-md:w-[280px] max-md:h-[280px] opacity-[0.25] dark:opacity-[0.10]"
             style={{ background: '#4056F4', filter: 'blur(50px)' }} />
-          <div className="absolute w-[400px] h-[400px] rounded-full bottom-[10%] left-[30%] opacity-[0.18] dark:opacity-[0.12] max-md:hidden"
+          <div className="absolute w-[400px] h-[400px] rounded-full bottom-[10%] left-[30%] opacity-[0.07] dark:opacity-[0.12] max-md:hidden"
             style={{ background: '#561F37', filter: 'blur(50px)' }} />
         </div>
 
