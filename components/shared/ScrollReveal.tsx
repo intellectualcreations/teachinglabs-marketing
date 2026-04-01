@@ -4,9 +4,6 @@ import { useEffect } from 'react';
 
 export default function ScrollReveal() {
   useEffect(() => {
-    const fadeEls = document.querySelectorAll('.fade-up');
-    if (!fadeEls.length) return;
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -16,12 +13,27 @@ export default function ScrollReveal() {
           }
         });
       },
-      { threshold: 0.05, rootMargin: '0px 0px 0px 0px' }
+      { threshold: 0.05 }
     );
 
-    fadeEls.forEach((el) => observer.observe(el));
+    // Observe all current fade-up elements
+    function observeAll() {
+      document.querySelectorAll('.fade-up:not(.visible)').forEach((el) => {
+        observer.observe(el);
+      });
+    }
 
-    return () => observer.disconnect();
+    // Initial pass
+    observeAll();
+
+    // Watch for new elements added to DOM (covers slow hydration)
+    const mutation = new MutationObserver(() => observeAll());
+    mutation.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      mutation.disconnect();
+    };
   }, []);
 
   return null;
