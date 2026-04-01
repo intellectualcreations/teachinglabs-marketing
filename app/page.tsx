@@ -292,7 +292,7 @@ export default function HomePage() {
         </section>
 
         {/* ── CTA SECTION ── */}
-        <section className="relative overflow-hidden bg-warm-white dark:bg-transparent" style={{ background: undefined }}>
+        <section className="relative overflow-hidden bg-warm-white dark:bg-transparent">
           {/* Top fade to blend with section above */}
           <div className="absolute top-0 left-0 right-0 h-[200px] dark:hidden pointer-events-none"
             style={{ background: 'linear-gradient(to bottom, #F7F7F8, transparent)' }} />

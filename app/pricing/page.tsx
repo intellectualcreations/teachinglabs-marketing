@@ -240,7 +240,7 @@ export default function Pricing() {
         </section>
 
         {/* ── CTA SECTION ── */}
-        <section className="relative overflow-hidden bg-warm-white dark:bg-transparent" style={{ background: undefined }}>
+        <section className="relative overflow-hidden bg-warm-white dark:bg-transparent">
           <div className="absolute top-0 left-0 right-0 h-[200px] dark:hidden pointer-events-none"
             style={{ background: 'linear-gradient(to bottom, #F7F7F8, transparent)' }} />
           <div className="absolute top-0 left-0 right-0 h-[200px] hidden dark:block pointer-events-none z-[2]"
@@ -266,7 +266,7 @@ export default function Pricing() {
               style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
               Ready to Get Started?
             </h2>
-            <p className="text-black dark:text-white text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto dark:!text-white/65">
+            <p className="text-black dark:text-white/80 text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto">
               Join the waitlist and be among the first to use Teaching Labs.
             </p>
             <Link
