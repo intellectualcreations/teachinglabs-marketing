@@ -134,9 +134,9 @@ export default function HomePage() {
       <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
         {/* Decorative blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[8%] left-[5%] max-md:w-[350px] max-md:h-[350px] opacity-[0.15] dark:opacity-[0.10]"
+          <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[8%] left-[5%] max-md:w-[350px] max-md:h-[350px] opacity-[0.10] dark:opacity-[0.08]"
             style={{ background: '#00F6ED', filter: 'blur(100px)' }} />
-          <div className="blob-gold absolute w-[550px] h-[550px] rounded-full top-[20%] right-[2%] max-md:w-[320px] max-md:h-[320px] opacity-[0.15] dark:opacity-[0.10]"
+          <div className="blob-gold absolute w-[550px] h-[550px] rounded-full top-[20%] right-[2%] max-md:w-[320px] max-md:h-[320px] opacity-[0.10] dark:opacity-[0.08]"
             style={{ background: '#4056F4', filter: 'blur(100px)' }} />
           <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.07] dark:opacity-[0.1] max-md:hidden"
             style={{ background: '#561F37', filter: 'blur(100px)' }} />
@@ -205,9 +205,9 @@ export default function HomePage() {
         {/* ── PROBLEM SECTION ── */}
         <section className="section-blend relative overflow-hidden bg-white dark:bg-deep-navy">
           <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
-            <div className="absolute w-[600px] h-[600px] rounded-full top-[5%] right-[-10%] opacity-[0.12]"
+            <div className="absolute w-[600px] h-[600px] rounded-full top-[5%] right-[-10%] opacity-[0.06]"
               style={{ background: '#4056F4', filter: 'blur(120px)' }} />
-            <div className="absolute w-[500px] h-[500px] rounded-full bottom-[10%] left-[-8%] opacity-[0.10]"
+            <div className="absolute w-[500px] h-[500px] rounded-full bottom-[10%] left-[-8%] opacity-[0.05]"
               style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
           </div>
           <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
@@ -250,9 +250,9 @@ export default function HomePage() {
         {/* ── SOLUTION SECTION ── */}
         <section className="section-blend relative overflow-hidden bg-white dark:bg-deep-navy">
           <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
-            <div className="absolute w-[550px] h-[550px] rounded-full top-[10%] left-[-5%] opacity-[0.10]"
+            <div className="absolute w-[550px] h-[550px] rounded-full top-[10%] left-[-5%] opacity-[0.05]"
               style={{ background: '#4056F4', filter: 'blur(120px)' }} />
-            <div className="absolute w-[500px] h-[500px] rounded-full bottom-[5%] right-[-8%] opacity-[0.12]"
+            <div className="absolute w-[500px] h-[500px] rounded-full bottom-[5%] right-[-8%] opacity-[0.06]"
               style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
           </div>
           <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
