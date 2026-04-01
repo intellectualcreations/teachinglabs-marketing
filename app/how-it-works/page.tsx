@@ -244,7 +244,7 @@ export default function HowItWorks() {
             <div className="flex gap-4 justify-center flex-wrap">
               <Link
                 href="/see-the-difference"
-                className="inline-flex justify-center items-center font-heading text-[17px] font-bold bg-transparent text-deep-navy dark:text-white border-4 border-coral dark:border-teal hover:bg-coral dark:hover:bg-teal hover:text-white dark:hover:text-deep-navy px-12 py-4 rounded-full hover:-translate-y-0.5 transition-all duration-300 shadow-[0_4px_20px_rgba(86,31,55,0.2)] dark:shadow-[0_4px_20px_rgba(0,246,237,0.2)]"
+                className="inline-flex justify-center items-center font-heading text-[17px] font-bold bg-transparent text-deep-navy dark:text-white border-4 border-gold hover:bg-gold hover:text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-all duration-300 shadow-[0_4px_20px_rgba(64,86,244,0.2)] dark:shadow-[0_4px_20px_rgba(64,86,244,0.2)]"
               >
                 What Is Different
               </Link>
