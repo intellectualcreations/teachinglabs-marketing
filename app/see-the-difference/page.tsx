@@ -399,7 +399,7 @@ export default function SeeTheDifferencePage() {
                 href="/waitlist"
                 className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300"
               >
-                Get Early Access
+                Join Waitlist
               </Link>
               <Link
                 href="/contact"
