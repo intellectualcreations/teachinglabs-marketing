@@ -10,14 +10,7 @@ function IconStar() {
 
 export default function MarketingFooter() {
   return (
-    <footer className="relative overflow-hidden bg-warm-white dark:bg-transparent">
-      {/* Light mode: subtle blobs */}
-      <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
-        <div className="absolute w-[500px] h-[500px] rounded-full top-[-20%] left-[-5%] opacity-[0.2]"
-          style={{ background: '#00F6ED', filter: 'blur(130px)' }} />
-        <div className="absolute w-[450px] h-[450px] rounded-full bottom-[-10%] right-[-5%] opacity-[0.2]"
-          style={{ background: '#4056F4', filter: 'blur(130px)' }} />
-      </div>
+    <footer className="relative overflow-hidden bg-white dark:bg-transparent">
       {/* Dark mode: gradient with top blend */}
       <div className="absolute top-0 left-0 right-0 h-[200px] hidden dark:block pointer-events-none z-[2]"
         style={{ background: 'linear-gradient(to bottom, #0a1128, transparent)' }} />
