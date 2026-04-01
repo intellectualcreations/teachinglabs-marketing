@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import ScrollReveal from '@/components/shared/ScrollReveal';
+import FadeUp from '@/components/shared/FadeUp';
 import MarketingNav from '@/components/shared/MarketingNav';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
@@ -102,7 +102,7 @@ export default function Pricing() {
   return (
     <>
       <MarketingNav />
-      <ScrollReveal />
+      
 
       {/* ── HERO + PRICING CARDS (one section) ── */}
       <section className="relative overflow-hidden bg-white dark:bg-deep-navy pt-32 pb-16 max-md:pt-24 max-md:pb-10">
@@ -147,7 +147,7 @@ export default function Pricing() {
 
         {/* Cards */}
         <div className="relative z-10 max-w-[1200px] mx-auto px-12 max-md:px-6">
-            <div className="grid grid-cols-4 gap-5 max-lg:grid-cols-2 max-md:grid-cols-1 fade-up">
+            <FadeUp className="grid grid-cols-4 gap-5 max-lg:grid-cols-2 max-md:grid-cols-1">>
               {plans.map((plan) => (
                 <div
                   key={plan.title}
@@ -201,7 +201,7 @@ export default function Pricing() {
                 </div>
               ))}
             </div>
-          </div>
+          </FadeUp>
       </section>
 
       <main>
@@ -209,7 +209,7 @@ export default function Pricing() {
         {/* ── EVERY PLAN INCLUDES ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[800px] mx-auto px-12 py-12 max-md:px-6 max-md:py-8">
-            <div className="text-center mb-10 fade-up">
+            <FadeUp className="text-center mb-10">>
               <Eyebrow>Every Plan</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary "
                 style={{ fontSize: 'clamp(28px, 4vw, 40px)' }}>
@@ -217,7 +217,7 @@ export default function Pricing() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="grid grid-cols-2 gap-5 max-md:grid-cols-1 fade-up">
+            <FadeUp className="grid grid-cols-2 gap-5 max-md:grid-cols-1">>
               {[
                 'FERPA & COPPA compliant infrastructure',
                 'Brain science-based learning design',
@@ -229,8 +229,8 @@ export default function Pricing() {
                   <span>{item}</span>
                 </div>
               ))}
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── CTA SECTION ── */}

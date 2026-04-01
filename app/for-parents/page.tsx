@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import MarketingNav from '@/components/shared/MarketingNav';
-import ScrollReveal from '@/components/shared/ScrollReveal';
+import FadeUp from '@/components/shared/FadeUp';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
 export const metadata: Metadata = {
@@ -128,7 +128,7 @@ export default function ForParentsPage() {
   return (
     <>
       <MarketingNav />
-      <ScrollReveal />
+      
 
       {/* ── HERO ── */}
       <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
@@ -194,7 +194,7 @@ export default function ForParentsPage() {
         {/* ── 1. YOUR CHILD'S TEACHER BUILT THIS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>Teacher-Created</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -202,7 +202,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 This isn&apos;t a random chatbot from the internet.
               </p>
@@ -214,14 +214,14 @@ export default function ForParentsPage() {
               <div className="mt-10 feat-photo-hover">
                 <Image src="/images/teacher-with-student.jpg" alt="Teacher kneeling beside a student, offering warm one-on-one guidance" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" />
               </div>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── 2. IT DOESN'T GIVE ANSWERS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>Real Learning</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -229,7 +229,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 When your child asks Teaching Labs to write their homework, it says no.
               </p>
@@ -237,14 +237,14 @@ export default function ForParentsPage() {
                 Instead, it asks them what they think. It pushes them to develop their own ideas, find their own sources, and build their own arguments. The same thing a great tutor would do sitting at the kitchen table, except it&apos;s available whenever your child needs it.
               </p>
               <Bridge>Your child does the thinking.<br />Teaching Labs just makes sure they don&apos;t get&nbsp;stuck.</Bridge>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── 3. IT CATCHES SHORTCUTS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>Academic Integrity</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -252,7 +252,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 If your child copies and pastes text from another AI tool,<br />Teaching Labs flags&nbsp;it.
               </p>
@@ -272,14 +272,14 @@ export default function ForParentsPage() {
                 </div>
               </div>
               <Bridge>Other AI tools make it easy to be passive. Teaching Labs makes it hard not to learn.</Bridge>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── 4. TEACHER STAYS CONNECTED ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>Always Connected</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -287,7 +287,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 Teaching Labs gives teachers a window into how your child learns, not just what they turn in.
               </p>
@@ -299,14 +299,14 @@ export default function ForParentsPage() {
               <div className="mt-10 feat-photo-hover">
                 <Image src="/images/parent-teacher-conference.jpg" alt="Teacher and parent reviewing student progress data together on a tablet" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" />
               </div>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── 5. WHAT COMES HOME IS REAL ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>Authentic Work</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -314,7 +314,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 When your child finishes an assignment with Teaching Labs, they did the work.
               </p>
@@ -322,18 +322,18 @@ export default function ForParentsPage() {
                 They built the argument. They found the evidence. They figured out where they were wrong and tried again. Teaching Labs guided them through the hard parts, but the thinking, the learning, and the growth are all theirs.
               </p>
               <Bridge>You can trust that what they&apos;re turning in represents what they actually know.</Bridge>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── GAINS CARDS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>Benefits</Eyebrow>
               <SectionHeading>What This Means for Your Family</SectionHeading>
-            </div>
-            <div className="grid grid-cols-3 gap-8 max-md:grid-cols-1 fade-up">
+            </FadeUp>
+            <FadeUp className="grid grid-cols-3 gap-8 max-md:grid-cols-1">>
               <Card
                 floatClass="card-icon-float-1"
                 icon={<IconShield />}
@@ -352,7 +352,7 @@ export default function ForParentsPage() {
                 title="Teacher in the Loop"
                 text="Every interaction helps the teacher understand your child better. More insight means more personalized support in the classroom."
               />
-            </div>
+            </FadeUp>
           </div>
         </section>
 

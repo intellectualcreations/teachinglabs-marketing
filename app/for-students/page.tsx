@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import MarketingNav from '@/components/shared/MarketingNav';
-import ScrollReveal from '@/components/shared/ScrollReveal';
+import FadeUp from '@/components/shared/FadeUp';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
 export const metadata: Metadata = {
@@ -67,7 +67,7 @@ export default function ForStudentsPage() {
   return (
     <>
       <MarketingNav />
-      <ScrollReveal />
+      
 
       {/* ── HERO ── */}
       <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
@@ -139,7 +139,7 @@ export default function ForStudentsPage() {
         {/* ── WHEN YOU'RE HELPING ONE STUDENT ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>The Classroom Reality</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -147,7 +147,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Across the classroom, other students are still learning.
               </p>
@@ -164,14 +164,14 @@ export default function ForStudentsPage() {
               <div className="feat-photo-hover">
                 <Image src="/images/classroom-wide-angle.jpg" alt="Busy classroom with students working on laptops while teacher instructs" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" loading="lazy" />
               </div>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── STUDENTS GET HELP WITHOUT WAITING ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>No More Waiting</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -179,7 +179,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Students can ask questions, practice skills, and work through challenges without waiting
                 for the teacher to become available.
@@ -195,14 +195,14 @@ export default function ForStudentsPage() {
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6]">
                 All without needing to raise their hand or stop the lesson.
               </p>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── STRONG STUDENTS KEEP MOVING ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>No Ceiling</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -210,7 +210,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 When students are ready to go further, Teaching Labs provides deeper challenges and
                 extensions of the lesson.
@@ -227,14 +227,14 @@ export default function ForStudentsPage() {
               <div className="feat-photo-hover">
                 <Image src="/images/student-independent-learning.jpg" alt="Student focused on independent learning with headphones and laptop" width={760} height={400} className="w-full rounded-[20px] object-cover shadow-[0_20px_60px_rgba(20,33,61,0.15)]" loading="lazy" />
               </div>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── GUIDANCE THAT FEELS FAMILIAR ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>Your Voice, Extended</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -242,7 +242,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Teaching Labs reflects how you explain ideas, guide students, and respond when they struggle.
               </p>
@@ -252,14 +252,14 @@ export default function ForStudentsPage() {
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6]">
                 Students are never learning from a random system. They&apos;re learning through guidance built from their teacher.
               </p>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── LEARNING DOESN'T STOP ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>Beyond the Bell</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -267,7 +267,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="max-w-[760px] mx-auto fade-up">
+            <FadeUp className="max-w-[760px] mx-auto">>
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Whether students are working independently, reviewing a lesson, or exploring something
                 new, Teaching Labs helps them keep learning.
@@ -275,21 +275,21 @@ export default function ForStudentsPage() {
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6]">
                 The support they receive stays connected to the way you teach in class.
               </p>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── Bridge Quote ── */}
         <section className="bg-white dark:bg-deep-navy">
-          <div className="max-w-[1200px] mx-auto px-12 pb-24 max-md:px-6 max-md:pb-16 fade-up">
+          <FadeUp className="max-w-[1200px] mx-auto px-12 pb-24 max-md:px-6 max-md:pb-16">>
             <Bridge>Every student deserves support that reflects how their teacher teaches. Teaching Labs makes that possible.</Bridge>
-          </div>
+          </FadeUp>
         </section>
 
         {/* ── WHAT THIS MEANS FOR YOUR STUDENTS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+            <FadeUp className="text-center mb-14">>
               <Eyebrow>What This Means</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -297,7 +297,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <div className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9 fade-up">
+            <FadeUp className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9">>
               <GainItem word="Confidence">
                 More confidence when they get stuck.
               </GainItem>
@@ -307,8 +307,8 @@ export default function ForStudentsPage() {
               <GainItem word="Opportunity">
                 More opportunities to keep learning.
               </GainItem>
-            </div>
-          </div>
+            </FadeUp>
+          </FadeUp>
         </section>
 
         {/* ── CTA SECTION — matches homepage ── */}
