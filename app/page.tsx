@@ -240,7 +240,7 @@ export default function HomePage() {
               style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
           </div>
           <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>The Challenge</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -249,7 +249,7 @@ export default function HomePage() {
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
 
-            <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">>
+            <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
               <Card
                 floatClass="card-icon-float-1"
                 icon={<IconDiverge />}
@@ -270,7 +270,7 @@ export default function HomePage() {
               />
             </FadeUp>
 
-            <FadeUp>>
+            <FadeUp>
               <Bridge>Teachers already know how to reach every student. They just need the support to do it.</Bridge>
             </FadeUp>
           </FadeUp>
@@ -285,7 +285,7 @@ export default function HomePage() {
               style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
           </div>
           <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Our Approach</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -294,7 +294,7 @@ export default function HomePage() {
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
 
-            <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">>
+            <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
               <Card
                 floatClass="card-icon-float-1"
                 icon={<IconOrbit />}
@@ -315,7 +315,7 @@ export default function HomePage() {
               />
             </FadeUp>
 
-            <FadeUp>>
+            <FadeUp>
               <Bridge>Finally, a teaching assistant that learns from you, and helps you reach every student.</Bridge>
             </FadeUp>
           </FadeUp>

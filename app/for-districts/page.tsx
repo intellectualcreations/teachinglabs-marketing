@@ -187,7 +187,7 @@ export default function ForDistrictsPage() {
         {/* ── A RESPONSIBLE APPROACH ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Responsible AI</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -195,7 +195,7 @@ export default function ForDistrictsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 Artificial intelligence should strengthen teaching and learning, not replace thinking, human interaction, or hands-on discovery.
               </p>
@@ -213,7 +213,7 @@ export default function ForDistrictsPage() {
         {/* ── GOVERNANCE DISTRICTS CAN TRUST ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Governance</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -224,7 +224,7 @@ export default function ForDistrictsPage() {
                 AI in education requires clear oversight, strong privacy protections, and transparency for district leaders. Teaching Labs was designed with these requirements from the beginning.
               </p>
             </div>
-            <FadeUp className="grid grid-cols-4 gap-8 max-lg:grid-cols-2 max-md:grid-cols-1">>
+            <FadeUp className="grid grid-cols-4 gap-8 max-lg:grid-cols-2 max-md:grid-cols-1">
               <PrincipleCard
                 icon={<IconTeacherGuided />}
                 title="Teacher-Guided AI"
@@ -271,7 +271,7 @@ export default function ForDistrictsPage() {
         {/* ── BUILT AROUND YOUR TEACHERS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Teacher-Centered</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -279,7 +279,7 @@ export default function ForDistrictsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Most AI platforms begin with content libraries and algorithms. Teaching Labs begins with your educators.
               </p>
@@ -297,7 +297,7 @@ export default function ForDistrictsPage() {
         {/* ── ADOPTION THAT HAPPENS NATURALLY ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Adoption</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -305,7 +305,7 @@ export default function ForDistrictsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 District leaders know that the biggest barrier to technology success is teacher adoption. Teaching Labs was designed so that teachers use it because it helps them, not because they are required to.
               </p>
@@ -326,7 +326,7 @@ export default function ForDistrictsPage() {
         {/* ── VISIBILITY WITHOUT MICROMANAGEMENT ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>District Insights</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -334,7 +334,7 @@ export default function ForDistrictsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 District leaders need meaningful insight into learning across schools. Teachers need professional trust. Teaching Labs provides both.
               </p>
@@ -358,7 +358,7 @@ export default function ForDistrictsPage() {
         {/* ── WHAT DISTRICTS GAIN ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Benefits</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -366,7 +366,7 @@ export default function ForDistrictsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="grid grid-cols-4 gap-8 max-lg:grid-cols-2 max-md:grid-cols-1">>
+            <FadeUp className="grid grid-cols-4 gap-8 max-lg:grid-cols-2 max-md:grid-cols-1">
               <div className="card-accent relative bg-card-bg rounded-[20px] p-9 overflow-hidden shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300 text-center">
                 <div className="font-heading text-[19px] font-extrabold tracking-[-0.3px] mb-3"
                   style={{ background: 'linear-gradient(135deg, #00F6ED 0%, #4056F4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
@@ -402,7 +402,7 @@ export default function ForDistrictsPage() {
         {/* ── LEADING THE NEXT ERA ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>The Future</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -410,7 +410,7 @@ export default function ForDistrictsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Artificial intelligence will play a role in the future of education. The question for districts is not whether AI will enter classrooms, but how it will support teaching and learning when it does.
               </p>

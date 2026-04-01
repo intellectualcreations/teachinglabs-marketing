@@ -132,7 +132,7 @@ export default function ForTeachersPage() {
         {/* ── IT STARTS WITH YOU ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Your Classroom, Your Way</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -140,7 +140,7 @@ export default function ForTeachersPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Teaching Labs doesn&apos;t come preloaded with someone else&apos;s curriculum. It learns from you.
               </p>
@@ -162,7 +162,7 @@ export default function ForTeachersPage() {
         {/* ── YOU SEE YOUR WHOLE CLASSROOM ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Real-Time Awareness</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -170,7 +170,7 @@ export default function ForTeachersPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Not 47 charts. Not another dashboard you&apos;ll never open.
               </p>
@@ -192,7 +192,7 @@ export default function ForTeachersPage() {
         {/* ── YOU KNOW WHAT STUDENTS ARE ASKING ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Student Insights</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -200,7 +200,7 @@ export default function ForTeachersPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 For the first time, you have a window into the questions students ask when you&apos;re not standing next to them.
               </p>
@@ -223,7 +223,7 @@ export default function ForTeachersPage() {
         {/* ── YOUR VOICE IN THE ROOM ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Your Voice, Extended</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -231,7 +231,7 @@ export default function ForTeachersPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Students don&apos;t hear a robot. They hear you.
               </p>
@@ -254,7 +254,7 @@ export default function ForTeachersPage() {
         {/* ── YOU STAY IN CONTROL ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Safety &amp; Privacy</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -262,7 +262,7 @@ export default function ForTeachersPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 You set the boundaries. You define what the assistant can and can&apos;t do. You see every conversation.
               </p>
@@ -280,7 +280,7 @@ export default function ForTeachersPage() {
 
         {/* ── Bridge Quote ── */}
         <section className="bg-white dark:bg-deep-navy">
-          <FadeUp className="max-w-[1200px] mx-auto px-12 pb-24 max-md:px-6 max-md:pb-16">>
+          <FadeUp className="max-w-[1200px] mx-auto px-12 pb-24 max-md:px-6 max-md:pb-16">
             <Bridge>Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student.</Bridge>
           </FadeUp>
         </section>
@@ -288,7 +288,7 @@ export default function ForTeachersPage() {
         {/* ── WHAT TEACHERS GAIN BACK ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>What You Gain Back</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -296,7 +296,7 @@ export default function ForTeachersPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9">>
+            <FadeUp className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9">
               <GainItem word="Time">
                 Less time managing gaps. More time doing what you became a teacher to do.
               </GainItem>

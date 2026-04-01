@@ -139,7 +139,7 @@ export default function ForStudentsPage() {
         {/* ── WHEN YOU'RE HELPING ONE STUDENT ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>The Classroom Reality</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -147,7 +147,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Across the classroom, other students are still learning.
               </p>
@@ -171,7 +171,7 @@ export default function ForStudentsPage() {
         {/* ── STUDENTS GET HELP WITHOUT WAITING ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>No More Waiting</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -179,7 +179,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Students can ask questions, practice skills, and work through challenges without waiting
                 for the teacher to become available.
@@ -202,7 +202,7 @@ export default function ForStudentsPage() {
         {/* ── STRONG STUDENTS KEEP MOVING ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>No Ceiling</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -210,7 +210,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 When students are ready to go further, Teaching Labs provides deeper challenges and
                 extensions of the lesson.
@@ -234,7 +234,7 @@ export default function ForStudentsPage() {
         {/* ── GUIDANCE THAT FEELS FAMILIAR ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Your Voice, Extended</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -242,7 +242,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Teaching Labs reflects how you explain ideas, guide students, and respond when they struggle.
               </p>
@@ -259,7 +259,7 @@ export default function ForStudentsPage() {
         {/* ── LEARNING DOESN'T STOP ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Beyond the Bell</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -267,7 +267,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Whether students are working independently, reviewing a lesson, or exploring something
                 new, Teaching Labs helps them keep learning.
@@ -281,7 +281,7 @@ export default function ForStudentsPage() {
 
         {/* ── Bridge Quote ── */}
         <section className="bg-white dark:bg-deep-navy">
-          <FadeUp className="max-w-[1200px] mx-auto px-12 pb-24 max-md:px-6 max-md:pb-16">>
+          <FadeUp className="max-w-[1200px] mx-auto px-12 pb-24 max-md:px-6 max-md:pb-16">
             <Bridge>Every student deserves support that reflects how their teacher teaches. Teaching Labs makes that possible.</Bridge>
           </FadeUp>
         </section>
@@ -289,7 +289,7 @@ export default function ForStudentsPage() {
         {/* ── WHAT THIS MEANS FOR YOUR STUDENTS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>What This Means</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -297,7 +297,7 @@ export default function ForStudentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9">>
+            <FadeUp className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9">
               <GainItem word="Confidence">
                 More confidence when they get stuck.
               </GainItem>

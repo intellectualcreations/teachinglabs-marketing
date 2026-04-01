@@ -194,7 +194,7 @@ export default function ForParentsPage() {
         {/* ── 1. YOUR CHILD'S TEACHER BUILT THIS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Teacher-Created</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -202,7 +202,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 This isn&apos;t a random chatbot from the internet.
               </p>
@@ -221,7 +221,7 @@ export default function ForParentsPage() {
         {/* ── 2. IT DOESN'T GIVE ANSWERS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Real Learning</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -229,7 +229,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 When your child asks Teaching Labs to write their homework, it says no.
               </p>
@@ -244,7 +244,7 @@ export default function ForParentsPage() {
         {/* ── 3. IT CATCHES SHORTCUTS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Academic Integrity</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -252,7 +252,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 If your child copies and pastes text from another AI tool,<br />Teaching Labs flags&nbsp;it.
               </p>
@@ -279,7 +279,7 @@ export default function ForParentsPage() {
         {/* ── 4. TEACHER STAYS CONNECTED ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Always Connected</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -287,7 +287,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 Teaching Labs gives teachers a window into how your child learns, not just what they turn in.
               </p>
@@ -306,7 +306,7 @@ export default function ForParentsPage() {
         {/* ── 5. WHAT COMES HOME IS REAL ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Authentic Work</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -314,7 +314,7 @@ export default function ForParentsPage() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="max-w-[760px] mx-auto">>
+            <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 When your child finishes an assignment with Teaching Labs, they did the work.
               </p>
@@ -329,11 +329,11 @@ export default function ForParentsPage() {
         {/* ── GAINS CARDS ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Benefits</Eyebrow>
               <SectionHeading>What This Means for Your Family</SectionHeading>
             </FadeUp>
-            <FadeUp className="grid grid-cols-3 gap-8 max-md:grid-cols-1">>
+            <FadeUp className="grid grid-cols-3 gap-8 max-md:grid-cols-1">
               <Card
                 floatClass="card-icon-float-1"
                 icon={<IconShield />}

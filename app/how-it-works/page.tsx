@@ -176,7 +176,7 @@ export default function HowItWorks() {
         {/* ── THREE STEPS SECTION ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <FadeUp className="text-center mb-14">>
+            <FadeUp className="text-center mb-14">
               <Eyebrow>Your Teacher Twin</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
@@ -185,7 +185,7 @@ export default function HowItWorks() {
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
 
-            <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">>
+            <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
               <Card
                 floatClass="card-icon-float-1"
                 icon={<IconTeach />}
@@ -206,7 +206,7 @@ export default function HowItWorks() {
               />
             </FadeUp>
 
-            <FadeUp>>
+            <FadeUp>
               <Bridge>Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student.</Bridge>
             </FadeUp>
           </FadeUp>

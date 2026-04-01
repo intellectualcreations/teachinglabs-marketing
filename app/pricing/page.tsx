@@ -147,7 +147,7 @@ export default function Pricing() {
 
         {/* Cards */}
         <div className="relative z-10 max-w-[1200px] mx-auto px-12 max-md:px-6">
-            <FadeUp className="grid grid-cols-4 gap-5 max-lg:grid-cols-2 max-md:grid-cols-1">>
+            <FadeUp className="grid grid-cols-4 gap-5 max-lg:grid-cols-2 max-md:grid-cols-1">
               {plans.map((plan) => (
                 <div
                   key={plan.title}
@@ -209,7 +209,7 @@ export default function Pricing() {
         {/* ── EVERY PLAN INCLUDES ── */}
         <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[800px] mx-auto px-12 py-12 max-md:px-6 max-md:py-8">
-            <FadeUp className="text-center mb-10">>
+            <FadeUp className="text-center mb-10">
               <Eyebrow>Every Plan</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary "
                 style={{ fontSize: 'clamp(28px, 4vw, 40px)' }}>
@@ -217,7 +217,7 @@ export default function Pricing() {
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
-            <FadeUp className="grid grid-cols-2 gap-5 max-md:grid-cols-1">>
+            <FadeUp className="grid grid-cols-2 gap-5 max-md:grid-cols-1">
               {[
                 'FERPA & COPPA compliant infrastructure',
                 'Brain science-based learning design',

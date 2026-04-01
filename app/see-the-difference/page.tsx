@@ -50,7 +50,7 @@ function Bridge({ children }: { children: React.ReactNode }) {
 /* ─── Step card ─── */
 function StepCard({ step, title, children }: { step: string; title: string; children: React.ReactNode }) {
   return (
-    <FadeUp className="card-accent bg-card-bg rounded-[20px] p-8 shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300">>
+    <FadeUp className="card-accent bg-card-bg rounded-[20px] p-8 shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300">
       <div className="font-heading text-xs font-bold tracking-[4px] uppercase text-coral dark:text-teal mb-3">
         {step}
       </div>
@@ -75,7 +75,7 @@ function CompareCard({
   children: React.ReactNode;
 }) {
   return (
-    <FadeUp className="card-accent bg-card-bg rounded-[20px] p-8 shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300  flex flex-col">>
+    <FadeUp className="card-accent bg-card-bg rounded-[20px] p-8 shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300  flex flex-col">
       <h3 className="font-heading text-2xl font-bold text-text-primary mb-3 text-center">{name}</h3>
       <div className="flex justify-center mb-5">
         <span className="font-heading text-xs font-bold tracking-[2px] uppercase px-4 py-1.5 rounded-full" style={{ color: verdictColor, border: `2px solid ${verdictColor}` }}>
@@ -265,7 +265,7 @@ export default function SeeTheDifferencePage() {
               </StepCard>
             </div>
 
-            <FadeUp className="mt-16">>
+            <FadeUp className="mt-16">
               <Bridge>
                 Other AI tools give the answers. Teaching Labs makes learning happen.
               </Bridge>
@@ -308,7 +308,7 @@ export default function SeeTheDifferencePage() {
             </FadeUp>
 
             {/* Dashboard mockup */}
-            <FadeUp className="card-accent bg-card-bg rounded-[20px] p-8 max-md:p-5 shadow-[0_2px_20px_rgba(20,33,61,0.05)]">>
+            <FadeUp className="card-accent bg-card-bg rounded-[20px] p-8 max-md:p-5 shadow-[0_2px_20px_rgba(20,33,61,0.05)]">
               {/* Header */}
               <div className="flex items-center gap-4 mb-6 pb-4 border-b border-black/5 dark:border-white/10">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal to-gold flex items-center justify-center text-white font-heading font-bold text-lg">
@@ -404,7 +404,7 @@ export default function SeeTheDifferencePage() {
               Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student, and proves it.
             </p>
             </FadeUp>
-            <FadeUp className="flex gap-4 justify-center flex-wrap">>
+            <FadeUp className="flex gap-4 justify-center flex-wrap">
               <Link
                 href="/waitlist"
                 className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300"

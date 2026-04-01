@@ -96,7 +96,7 @@ export default function ContactPage() {
       </section>
 
       {/* Main Content — Contact Section */}
-      <FadeUp className="max-w-[1100px] mx-auto px-12 py-24 grid grid-cols-2 gap-20 items-start max-md:grid-cols-1 max-md:gap-12 max-md:px-6 max-md:py-[60px]">>
+      <FadeUp className="max-w-[1100px] mx-auto px-12 py-24 grid grid-cols-2 gap-20 items-start max-md:grid-cols-1 max-md:gap-12 max-md:px-6 max-md:py-[60px]">
         {/* LEFT: Info */}
         <div>
           <h2 className="font-heading text-[32px] font-bold text-text-primary mb-4">
