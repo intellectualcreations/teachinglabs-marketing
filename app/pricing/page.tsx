@@ -30,7 +30,7 @@ function IconCheck() {
 /* ─── Eyebrow label ─── */
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-eyebrow font-extrabold flex items-center justify-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-4">
+    <div className="text-eyebrow font-extrabold flex items-center justify-center gap-3 font-heading text-sm font-bold tracking-[4px] uppercase mb-4">
       <span className="bg-eyebrow w-2 h-2 rounded-full flex-shrink-0" />
       {children}
     </div>
@@ -124,7 +124,7 @@ export default function Pricing() {
 
         {/* Headline */}
         <div className="relative z-10 text-center max-w-[900px] mx-auto px-12 max-md:px-6 mb-8">
-          <div className="text-eyebrow font-extrabold inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-6">
+          <div className="text-eyebrow font-extrabold inline-flex items-center gap-3 font-heading text-sm font-bold tracking-[4px] uppercase mb-6">
             <span className="bg-eyebrow w-2 h-2 rounded-full flex-shrink-0" />
             Pricing
           </div>
@@ -259,7 +259,7 @@ export default function Pricing() {
             style={{ background: 'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)' }} />
 
           <div className="relative z-10 max-w-[800px] mx-auto px-12 py-24 text-center max-md:px-6 max-md:py-14">
-            <div className="text-eyebrow font-extrabold font-heading text-xs font-bold tracking-[4px] uppercase mb-5 ">
+            <div className="text-eyebrow font-extrabold font-heading text-sm font-bold tracking-[4px] uppercase mb-5 ">
               Get Started
             </div>
             <h2 className="text-text-primary font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"

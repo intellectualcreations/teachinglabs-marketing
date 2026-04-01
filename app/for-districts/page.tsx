@@ -91,7 +91,7 @@ function PrincipleCard({
 /* ─── Eyebrow label (matches homepage) ─── */
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-eyebrow font-extrabold flex items-center justify-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-4">
+    <div className="text-eyebrow font-extrabold flex items-center justify-center gap-3 font-heading text-sm font-bold tracking-[4px] uppercase mb-4">
       <span className="bg-eyebrow w-2 h-2 rounded-full flex-shrink-0" />
       {children}
     </div>
@@ -145,7 +145,7 @@ export default function ForDistrictsPage() {
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
-          <div className="text-eyebrow font-extrabold inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-6">
+          <div className="text-eyebrow font-extrabold inline-flex items-center gap-3 font-heading text-sm font-bold tracking-[4px] uppercase mb-6">
             <span className="bg-eyebrow w-2 h-2 rounded-full flex-shrink-0" />
             For District Leaders
           </div>
@@ -450,7 +450,7 @@ export default function ForDistrictsPage() {
             style={{ background: 'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)' }} />
 
           <div className="relative z-10 max-w-[800px] mx-auto px-12 py-36 text-center max-md:px-6 max-md:py-20">
-            <div className="text-eyebrow font-extrabold font-heading text-xs font-bold tracking-[4px] uppercase mb-5 dark:text-white/50">
+            <div className="text-eyebrow font-extrabold font-heading text-sm font-bold tracking-[4px] uppercase mb-5">
               District Leadership
             </div>
             <h2 className="text-text-primary font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"

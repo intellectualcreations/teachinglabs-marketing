@@ -31,7 +31,7 @@ function IconCheck() {
 /* ─── Eyebrow ─── */
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-eyebrow font-extrabold flex items-center justify-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-4">
+    <div className="text-eyebrow font-extrabold flex items-center justify-center gap-3 font-heading text-sm font-bold tracking-[4px] uppercase mb-4">
       <span className="bg-eyebrow w-2 h-2 rounded-full flex-shrink-0" />
       {children}
     </div>
@@ -126,7 +126,7 @@ export default function SeeTheDifferencePage() {
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
-          <div className="text-eyebrow font-extrabold inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-6">
+          <div className="text-eyebrow font-extrabold inline-flex items-center gap-3 font-heading text-sm font-bold tracking-[4px] uppercase mb-6">
             <span className="bg-eyebrow w-2 h-2 rounded-full flex-shrink-0" />
             The Proof
           </div>
