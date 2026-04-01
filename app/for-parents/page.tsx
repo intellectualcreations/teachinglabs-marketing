@@ -201,7 +201,7 @@ export default function ForParentsPage() {
                 Your Child&apos;s Teacher Built This
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 This isn&apos;t a random chatbot from the internet.
@@ -228,7 +228,7 @@ export default function ForParentsPage() {
                 It Doesn&apos;t Give Answers. It Asks Questions.
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 When your child asks Teaching Labs to write their homework, it says no.
@@ -251,7 +251,7 @@ export default function ForParentsPage() {
                 It Catches Shortcuts
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 If your child copies and pastes text from another AI tool,<br />Teaching Labs flags&nbsp;it.
@@ -286,7 +286,7 @@ export default function ForParentsPage() {
                 Your Child&apos;s Teacher Stays Connected
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 Teaching Labs gives teachers a window into how your child learns, not just what they turn in.
@@ -313,7 +313,7 @@ export default function ForParentsPage() {
                 What Comes Home Is Real
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 When your child finishes an assignment with Teaching Labs, they did the work.

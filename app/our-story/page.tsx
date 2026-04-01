@@ -130,7 +130,7 @@ export default function OurStoryPage() {
                 We Believe Every Teacher Deserves a Platform That Puts Learning First
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Most educational technology is sold to administrators and used by teachers who had no say in the purchase. The tools don&apos;t reflect how teaching actually works — they don&apos;t account for the thirty different learners in a single classroom, the prep time that bleeds into evenings, or the invisible labor that keeps a room functioning.
@@ -162,7 +162,7 @@ export default function OurStoryPage() {
                 Nearly Three Decades in the Making
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <Bridge>&ldquo;I&apos;ve spent almost thirty years inside education technology, and the same question has followed me the entire time: does this actually help students learn?&rdquo;</Bridge>
 
@@ -214,7 +214,7 @@ export default function OurStoryPage() {
                 The Principles That Guide Every Decision
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="grid grid-cols-3 gap-8 max-md:grid-cols-1">
               <ValueCard
                 icon={

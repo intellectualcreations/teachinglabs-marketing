@@ -247,7 +247,7 @@ export default function HomePage() {
                 The Reality of Today&apos;s Classroom
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
 
             <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
               <Card
@@ -292,7 +292,7 @@ export default function HomePage() {
                 Teaching Labs Works the Way<br />Teachers Work
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
 
             <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
               <Card

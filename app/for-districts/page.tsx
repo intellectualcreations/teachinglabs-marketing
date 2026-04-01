@@ -194,7 +194,7 @@ export default function ForDistrictsPage() {
                 A Responsible Approach to AI in Schools
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
                 Artificial intelligence should strengthen teaching and learning, not replace thinking, human interaction, or hands-on discovery.
@@ -223,7 +223,7 @@ export default function ForDistrictsPage() {
               <p className="text-[17px] text-text-secondary leading-[1.8] mt-6 max-w-[760px] mx-auto">
                 AI in education requires clear oversight, strong privacy protections, and transparency for district leaders. Teaching Labs was designed with these requirements from the beginning.
               </p>
-            </div>
+            </FadeUp>
             <FadeUp className="grid grid-cols-4 gap-8 max-lg:grid-cols-2 max-md:grid-cols-1">
               <PrincipleCard
                 icon={<IconTeacherGuided />}
@@ -278,7 +278,7 @@ export default function ForDistrictsPage() {
                 Built Around Your Teachers
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Most AI platforms begin with content libraries and algorithms. Teaching Labs begins with your educators.
@@ -304,7 +304,7 @@ export default function ForDistrictsPage() {
                 Adoption That Happens Naturally
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 District leaders know that the biggest barrier to technology success is teacher adoption. Teaching Labs was designed so that teachers use it because it helps them, not because they are required to.
@@ -333,7 +333,7 @@ export default function ForDistrictsPage() {
                 Visibility Without Micromanagement
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 District leaders need meaningful insight into learning across schools. Teachers need professional trust. Teaching Labs provides both.
@@ -365,7 +365,7 @@ export default function ForDistrictsPage() {
                 What Districts Gain
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="grid grid-cols-4 gap-8 max-lg:grid-cols-2 max-md:grid-cols-1">
               <div className="card-accent relative bg-card-bg rounded-[20px] p-9 overflow-hidden shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300 text-center">
                 <div className="font-heading text-[19px] font-extrabold tracking-[-0.3px] mb-3"
@@ -409,7 +409,7 @@ export default function ForDistrictsPage() {
                 Leading the Next Era of Learning
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Artificial intelligence will play a role in the future of education. The question for districts is not whether AI will enter classrooms, but how it will support teaching and learning when it does.

@@ -139,7 +139,7 @@ export default function ForTeachersPage() {
                 It Starts With You
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Teaching Labs doesn&apos;t come preloaded with someone else&apos;s curriculum. It learns from you.
@@ -169,7 +169,7 @@ export default function ForTeachersPage() {
                 You See Your Whole Classroom
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Not 47 charts. Not another dashboard you&apos;ll never open.
@@ -199,7 +199,7 @@ export default function ForTeachersPage() {
                 You Know What Students Are Asking
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 For the first time, you have a window into the questions students ask when you&apos;re not standing next to them.
@@ -230,7 +230,7 @@ export default function ForTeachersPage() {
                 Your Voice in the Room, Even<br />When You&apos;re Not
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Students don&apos;t hear a robot. They hear you.
@@ -261,7 +261,7 @@ export default function ForTeachersPage() {
                 You Stay in Control
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 You set the boundaries. You define what the assistant can and can&apos;t do. You see every conversation.
@@ -295,7 +295,7 @@ export default function ForTeachersPage() {
                 Time. Focus. Energy.
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9">
               <GainItem word="Time">
                 Less time managing gaps. More time doing what you became a teacher to do.

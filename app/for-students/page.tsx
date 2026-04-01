@@ -146,7 +146,7 @@ export default function ForStudentsPage() {
                 When You&apos;re Helping One Student...
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Across the classroom, other students are still learning.
@@ -178,7 +178,7 @@ export default function ForStudentsPage() {
                 Students Get Help Without Waiting
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Students can ask questions, practice skills, and work through challenges without waiting
@@ -209,7 +209,7 @@ export default function ForStudentsPage() {
                 Strong Students Keep Moving
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 When students are ready to go further, Teaching Labs provides deeper challenges and
@@ -241,7 +241,7 @@ export default function ForStudentsPage() {
                 Guidance That Feels Familiar
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Teaching Labs reflects how you explain ideas, guide students, and respond when they struggle.
@@ -266,7 +266,7 @@ export default function ForStudentsPage() {
                 Learning Doesn&apos;t Stop When<br />Class Ends
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="max-w-[760px] mx-auto">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
                 Whether students are working independently, reviewing a lesson, or exploring something
@@ -296,7 +296,7 @@ export default function ForStudentsPage() {
                 Confidence. Challenge. Opportunity.
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
             <FadeUp className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9">
               <GainItem word="Confidence">
                 More confidence when they get stuck.

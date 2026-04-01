@@ -183,7 +183,7 @@ export default function HowItWorks() {
                 How Teaching Labs Works
               </h2>
               <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
-            </div>
+            </FadeUp>
 
             <FadeUp className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
               <Card

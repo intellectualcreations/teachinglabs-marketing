@@ -216,7 +216,7 @@ export default function SeeTheDifferencePage() {
             <Bridge>
               But here&apos;s what the others will never show you. ChatGPT and Gemini are black boxes. The student gets an answer, and the teacher never knows it happened. With Teaching Labs, every interaction flows back to the person who matters most: you.
             </Bridge>
-          </div>
+          </FadeUp>
         </section>
 
         {/* ── WHAT HAPPENS NEXT (Steps) ── */}
@@ -270,7 +270,7 @@ export default function SeeTheDifferencePage() {
                 Other AI tools give the answers. Teaching Labs makes learning happen.
               </Bridge>
             </FadeUp>
-          </div>
+          </FadeUp>
         </section>
 
         {/* ── TEACHER DASHBOARD VIEW ── */}
@@ -369,7 +369,7 @@ export default function SeeTheDifferencePage() {
                 </div>
               </div>
             </FadeUp>
-          </div>
+          </FadeUp>
         </section>
 
         {/* ── CTA ── */}
@@ -418,7 +418,7 @@ export default function SeeTheDifferencePage() {
                 Contact Us
               </Link>
             </FadeUp>
-          </div>
+          </FadeUp>
         </section>
       </main>
 
