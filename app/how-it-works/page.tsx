@@ -89,8 +89,8 @@ function Bridge({ children }: { children: React.ReactNode }) {
 /* ─── Eyebrow label ─── */
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="eyebrow-plum flex items-center justify-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-4">
-      <span className="eyebrow-dot w-2 h-2 rounded-full flex-shrink-0" />
+    <div className="text-[#7B2D4A] dark:text-[#00F6ED] font-extrabold flex items-center justify-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-4">
+      <span className="bg-[#7B2D4A] dark:bg-[#00F6ED] w-2 h-2 rounded-full flex-shrink-0" />
       {children}
     </div>
   );
@@ -122,16 +122,16 @@ export default function HowItWorks() {
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
           {/* Eyebrow */}
-          <div className="eyebrow-plum inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-6">
-            <span className="eyebrow-dot w-2 h-2 rounded-full flex-shrink-0" />
+          <div className="text-[#7B2D4A] dark:text-[#00F6ED] font-extrabold inline-flex items-center gap-3 font-heading text-xs font-bold tracking-[4px] uppercase mb-6">
+            <span className="bg-[#7B2D4A] dark:bg-[#00F6ED] w-2 h-2 rounded-full flex-shrink-0" />
             How It Works
           </div>
 
           {/* Headline */}
           <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.15] mb-6"
             style={{ fontSize: 'clamp(38px, 6vw, 68px)' }}>
-            <span className="hero-text-black hero-word hero-word-0 mr-2">Meet</span>
-            <span className="hero-text-black hero-word hero-word-1 mr-2">Your</span>
+            <span className="text-black dark:text-white hero-word hero-word-0 mr-2">Meet</span>
+            <span className="text-black dark:text-white hero-word hero-word-1 mr-2">Your</span>
             <span
               className="hero-word hero-word-2"
               style={{
@@ -146,7 +146,7 @@ export default function HowItWorks() {
           </h1>
 
           {/* Subtitle */}
-          <p className="hero-subtitle-anim hero-text-black font-body text-xl leading-[1.7] mb-10 max-w-[620px] mx-auto">
+          <p className="hero-subtitle-anim text-black dark:text-white font-body text-xl leading-[1.7] mb-10 max-w-[620px] mx-auto">
             Teaching Labs creates an AI assistant built from your teaching style. Here&apos;s how it works.
           </p>
 
@@ -231,14 +231,14 @@ export default function HowItWorks() {
             style={{ background: 'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)' }} />
 
           <div className="relative z-10 max-w-[800px] mx-auto px-12 py-36 text-center max-md:px-6 max-md:py-20">
-            <div className="eyebrow-plum font-heading text-xs font-bold tracking-[4px] uppercase mb-5 dark:text-white/50">
+            <div className="text-[#7B2D4A] dark:text-[#00F6ED] font-extrabold font-heading text-xs font-bold tracking-[4px] uppercase mb-5 dark:text-white/50">
               Early Access
             </div>
-            <h2 className="hero-text-black font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"
+            <h2 className="text-black dark:text-white font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"
               style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
               Ready to Meet Your Teacher Twin?
             </h2>
-            <p className="hero-text-black text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto dark:!text-white/65">
+            <p className="text-black dark:text-white text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto dark:!text-white/65">
               Get early access and be among the first to see what&apos;s possible.
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
@@ -280,7 +280,7 @@ export default function HowItWorks() {
             {/* Brand */}
             <div>
               <div className="font-heading text-xl font-bold text-black dark:text-white mb-4">Teaching Labs</div>
-              <p className="text-sm leading-[1.7] text-black/60 dark:text-white/55 mb-5 max-w-[280px]">
+              <p className="text-sm leading-[1.7] text-black dark:text-white/90 mb-5 max-w-[280px]">
                 AI-powered teaching platform that learns how you teach and helps every student get the support they need.
               </p>
               <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-gold dark:text-teal bg-[rgba(64,86,244,0.08)] dark:bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(64,86,244,0.15)] dark:border-[rgba(0,246,237,0.2)]">
@@ -291,7 +291,7 @@ export default function HowItWorks() {
 
             {/* Platform */}
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/40 dark:text-white/35 mb-5">Platform</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/70 dark:text-white/60 mb-5">Platform</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '/for-teachers', label: 'For Teachers' },
@@ -300,7 +300,7 @@ export default function HowItWorks() {
                   { href: '/for-parents', label: 'For Parents' },
                 ].map(({ href, label }) => (
                   <li key={href}>
-                    <Link href={href} className="text-sm text-black/60 dark:text-white/55 hover:text-gold transition-colors duration-200">
+                    <Link href={href} className="text-sm text-black dark:text-white/90 hover:text-gold transition-colors duration-200">
                       {label}
                     </Link>
                   </li>
@@ -310,7 +310,7 @@ export default function HowItWorks() {
 
             {/* Company */}
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/40 dark:text-white/35 mb-5">Company</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/70 dark:text-white/60 mb-5">Company</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '/our-story', label: 'Our Story' },
@@ -319,7 +319,7 @@ export default function HowItWorks() {
                   { href: '/contact', label: 'Contact' },
                 ].map(({ href, label }) => (
                   <li key={href}>
-                    <Link href={href} className="text-sm text-black/60 dark:text-white/55 hover:text-gold transition-colors duration-200">
+                    <Link href={href} className="text-sm text-black dark:text-white/90 hover:text-gold transition-colors duration-200">
                       {label}
                     </Link>
                   </li>
@@ -329,7 +329,7 @@ export default function HowItWorks() {
 
             {/* Legal */}
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/40 dark:text-white/35 mb-5">Legal</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/70 dark:text-white/60 mb-5">Legal</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '#', label: 'Privacy Policy' },
@@ -338,7 +338,7 @@ export default function HowItWorks() {
                   { href: '#', label: 'Accessibility' },
                 ].map(({ href, label }) => (
                   <li key={label}>
-                    <Link href={href} className="text-sm text-black/60 dark:text-white/55 hover:text-gold transition-colors duration-200">
+                    <Link href={href} className="text-sm text-black dark:text-white/90 hover:text-gold transition-colors duration-200">
                       {label}
                     </Link>
                   </li>
@@ -349,7 +349,7 @@ export default function HowItWorks() {
           </div>
 
           {/* Bottom bar */}
-          <div className="border-t border-black/10 dark:border-white/[0.08] pt-8 text-center text-[13px] text-black/40 dark:text-white/35">
+          <div className="border-t border-black/10 dark:border-white/[0.08] pt-8 text-center text-[13px] text-black/70 dark:text-white/60">
             &copy; 2026 Intellectual Creations / Teaching Labs. All rights reserved.
           </div>
         </div>
