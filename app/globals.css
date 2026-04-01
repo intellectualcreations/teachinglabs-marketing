@@ -72,7 +72,7 @@
 
 /* Nav background — nearly opaque, matching v4 stable */
 :root {
-  --bg-nav: rgba(247, 247, 248, 0.97);
+  --bg-nav: rgba(255, 255, 255, 0.97);
 }
 .dark {
   --bg-nav: rgba(10, 17, 40, 0.95);
