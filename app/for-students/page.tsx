@@ -156,7 +156,7 @@ export default function ForStudentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 When You&apos;re Helping One Student...
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -188,7 +188,7 @@ export default function ForStudentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Students Get Help Without Waiting
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -219,7 +219,7 @@ export default function ForStudentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Strong Students Keep Moving
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -251,7 +251,7 @@ export default function ForStudentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Guidance That Feels Familiar
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -276,7 +276,7 @@ export default function ForStudentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Learning Doesn&apos;t Stop When<br />Class Ends
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -306,7 +306,7 @@ export default function ForStudentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Confidence. Challenge. Opportunity.
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9 fade-up">
               <GainItem word="Confidence">

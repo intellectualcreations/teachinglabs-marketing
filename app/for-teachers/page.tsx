@@ -149,7 +149,7 @@ export default function ForTeachersPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 It Starts With You
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -179,7 +179,7 @@ export default function ForTeachersPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 You See Your Whole Classroom
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -209,7 +209,7 @@ export default function ForTeachersPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 You Know What Students Are Asking
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -240,7 +240,7 @@ export default function ForTeachersPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Your Voice in the Room, Even<br />When You&apos;re Not
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -271,7 +271,7 @@ export default function ForTeachersPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 You Stay in Control
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -305,7 +305,7 @@ export default function ForTeachersPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Time. Focus. Energy.
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-9 fade-up">
               <GainItem word="Time">

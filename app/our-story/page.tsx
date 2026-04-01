@@ -140,7 +140,7 @@ export default function OurStoryPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 We Believe Every Teacher Deserves a Platform That Puts Learning First
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -172,7 +172,7 @@ export default function OurStoryPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Nearly Three Decades in the Making
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <Bridge>&ldquo;I&apos;ve spent almost thirty years inside education technology, and the same question has followed me the entire time: does this actually help students learn?&rdquo;</Bridge>
@@ -224,7 +224,7 @@ export default function OurStoryPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 The Principles That Guide Every Decision
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="grid grid-cols-3 gap-8 max-md:grid-cols-1 fade-up">
               <ValueCard

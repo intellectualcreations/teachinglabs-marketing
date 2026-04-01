@@ -178,7 +178,7 @@ export default function HowItWorks() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 How Teaching Labs Works
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
 
             <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1 fade-up">

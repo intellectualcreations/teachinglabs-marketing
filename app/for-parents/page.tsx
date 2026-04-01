@@ -67,7 +67,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
       >
         {children}
       </h2>
-      <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+      <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
     </>
   );
 }
@@ -159,7 +159,7 @@ export default function ForParentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Your Child&apos;s Teacher Built This
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
@@ -186,7 +186,7 @@ export default function ForParentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 It Doesn&apos;t Give Answers. It Asks Questions.
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
@@ -209,7 +209,7 @@ export default function ForParentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 It Catches Shortcuts
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
@@ -244,7 +244,7 @@ export default function ForParentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Your Child&apos;s Teacher Stays Connected
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
@@ -271,7 +271,7 @@ export default function ForParentsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 What Comes Home Is Real
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">

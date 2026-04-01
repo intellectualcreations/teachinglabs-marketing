@@ -166,7 +166,7 @@ export default function Pricing() {
                     </h3>
                   </div>
                   {/* Divider line under title */}
-                  <div className="w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mt-3" />
+                  <div className="w-full h-[3px] bg-underline rounded-sm mt-3" />
 
                   {/* Row 2: Price — centered, smaller than title */}
                   <div className="h-[48px] flex items-center justify-center mt-4">
@@ -221,7 +221,7 @@ export default function Pricing() {
                 style={{ fontSize: 'clamp(28px, 4vw, 40px)' }}>
                 Every Plan Includes
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="grid grid-cols-2 gap-5 max-md:grid-cols-1 fade-up">
               {[

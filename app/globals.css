@@ -15,6 +15,7 @@
   --color-coral-bright: #561F37;
   --color-plum: #561F37;
   --color-eyebrow: #4056F4;
+  --color-underline: #561F37;
   --color-text-dark: #000000;
   --color-text-body: #000000;
   --color-text-muted: #8896A6;
@@ -61,6 +62,7 @@
   --color-text-dark: #ffffff;
   --color-text-body: rgba(255, 255, 255, 0.7);
   --color-eyebrow: #00F6ED;
+  --color-underline: #e63570;
   --color-navy-light: #0e1a35;
   --color-teal-light: rgba(0, 246, 237, 0.15);
   --color-gold-light: rgba(64, 86, 244, 0.12);

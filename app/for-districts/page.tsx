@@ -204,7 +204,7 @@ export default function ForDistrictsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 A Responsible Approach to AI in Schools
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="font-heading text-[17px] font-semibold text-text-primary leading-[1.6] mb-4">
@@ -230,7 +230,7 @@ export default function ForDistrictsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Governance Districts Can Trust
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
               <p className="text-[17px] text-text-secondary leading-[1.8] mt-6 max-w-[760px] mx-auto">
                 AI in education requires clear oversight, strong privacy protections, and transparency for district leaders. Teaching Labs was designed with these requirements from the beginning.
               </p>
@@ -288,7 +288,7 @@ export default function ForDistrictsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Built Around Your Teachers
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -314,7 +314,7 @@ export default function ForDistrictsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Adoption That Happens Naturally
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -343,7 +343,7 @@ export default function ForDistrictsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Visibility Without Micromanagement
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
@@ -375,7 +375,7 @@ export default function ForDistrictsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 What Districts Gain
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="grid grid-cols-4 gap-8 max-lg:grid-cols-2 max-md:grid-cols-1 fade-up">
               <div className="card-accent relative bg-card-bg rounded-[20px] p-9 overflow-hidden shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300 text-center">
@@ -419,7 +419,7 @@ export default function ForDistrictsPage() {
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
                 Leading the Next Era of Learning
               </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-[#561F37] dark:bg-[#e63570] rounded-sm mx-auto mt-3" />
+              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
             </div>
             <div className="max-w-[760px] mx-auto fade-up">
               <p className="text-[17px] text-text-secondary leading-[1.8] mb-4">
