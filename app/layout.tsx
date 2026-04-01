@@ -47,7 +47,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${openSans.variable} antialiased`}>
         <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <ServiceWorkerRegistrar />
             {children}
           </ThemeProvider>
