@@ -17,7 +17,7 @@ export default function ContactPage() {
 
       {/* Hero */}
       <section
-        className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy py-20 pb-[60px] max-md:py-[60px] max-md:pb-10"
+        className="relative min-h-[50vh] flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy py-20 pb-[60px] max-md:py-[60px] max-md:pb-10"
       >
         {/* Blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
