@@ -235,10 +235,6 @@ export default function Pricing() {
 
         {/* ── CTA SECTION ── */}
         <section className="section-blend relative overflow-hidden bg-white dark:bg-transparent">
-          <div className="absolute top-0 left-0 right-0 h-[200px] dark:hidden pointer-events-none"
-            style={{ background: 'linear-gradient(to bottom, #F7F7F8, transparent)' }} />
-          <div className="absolute top-0 left-0 right-0 h-[200px] hidden dark:block pointer-events-none z-[2]"
-            style={{ background: 'linear-gradient(to bottom, #0a1128, transparent)' }} />
           <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
             <div className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[-10%] opacity-[0.25]"
               style={{ background: '#00F6ED', filter: 'blur(120px)' }} />

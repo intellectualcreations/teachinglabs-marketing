@@ -119,10 +119,6 @@ export default function SeeTheDifferencePage() {
             style={{ background: '#4056F4', filter: 'blur(100px)' }} />
           <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.07] dark:opacity-[0.1] max-md:hidden"
             style={{ background: '#561F37', filter: 'blur(100px)' }} />
-          <div className="absolute bottom-0 left-0 right-0 h-[200px] dark:hidden"
-            style={{ background: 'linear-gradient(to bottom, transparent, #F7F7F8)' }} />
-          <div className="absolute bottom-0 left-0 right-0 h-[200px] hidden dark:block"
-            style={{ background: 'linear-gradient(to bottom, transparent, #0a1128)' }} />
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
