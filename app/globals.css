@@ -258,7 +258,7 @@ h1, h2, h3, h4, h5, h6 {
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(180deg, #4FA3A5, rgba(79, 163, 165, 0.3));
+  background: linear-gradient(180deg, #4056F4, rgba(64, 86, 244, 0.3));
   border-radius: 20px 0 0 20px;
 }
 
