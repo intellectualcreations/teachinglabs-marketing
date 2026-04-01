@@ -131,8 +131,8 @@ export default function Pricing() {
 
           <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.15] mb-6"
             style={{ fontSize: 'clamp(38px, 6vw, 68px)' }}>
-            <span className="text-black dark:text-white hero-word hero-word-0 mr-2">Simple,</span>
-            <span className="text-black dark:text-white hero-word hero-word-1 mr-2">Transparent</span>
+            <span className="text-text-primary hero-word hero-word-0 mr-2">Simple,</span>
+            <span className="text-text-primary hero-word hero-word-1 mr-2">Transparent</span>
             <span
               className="hero-word hero-word-2"
               style={{
@@ -146,7 +146,7 @@ export default function Pricing() {
             </span>
           </h1>
 
-          <p className="hero-subtitle-anim text-black dark:text-white font-body text-xl leading-[1.7] max-w-[620px] mx-auto">
+          <p className="hero-subtitle-anim text-text-primary font-body text-xl leading-[1.7] max-w-[620px] mx-auto">
             Always free for every teacher. Upgrade when you want the full experience.
           </p>
         </div>
@@ -170,25 +170,25 @@ export default function Pricing() {
 
                   {/* Row 2: Price — centered, smaller than title */}
                   <div className="h-[48px] flex items-center justify-center mt-4">
-                    <span className="font-heading font-extrabold text-[28px] text-black dark:text-white">
+                    <span className="font-heading font-extrabold text-[28px] text-text-primary">
                       {plan.price}
                     </span>
                   </div>
 
                   {/* Row 3: Subtitle — centered */}
                   <div className="h-[28px] flex items-start justify-center mt-2">
-                    <p className="text-[13px] text-black dark:text-white/70">{plan.subtitle}</p>
+                    <p className="text-[13px] text-text-secondary">{plan.subtitle}</p>
                   </div>
 
                   {/* Row 4: Description — centered */}
                   <div className="min-h-[100px] flex items-start justify-center mt-6">
-                    <p className="text-[14px] leading-[1.6] text-center text-black dark:text-white/80">{plan.description}</p>
+                    <p className="text-[14px] leading-[1.6] text-center text-text-secondary">{plan.description}</p>
                   </div>
 
                   {/* Row 5: Features — grows to fill, centered */}
                   <ul className="space-y-6 mt-8 flex-grow">
                     {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5 text-[13px] leading-[1.5] text-black dark:text-white/80">
+                      <li key={f} className="flex items-start gap-2.5 text-[13px] leading-[1.5] text-text-secondary">
                         <IconCheck />
                         <span>{f}</span>
                       </li>
@@ -217,7 +217,7 @@ export default function Pricing() {
           <div className="max-w-[800px] mx-auto px-12 py-12 max-md:px-6 max-md:py-8">
             <div className="text-center mb-10 fade-up">
               <Eyebrow>Every Plan</Eyebrow>
-              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-black dark:text-white "
+              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary "
                 style={{ fontSize: 'clamp(28px, 4vw, 40px)' }}>
                 Every Plan Includes
               </h2>
@@ -230,7 +230,7 @@ export default function Pricing() {
                 'Teacher-guided AI (never autonomous)',
                 'Real content integration (textbooks, labs, projects)',
               ].map((item) => (
-                <div key={item} className="flex items-start gap-2.5 text-[15px] text-black dark:text-white/90 leading-[1.7]">
+                <div key={item} className="flex items-start gap-2.5 text-[15px] text-text-secondary leading-[1.7]">
                   <IconCheck />
                   <span>{item}</span>
                 </div>
@@ -262,11 +262,11 @@ export default function Pricing() {
             <div className="text-[#7B2D4A] dark:text-[#00F6ED] font-extrabold font-heading text-xs font-bold tracking-[4px] uppercase mb-5 ">
               Get Started
             </div>
-            <h2 className="text-black dark:text-white font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"
+            <h2 className="text-text-primary font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"
               style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
               Ready to Get Started?
             </h2>
-            <p className="text-black dark:text-white/80 text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto">
+            <p className="text-text-secondary text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto">
               Join the waitlist and be among the first to use Teaching Labs.
             </p>
             <Link
@@ -295,8 +295,8 @@ export default function Pricing() {
         <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
           <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-12 max-md:grid-cols-1 max-md:gap-8">
             <div>
-              <div className="font-heading text-xl font-bold text-black dark:text-white mb-4">Teaching Labs</div>
-              <p className="text-sm leading-[1.7] text-black/70 dark:text-white/70 mb-5 max-w-[280px]">
+              <div className="font-heading text-xl font-bold text-text-primary mb-4">Teaching Labs</div>
+              <p className="text-sm leading-[1.7] text-text-muted mb-5 max-w-[280px]">
                 AI-powered teaching platform that learns how you teach and helps every student get the support they need.
               </p>
               <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-gold dark:text-teal bg-[rgba(64,86,244,0.08)] dark:bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(64,86,244,0.15)] dark:border-[rgba(0,246,237,0.2)]">
@@ -305,7 +305,7 @@ export default function Pricing() {
               </div>
             </div>
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/70 dark:text-white/60 mb-5">Platform</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-text-muted mb-5">Platform</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '/for-teachers', label: 'For Teachers' },
@@ -314,13 +314,13 @@ export default function Pricing() {
                   { href: '/for-parents', label: 'For Parents' },
                 ].map(({ href, label }) => (
                   <li key={href}>
-                    <Link href={href} className="text-sm text-black/70 dark:text-white/70 hover:text-gold transition-colors duration-200">{label}</Link>
+                    <Link href={href} className="text-sm text-text-muted hover:text-gold transition-colors duration-200">{label}</Link>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/70 dark:text-white/60 mb-5">Company</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-text-muted mb-5">Company</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '/our-story', label: 'Our Story' },
@@ -329,13 +329,13 @@ export default function Pricing() {
                   { href: '/contact', label: 'Contact' },
                 ].map(({ href, label }) => (
                   <li key={href}>
-                    <Link href={href} className="text-sm text-black/70 dark:text-white/70 hover:text-gold transition-colors duration-200">{label}</Link>
+                    <Link href={href} className="text-sm text-text-muted hover:text-gold transition-colors duration-200">{label}</Link>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/70 dark:text-white/60 mb-5">Legal</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-text-muted mb-5">Legal</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '#', label: 'Privacy Policy' },
@@ -344,13 +344,13 @@ export default function Pricing() {
                   { href: '#', label: 'Accessibility' },
                 ].map(({ href, label }) => (
                   <li key={label}>
-                    <Link href={href} className="text-sm text-black/70 dark:text-white/70 hover:text-gold transition-colors duration-200">{label}</Link>
+                    <Link href={href} className="text-sm text-text-muted hover:text-gold transition-colors duration-200">{label}</Link>
                   </li>
                 ))}
               </ul>
             </div>
           </div>
-          <div className="border-t border-black/10 dark:border-white/[0.08] pt-8 text-center text-[13px] text-black/70 dark:text-white/60">
+          <div className="border-t border-black/10 dark:border-white/[0.08] pt-8 text-center text-[13px] text-text-muted">
             &copy; 2026 Intellectual Creations / Teaching Labs. All rights reserved.
           </div>
         </div>

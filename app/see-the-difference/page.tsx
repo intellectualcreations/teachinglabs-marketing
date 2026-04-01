@@ -135,9 +135,9 @@ export default function SeeTheDifferencePage() {
             className="font-heading font-extrabold tracking-[-2px] leading-[1.15] mb-6"
             style={{ fontSize: 'clamp(38px, 6vw, 68px)' }}
           >
-            <span className="text-black dark:text-white hero-word hero-word-0 dark:text-white">Every AI Can Answer a Question.</span>
+            <span className="text-text-primary hero-word hero-word-0 dark:text-white">Every AI Can Answer a Question.</span>
             <br />
-            <span className="text-black dark:text-white hero-word hero-word-1 dark:text-white">Only One</span>{' '}
+            <span className="text-text-primary hero-word hero-word-1 dark:text-white">Only One</span>{' '}
             <span
               className="hero-word hero-word-2"
               style={{
@@ -151,7 +151,7 @@ export default function SeeTheDifferencePage() {
             </span>
           </h1>
 
-          <p className="hero-subtitle-anim text-black dark:text-white font-body text-xl leading-[1.7] mb-10 max-w-[620px] mx-auto dark:!text-white/70">
+          <p className="hero-subtitle-anim text-text-primary font-body text-xl leading-[1.7] mb-10 max-w-[620px] mx-auto dark:!text-white/70">
             We gave three AI tools the same prompt. Two wrote the report. One did something no other tool would do: it taught the student how to write it themselves.
           </p>
 

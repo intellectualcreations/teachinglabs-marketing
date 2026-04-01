@@ -59,7 +59,7 @@ export default function MarketingNav() {
                   className={`font-heading text-[15px] font-medium transition-colors duration-300 ${
                     pathname === href
                       ? 'text-gold font-bold dark:text-teal dark:font-bold'
-                      : 'text-black hover:text-gold dark:text-white/80 dark:hover:text-teal'
+                      : 'text-text-primary hover:text-gold dark:hover:text-teal'
                   }`}
                 >
                   {label}
@@ -72,7 +72,7 @@ export default function MarketingNav() {
                 className={`flex items-center gap-1 font-heading text-[15px] font-medium transition-colors duration-300 cursor-pointer bg-transparent border-0 p-0 group-hover:text-gold ${
                   isAboutActive
                     ? 'text-gold font-bold dark:text-teal dark:font-bold'
-                    : 'text-black dark:text-white/80'
+                    : 'text-text-primary'
                 }`}
               >
                 About <IconChevronDown />
@@ -98,7 +98,7 @@ export default function MarketingNav() {
               </div>
             </li>
             <li>
-              <Link href="/contact" className={`font-heading text-[15px] font-medium transition-colors duration-300 ${pathname === '/contact' ? 'text-gold font-bold dark:text-teal dark:font-bold' : 'text-black hover:text-gold dark:text-white/80 dark:hover:text-teal'}`}>
+              <Link href="/contact" className={`font-heading text-[15px] font-medium transition-colors duration-300 ${pathname === '/contact' ? 'text-gold font-bold dark:text-teal dark:font-bold' : 'text-text-primary hover:text-gold dark:hover:text-teal'}`}>
                 Contact
               </Link>
             </li>
@@ -108,7 +108,7 @@ export default function MarketingNav() {
           <div className="hidden xl:flex items-center gap-4">
             <Link
               href="/waitlist"
-              className="font-heading text-sm font-semibold bg-transparent text-deep-navy dark:text-white px-6 py-2.5 rounded-full border-2 border-gold hover:bg-gold hover:text-white hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)] transition-all duration-200"
+              className="font-heading text-sm font-semibold bg-transparent text-text-primary px-6 py-2.5 rounded-full border-2 border-gold hover:bg-gold hover:text-white hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(64,86,244,0.35)] transition-all duration-200"
             >
               Join Waitlist
             </Link>

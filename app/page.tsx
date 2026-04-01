@@ -163,9 +163,9 @@ export default function HomePage() {
           {/* Headline */}
           <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.15] mb-6"
             style={{ fontSize: 'clamp(38px, 6vw, 68px)' }}>
-            <span className="text-black dark:text-white hero-word hero-word-0 mr-2">Your</span>
-            <span className="text-black dark:text-white hero-word hero-word-1 mr-2">Teaching</span>
-            <span className="text-black dark:text-white hero-word hero-word-2 mr-2">Power,</span>
+            <span className="text-text-primary hero-word hero-word-0 mr-2">Your</span>
+            <span className="text-text-primary hero-word hero-word-1 mr-2">Teaching</span>
+            <span className="text-text-primary hero-word hero-word-2 mr-2">Power,</span>
             <span
               className="hero-word hero-word-3"
               style={{
@@ -180,13 +180,13 @@ export default function HomePage() {
           </h1>
 
           {/* Subtitle */}
-          <p className="hero-subtitle-anim text-black dark:text-white font-body text-xl leading-[1.7] mb-10 max-w-[620px] mx-auto">
+          <p className="hero-subtitle-anim text-text-primary font-body text-xl leading-[1.7] mb-10 max-w-[620px] mx-auto">
             Not another edtech tool.<br />
             A teaching assistant built from your expertise.
           </p>
 
           {/* Intro line */}
-          <p className="hero-intro-anim text-black dark:text-white font-body text-[19px] leading-[1.7] mb-10 max-w-[700px] mx-auto max-md:text-[17px]">
+          <p className="hero-intro-anim text-text-primary font-body text-[19px] leading-[1.7] mb-10 max-w-[700px] mx-auto max-md:text-[17px]">
             Teaching Labs learns how you teach and helps every student get the support they need,
             while you focus on the moments that matter most.
           </p>
@@ -317,11 +317,11 @@ export default function HomePage() {
             <div className="text-[#7B2D4A] dark:text-[#00F6ED] font-extrabold font-heading text-xs font-bold tracking-[4px] uppercase mb-5 dark:text-white/50">
               Early Access
             </div>
-            <h2 className="text-black dark:text-white font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"
+            <h2 className="text-text-primary font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"
               style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
               Join the Waitlist
             </h2>
-            <p className="text-black dark:text-white text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto dark:!text-white/65">
+            <p className="text-text-primary text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto dark:!text-white/65">
               Be among the first to bring Teaching Labs into your classroom. No credit card. No commitment. Just better teaching.
             </p>
             <Link
@@ -354,8 +354,8 @@ export default function HomePage() {
 
             {/* Brand */}
             <div>
-              <div className="font-heading text-xl font-bold text-black dark:text-white mb-4">Teaching Labs</div>
-              <p className="text-sm leading-[1.7] text-black dark:text-white/90 mb-5 max-w-[280px]">
+              <div className="font-heading text-xl font-bold text-text-primary mb-4">Teaching Labs</div>
+              <p className="text-sm leading-[1.7] text-text-secondary mb-5 max-w-[280px]">
                 AI-powered teaching platform that learns how you teach and helps every student get the support they need.
               </p>
               <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-gold dark:text-teal bg-[rgba(64,86,244,0.08)] dark:bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(64,86,244,0.15)] dark:border-[rgba(0,246,237,0.2)]">
@@ -366,7 +366,7 @@ export default function HomePage() {
 
             {/* Platform */}
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/70 dark:text-white/60 mb-5">Platform</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-text-muted mb-5">Platform</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '/for-teachers', label: 'For Teachers' },
@@ -375,7 +375,7 @@ export default function HomePage() {
                   { href: '/for-parents', label: 'For Parents' },
                 ].map(({ href, label }) => (
                   <li key={href}>
-                    <Link href={href} className="text-sm text-black dark:text-white/90 hover:text-gold transition-colors duration-200">
+                    <Link href={href} className="text-sm text-text-secondary hover:text-gold transition-colors duration-200">
                       {label}
                     </Link>
                   </li>
@@ -385,7 +385,7 @@ export default function HomePage() {
 
             {/* Company */}
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/70 dark:text-white/60 mb-5">Company</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-text-muted mb-5">Company</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '/our-story', label: 'Our Story' },
@@ -394,7 +394,7 @@ export default function HomePage() {
                   { href: '/contact', label: 'Contact' },
                 ].map(({ href, label }) => (
                   <li key={href}>
-                    <Link href={href} className="text-sm text-black dark:text-white/90 hover:text-gold transition-colors duration-200">
+                    <Link href={href} className="text-sm text-text-secondary hover:text-gold transition-colors duration-200">
                       {label}
                     </Link>
                   </li>
@@ -404,7 +404,7 @@ export default function HomePage() {
 
             {/* Legal */}
             <div>
-              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-black/70 dark:text-white/60 mb-5">Legal</div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-text-muted mb-5">Legal</div>
               <ul className="space-y-3 list-none">
                 {[
                   { href: '#', label: 'Privacy Policy' },
@@ -413,7 +413,7 @@ export default function HomePage() {
                   { href: '#', label: 'Accessibility' },
                 ].map(({ href, label }) => (
                   <li key={label}>
-                    <Link href={href} className="text-sm text-black dark:text-white/90 hover:text-gold transition-colors duration-200">
+                    <Link href={href} className="text-sm text-text-secondary hover:text-gold transition-colors duration-200">
                       {label}
                     </Link>
                   </li>
@@ -424,7 +424,7 @@ export default function HomePage() {
           </div>
 
           {/* Bottom bar */}
-          <div className="border-t border-black/10 dark:border-white/[0.08] pt-8 text-center text-[13px] text-black/70 dark:text-white/60">
+          <div className="border-t border-black/10 dark:border-white/[0.08] pt-8 text-center text-[13px] text-text-muted">
             &copy; 2026 Intellectual Creations / Teaching Labs. All rights reserved.
           </div>
         </div>
