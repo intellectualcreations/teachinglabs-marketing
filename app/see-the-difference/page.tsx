@@ -110,7 +110,7 @@ export default function SeeTheDifferencePage() {
       <ScrollReveal />
 
       {/* ── HERO ── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy">
+      <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
         {/* Blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[8%] left-[5%] max-md:w-[350px] max-md:h-[350px] opacity-[0.15] dark:opacity-[0.10]"
@@ -178,7 +178,7 @@ export default function SeeTheDifferencePage() {
 
       <main>
         {/* ── COMPARISON SECTION ── */}
-        <section className="relative py-28 max-md:py-16 bg-warm-white dark:bg-deep-navy overflow-hidden">
+        <section className="relative py-28 max-md:py-16 bg-white dark:bg-deep-navy overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
             <div className="absolute w-[500px] h-[500px] rounded-full top-[10%] right-[5%] opacity-[0.12] dark:opacity-[0.08]"
               style={{ background: '#4056F4', filter: 'blur(100px)' }} />
@@ -272,7 +272,7 @@ export default function SeeTheDifferencePage() {
         </section>
 
         {/* ── TEACHER DASHBOARD VIEW ── */}
-        <section className="relative py-28 max-md:py-16 bg-warm-white dark:bg-deep-navy overflow-hidden">
+        <section className="relative py-28 max-md:py-16 bg-white dark:bg-deep-navy overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
             <div className="absolute w-[500px] h-[500px] rounded-full top-[20%] left-[10%] opacity-[0.07] dark:opacity-[0.06]"
               style={{ background: '#561F37', filter: 'blur(100px)' }} />

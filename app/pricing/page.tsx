@@ -105,7 +105,7 @@ export default function Pricing() {
       <ScrollReveal />
 
       {/* ── HERO + PRICING CARDS (one section) ── */}
-      <section className="relative overflow-hidden bg-warm-white dark:bg-deep-navy pt-32 pb-16 max-md:pt-24 max-md:pb-10">
+      <section className="relative overflow-hidden bg-white dark:bg-deep-navy pt-32 pb-16 max-md:pt-24 max-md:pb-10">
         {/* Decorative blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[4%] left-[5%] max-md:w-[350px] max-md:h-[350px] opacity-[0.15] dark:opacity-[0.10]"
@@ -207,7 +207,7 @@ export default function Pricing() {
       <main>
 
         {/* ── EVERY PLAN INCLUDES ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[800px] mx-auto px-12 py-12 max-md:px-6 max-md:py-8">
             <div className="text-center mb-10 fade-up">
               <Eyebrow>Every Plan</Eyebrow>
@@ -234,7 +234,7 @@ export default function Pricing() {
         </section>
 
         {/* ── CTA SECTION ── */}
-        <section className="relative overflow-hidden bg-warm-white dark:bg-transparent">
+        <section className="section-blend relative overflow-hidden bg-white dark:bg-transparent">
           <div className="absolute top-0 left-0 right-0 h-[200px] dark:hidden pointer-events-none"
             style={{ background: 'linear-gradient(to bottom, #F7F7F8, transparent)' }} />
           <div className="absolute top-0 left-0 right-0 h-[200px] hidden dark:block pointer-events-none z-[2]"

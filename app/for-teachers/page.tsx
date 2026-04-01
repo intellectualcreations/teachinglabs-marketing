@@ -63,7 +63,7 @@ export default function ForTeachersPage() {
       <ScrollReveal />
 
       {/* ── HERO ── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy">
+      <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
         {/* Decorative blobs — matching homepage */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[8%] left-[5%] max-md:w-[350px] max-md:h-[350px] opacity-[0.15] dark:opacity-[0.10]"
@@ -72,11 +72,6 @@ export default function ForTeachersPage() {
             style={{ background: '#4056F4', filter: 'blur(100px)' }} />
           <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.07] dark:opacity-[0.1] max-md:hidden"
             style={{ background: '#561F37', filter: 'blur(100px)' }} />
-          {/* Bottom fade */}
-          <div className="absolute bottom-0 left-0 right-0 h-[200px] dark:hidden"
-            style={{ background: 'linear-gradient(to bottom, transparent, #F7F7F8)' }} />
-          <div className="absolute bottom-0 left-0 right-0 h-[200px] hidden dark:block"
-            style={{ background: 'linear-gradient(to bottom, transparent, #0a1128)' }} />
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
@@ -135,7 +130,7 @@ export default function ForTeachersPage() {
       <main>
 
         {/* ── IT STARTS WITH YOU ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Your Classroom, Your Way</Eyebrow>
@@ -165,7 +160,7 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── YOU SEE YOUR WHOLE CLASSROOM ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Real-Time Awareness</Eyebrow>
@@ -195,7 +190,7 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── YOU KNOW WHAT STUDENTS ARE ASKING ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Student Insights</Eyebrow>
@@ -226,7 +221,7 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── YOUR VOICE IN THE ROOM ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Your Voice, Extended</Eyebrow>
@@ -257,7 +252,7 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── YOU STAY IN CONTROL ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Safety &amp; Privacy</Eyebrow>
@@ -284,14 +279,14 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── Bridge Quote ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 pb-24 max-md:px-6 max-md:pb-16 fade-up">
             <Bridge>Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student.</Bridge>
           </div>
         </section>
 
         {/* ── WHAT TEACHERS GAIN BACK ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>What You Gain Back</Eyebrow>
@@ -316,12 +311,7 @@ export default function ForTeachersPage() {
         </section>
 
         {/* ── CTA SECTION — matches homepage ── */}
-        <section className="relative overflow-hidden bg-warm-white dark:bg-transparent">
-          {/* Top fade */}
-          <div className="absolute top-0 left-0 right-0 h-[200px] dark:hidden pointer-events-none"
-            style={{ background: 'linear-gradient(to bottom, #F7F7F8, transparent)' }} />
-          <div className="absolute top-0 left-0 right-0 h-[200px] hidden dark:block pointer-events-none z-[2]"
-            style={{ background: 'linear-gradient(to bottom, #0a1128, transparent)' }} />
+        <section className="section-blend relative overflow-hidden bg-white dark:bg-transparent">
           {/* Light mode: radiant blobs */}
           <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
             <div className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[-10%] opacity-[0.25]"

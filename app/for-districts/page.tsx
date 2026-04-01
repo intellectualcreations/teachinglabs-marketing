@@ -122,7 +122,7 @@ export default function ForDistrictsPage() {
       <ScrollReveal />
 
       {/* ── HERO ── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy">
+      <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
         {/* Blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[8%] left-[5%] max-md:w-[350px] max-md:h-[350px] opacity-[0.15] dark:opacity-[0.10]"
@@ -131,11 +131,6 @@ export default function ForDistrictsPage() {
             style={{ background: '#4056F4', filter: 'blur(100px)' }} />
           <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.07] dark:opacity-[0.1] max-md:hidden"
             style={{ background: '#561F37', filter: 'blur(100px)' }} />
-          {/* Bottom fade */}
-          <div className="absolute bottom-0 left-0 right-0 h-[200px] dark:hidden"
-            style={{ background: 'linear-gradient(to bottom, transparent, #F7F7F8)' }} />
-          <div className="absolute bottom-0 left-0 right-0 h-[200px] hidden dark:block"
-            style={{ background: 'linear-gradient(to bottom, transparent, #0a1128)' }} />
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
@@ -190,7 +185,7 @@ export default function ForDistrictsPage() {
       <main>
 
         {/* ── A RESPONSIBLE APPROACH ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Responsible AI</Eyebrow>
@@ -216,7 +211,7 @@ export default function ForDistrictsPage() {
         </section>
 
         {/* ── GOVERNANCE DISTRICTS CAN TRUST ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Governance</Eyebrow>
@@ -274,7 +269,7 @@ export default function ForDistrictsPage() {
         </section>
 
         {/* ── BUILT AROUND YOUR TEACHERS ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Teacher-Centered</Eyebrow>
@@ -300,7 +295,7 @@ export default function ForDistrictsPage() {
         </section>
 
         {/* ── ADOPTION THAT HAPPENS NATURALLY ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Adoption</Eyebrow>
@@ -329,7 +324,7 @@ export default function ForDistrictsPage() {
         </section>
 
         {/* ── VISIBILITY WITHOUT MICROMANAGEMENT ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>District Insights</Eyebrow>
@@ -361,7 +356,7 @@ export default function ForDistrictsPage() {
         </section>
 
         {/* ── WHAT DISTRICTS GAIN ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Benefits</Eyebrow>
@@ -405,7 +400,7 @@ export default function ForDistrictsPage() {
         </section>
 
         {/* ── LEADING THE NEXT ERA ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
+        <section className="bg-white dark:bg-deep-navy">
           <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>The Future</Eyebrow>
@@ -425,7 +420,7 @@ export default function ForDistrictsPage() {
         </section>
 
         {/* ── CTA SECTION ── */}
-        <section className="relative overflow-hidden bg-warm-white dark:bg-transparent">
+        <section className="section-blend relative overflow-hidden bg-white dark:bg-transparent">
           <div className="absolute top-0 left-0 right-0 h-[200px] dark:hidden pointer-events-none"
             style={{ background: 'linear-gradient(to bottom, #F7F7F8, transparent)' }} />
           <div className="absolute top-0 left-0 right-0 h-[200px] hidden dark:block pointer-events-none z-[2]"
