@@ -4,6 +4,9 @@ import { useEffect } from 'react';
 
 export default function ScrollReveal() {
   useEffect(() => {
+    // Enable scroll animations only after JS is ready
+    document.documentElement.classList.add('scroll-ready');
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -16,17 +19,14 @@ export default function ScrollReveal() {
       { threshold: 0.05 }
     );
 
-    // Observe all current fade-up elements
     function observeAll() {
       document.querySelectorAll('.fade-up:not(.visible)').forEach((el) => {
         observer.observe(el);
       });
     }
 
-    // Initial pass
     observeAll();
 
-    // Watch for new elements added to DOM (covers slow hydration)
     const mutation = new MutationObserver(() => observeAll());
     mutation.observe(document.body, { childList: true, subtree: true });
 

@@ -146,13 +146,21 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.04);
 }
 /* ── Scroll reveal animations (matching v4) ── */
+/* Content visible by default. JS adds .scroll-ready to <html>,
+   which enables the hidden state. Scroll triggers .visible to reveal.
+   If JS never loads, content stays visible. */
 .fade-up {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-ready .fade-up {
   opacity: 0;
   transform: translateY(24px);
   transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
-.fade-up.visible {
+.scroll-ready .fade-up.visible {
   opacity: 1;
   transform: translateY(0);
 }
