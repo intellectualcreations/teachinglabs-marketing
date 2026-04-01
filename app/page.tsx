@@ -203,8 +203,14 @@ export default function HomePage() {
 
 
         {/* ── PROBLEM SECTION ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
-          <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
+        <section className="section-blend relative overflow-hidden bg-white dark:bg-deep-navy">
+          <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
+            <div className="absolute w-[600px] h-[600px] rounded-full top-[5%] right-[-10%] opacity-[0.12]"
+              style={{ background: '#4056F4', filter: 'blur(120px)' }} />
+            <div className="absolute w-[500px] h-[500px] rounded-full bottom-[10%] left-[-8%] opacity-[0.10]"
+              style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
+          </div>
+          <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>The Challenge</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
@@ -242,8 +248,14 @@ export default function HomePage() {
         </section>
 
         {/* ── SOLUTION SECTION ── */}
-        <section className="bg-warm-white dark:bg-deep-navy">
-          <div className="max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
+        <section className="section-blend relative overflow-hidden bg-white dark:bg-deep-navy">
+          <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
+            <div className="absolute w-[550px] h-[550px] rounded-full top-[10%] left-[-5%] opacity-[0.10]"
+              style={{ background: '#4056F4', filter: 'blur(120px)' }} />
+            <div className="absolute w-[500px] h-[500px] rounded-full bottom-[5%] right-[-8%] opacity-[0.12]"
+              style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
+          </div>
+          <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
             <div className="text-center mb-14 fade-up">
               <Eyebrow>Our Approach</Eyebrow>
               <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
