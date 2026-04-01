@@ -15,36 +15,51 @@ export const metadata: Metadata = {
 
 function IconTeach() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
-      <path d="M24 8 C16 16, 8 28, 8 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
-      <path d="M24 8 C24 18, 24 28, 24 38" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
-      <path d="M24 8 C32 16, 40 28, 40 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.4" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12"><defs>
+        <linearGradient id="ig1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <path d="M24 8 C16 16, 8 28, 8 36" stroke="url(#ig1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+      <path d="M24 8 C24 18, 24 28, 24 38" stroke="url(#ig1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+      <path d="M24 8 C32 16, 40 28, 40 36" stroke="url(#ig1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.4" />
     </svg>
   );
 }
 
 function IconStudents() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
-      <circle cx="24" cy="24" r="8" stroke="currentColor" strokeWidth="2.5" opacity="0.9" />
-      <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="2" opacity="0.6" />
-      <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1.5" opacity="0.35" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12"><defs>
+        <linearGradient id="ig2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="24" r="8" stroke="url(#ig2)" strokeWidth="2.5" opacity="0.9" />
+      <circle cx="24" cy="24" r="14" stroke="url(#ig2)" strokeWidth="2" opacity="0.6" />
+      <circle cx="24" cy="24" r="20" stroke="url(#ig2)" strokeWidth="1.5" opacity="0.35" />
     </svg>
   );
 }
 
 function IconFocus() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
-      <circle cx="14" cy="14" r="4" stroke="currentColor" strokeWidth="2" opacity="0.7" />
-      <circle cx="34" cy="14" r="4" stroke="currentColor" strokeWidth="2" opacity="0.7" />
-      <circle cx="24" cy="30" r="4" stroke="currentColor" strokeWidth="2" opacity="0.9" />
-      <circle cx="10" cy="38" r="3" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
-      <circle cx="38" cy="38" r="3" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
-      <line x1="14" y1="18" x2="24" y2="26" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
-      <line x1="34" y1="18" x2="24" y2="26" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
-      <line x1="24" y1="34" x2="10" y2="35" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
-      <line x1="24" y1="34" x2="38" y2="35" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12"><defs>
+        <linearGradient id="ig3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <circle cx="14" cy="14" r="4" stroke="url(#ig3)" strokeWidth="2" opacity="0.7" />
+      <circle cx="34" cy="14" r="4" stroke="url(#ig3)" strokeWidth="2" opacity="0.7" />
+      <circle cx="24" cy="30" r="4" stroke="url(#ig3)" strokeWidth="2" opacity="0.9" />
+      <circle cx="10" cy="38" r="3" stroke="url(#ig3)" strokeWidth="1.5" opacity="0.5" />
+      <circle cx="38" cy="38" r="3" stroke="url(#ig3)" strokeWidth="1.5" opacity="0.5" />
+      <line x1="14" y1="18" x2="24" y2="26" stroke="url(#ig3)" strokeWidth="1.5" opacity="0.5" />
+      <line x1="34" y1="18" x2="24" y2="26" stroke="url(#ig3)" strokeWidth="1.5" opacity="0.5" />
+      <line x1="24" y1="34" x2="10" y2="35" stroke="url(#ig3)" strokeWidth="1.5" opacity="0.4" />
+      <line x1="24" y1="34" x2="38" y2="35" stroke="url(#ig3)" strokeWidth="1.5" opacity="0.4" />
     </svg>
   );
 }
