@@ -203,7 +203,7 @@ export default function HomePage() {
 
 
         {/* ── PROBLEM SECTION ── */}
-        <section className="section-blend relative overflow-hidden bg-white dark:bg-deep-navy">
+        <section className="relative overflow-hidden bg-white dark:bg-deep-navy">
           <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
             <div className="absolute w-[600px] h-[600px] rounded-full top-[5%] right-[-10%] opacity-[0.06]"
               style={{ background: '#4056F4', filter: 'blur(120px)' }} />
@@ -248,7 +248,7 @@ export default function HomePage() {
         </section>
 
         {/* ── SOLUTION SECTION ── */}
-        <section className="section-blend relative overflow-hidden bg-white dark:bg-deep-navy">
+        <section className="relative overflow-hidden bg-white dark:bg-deep-navy">
           <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
             <div className="absolute w-[550px] h-[550px] rounded-full top-[10%] left-[-5%] opacity-[0.05]"
               style={{ background: '#4056F4', filter: 'blur(120px)' }} />
