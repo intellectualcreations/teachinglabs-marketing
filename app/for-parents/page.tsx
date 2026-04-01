@@ -12,6 +12,56 @@ export const metadata: Metadata = {
 };
 
 /* ─── SVG Icons ─── */
+function IconShield() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
+      <defs>
+        <linearGradient id="gs1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <path d="M24 4 L40 12 L40 24 C40 34 32 42 24 44 C16 42 8 34 8 24 L8 12 Z" stroke="url(#gs1)" strokeWidth="2.5" strokeLinejoin="round" className="dark:stroke-teal" />
+      <path d="M16 24 L22 30 L34 18" stroke="url(#gs1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" className="dark:stroke-teal" />
+    </svg>
+  );
+}
+
+function IconBook() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
+      <defs>
+        <linearGradient id="gb1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <path d="M8 8 C8 8, 16 6, 24 10 C32 6, 40 8, 40 8 L40 38 C40 38, 32 36, 24 40 C16 36, 8 38, 8 38 Z" stroke="url(#gb1)" strokeWidth="2.5" strokeLinejoin="round" className="dark:stroke-teal" />
+      <path d="M24 10 L24 40" stroke="url(#gb1)" strokeWidth="2" opacity="0.5" className="dark:stroke-teal" />
+      <path d="M14 16 L20 18" stroke="url(#gb1)" strokeWidth="1.5" opacity="0.6" strokeLinecap="round" className="dark:stroke-teal" />
+      <path d="M14 22 L20 24" stroke="url(#gb1)" strokeWidth="1.5" opacity="0.6" strokeLinecap="round" className="dark:stroke-teal" />
+      <path d="M28 18 L34 16" stroke="url(#gb1)" strokeWidth="1.5" opacity="0.6" strokeLinecap="round" className="dark:stroke-teal" />
+      <path d="M28 24 L34 22" stroke="url(#gb1)" strokeWidth="1.5" opacity="0.6" strokeLinecap="round" className="dark:stroke-teal" />
+    </svg>
+  );
+}
+
+function IconHandshake() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
+      <defs>
+        <linearGradient id="gh1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4056F4" />
+          <stop offset="100%" stopColor="#561F37" />
+        </linearGradient>
+      </defs>
+      <path d="M6 20 L14 12 L22 18 L30 12 L42 20" stroke="url(#gh1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-teal" />
+      <path d="M14 28 L22 34 L30 28" stroke="url(#gh1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7" className="dark:stroke-teal" />
+      <circle cx="10" cy="24" r="4" stroke="url(#gh1)" strokeWidth="2" opacity="0.5" className="dark:stroke-teal" />
+      <circle cx="38" cy="24" r="4" stroke="url(#gh1)" strokeWidth="2" opacity="0.5" className="dark:stroke-teal" />
+    </svg>
+  );
+}
 
 /* ─── Eyebrow label ─── */
 function Eyebrow({ children }: { children: React.ReactNode }) {
@@ -34,17 +84,19 @@ function Bridge({ children }: { children: React.ReactNode }) {
 
 /* ─── Card component ─── */
 function Card({
-  emoji,
+  icon,
   title,
   text,
+  floatClass = '',
 }: {
-  emoji: string;
+  icon: React.ReactNode;
   title: string;
   text: string;
+  floatClass?: string;
 }) {
   return (
     <div className="card-accent relative bg-card-bg rounded-[20px] p-10 overflow-hidden shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300">
-      <div className="text-[32px] mb-6">{emoji}</div>
+      <div className={`mb-6 ${floatClass}`}>{icon}</div>
       <h3 className="font-heading text-[16.5px] font-semibold text-text-primary mb-3">{title}</h3>
       <p className="text-[15px] leading-[1.78] text-text-secondary">{text}</p>
     </div>
@@ -283,17 +335,20 @@ export default function ForParentsPage() {
             </div>
             <div className="grid grid-cols-3 gap-8 max-md:grid-cols-1 fade-up">
               <Card
-                emoji="🛡️"
+                floatClass="card-icon-float-1"
+                icon={<IconShield />}
                 title="Safety You Can Trust"
                 text="FERPA and COPPA compliant. Your child's data is protected, and the AI is guided by their teacher's standards, not the internet."
               />
               <Card
-                emoji="📚"
+                floatClass="card-icon-float-2"
+                icon={<IconBook />}
                 title="Real Learning, Not Shortcuts"
                 text="Teaching Labs doesn't do the work for your child. It teaches them how to do it themselves, building skills that last beyond the assignment."
               />
               <Card
-                emoji="🤝"
+                floatClass="card-icon-float-3"
+                icon={<IconHandshake />}
                 title="Teacher in the Loop"
                 text="Every interaction helps the teacher understand your child better. More insight means more personalized support in the classroom."
               />
