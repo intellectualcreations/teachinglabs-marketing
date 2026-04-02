@@ -67,12 +67,15 @@ export default function AuthCallbackPage() {
       // Method 2: code from PKCE flow
       const code = params.get('code');
       if (code) {
-        console.log('Auth callback - exchanging code');
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        console.log('Auth callback - exchanging code for session');
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
           console.error('Code exchange failed:', error.message);
-          setStatus('Link expired or invalid. Redirecting to signup...');
-          setTimeout(() => { window.location.href = '/teacher/signup'; }, 2500);
+          // Don't give up yet — check if session exists anyway
+        }
+        if (data?.session?.user) {
+          setStatus('Setting up your account...');
+          await redirectUser(supabase, data.session.user);
           return;
         }
       }
@@ -80,11 +83,10 @@ export default function AuthCallbackPage() {
       // Method 3: hash fragment with access_token (implicit flow)
       if (hash?.includes('access_token')) {
         console.log('Auth callback - hash has access_token, waiting for Supabase to process');
-        // Supabase JS auto-detects hash tokens
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1500));
       }
 
-      // Check if we have a session now
+      // Check if we have a session now (covers both flows)
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setStatus('Setting up your account...');
@@ -109,7 +111,7 @@ export default function AuthCallbackPage() {
         subscription.unsubscribe();
         setStatus('Taking longer than expected. Redirecting to login...');
         setTimeout(() => { window.location.href = '/login'; }, 2500);
-      }, 12000);
+      }, 15000);
     }
 
     handleCallback();

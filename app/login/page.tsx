@@ -2,23 +2,28 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 
 function TeachingLabsLogo() {
   return (
-    <Link href="/" className="flex items-center gap-3 mb-8">
-      <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center flex-shrink-0">
-        <svg viewBox="0 0 512 512" fill="none" className="w-6 h-6">
-          <g transform="translate(156,106)">
-            <rect x="60" y="0" width="80" height="300" fill="#FFF" />
-            <rect x="40" y="0" width="160" height="80" fill="#FFF" />
-            <circle cx="160" cy="200" r="40" fill="#4FA3A5" />
-          </g>
-        </svg>
-      </div>
-      <span className="font-heading font-bold text-xl text-text-primary">TeachingLabs</span>
+    <Link href="/" className="flex items-center justify-center mb-8">
+      <Image
+        src="/images/logo-horizontal-dark.png"
+        alt="TeachingLabs"
+        width={440}
+        height={100}
+        className="h-20 w-auto dark:hidden"
+      />
+      <Image
+        src="/images/logo-horizontal-light.png"
+        alt="TeachingLabs"
+        width={440}
+        height={100}
+        className="h-20 w-auto hidden dark:block"
+      />
     </Link>
   );
 }
@@ -139,17 +144,6 @@ export default function LoginPage() {
       {/* Theme toggle */}
       <ThemeToggle className="absolute top-6 right-6" />
 
-      {/* Back link */}
-      <div className="w-full max-w-[420px] mb-4">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
-        >
-          <ArrowLeft weight="bold" size={16} />
-          Back to home
-        </Link>
-      </div>
-
       {/* Card */}
       <div className="w-full max-w-[420px] animate-[fadeUp_0.4s_ease-out]">
         <TeachingLabsLogo />
@@ -185,7 +179,7 @@ export default function LoginPage() {
               >
                 <ClassLinkIcon />
                 Sign in with ClassLink
-                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
+                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-navy dark:text-teal bg-navy/10 dark:bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
               </button>
             </div>
 
@@ -199,7 +193,7 @@ export default function LoginPage() {
             {/* Magic Link CTA */}
             <button
               onClick={() => setMode('magic-link')}
-              className="w-full py-3.5 rounded-xl bg-teal hover:bg-teal/90 text-white font-heading font-semibold text-[15px] transition-colors"
+              className="w-full py-3.5 rounded-xl bg-navy dark:bg-navy hover:bg-navy/90 dark:hover:bg-navy/90 text-white font-heading font-semibold text-[15px] transition-colors"
             >
               Sign in with email link
             </button>
@@ -282,7 +276,7 @@ export default function LoginPage() {
         {!sent && (
           <p className="text-center text-sm text-text-secondary mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-teal font-medium hover:underline">
+            <Link href="/signup" className="text-navy dark:text-teal font-bold hover:underline">
               Create one
             </Link>
           </p>
