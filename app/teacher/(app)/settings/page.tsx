@@ -5,6 +5,7 @@ import {
   User, Lock, Palette, GearSix, Plugs, Info, Trash,
   Eye, EyeSlash, Bell, Sun, Moon, Desktop,
 } from '@phosphor-icons/react';
+import { createClient } from '@/lib/supabase/client';
 
 /* ─── Toggle Switch ─── */
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
@@ -92,10 +93,51 @@ function DeleteModal({ onClose, onConfirm }: { onClose: () => void; onConfirm: (
 /* ─── Main Settings Page ─── */
 export default function SettingsPage() {
   // Profile
-  const [name, setName] = useState('Ms. Harper');
-  const [email, setEmail] = useState('m.harper@lincolnacademy.edu');
-  const [role, setRole] = useState('5th Grade Teacher');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('');
+  const [school, setSchool] = useState('');
   const [profileDirty, setProfileDirty] = useState(false);
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Set email from auth
+        setEmail(user.email || '');
+
+        // Try to get name from profile first, then auth metadata
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name, first_name, last_name, role, school_id')
+          .eq('id', user.id)
+          .single();
+
+        const p = profile as { display_name?: string; first_name?: string; last_name?: string; role?: string; school_id?: string } | null;
+        const displayName = p?.display_name
+          || (p?.first_name && p?.last_name ? `${p.first_name} ${p.last_name}` : null)
+          || user.user_metadata?.full_name as string
+          || user.user_metadata?.name as string
+          || '';
+        setName(displayName);
+        setRole(p?.role || 'Teacher');
+
+        // Get school name if school_id exists
+        if (p?.school_id) {
+          const { data: schoolData } = await supabase
+            .from('schools')
+            .select('name')
+            .eq('id', p.school_id)
+            .single();
+          setSchool((schoolData as { name?: string } | null)?.name || '');
+        }
+      } catch { /* ignore */ }
+    }
+    loadProfile();
+  }, []);
 
   const handleProfileChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setter(e.target.value);
@@ -191,7 +233,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1">School</label>
-                <p className="px-3 py-2 text-sm text-text-secondary">Lincoln Academy</p>
+                <p className="px-3 py-2 text-sm text-text-secondary">{school || 'Not set'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1">Role</label>

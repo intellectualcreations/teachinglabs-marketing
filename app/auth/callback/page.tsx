@@ -129,16 +129,37 @@ export default function AuthCallbackPage() {
 
 async function redirectUser(
   supabase: ReturnType<typeof createClient>,
-  user: { id: string; user_metadata?: Record<string, unknown> }
+  user: { id: string; email?: string; user_metadata?: Record<string, unknown> }
 ) {
   try {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, display_name')
       .eq('id', user.id)
       .single();
 
-    const role: string = (profile as { role?: string } | null)?.role ?? 'teacher';
+    // Ensure profile has correct role and display name
+    const meta = user.user_metadata || {};
+    const fullName = (meta.full_name || meta.name || '') as string;
+    const pendingRole = localStorage.getItem('pending_role');
+    const pendingSchool = localStorage.getItem('pending_school_id');
+
+    // Update profile if it needs fixing (role from signup, or missing display name)
+    const updates: Record<string, unknown> = {};
+    if (pendingRole && (!profile || (profile as { role?: string })?.role !== pendingRole)) {
+      updates.role = pendingRole;
+    }
+    if (fullName && !(profile as { display_name?: string })?.display_name) {
+      updates.display_name = fullName;
+    }
+    if (pendingSchool) {
+      updates.school_id = pendingSchool;
+    }
+    if (Object.keys(updates).length > 0) {
+      await supabase.from('profiles').update(updates).eq('id', user.id);
+    }
+
+    const role: string = (profile as { role?: string } | null)?.role ?? localStorage.getItem('pending_role') ?? 'teacher';
 
     // Check if this is a new signup (came from signup page)
     const isNewSignup = localStorage.getItem('pending_role') || localStorage.getItem('pending_school_id');

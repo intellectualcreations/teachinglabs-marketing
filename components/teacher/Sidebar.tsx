@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
-  SquaresFour, BookOpenText, UsersThree, Books, ChatsCircle, GearSix, List, X,
+  SquaresFour, BookOpenText, UsersThree, Books, ChatsCircle, GearSix, List, X, SignOut,
 } from '@phosphor-icons/react';
 import { useState, useEffect } from 'react';
 import ThemeToggle from '@/components/shared/ThemeToggle';
@@ -80,7 +80,7 @@ export default function Sidebar() {
         <div className="px-5 py-5 border-b border-white/10">
           <div className="flex items-center gap-3">
             <Image
-              src="/images/logo-horizontal-dark.png"
+              src="/images/logo-horizontal-light.png"
               alt="TeachingLabs"
               width={160}
               height={40}
@@ -124,6 +124,19 @@ export default function Sidebar() {
             <GearSix size={20} weight="fill" />
             Settings
           </Link>
+
+          <button
+            onClick={async () => {
+              const supabase = createClient();
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+            }}
+            className="flex items-center gap-3 px-2 py-2 text-sm text-white/60 hover:text-white
+              transition-colors rounded-lg hover:bg-white/5 w-full"
+          >
+            <SignOut size={20} weight="fill" />
+            Log out
+          </button>
 
           <div className="flex items-center gap-3 px-2 py-2 mt-1">
             <div className="w-8 h-8 rounded-full bg-[#1F3A5F] text-white flex items-center justify-center
