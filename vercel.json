@@ -1,0 +1,11 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXTAUTH_SECRET": "@nextauth-secret",
+    "GOOGLE_CLIENT_ID": "@google-client-id",
+    "GOOGLE_CLIENT_SECRET": "@google-client-secret",
+    "COGNEE_API_URL": "@cognee-api-url"
+  }
+}

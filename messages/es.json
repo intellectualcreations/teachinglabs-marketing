@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "courses": "Cursos",
+    "dashboard": "Panel",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión",
+    "profile": "Perfil"
+  },
+  "course": {
+    "enroll": "Inscribirse",
+    "continue": "Continuar aprendiendo",
+    "completed": "Completado",
+    "lessons": "Lecciones",
+    "progress": "Progreso",
+    "start": "Comenzar curso"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido de nuevo",
+    "progress": "Tu Progreso",
+    "courses": "Mis Cursos",
+    "streak": "Racha de días",
+    "achievements": "Logros",
+    "continue": "Continúa donde lo dejaste"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "submit": "Enviar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "done": "Listo",
+    "search": "Buscar"
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?"
+  }
+}

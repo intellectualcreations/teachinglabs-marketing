@@ -373,7 +373,7 @@ export default function ParentSignupPage() {
                 </label>
                 <input type="text" value={parentFirst} onChange={(e) => setParentFirst(e.target.value)}
                   onBlur={(e) => { const v = e.target.value.trim(); if (v) setParentFirst(v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()); }}
-                  placeholder="Maria"
+                  placeholder="First"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg text-text-primary placeholder:text-text-muted text-sm outline-none focus:ring-2 transition-all"
                   style={{ '--tw-ring-color': `${CORAL}30` } as React.CSSProperties}
                 />
@@ -384,7 +384,7 @@ export default function ParentSignupPage() {
                 </label>
                 <input type="text" value={parentLast} onChange={(e) => setParentLast(e.target.value)}
                   onBlur={(e) => { const v = e.target.value.trim(); if (v) setParentLast(v.charAt(0).toUpperCase() + v.slice(1).toLowerCase()); }}
-                  placeholder="Johnson"
+                  placeholder="Last"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg text-text-primary placeholder:text-text-muted text-sm outline-none focus:ring-2 transition-all"
                 />
               </div>

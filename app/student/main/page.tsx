@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   List, HouseLine, Archive, CaretRight, CaretDown, Plus,
   ClipboardText, Check, PaperPlaneRight, Paperclip,
@@ -11,113 +11,65 @@ import {
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
+import { createClient } from '@/lib/supabase/client';
+import type { Profile, Class, Enrollment, Assignment, Submission, ChatMessage } from '@/lib/supabase/types';
 
-// ============ DATA ============
+// ============ HELPERS ============
 
-interface ChatItem {
-  id: string;
-  name: string;
-  preview: string;
-  time: string;
-  count: number;
-  due?: string;
-  status?: 'active' | 'due' | 'overdue';
-  turned?: string;
-  isLesson?: boolean;
+const SUBJECT_STYLES: Record<string, { icon: 'math' | 'science' | 'ela' | 'social'; color: string; iconBg: string }> = {
+  math: { icon: 'math', color: '#3B82F6', iconBg: 'rgba(59,130,246,0.15)' },
+  mathematics: { icon: 'math', color: '#3B82F6', iconBg: 'rgba(59,130,246,0.15)' },
+  algebra: { icon: 'math', color: '#3B82F6', iconBg: 'rgba(59,130,246,0.15)' },
+  science: { icon: 'science', color: '#10B981', iconBg: 'rgba(16,185,129,0.15)' },
+  biology: { icon: 'science', color: '#10B981', iconBg: 'rgba(16,185,129,0.15)' },
+  chemistry: { icon: 'science', color: '#10B981', iconBg: 'rgba(16,185,129,0.15)' },
+  physics: { icon: 'science', color: '#10B981', iconBg: 'rgba(16,185,129,0.15)' },
+  english: { icon: 'ela', color: '#F59E0B', iconBg: 'rgba(245,158,11,0.15)' },
+  ela: { icon: 'ela', color: '#F59E0B', iconBg: 'rgba(245,158,11,0.15)' },
+  reading: { icon: 'ela', color: '#F59E0B', iconBg: 'rgba(245,158,11,0.15)' },
+  writing: { icon: 'ela', color: '#F59E0B', iconBg: 'rgba(245,158,11,0.15)' },
+  social: { icon: 'social', color: '#A48BFA', iconBg: 'rgba(164,139,250,0.15)' },
+  history: { icon: 'social', color: '#A48BFA', iconBg: 'rgba(164,139,250,0.15)' },
+  geography: { icon: 'social', color: '#A48BFA', iconBg: 'rgba(164,139,250,0.15)' },
+};
+
+function getSubjectStyle(subject: string | null) {
+  if (!subject) return { icon: 'ela' as const, color: '#F59E0B', iconBg: 'rgba(245,158,11,0.15)' };
+  const key = subject.toLowerCase();
+  for (const [k, v] of Object.entries(SUBJECT_STYLES)) {
+    if (key.includes(k)) return v;
+  }
+  return { icon: 'ela' as const, color: '#F59E0B', iconBg: 'rgba(245,158,11,0.15)' };
 }
 
-interface ClassData {
-  name: string;
-  teacher: string;
-  teacherInitial: string;
-  icon: React.ReactNode;
-  iconBg: string;
-  lessons: ChatItem[];
-  turnedIn: ChatItem[];
-  openChats: ChatItem[];
-  archived: ChatItem[];
-}
-
-type ClassKey = 'math' | 'science' | 'ela' | 'social';
-
-const CLASS_ICONS: Record<ClassKey, React.ReactNode> = {
+const CLASS_ICONS = {
   math: <MathOperations size={16} weight="fill" className="text-white" />,
   science: <Flask size={16} weight="fill" className="text-white" />,
   ela: <BookOpenText size={16} weight="fill" className="text-white" />,
   social: <GlobeHemisphereWest size={16} weight="fill" className="text-white" />,
 };
 
-const INITIAL_DATA: Record<ClassKey, ClassData> = {
-  math: {
-    name: '5th Period Math', teacher: 'Mrs. Martinez', teacherInitial: 'M',
-    icon: CLASS_ICONS.math, iconBg: 'rgba(59,130,246,0.15)',
-    lessons: [
-      { id: 'hw-fractions-add', name: 'Adding Fractions Worksheet', due: 'Due tomorrow', status: 'active', time: '2m ago', preview: 'You got it! 7/12 is correct.', count: 8 },
-      { id: 'hw-ch7-review', name: 'Chapter 7 Review', due: 'Due Friday', status: 'active', time: 'Yesterday', preview: 'Problem 4 uses the same concept.', count: 11 },
-      { id: 'hw-decimals-quiz', name: 'Decimals Quiz Prep', due: 'Due Mar 12', status: 'due', time: 'Mar 5', preview: 'So 0.75 is the same as 75%!', count: 6 },
-    ],
-    turnedIn: [
-      { id: 'hw-ch6-test', name: 'Chapter 6 Test Prep', turned: 'Mar 5', time: 'Mar 5', preview: 'Great job, you got 9 out of 10!', count: 15, isLesson: true },
-      { id: 'hw-percents', name: 'Percents Worksheet', turned: 'Mar 2', time: 'Mar 2', preview: 'All done! Nice work.', count: 7, isLesson: true },
-    ],
-    openChats: [
-      { id: 'fractions-help', name: 'Help with fractions', time: '2m ago', preview: 'You got it! 7/12 is correct.', count: 8 },
-      { id: 'word-problems', name: 'Word problems practice', time: 'Yesterday', preview: 'Let me walk you through this...', count: 14 },
-      { id: 'times-tables', name: 'Times tables tricks', time: 'Mar 4', preview: 'The 9s trick with your fingers!', count: 5 },
-    ],
-    archived: [
-      { id: 'geometry-shapes', name: 'Geometry: area of shapes', time: 'Feb 28', preview: 'Length times width gives you the area!', count: 9 },
-      { id: 'fractions-intro', name: 'What are fractions?', time: 'Feb 20', preview: 'Think of a pizza cut into equal slices...', count: 12 },
-      { id: 'place-value', name: 'Place value review', time: 'Feb 14', preview: 'The 5 is in the hundreds place!', count: 8 },
-    ],
-  },
-  science: {
-    name: 'Science', teacher: 'Mr. Thompson', teacherInitial: 'T',
-    icon: CLASS_ICONS.science, iconBg: 'rgba(16,185,129,0.15)',
-    lessons: [
-      { id: 'ecosystems-proj', name: 'Ecosystems Project', due: 'Due Mar 14', status: 'active', time: 'Today', preview: 'Great question about food webs!', count: 6 },
-      { id: 'lab-report-3', name: 'Lab Report #3', due: 'Due Mar 10', status: 'due', time: 'Mar 4', preview: 'Your hypothesis section looks good!', count: 5 },
-    ],
-    turnedIn: [
-      { id: 'hw-weather', name: 'Weather Patterns Worksheet', turned: 'Feb 20', time: 'Feb 20', preview: 'Clouds form when...', count: 6, isLesson: true },
-    ],
-    openChats: [
-      { id: 'water-cycle', name: 'Water cycle quiz prep', time: 'Mar 4', preview: 'Evaporation, condensation, precipitation...', count: 9 },
-      { id: 'planets-chat', name: 'Solar system questions', time: 'Feb 28', preview: 'Jupiter is the largest planet!', count: 4 },
-    ],
-    archived: [],
-  },
-  ela: {
-    name: 'English Language Arts', teacher: 'Ms. Chen', teacherInitial: 'C',
-    icon: CLASS_ICONS.ela, iconBg: 'rgba(245,158,11,0.15)',
-    lessons: [
-      { id: 'book-report', name: 'Book Report: Percy Jackson', due: 'Due Mar 15', status: 'active', time: 'Today', preview: 'What themes did you notice?', count: 4 },
-      { id: 'essay-draft', name: 'Persuasive Essay Draft', due: 'Due Mar 11', status: 'due', time: 'Mar 6', preview: "Strong intro! Let's work on transitions.", count: 8 },
-    ],
-    turnedIn: [
-      { id: 'hw-spelling', name: 'Spelling Test Prep', turned: 'Feb 18', time: 'Feb 18', preview: 'You got all 20 right!', count: 8, isLesson: true },
-    ],
-    openChats: [
-      { id: 'vocabulary', name: 'Vocabulary practice', time: 'Mar 1', preview: 'Context clues help figure out meaning.', count: 11 },
-      { id: 'reading-log', name: 'Reading log questions', time: 'Feb 26', preview: 'How many pages did you read this week?', count: 3 },
-    ],
-    archived: [],
-  },
-  social: {
-    name: 'Social Studies', teacher: 'Mrs. Johnson', teacherInitial: 'J',
-    icon: CLASS_ICONS.social, iconBg: 'rgba(164,139,250,0.15)',
-    lessons: [
-      { id: 'colonies-worksheet', name: '13 Colonies Worksheet', due: 'Due Mar 10', status: 'active', time: 'Mar 6', preview: 'The Southern colonies had different crops...', count: 7 },
-    ],
-    turnedIn: [],
-    openChats: [
-      { id: 'timeline', name: 'Timeline project ideas', time: 'Feb 27', preview: 'Good start! Add dates for each event.', count: 5 },
-    ],
-    archived: [
-      { id: 'hw-map-skills', name: 'Map Skills Quiz', time: 'Feb 15', preview: 'Latitude and longitude practice.', count: 6 },
-    ],
-  },
-};
+function getInitials(name: string | null): string {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function timeAgo(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHrs = Math.floor(diffMin / 60);
+  if (diffHrs < 24) return `${diffHrs}h ago`;
+  const diffDays = Math.floor(diffHrs / 24);
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// ============ TYPES ============
 
 interface ChatMsg {
   id: string;
@@ -127,146 +79,21 @@ interface ChatMsg {
   image?: { src: string; alt: string; fileName: string };
 }
 
-const DEMO_MSGS: ChatMsg[] = [
-  { id: 'm1', role: 'ai', text: "Hi Alex! What are you working on today? 😊" },
-  { id: 'm2', role: 'student', text: "I don't get fractions. Like adding them when the bottom numbers are different." },
-  { id: 'm3', role: 'ai', text: "Got it! Adding fractions with different denominators (the bottom numbers). Let's break it down step by step.<br><br>Say you want to add <strong>1/3 + 1/4</strong>.<br><br>First question: can you add them if the bottom numbers are different?" },
-  { id: 'm4', role: 'student', text: "No? You need them to be the same?" },
-  { id: 'm5', role: 'ai', text: "Exactly right! You need a <strong>common denominator</strong>. Think of it like this — you can't add thirds and fourths because they're different-sized pieces. 🍕<br><br>So we need to find a number that both 3 and 4 can divide into evenly. What do you think that number might be?" },
-  { id: 'm6', role: 'student', text: "12?" },
-  { id: 'm7', role: 'ai', text: "Yes! 12 works great. Now we convert:<br><br>• 1/3 = <strong>4/12</strong> (multiply top and bottom by 4)<br>• 1/4 = <strong>3/12</strong> (multiply top and bottom by 3)<br><br>Now add them: 4/12 + 3/12 = ?" },
-  { id: 'm8', role: 'student', text: "7/12!" },
-  { id: 'm9', role: 'ai', text: "🎉 You got it! 7/12 is correct. See, you DO get fractions.<br><br>Now let's try something a little harder: <strong>mixed numbers</strong>. Grab a piece of paper and solve this:<br><br><strong>1 3/5 + 1 7/10 = ?</strong><br><br>Show all your work and upload a photo when you're done!" },
-  { id: 'm10', role: 'student', text: "Ok let me try" },
-  { id: 'm10b', role: 'student', text: '', image: { src: '/student/fraction-work.jpg', alt: "Alex's fraction work", fileName: 'fraction_work.jpg' } },
-  { id: 'm11', role: 'ai', text: "This is really good work, Alex! Let me check each step:<br><br>✅ You drew bar models for both numbers. That's a great way to visualize it.<br>✅ You found the common denominator: <strong>10</strong><br>✅ You converted 3/5 to <strong>6/10</strong> (multiply top and bottom by 2)<br>✅ 1 6/10 + 1 7/10 = 2 13/10<br>✅ You noticed 13/10 is more than a whole, so you simplified: <strong>3 3/10</strong><br><br>Every single step is correct. I love that you drew the fraction bars too, that shows you really understand what the numbers mean. Mrs. Martinez is going to be proud of this one. 💪" },
-];
-
-const WORD_PROBLEMS_MSGS: ChatMsg[] = [
-  { id: 'wp1', role: 'ai', text: "Hi Alex! Working on word problems today?" },
-  { id: 'wp2', role: 'student', text: "Yeah Mrs. Martinez gave us these word problems and I don't know where to start" },
-  { id: 'wp3', role: 'ai', text: "Word problems can feel tricky, but there's a strategy. First, read it twice. Then ask: what do I know, what do I need to find, and what operation do I use?<br><br>Try this one: Sarah has 24 stickers. She gives 1/3 to her friend and 1/4 to her brother. How many does she keep?" },
-  { id: 'wp4', role: 'student', text: "So 1/3 of 24 is 8 and 1/4 of 24 is 6... so she gave away 14?" },
-  { id: 'wp5', role: 'ai', text: "You're so close! Let me walk you through this step by step. You got the individual amounts right:<br><br>• 1/3 of 24 = <strong>8 stickers</strong> (to her friend)<br>• 1/4 of 24 = <strong>6 stickers</strong> (to her brother)<br>• Total given away: 8 + 6 = <strong>14 stickers</strong><br><br>Now, how many does she keep?" },
-  { id: 'wp6', role: 'student', text: "24 - 14 = 10!" },
-  { id: 'wp7', role: 'ai', text: "🎉 Perfect! Sarah keeps 10 stickers. See how breaking it into steps makes it manageable? Let's try a harder one..." },
-];
-
-const TIMES_TABLES_MSGS: ChatMsg[] = [
-  { id: 'tt1', role: 'ai', text: "Hey Alex! Ready for some times table tricks? 😊" },
-  { id: 'tt2', role: 'student', text: "I keep messing up the 7s and 8s" },
-  { id: 'tt3', role: 'ai', text: "Those are the hardest ones! Here's a trick for 9s first, since it helps with the others.<br><br>Hold up both hands. To multiply 9 × 4, put down your 4th finger (from the left). Count the fingers on each side:<br><br>• Left of the down finger: <strong>3</strong><br>• Right of the down finger: <strong>6</strong><br>• Answer: <strong>36</strong>!" },
-  { id: 'tt4', role: 'student', text: "Wait that works for all of them??" },
-  { id: 'tt5', role: 'ai', text: "The 9s trick with your fingers works every time! Try 9 × 7: put down finger #7. You get 6 on the left, 3 on the right = 63. 🤯<br><br>For 7s and 8s, here's my favorite: <strong>5, 6, 7, 8</strong> → 56 = 7 × 8. The numbers go in order! That's the one most people forget." },
-  { id: 'tt6', role: 'student', text: "56 = 7 x 8!! I'll never forget that now" },
-  { id: 'tt7', role: 'ai', text: "That's the spirit! 💪 Now quick quiz: what's 8 × 6?" },
-];
-
-const CHAT_MESSAGES: Record<string, ChatMsg[]> = {
-  'fractions-help': DEMO_MSGS,
-  'word-problems': WORD_PROBLEMS_MSGS,
-  'times-tables': TIMES_TABLES_MSGS,
-};
-
-// Peer chat enabled per activity (matches teacher-side toggle)
-const PEER_CHAT_ENABLED: Record<string, boolean> = {
-  'math-fractions': true,
-  'math-word-problems': true,
-  'sci-photosynthesis': false,
-  'ela-vocab': false,
-  'math-multiplication': false,
-};
-
-// Map lesson chat IDs to activity IDs for peer chat lookup
-const CHAT_TO_ACTIVITY: Record<string, string> = {
-  'hw-fractions-add': 'math-fractions',
-  'hw-ch7-review': 'math-word-problems',
-  'hw-decimals-quiz': 'math-multiplication',
-  'ecosystems-proj': 'sci-photosynthesis',
-  'lab-report-3': 'sci-photosynthesis',
-  'book-report': 'ela-vocab',
-  'essay-draft': 'ela-vocab',
-  'colonies-worksheet': 'math-multiplication',
-};
-
-const PEER_CHAT_MESSAGES: Record<string, { id: string; sender: string; initials: string; color: string; text: string; time: string }[]> = {
-  'math-fractions': [
-    { id: 'p1', sender: 'Emma S.', initials: 'ES', color: '#E8836B', text: 'Hey does anyone get problem 3? I keep getting 5/6 but the hint says that\'s wrong', time: '10:23 AM' },
-    { id: 'p2', sender: 'Liam T.', initials: 'LT', color: '#4FA3A5', text: 'I got 5/8. You have to find the common denominator first before adding', time: '10:24 AM' },
-    { id: 'p3', sender: 'Emma S.', initials: 'ES', color: '#E8836B', text: 'Ohhh wait I see it now. The denominator is 8 not 6. Thanks Liam!', time: '10:25 AM' },
-    { id: 'p4', sender: 'Kai S.', initials: 'KS', color: '#F59E0B', text: 'I\'m stuck on problem 5. Can someone explain mixed numbers?', time: '10:28 AM' },
-    { id: 'p5', sender: 'Sophia R.', initials: 'SR', color: '#3B82F6', text: 'Mixed numbers are like 1 and 3/4. The 1 is the whole part and 3/4 is the fraction part', time: '10:29 AM' },
-    { id: 'p6', sender: 'Kai S.', initials: 'KS', color: '#F59E0B', text: 'So to add them I add the whole numbers and then the fractions separately?', time: '10:31 AM' },
-    { id: 'p7', sender: 'Sophia R.', initials: 'SR', color: '#3B82F6', text: 'Exactly! And if the fraction part adds up to more than 1, carry it over', time: '10:32 AM' },
-  ],
-  'math-word-problems': [
-    { id: 'wp1', sender: 'Ethan J.', initials: 'EJ', color: '#8B5CF6', text: 'Is anyone else confused by the pizza problem?', time: '11:05 AM' },
-    { id: 'wp2', sender: 'Emma S.', initials: 'ES', color: '#E8836B', text: 'Which one? The one where Maria eats 1/3?', time: '11:06 AM' },
-    { id: 'wp3', sender: 'Ethan J.', initials: 'EJ', color: '#8B5CF6', text: 'Yeah that one. How do you know what\'s left?', time: '11:07 AM' },
-    { id: 'wp4', sender: 'Emma S.', initials: 'ES', color: '#E8836B', text: 'Think of the whole pizza as 3/3. She ate 1/3, so 3/3 - 1/3 = 2/3 left!', time: '11:08 AM' },
-    { id: 'wp5', sender: 'Marcus W.', initials: 'MW', color: '#1F3A5F', text: 'That actually makes sense when you think of it that way', time: '11:10 AM' },
-  ],
-};
-
-let msgIdCounter = 100;
-function newMsgId() { return `msg-${++msgIdCounter}`; }
+interface SidebarClass {
+  id: string;
+  name: string;
+  teacher: string;
+  teacherInitial: string;
+  iconKey: 'math' | 'science' | 'ela' | 'social';
+  iconBg: string;
+  assignments: Assignment[];
+  submissions: Submission[];
+}
 
 type ViewMode = 'chat' | 'new-chat' | 'welcome' | 'class-dashboard';
 
-// Stats data per class for the class dashboard
-const CLASS_STATS: Record<ClassKey, { chatSessions: number; activities: number; personalChats: number; badges: number }> = {
-  math: { chatSessions: 12, activities: 3, personalChats: 5, badges: 2 },
-  science: { chatSessions: 8, activities: 2, personalChats: 2, badges: 1 },
-  ela: { chatSessions: 10, activities: 2, personalChats: 2, badges: 3 },
-  social: { chatSessions: 6, activities: 1, personalChats: 1, badges: 1 },
-};
-
-// Recent activity data per class
-const CLASS_RECENT_ACTIVITY: Record<ClassKey, { label: string; chatId: string; type: 'lesson' | 'open' | 'archived' | 'turnedin'; time: string; color: string }[]> = {
-  math: [
-    { label: 'Continued "Help with fractions" chat', chatId: 'fractions-help', type: 'open', time: '2m ago', color: '#4FA3A5' },
-    { label: 'Worked on Adding Fractions Worksheet', chatId: 'hw-fractions-add', type: 'lesson', time: '1h ago', color: '#D4A843' },
-    { label: 'Started "Word problems practice"', chatId: 'word-problems', type: 'open', time: 'Yesterday', color: '#4FA3A5' },
-    { label: 'Turned in Chapter 6 Test Prep', chatId: 'hw-ch6-test', type: 'turnedin', time: 'Mar 5', color: '#22C55E' },
-    { label: 'Explored "Times tables tricks"', chatId: 'times-tables', type: 'open', time: 'Mar 4', color: '#4FA3A5' },
-  ],
-  science: [
-    { label: 'Worked on Ecosystems Project', chatId: 'ecosystems-proj', type: 'lesson', time: 'Today', color: '#D4A843' },
-    { label: 'Continued "Water cycle quiz prep"', chatId: 'water-cycle', type: 'open', time: 'Mar 4', color: '#4FA3A5' },
-    { label: 'Asked about solar system', chatId: 'planets-chat', type: 'open', time: 'Feb 28', color: '#4FA3A5' },
-    { label: 'Turned in Weather Patterns Worksheet', chatId: 'hw-weather', type: 'turnedin', time: 'Feb 20', color: '#22C55E' },
-  ],
-  ela: [
-    { label: 'Started Book Report: Percy Jackson', chatId: 'book-report', type: 'lesson', time: 'Today', color: '#D4A843' },
-    { label: 'Worked on Persuasive Essay Draft', chatId: 'essay-draft', type: 'lesson', time: 'Mar 6', color: '#D4A843' },
-    { label: 'Practiced vocabulary', chatId: 'vocabulary', type: 'open', time: 'Mar 1', color: '#4FA3A5' },
-    { label: 'Turned in Spelling Test Prep', chatId: 'hw-spelling', type: 'turnedin', time: 'Feb 18', color: '#22C55E' },
-  ],
-  social: [
-    { label: 'Worked on 13 Colonies Worksheet', chatId: 'colonies-worksheet', type: 'lesson', time: 'Mar 6', color: '#D4A843' },
-    { label: 'Discussed timeline project ideas', chatId: 'timeline', type: 'open', time: 'Feb 27', color: '#4FA3A5' },
-    { label: 'Completed Map Skills Quiz', chatId: 'hw-map-skills', type: 'archived', time: 'Feb 15', color: '#6B7280' },
-  ],
-};
-
-const CLASS_MESSAGES: Record<ClassKey, { from: string; role: 'ai' | 'teacher'; avatar: string; avatarBg: string; message: string; time: string }[]> = {
-  math: [
-    { from: "Mrs. Martinez's Assistant", role: 'ai', avatar: 'M', avatarBg: '#4FA3A5', message: "Hey Alex! Don't forget your fraction work is due tomorrow. Let me know if you need any help!", time: '3h ago' },
-    { from: 'Mrs. Martinez', role: 'teacher', avatar: 'MM', avatarBg: '#1F3A5F', message: "Hi Alex! Great work on the Chapter 6 test prep. I can tell you really read through the materials! You will be ready to go!!", time: 'Yesterday' },
-  ],
-  science: [
-    { from: "Mr. Thompson's Assistant", role: 'ai', avatar: 'T', avatarBg: '#4FA3A5', message: "Hi Alex! Your Ecosystems Project is coming along great. Remember to include at least 3 food chain examples before Friday!", time: '5h ago' },
-    { from: 'Mr. Thompson', role: 'teacher', avatar: 'DT', avatarBg: '#1F3A5F', message: "Alex, I saw your water cycle diagram. Really impressive detail on the condensation stage. Keep it up!", time: '2 days ago' },
-  ],
-  ela: [
-    { from: "Ms. Chen's Assistant", role: 'ai', avatar: 'C', avatarBg: '#4FA3A5', message: "Hey Alex! Your Percy Jackson book report is off to a great start. Want to work on the character analysis section together?", time: '1h ago' },
-    { from: 'Ms. Chen', role: 'teacher', avatar: 'LC', avatarBg: '#1F3A5F', message: "Alex, your persuasive essay draft showed real improvement in using evidence. I left some notes for your next revision!", time: 'Mar 6' },
-  ],
-  social: [
-    { from: "Mrs. Johnson's Assistant", role: 'ai', avatar: 'J', avatarBg: '#4FA3A5', message: "Alex, you mentioned wanting to do your timeline project on the American Revolution. I found some great primary sources we can look at together!", time: 'Today' },
-    { from: 'Mrs. Johnson', role: 'teacher', avatar: 'SJ', avatarBg: '#1F3A5F', message: "Nice work on the 13 Colonies worksheet, Alex. Your map labels were very accurate!", time: 'Mar 7' },
-  ],
-};
+let msgIdCounter = 100;
+function newMsgId() { return `msg-${++msgIdCounter}`; }
 
 export default function StudentMainPage() {
   return (
@@ -278,42 +105,42 @@ export default function StudentMainPage() {
 
 function StudentMainInner() {
   const searchParams = useSearchParams();
-  const initialClass = (searchParams.get('class') as ClassKey) || 'math';
-  const initialView = searchParams.get('view') === 'class-dashboard' ? 'class-dashboard' as ViewMode : 'chat' as ViewMode;
+  const router = useRouter();
+  const initialClassParam = searchParams.get('class') || '';
+  const initialView = searchParams.get('view') === 'class-dashboard' ? 'class-dashboard' as ViewMode : 'welcome' as ViewMode;
 
-  const [classData, setClassData] = useState(INITIAL_DATA);
-  const [currentClass, setCurrentClass] = useState<ClassKey>(initialClass);
-  const [currentChatId, setCurrentChatId] = useState<string>('fractions-help');
+  // Loading / error state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // User state
+  const [userId, setUserId] = useState('');
+  const [studentName, setStudentName] = useState('Student');
+  const [studentInitials, setStudentInitials] = useState('S');
+
+  // Data state
+  const [sidebarClasses, setSidebarClasses] = useState<SidebarClass[]>([]);
+  const [chatMessagesMap, setChatMessagesMap] = useState<Map<string, ChatMessage[]>>(new Map());
+
+  // UI state
+  const [currentClassId, setCurrentClassId] = useState<string>('');
+  const [currentChatId, setCurrentChatId] = useState<string>('');
   const [currentChatType, setCurrentChatType] = useState<'lesson' | 'open' | 'archived' | 'turnedin'>('open');
   const [viewMode, setViewMode] = useState<ViewMode>(initialView);
-
-  const openClassDashboard = (classId: ClassKey) => {
-    setCurrentClass(classId);
-    setViewMode('class-dashboard');
-    setSidebarOpen(false);
-  };
-  const [expandedClasses, setExpandedClasses] = useState<Set<ClassKey>>(new Set());
+  const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
-  const [expandedArchives, setExpandedArchives] = useState<Set<ClassKey>>(new Set());
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMsg[]>(DEMO_MSGS);
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showUploadMenu, setShowUploadMenu] = useState(false);
-  const [chatName, setChatName] = useState('Help with fractions');
+  const [chatName, setChatName] = useState('');
   const [newChatName, setNewChatName] = useState('');
   const [showTurnInConfirm, setShowTurnInConfirm] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [turnedIn, setTurnedIn] = useState(false);
-  const [chatMode, setChatMode] = useState<'tutor' | 'peer'>('tutor');
-  const [peerUnread, setPeerUnread] = useState(0);
-  const [peerInputText, setPeerInputText] = useState('');
-  const peerInputRef = useRef<HTMLTextAreaElement>(null);
-  const peerChatViewRef = useRef<HTMLDivElement>(null);
   const chatViewRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const cls = classData[currentClass];
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -325,39 +152,179 @@ function StudentMainInner() {
 
   useEffect(() => { scrollToBottom(); }, [messages, isTyping, scrollToBottom]);
 
-  // Reset chatMode to tutor when switching chats or classes
+  // Fetch all data from Supabase
   useEffect(() => {
-    setChatMode('tutor');
-    // Set unread count if peer chat is enabled for this activity
-    const activityId = CHAT_TO_ACTIVITY[currentChatId];
-    if (activityId && PEER_CHAT_ENABLED[activityId]) {
-      setPeerUnread(3);
-    } else {
-      setPeerUnread(0);
-    }
-  }, [currentChatId, currentClass]);
-
-  // Scroll peer chat to bottom
-  useEffect(() => {
-    if (chatMode === 'peer' && peerChatViewRef.current) {
-      setTimeout(() => {
-        if (peerChatViewRef.current) {
-          peerChatViewRef.current.scrollTop = peerChatViewRef.current.scrollHeight;
+    async function fetchData() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push('/login');
+          return;
         }
-      }, 100);
+        setUserId(user.id);
+
+        // Fetch profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        const profile = profileData as unknown as Profile | null;
+        const displayName = profile?.display_name || 'Student';
+        setStudentName(displayName);
+        setStudentInitials(getInitials(displayName));
+
+        // Fetch enrollments
+        const { data: enrollmentData } = await supabase
+          .from('enrollments')
+          .select('*')
+          .eq('student_id', user.id)
+          .eq('status', 'active');
+        const enrollments = (enrollmentData ?? []) as unknown as Enrollment[];
+
+        if (enrollments.length === 0) {
+          setSidebarClasses([]);
+          setLoading(false);
+          return;
+        }
+
+        const classIds = enrollments.map(e => e.class_id);
+
+        // Fetch classes
+        const { data: classData } = await supabase
+          .from('classes')
+          .select('*')
+          .in('id', classIds);
+        const classRows = (classData ?? []) as unknown as Class[];
+
+        // Fetch teacher profiles
+        const teacherIds = [...new Set(classRows.map(c => c.teacher_id))];
+        const { data: teacherData } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', teacherIds);
+        const teachers = (teacherData ?? []) as unknown as Profile[];
+        const teacherMap = new Map(teachers.map(t => [t.id, t]));
+
+        // Fetch assignments for all classes
+        const { data: assignmentData } = await supabase
+          .from('assignments')
+          .select('*')
+          .in('class_id', classIds)
+          .order('created_at', { ascending: false });
+        const assignments = (assignmentData ?? []) as unknown as Assignment[];
+
+        // Fetch submissions for this student
+        const assignmentIds = assignments.map(a => a.id);
+        let submissions: Submission[] = [];
+        if (assignmentIds.length > 0) {
+          const { data: submissionData } = await supabase
+            .from('submissions')
+            .select('*')
+            .eq('student_id', user.id)
+            .in('assignment_id', assignmentIds);
+          submissions = (submissionData ?? []) as unknown as Submission[];
+        }
+
+        // Fetch chat messages for all classes
+        const { data: chatData } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .in('class_id', classIds)
+          .order('created_at', { ascending: true });
+        const allChats = (chatData ?? []) as unknown as ChatMessage[];
+
+        // Group chat messages by class_id
+        const chatMap = new Map<string, ChatMessage[]>();
+        for (const msg of allChats) {
+          const arr = chatMap.get(msg.class_id) || [];
+          arr.push(msg);
+          chatMap.set(msg.class_id, arr);
+        }
+        setChatMessagesMap(chatMap);
+
+        // Build sidebar classes
+        const sClasses: SidebarClass[] = classRows.map(cls => {
+          const style = getSubjectStyle(cls.subject);
+          const teacher = teacherMap.get(cls.teacher_id);
+          const classAssignments = assignments.filter(a => a.class_id === cls.id);
+          const classSubmissions = submissions.filter(s => classAssignments.some(a => a.id === s.assignment_id));
+
+          return {
+            id: cls.id,
+            name: cls.name,
+            teacher: teacher?.display_name || 'Teacher',
+            teacherInitial: getInitials(teacher?.display_name || 'Teacher').charAt(0),
+            iconKey: style.icon,
+            iconBg: style.iconBg,
+            assignments: classAssignments,
+            submissions: classSubmissions,
+          };
+        });
+
+        setSidebarClasses(sClasses);
+
+        // If a class was specified in URL, select it
+        if (initialClassParam && sClasses.some(c => c.id === initialClassParam)) {
+          setCurrentClassId(initialClassParam);
+          setExpandedClasses(new Set([initialClassParam]));
+          if (initialView === 'class-dashboard') {
+            setViewMode('class-dashboard');
+          } else {
+            setViewMode('class-dashboard');
+          }
+        } else if (sClasses.length > 0) {
+          setViewMode('welcome');
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error('Main page fetch error:', err);
+        setError('Something went wrong. Please try refreshing.');
+        setLoading(false);
+      }
     }
-  }, [chatMode]);
 
-  const currentChat: ChatItem | undefined = [...cls.lessons, ...cls.openChats, ...cls.archived, ...cls.turnedIn]
-    .find(c => c.id === currentChatId);
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Determine if peer chat is available for the current chat
-  const currentActivityId = CHAT_TO_ACTIVITY[currentChatId] || '';
-  const peerChatAvailable = currentChatType === 'lesson' && !!PEER_CHAT_ENABLED[currentActivityId];
-  const currentPeerMessages = PEER_CHAT_MESSAGES[currentActivityId] || [];
+  // Current class data
+  const currentClass = sidebarClasses.find(c => c.id === currentClassId);
+
+  // Get lessons (assignments without submissions) and turned in (with submissions)
+  const submittedAssignmentIds = new Set(currentClass?.submissions.map(s => s.assignment_id) || []);
+  const openLessons = (currentClass?.assignments || []).filter(a => !submittedAssignmentIds.has(a.id));
+  const turnedInItems = (currentClass?.assignments || []).filter(a => submittedAssignmentIds.has(a.id));
+
+  // Get chat messages for current class
+  const currentClassChats = chatMessagesMap.get(currentClassId) || [];
+
+  // Status color helper
+  const statusColor = (dueDate: string | null) => {
+    if (!dueDate) return 'bg-teal/10 text-teal';
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return 'bg-coral/10 text-coral';
+    if (diffDays <= 2) return 'bg-warning/10 text-warning';
+    return 'bg-teal/10 text-teal';
+  };
+
+  const dueLabel = (dueDate: string | null) => {
+    if (!dueDate) return 'No due date';
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return 'Overdue';
+    if (diffDays === 0) return 'Due today';
+    if (diffDays === 1) return 'Due tomorrow';
+    return `Due ${due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  };
 
   // Sidebar interactions
-  const toggleClass = (id: ClassKey) => {
+  const toggleClass = (id: string) => {
     setExpandedClasses(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -375,35 +342,78 @@ function StudentMainInner() {
     });
   };
 
-  const toggleArchive = (id: ClassKey) => {
-    setExpandedArchives(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const openClassDashboard = (classId: string) => {
+    setCurrentClassId(classId);
+    setViewMode('class-dashboard');
+    setSidebarOpen(false);
   };
 
-  const openChat = (classId: ClassKey, chatId: string, type: 'lesson' | 'open' | 'archived' | 'turnedin') => {
-    setCurrentClass(classId);
-    setCurrentChatId(chatId);
+  const openAssignmentChat = (classId: string, assignmentId: string, type: 'lesson' | 'turnedin') => {
+    setCurrentClassId(classId);
+    setCurrentChatId(assignmentId);
     setCurrentChatType(type);
     setViewMode('chat');
-    setTurnedIn(false);
+    setTurnedIn(type === 'turnedin');
 
-    const chatItem = [...classData[classId].lessons, ...classData[classId].openChats,
-      ...classData[classId].archived, ...classData[classId].turnedIn].find(c => c.id === chatId);
-    if (chatItem) setChatName(chatItem.name);
+    const cls = sidebarClasses.find(c => c.id === classId);
+    const assignment = cls?.assignments.find(a => a.id === assignmentId);
+    if (assignment) setChatName(assignment.title);
 
-    setMessages(CHAT_MESSAGES[chatId] ?? [{ id: 'gen1', role: 'ai', text: `Hi Alex! What would you like to work on today? 😊` }]);
+    // Load chat messages for this class
+    const classChats = chatMessagesMap.get(classId) || [];
+    if (classChats.length > 0) {
+      setMessages(classChats.map(m => ({
+        id: m.id,
+        role: m.message_type === 'student' ? 'student' as const : 'ai' as const,
+        text: m.content,
+      })));
+    } else {
+      setMessages([{
+        id: newMsgId(),
+        role: 'ai',
+        text: `Hi ${studentName.split(' ')[0]}! What would you like to work on today? 😊`,
+      }]);
+    }
+
     setSidebarOpen(false);
     if (!expandedClasses.has(classId)) {
       setExpandedClasses(prev => new Set([...prev, classId]));
     }
   };
 
-  const startNewChat = (classId: ClassKey) => {
-    setCurrentClass(classId);
+  const openFreeChat = (classId: string) => {
+    setCurrentClassId(classId);
+    setCurrentChatId('free-chat');
+    setCurrentChatType('open');
+    setViewMode('chat');
+    setTurnedIn(false);
+
+    const cls = sidebarClasses.find(c => c.id === classId);
+    setChatName(cls?.name || 'Chat');
+
+    const classChats = chatMessagesMap.get(classId) || [];
+    if (classChats.length > 0) {
+      setMessages(classChats.map(m => ({
+        id: m.id,
+        role: m.message_type === 'student' ? 'student' as const : 'ai' as const,
+        text: m.content,
+      })));
+    } else {
+      setMessages([{
+        id: newMsgId(),
+        role: 'ai',
+        text: `Hi ${studentName.split(' ')[0]}! What would you like to work on in ${cls?.name.toLowerCase() || 'this class'} today? 😊`,
+      }]);
+    }
+
+    setSidebarOpen(false);
+    if (!expandedClasses.has(classId)) {
+      setExpandedClasses(prev => new Set([...prev, classId]));
+    }
+  };
+
+  const startNewChat = (classId: string) => {
+    setCurrentClassId(classId);
     setCurrentChatId('');
     setViewMode('new-chat');
     setNewChatName('');
@@ -415,40 +425,62 @@ function StudentMainInner() {
 
   const beginNamedChat = () => {
     const name = newChatName.trim() || 'New chat';
-    const id = `chat-${Date.now()}`;
-    const newItem: ChatItem = { id, name, preview: '', time: 'Just now', count: 0 };
-    setClassData(prev => ({
-      ...prev,
-      [currentClass]: { ...prev[currentClass], openChats: [newItem, ...prev[currentClass].openChats] },
-    }));
-    setCurrentChatId(id);
     setChatName(name);
+    setCurrentChatId(`chat-${Date.now()}`);
     setCurrentChatType('open');
     setViewMode('chat');
     setMessages([{
       id: newMsgId(),
       role: 'ai',
-      text: `Hi Alex! What would you like to work on in ${classData[currentClass].name.toLowerCase()} today? 😊`,
+      text: `Hi ${studentName.split(' ')[0]}! What would you like to work on in ${currentClass?.name.toLowerCase() || 'this class'} today? 😊`,
     }]);
   };
 
   // Chat send
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const text = inputText.trim();
-    if (!text) return;
-    setMessages(prev => [...prev, { id: newMsgId(), role: 'student', text }]);
+    if (!text || !currentClassId) return;
+
+    const localId = newMsgId();
+    setMessages(prev => [...prev, { id: localId, role: 'student', text }]);
     setInputText('');
     if (inputRef.current) inputRef.current.style.height = 'auto';
 
     setIsTyping(true);
-    setTimeout(() => {
+
+    try {
+      const res = await fetch('/api/student/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ class_id: currentClassId, content: text }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setIsTyping(false);
+        if (data.aiMessage) {
+          setMessages(prev => [...prev, {
+            id: data.aiMessage.id || newMsgId(),
+            role: 'ai',
+            text: data.aiMessage.content || "Thanks for your message! Your AI tutor will respond shortly.",
+          }]);
+        }
+      } else {
+        setIsTyping(false);
+        setMessages(prev => [...prev, {
+          id: newMsgId(),
+          role: 'ai',
+          text: "Sorry, I couldn't send that message. Please try again.",
+        }]);
+      }
+    } catch {
       setIsTyping(false);
       setMessages(prev => [...prev, {
         id: newMsgId(),
         role: 'ai',
-        text: "That's a great question! Let me help you work through that. What do you already know about this topic?",
+        text: "Sorry, something went wrong. Please try again.",
       }]);
-    }, 1800);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -461,7 +493,7 @@ function StudentMainInner() {
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
   };
 
-  // Upload
+  // Upload (keep demo behavior for now)
   const simulateUpload = (type: string) => {
     setShowUploadMenu(false);
     const files: Record<string, { name: string; size: string }> = {
@@ -479,7 +511,7 @@ function StudentMainInner() {
     }]);
     setIsTyping(true);
     const responses: Record<string, string> = {
-      photo: "Got it! Let me take a look at your work... I can see your answers for problems 1–5. Nice job on #1 and #2! Let's look at #3 together.",
+      photo: "Got it! Let me take a look at your work... I can see your answers. Nice job! Let me review them.",
       file: "I see the worksheet! Let me read through it. Which problems do you want help with?",
       drawing: "I can see your drawing! Walk me through your thinking and I'll help where you got stuck.",
       '3d': "Cool 3D model! Want me to check the dimensions, or are you looking for design feedback?",
@@ -494,73 +526,74 @@ function StudentMainInner() {
     }, 1500);
   };
 
-  // Turn in
+  // Turn in (confirmation + status change)
   const confirmTurnIn = () => {
     setShowTurnInConfirm(false);
     setTurnedIn(true);
 
-    const noticeId = newMsgId();
-    const aiId = newMsgId();
     setMessages(prev => [
       ...prev,
-      { id: noticeId, role: 'ai', text: '🎉__TURNIN_NOTICE__' },
+      { id: newMsgId(), role: 'ai', text: '🎉__TURNIN_NOTICE__' },
     ]);
     setTimeout(() => {
       setMessages(prev => [
         ...prev,
-        { id: aiId, role: 'ai', text: `Nice work, Alex! Your assignment has been turned in. ${cls.teacher} will review it. If you have any more questions before then, I'm still here!` },
+        { id: newMsgId(), role: 'ai', text: `Nice work, ${studentName.split(' ')[0]}! Your assignment has been turned in. ${currentClass?.teacher || 'Your teacher'} will review it.` },
       ]);
     }, 600);
 
-    // Move from lessons to turnedIn
-    setClassData(prev => {
-      const clsData = prev[currentClass];
-      const idx = clsData.lessons.findIndex(l => l.id === currentChatId);
-      if (idx === -1) return prev;
-      const item = { ...clsData.lessons[idx], turned: 'Just now', isLesson: true };
-      return {
-        ...prev,
-        [currentClass]: {
-          ...clsData,
-          lessons: clsData.lessons.filter(l => l.id !== currentChatId),
-          turnedIn: [item, ...clsData.turnedIn],
-        },
-      };
-    });
     setCurrentChatType('turnedin');
   };
 
   // Archive
   const confirmArchive = () => {
     setShowArchiveConfirm(false);
-
-    const noticeId = newMsgId();
-    setMessages(prev => [...prev, { id: noticeId, role: 'ai', text: '📦__ARCHIVE_NOTICE__' }]);
-
-    setClassData(prev => {
-      const clsData = prev[currentClass];
-      let item: ChatItem | undefined;
-      let updated = { ...clsData };
-
-      const fromLessons = clsData.lessons.findIndex(l => l.id === currentChatId);
-      if (fromLessons !== -1) { item = clsData.lessons[fromLessons]; updated.lessons = clsData.lessons.filter(l => l.id !== currentChatId); }
-      const fromOpen = clsData.openChats.findIndex(c => c.id === currentChatId);
-      if (!item && fromOpen !== -1) { item = clsData.openChats[fromOpen]; updated.openChats = clsData.openChats.filter(c => c.id !== currentChatId); }
-      const fromTurnedIn = clsData.turnedIn.findIndex(t => t.id === currentChatId);
-      if (!item && fromTurnedIn !== -1) { item = clsData.turnedIn[fromTurnedIn]; updated.turnedIn = clsData.turnedIn.filter(t => t.id !== currentChatId); }
-
-      if (item) updated.archived = [item, ...clsData.archived];
-      return { ...prev, [currentClass]: updated };
-    });
+    setMessages(prev => [...prev, { id: newMsgId(), role: 'ai', text: '📦__ARCHIVE_NOTICE__' }]);
     setCurrentChatType('archived');
   };
 
-  // Status color
-  const statusColor = (status?: string) => {
-    if (status === 'due') return 'bg-warning/10 text-warning';
-    if (status === 'overdue') return 'bg-coral/10 text-coral';
-    return 'bg-teal/10 text-teal';
-  };
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-warm-white">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-full border-2 border-teal border-t-transparent animate-spin mx-auto mb-3" />
+          <p className="text-sm text-text-muted">Loading your classes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-warm-white">
+        <div className="text-center max-w-sm bg-card-bg border border-border rounded-2xl shadow-sm px-8 py-10">
+          <div className="text-4xl mb-4">😕</div>
+          <h2 className="font-heading font-bold text-lg text-text-primary mb-2">Oops!</h2>
+          <p className="text-sm text-text-secondary mb-4">{error}</p>
+          <button onClick={() => window.location.reload()} className="px-5 py-2 bg-teal text-white rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors">
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No classes empty state
+  if (sidebarClasses.length === 0) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-warm-white">
+        <div className="text-center max-w-sm bg-card-bg border border-border rounded-2xl shadow-sm px-8 py-10">
+          <div className="text-5xl mb-4 opacity-60">📚</div>
+          <h2 className="font-heading font-bold text-xl text-text-primary mb-2">Join a class to start chatting with your AI tutor!</h2>
+          <p className="text-sm text-text-secondary mb-4">Ask your teacher for a class code to get started.</p>
+          <Link href="/student/dashboard" className="inline-flex items-center gap-2 px-5 py-2 bg-teal text-white rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors">
+            <SquaresFour size={16} weight="fill" />
+            Go to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -581,10 +614,10 @@ function StudentMainInner() {
         `}>
           {/* Sidebar header */}
           <div className="px-4 py-4 border-b border-white/10 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-sm flex-shrink-0">AR</div>
+            <div className="w-9 h-9 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-sm flex-shrink-0">{studentInitials}</div>
             <div>
-              <div className="font-heading font-semibold text-sm text-white">Alex Rivera</div>
-              <div className="text-[11px] text-white/50">5th Grade · Lincoln Elementary</div>
+              <div className="font-heading font-semibold text-sm text-white">{studentName}</div>
+              <div className="text-[11px] text-white/50">Student</div>
             </div>
           </div>
 
@@ -603,91 +636,93 @@ function StudentMainInner() {
           <div className="flex-1 overflow-y-auto pb-4">
             <div className="px-4 py-3 text-[10px] font-bold uppercase tracking-[1.2px] text-white/50">My Classes</div>
 
-            {(Object.keys(classData) as ClassKey[]).map(classId => {
-              const c = classData[classId];
-              const isExpanded = expandedClasses.has(classId);
-              const isCurrent = classId === currentClass;
+            {sidebarClasses.map(cls => {
+              const isExpanded = expandedClasses.has(cls.id);
+              const isCurrent = cls.id === currentClassId;
+              const clsOpenLessons = cls.assignments.filter(a => !cls.submissions.some(s => s.assignment_id === a.id));
+              const clsTurnedIn = cls.assignments.filter(a => cls.submissions.some(s => s.assignment_id === a.id));
+              const clsChats = chatMessagesMap.get(cls.id) || [];
+              const hasChats = clsChats.length > 0;
 
               return (
-                <div key={classId} className="mx-2 mb-0.5">
+                <div key={cls.id} className="mx-2 mb-0.5">
                   {/* Class header */}
                   <div
                     className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${isCurrent ? 'bg-white/[0.15] border-l-2 border-teal' : 'hover:bg-white/[0.12]'}`}
                   >
                     <div
-                      onClick={() => openClassDashboard(classId)}
+                      onClick={() => openClassDashboard(cls.id)}
                       className="flex items-center gap-2.5 flex-1 min-w-0"
                     >
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: c.iconBg }}>
-                        {c.icon}
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.iconBg }}>
+                        {CLASS_ICONS[cls.iconKey]}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-xs text-white truncate">{c.name}</div>
-                        <div className="text-[11px] text-white/50">{c.teacher}</div>
+                        <div className="font-semibold text-xs text-white truncate">{cls.name}</div>
+                        <div className="text-[11px] text-white/50">{cls.teacher}</div>
                       </div>
                     </div>
                     <div
-                      onClick={(e) => { e.stopPropagation(); toggleClass(classId); }}
+                      onClick={(e) => { e.stopPropagation(); toggleClass(cls.id); }}
                       className={`w-5 h-5 flex items-center justify-center text-white/40 transition-transform hover:text-white ${isExpanded ? 'rotate-90' : ''}`}
                     >
                       <CaretRight size={14} weight="fill" />
                     </div>
                   </div>
 
-                  {/* Class body */}
+                  {/* Expanded class body */}
                   {isExpanded && (
                     <div className="pb-2">
                       {/* Open Activities */}
-                      {c.lessons.length > 0 && (
+                      {clsOpenLessons.length > 0 && (
                         <>
                           <button
-                            onClick={() => toggleSection(`${classId}-lessons`)}
+                            onClick={() => toggleSection(`${cls.id}-lessons`)}
                             className="flex items-center w-full pl-[54px] pr-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.8px] text-white/50 hover:text-white/70 transition-colors"
                           >
-                            <span className={`mr-1 transition-transform ${collapsedSections.has(`${classId}-lessons`) ? '-rotate-90' : ''}`}>
+                            <span className={`mr-1 transition-transform ${collapsedSections.has(`${cls.id}-lessons`) ? '-rotate-90' : ''}`}>
                               <CaretDown size={10} weight="fill" />
                             </span>
                             Open Activities
-                            <span className="ml-auto text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{c.lessons.length}</span>
+                            <span className="ml-auto text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{clsOpenLessons.length}</span>
                           </button>
-                          {!collapsedSections.has(`${classId}-lessons`) && c.lessons.map(item => (
+                          {!collapsedSections.has(`${cls.id}-lessons`) && clsOpenLessons.map(item => (
                             <div
                               key={item.id}
-                              onClick={() => openChat(classId, item.id, 'lesson')}
+                              onClick={() => openAssignmentChat(cls.id, item.id, 'lesson')}
                               className={`flex items-center gap-2 pl-[54px] pr-3 py-1.5 mx-2 rounded-md cursor-pointer text-xs transition-colors
-                                ${classId === currentClass && item.id === currentChatId ? 'bg-teal/20 text-teal font-medium' : 'text-white/70 hover:text-white hover:bg-white/[0.08]'}`}
+                                ${cls.id === currentClassId && item.id === currentChatId ? 'bg-teal/20 text-teal font-medium' : 'text-white/70 hover:text-white hover:bg-white/[0.08]'}`}
                             >
                               <span className="flex-shrink-0 text-[13px]">📋</span>
-                              <span className="flex-1 truncate">{item.name}</span>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${statusColor(item.status)}`}>{item.due}</span>
+                              <span className="flex-1 truncate">{item.title}</span>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${statusColor(item.due_date)}`}>{dueLabel(item.due_date)}</span>
                             </div>
                           ))}
                         </>
                       )}
 
                       {/* Turned In */}
-                      {c.turnedIn.length > 0 && (
+                      {clsTurnedIn.length > 0 && (
                         <>
                           <button
-                            onClick={() => toggleSection(`${classId}-turnedin`)}
+                            onClick={() => toggleSection(`${cls.id}-turnedin`)}
                             className="flex items-center w-full pl-[54px] pr-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.8px] text-white/50 hover:text-white/70 transition-colors"
                           >
-                            <span className={`mr-1 transition-transform ${collapsedSections.has(`${classId}-turnedin`) ? '-rotate-90' : ''}`}>
+                            <span className={`mr-1 transition-transform ${collapsedSections.has(`${cls.id}-turnedin`) ? '-rotate-90' : ''}`}>
                               <CaretDown size={10} weight="fill" />
                             </span>
                             Turned In
-                            <span className="ml-auto text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{c.turnedIn.length}</span>
+                            <span className="ml-auto text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{clsTurnedIn.length}</span>
                           </button>
-                          {!collapsedSections.has(`${classId}-turnedin`) && c.turnedIn.map(item => (
+                          {!collapsedSections.has(`${cls.id}-turnedin`) && clsTurnedIn.map(item => (
                             <div
                               key={item.id}
-                              onClick={() => openChat(classId, item.id, 'turnedin')}
+                              onClick={() => openAssignmentChat(cls.id, item.id, 'turnedin')}
                               className={`flex items-center gap-2 pl-[54px] pr-3 py-1.5 mx-2 rounded-md cursor-pointer text-xs transition-colors opacity-70
-                                ${classId === currentClass && item.id === currentChatId ? 'bg-teal/20 text-teal font-medium opacity-100' : 'text-white/70 hover:text-white hover:bg-white/[0.08]'}`}
+                                ${cls.id === currentClassId && item.id === currentChatId ? 'bg-teal/20 text-teal font-medium opacity-100' : 'text-white/70 hover:text-white hover:bg-white/[0.08]'}`}
                             >
                               <span className="flex-shrink-0 text-[13px]">✅</span>
-                              <span className="flex-1 truncate">{item.name}</span>
-                              <span className="text-[10px] text-white/40 flex-shrink-0">{item.turned}</span>
+                              <span className="flex-1 truncate">{item.title}</span>
                             </div>
                           ))}
                         </>
@@ -695,62 +730,34 @@ function StudentMainInner() {
 
                       {/* Open Chats */}
                       <button
-                        onClick={() => toggleSection(`${classId}-chats`)}
+                        onClick={() => toggleSection(`${cls.id}-chats`)}
                         className="flex items-center w-full pl-[54px] pr-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.8px] text-white/50 hover:text-white/70 transition-colors"
                       >
-                        <span className={`mr-1 transition-transform ${collapsedSections.has(`${classId}-chats`) ? '-rotate-90' : ''}`}>
+                        <span className={`mr-1 transition-transform ${collapsedSections.has(`${cls.id}-chats`) ? '-rotate-90' : ''}`}>
                           <CaretDown size={10} weight="fill" />
                         </span>
                         Open Chats
-                        <span className="ml-auto text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{c.openChats.length}</span>
+                        <span className="ml-auto text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{hasChats ? 1 : 0}</span>
                       </button>
-                      {!collapsedSections.has(`${classId}-chats`) && (
+                      {!collapsedSections.has(`${cls.id}-chats`) && (
                         <>
-                          {c.openChats.map(item => (
+                          {hasChats && (
                             <div
-                              key={item.id}
-                              onClick={() => openChat(classId, item.id, 'open')}
+                              onClick={() => openFreeChat(cls.id)}
                               className={`flex items-center gap-2 pl-[54px] pr-3 py-1.5 mx-2 rounded-md cursor-pointer text-xs transition-colors
-                                ${classId === currentClass && item.id === currentChatId ? 'bg-teal/20 text-teal font-medium' : 'text-white/70 hover:text-white hover:bg-white/[0.08]'}`}
+                                ${cls.id === currentClassId && currentChatId === 'free-chat' ? 'bg-teal/20 text-teal font-medium' : 'text-white/70 hover:text-white hover:bg-white/[0.08]'}`}
                             >
                               <span className="flex-shrink-0 text-[13px]">💬</span>
-                              <span className="flex-1 truncate">{item.name}</span>
-                              <span className="text-[10px] text-white/40 flex-shrink-0">{item.time}</span>
+                              <span className="flex-1 truncate">Chat with tutor</span>
+                              <span className="text-[10px] text-white/40 flex-shrink-0">{timeAgo(clsChats[clsChats.length - 1].created_at)}</span>
                             </div>
-                          ))}
+                          )}
                           <button
-                            onClick={() => startNewChat(classId)}
+                            onClick={() => startNewChat(cls.id)}
                             className="flex items-center gap-1.5 pl-[54px] pr-3 py-1.5 mx-2 rounded-md w-full text-left text-xs text-teal font-medium hover:bg-white/[0.08] transition-colors"
                           >
                             <Plus size={14} weight="fill" /> New chat
                           </button>
-                        </>
-                      )}
-
-                      {/* Archived */}
-                      {c.archived.length > 0 && (
-                        <>
-                          <button
-                            onClick={() => toggleArchive(classId)}
-                            className="flex items-center gap-1.5 pl-[54px] pr-3 py-1.5 w-full text-left text-[11px] text-white/50 font-medium hover:text-white/70 transition-colors"
-                          >
-                            <span className={`transition-transform ${expandedArchives.has(classId) ? 'rotate-90' : ''}`}>
-                              <CaretRight size={12} weight="fill" />
-                            </span>
-                            Archived
-                            <span className="ml-1 text-[9px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-md">{c.archived.length}</span>
-                          </button>
-                          {expandedArchives.has(classId) && c.archived.map(item => (
-                            <div
-                              key={item.id}
-                              onClick={() => openChat(classId, item.id, 'archived')}
-                              className="flex items-center gap-2 pl-[54px] pr-3 py-1.5 mx-2 rounded-md cursor-pointer text-xs text-white/50 opacity-60 hover:opacity-100 hover:bg-white/[0.08] transition-all"
-                            >
-                              <span className="flex-shrink-0 text-[13px]">💬</span>
-                              <span className="flex-1 truncate">{item.name}</span>
-                              <span className="text-[10px] text-white/40 flex-shrink-0">{item.time}</span>
-                            </div>
-                          ))}
                         </>
                       )}
                     </div>
@@ -777,14 +784,14 @@ function StudentMainInner() {
             >
               <HouseLine size={16} weight="fill" />
             </Link>
-            {viewMode === 'chat' && currentChat ? (
+            {viewMode === 'chat' && currentClass ? (
               <>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.iconBg }}>
-                  {cls.icon}
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: currentClass.iconBg }}>
+                  {CLASS_ICONS[currentClass.iconKey]}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-heading font-semibold text-sm text-text-primary truncate">{chatName}</div>
-                  <div className="text-xs text-text-muted">{cls.name} · {cls.teacher}</div>
+                  <div className="text-xs text-text-muted">{currentClass.name} · {currentClass.teacher}</div>
                 </div>
                 <button
                   onClick={() => setShowArchiveConfirm(true)}
@@ -795,25 +802,25 @@ function StudentMainInner() {
                 </button>
                 <ThemeToggle />
               </>
-            ) : viewMode === 'new-chat' ? (
+            ) : viewMode === 'new-chat' && currentClass ? (
               <>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.iconBg }}>
-                  {cls.icon}
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: currentClass.iconBg }}>
+                  {CLASS_ICONS[currentClass.iconKey]}
                 </div>
                 <div className="flex-1">
                   <div className="font-heading font-semibold text-sm text-text-primary">New Chat</div>
-                  <div className="text-xs text-text-muted">{cls.name} · {cls.teacher}</div>
+                  <div className="text-xs text-text-muted">{currentClass.name} · {currentClass.teacher}</div>
                 </div>
                 <ThemeToggle />
               </>
-            ) : viewMode === 'class-dashboard' ? (
+            ) : viewMode === 'class-dashboard' && currentClass ? (
               <>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.iconBg }}>
-                  {cls.icon}
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: currentClass.iconBg }}>
+                  {CLASS_ICONS[currentClass.iconKey]}
                 </div>
                 <div className="flex-1">
-                  <div className="font-heading font-semibold text-sm text-text-primary">{cls.name}</div>
-                  <div className="text-xs text-text-muted">{cls.teacher} · Class Dashboard</div>
+                  <div className="font-heading font-semibold text-sm text-text-primary">{currentClass.name}</div>
+                  <div className="text-xs text-text-muted">{currentClass.teacher} · Class Dashboard</div>
                 </div>
                 <ThemeToggle />
               </>
@@ -832,38 +839,39 @@ function StudentMainInner() {
             <div className="flex-1 flex items-center justify-center p-10">
               <div className="text-center max-w-sm bg-card-bg border border-border rounded-2xl shadow-sm px-8 py-10">
                 <div className="text-5xl mb-4 opacity-60">👋</div>
-                <h2 className="font-heading font-bold text-xl text-text-primary mb-2">Hi Alex!</h2>
+                <h2 className="font-heading font-bold text-xl text-text-primary mb-2">Hi {studentName.split(' ')[0]}!</h2>
                 <p className="text-sm text-text-secondary leading-relaxed">Pick a class from the sidebar to continue a chat, or start a new one.</p>
               </div>
             </div>
           )}
 
           {/* ---- CLASS DASHBOARD VIEW ---- */}
-          {viewMode === 'class-dashboard' && (() => {
-            const stats = CLASS_STATS[currentClass];
-            const recentActivity = CLASS_RECENT_ACTIVITY[currentClass];
-            const messages = CLASS_MESSAGES[currentClass];
-            const classInfo = classData[currentClass];
+          {viewMode === 'class-dashboard' && currentClass && (() => {
+            const classChats = chatMessagesMap.get(currentClassId) || [];
+            const studentMsgCount = classChats.filter(m => m.message_type === 'student').length;
+            const clsOpenLessons = currentClass.assignments.filter(a => !submittedAssignmentIds.has(a.id));
+            const clsTurnedIn = currentClass.assignments.filter(a => submittedAssignmentIds.has(a.id));
+
             return (
               <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
                 {/* Class Header */}
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: classInfo.iconBg }}>
-                    {classInfo.icon}
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: currentClass.iconBg }}>
+                    {CLASS_ICONS[currentClass.iconKey]}
                   </div>
                   <div>
-                    <h1 className="font-heading font-bold text-xl text-text-primary">{classInfo.name}</h1>
-                    <p className="text-sm text-text-secondary">{classInfo.teacher}</p>
+                    <h1 className="font-heading font-bold text-xl text-text-primary">{currentClass.name}</h1>
+                    <p className="text-sm text-text-secondary">{currentClass.teacher}</p>
                   </div>
                 </div>
 
                 {/* Stats Row */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                   {[
-                    { label: 'Chat Sessions', value: stats.chatSessions, icon: <ChatCircle size={20} weight="fill" className="text-teal" />, bg: 'bg-teal/[0.08]' },
-                    { label: 'Activities', value: stats.activities, icon: <ClipboardText size={20} weight="fill" className="text-[#D4A843]" />, bg: 'bg-[#D4A843]/[0.08]' },
-                    { label: 'Personal Chats', value: stats.personalChats, icon: <Lightning size={20} weight="fill" className="text-[#1F3A5F]" />, bg: 'bg-[#1F3A5F]/[0.08]' },
-                    { label: 'Badges Earned', value: stats.badges, icon: <Trophy size={20} weight="fill" className="text-[#D4A843]" />, bg: 'bg-[#D4A843]/[0.08]' },
+                    { label: 'Messages', value: studentMsgCount, icon: <ChatCircle size={20} weight="fill" className="text-teal" />, bg: 'bg-teal/[0.08]' },
+                    { label: 'Open Activities', value: clsOpenLessons.length, icon: <ClipboardText size={20} weight="fill" className="text-[#D4A843]" />, bg: 'bg-[#D4A843]/[0.08]' },
+                    { label: 'Turned In', value: clsTurnedIn.length, icon: <Lightning size={20} weight="fill" className="text-[#1F3A5F]" />, bg: 'bg-[#1F3A5F]/[0.08]' },
+                    { label: 'Total Assignments', value: currentClass.assignments.length, icon: <Trophy size={20} weight="fill" className="text-[#D4A843]" />, bg: 'bg-[#D4A843]/[0.08]' },
                   ].map(stat => (
                     <div key={stat.label} className="bg-card-bg border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-2 ${stat.bg}`}>
@@ -875,112 +883,95 @@ function StudentMainInner() {
                   ))}
                 </div>
 
-                {/* Recent Activity */}
-                <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
-                  <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
-                    <Clock size={16} weight="fill" className="text-text-muted" />
-                    Recent Activity
-                  </h2>
-                  <div className="flex flex-col gap-1">
-                    {recentActivity.map((item, i) => (
-                      <div
-                        key={i}
-                        onClick={() => openChat(currentClass, item.chatId, item.type)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-teal/[0.05] transition-colors"
-                      >
-                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: item.color }} />
-                        <span className="flex-1 text-sm text-text-primary truncate">{item.label}</span>
-                        <span className="text-xs text-text-muted flex-shrink-0">{item.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Messages */}
-                <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
-                  <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
-                    <EnvelopeSimple size={16} weight="fill" className="text-teal" />
-                    Messages
-                  </h2>
-                  <div className="flex flex-col gap-3">
-                    {messages.map((msg, i) => (
-                      <div key={i} className="flex gap-3 px-3 py-3 rounded-lg hover:bg-teal/[0.05] transition-colors cursor-pointer">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5"
-                          style={{ background: msg.avatarBg }}
+                {/* Recent messages */}
+                {classChats.length > 0 && (
+                  <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
+                    <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
+                      <EnvelopeSimple size={16} weight="fill" className="text-teal" />
+                      Recent Messages
+                    </h2>
+                    <div className="flex flex-col gap-3">
+                      {classChats.slice(-5).reverse().map(msg => (
+                        <div key={msg.id} className="flex gap-3 px-3 py-3 rounded-lg hover:bg-teal/[0.05] transition-colors cursor-pointer"
+                          onClick={() => openFreeChat(currentClassId)}
                         >
-                          {msg.avatar}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className="font-heading font-semibold text-sm text-text-primary truncate">{msg.from}</span>
-                            {msg.role === 'ai' && (
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal/[0.1] text-teal flex-shrink-0">AI</span>
-                            )}
-                            <span className="text-[11px] text-text-muted flex-shrink-0 ml-auto">{msg.time}</span>
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5 ${msg.message_type === 'student' ? 'bg-teal' : 'bg-navy'}`}
+                          >
+                            {msg.message_type === 'student' ? studentInitials : currentClass.teacherInitial}
                           </div>
-                          <p className="text-sm text-text-secondary leading-relaxed">{msg.message}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="font-heading font-semibold text-sm text-text-primary truncate">
+                                {msg.message_type === 'student' ? 'You' : `${currentClass.teacher}'s Assistant`}
+                              </span>
+                              {msg.message_type === 'ai' && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal/[0.1] text-teal flex-shrink-0">AI</span>
+                              )}
+                              <span className="text-[11px] text-text-muted flex-shrink-0 ml-auto">{timeAgo(msg.created_at)}</span>
+                            </div>
+                            <p className="text-sm text-text-secondary leading-relaxed truncate">{msg.content}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Open Activities */}
-                {classInfo.lessons.length > 0 && (
+                {clsOpenLessons.length > 0 && (
                   <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
                     <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
                       <CalendarBlank size={16} weight="fill" className="text-[#D4A843]" />
                       Open Activities
                     </h2>
                     <div className="flex flex-col gap-1">
-                      {classInfo.lessons.map(item => (
+                      {clsOpenLessons.map(item => (
                         <div
                           key={item.id}
-                          onClick={() => openChat(currentClass, item.id, 'lesson')}
+                          onClick={() => openAssignmentChat(currentClassId, item.id, 'lesson')}
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-teal/[0.05] transition-colors"
                         >
                           <span className="text-[15px] flex-shrink-0">📋</span>
-                          <span className="flex-1 text-sm text-text-primary truncate">{item.name}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0 ${statusColor(item.status)}`}>{item.due}</span>
+                          <span className="flex-1 text-sm text-text-primary truncate">{item.title}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0 ${statusColor(item.due_date)}`}>{dueLabel(item.due_date)}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Open Chats */}
-                {classInfo.openChats.length > 0 && (
-                  <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
-                    <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
-                      <ChatCircle size={16} weight="fill" className="text-teal" />
-                      Open Chats
-                    </h2>
-                    <div className="flex flex-col gap-1">
-                      {classInfo.openChats.map(item => (
-                        <div
-                          key={item.id}
-                          onClick={() => openChat(currentClass, item.id, 'open')}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-teal/[0.05] transition-colors"
-                        >
-                          <span className="text-[15px] flex-shrink-0">💬</span>
-                          <span className="flex-1 text-sm text-text-primary truncate">{item.name}</span>
-                          <span className="text-xs text-text-muted flex-shrink-0">{item.time}</span>
-                        </div>
-                      ))}
+                {/* Chat section */}
+                <div className="bg-card-bg border border-border rounded-xl p-4 mb-4">
+                  <h2 className="font-heading font-semibold text-sm text-text-primary mb-3 flex items-center gap-2">
+                    <ChatCircle size={16} weight="fill" className="text-teal" />
+                    Chat with AI Tutor
+                  </h2>
+                  <div className="flex flex-col gap-1">
+                    <div
+                      onClick={() => openFreeChat(currentClassId)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-teal/[0.05] transition-colors"
+                    >
+                      <span className="text-[15px] flex-shrink-0">💬</span>
+                      <span className="flex-1 text-sm text-text-primary">
+                        {classChats.length > 0 ? 'Continue chatting' : 'Start a conversation'}
+                      </span>
+                      {classChats.length > 0 && (
+                        <span className="text-xs text-text-muted flex-shrink-0">{classChats.length} messages</span>
+                      )}
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })()}
 
           {/* ---- NEW CHAT VIEW ---- */}
-          {viewMode === 'new-chat' && (
+          {viewMode === 'new-chat' && currentClass && (
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
               <div className="flex gap-2.5 max-w-[90%] self-start">
                 <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center text-xs font-semibold text-white mt-1 flex-shrink-0">
-                  {cls.teacherInitial}
+                  {currentClass.teacherInitial}
                 </div>
                 <div className="bg-card-bg border border-border rounded-2xl rounded-bl-sm px-4 py-4 max-w-md">
                   <div className="font-semibold text-sm text-text-primary mb-1.5">Name this chat</div>
@@ -1008,322 +999,195 @@ function StudentMainInner() {
           )}
 
           {/* ---- CHAT VIEW ---- */}
-          {viewMode === 'chat' && (
+          {viewMode === 'chat' && currentClass && (
             <>
-              {/* Tab bar — only when peer chat is available */}
-              {peerChatAvailable && (
-                <div className="px-4 sm:px-6 py-0 border-b border-border bg-card-bg flex gap-0">
-                  <button
-                    onClick={() => setChatMode('tutor')}
-                    className={`py-2.5 px-4 font-heading font-semibold text-sm transition-colors relative
-                      ${chatMode === 'tutor'
-                        ? 'text-teal border-b-2 border-teal'
-                        : 'text-text-muted hover:text-text-primary'}`}
-                  >
-                    🤖 My Tutor
-                  </button>
-                  <button
-                    onClick={() => { setChatMode('peer'); setPeerUnread(0); }}
-                    className={`py-2.5 px-4 font-heading font-semibold text-sm transition-colors relative flex items-center gap-1.5
-                      ${chatMode === 'peer'
-                        ? 'text-teal border-b-2 border-teal'
-                        : 'text-text-muted hover:text-text-primary'}`}
-                  >
-                    👥 Class Chat
-                    <span className="text-text-muted text-xs font-normal">(3 online)</span>
-                    {peerUnread > 0 && chatMode === 'tutor' && (
-                      <span className="ml-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-teal text-white text-[10px] font-bold px-1">
-                        {peerUnread}
-                      </span>
-                    )}
-                  </button>
-                </div>
-              )}
-
-              {/* ---- TUTOR CHAT (default / existing) ---- */}
-              {chatMode === 'tutor' && (
-                <>
-                  <div ref={chatViewRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
-                    {/* Assignment banner */}
-                    {currentChatType === 'lesson' && currentChat && (
-                      <div className="flex items-center gap-3 px-4 py-3 bg-info/[0.06] border border-info/15 rounded-[10px] mb-2">
-                        <ClipboardText size={20} weight="fill" className="text-teal flex-shrink-0" />
-                        <div className="flex-1">
-                          <div className="font-semibold text-sm text-text-primary">{currentChat.name}</div>
-                          <div className="text-xs text-text-muted">{currentChat.due} · {cls.name}</div>
-                        </div>
+              <div ref={chatViewRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
+                {/* Assignment banner */}
+                {currentChatType === 'lesson' && (() => {
+                  const assignment = currentClass.assignments.find(a => a.id === currentChatId);
+                  return assignment ? (
+                    <div className="flex items-center gap-3 px-4 py-3 bg-info/[0.06] border border-info/15 rounded-[10px] mb-2">
+                      <ClipboardText size={20} weight="fill" className="text-teal flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="font-semibold text-sm text-text-primary">{assignment.title}</div>
+                        <div className="text-xs text-text-muted">{dueLabel(assignment.due_date)} · {currentClass.name}</div>
                       </div>
-                    )}
-
-                    {messages.map(msg => {
-                      // Special notice messages
-                      if (msg.text === '🎉__TURNIN_NOTICE__') {
-                        return (
-                          <div key={msg.id} className="text-center py-2">
-                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-success/[0.08] rounded-full text-xs font-medium text-success">
-                              ✅ Assignment turned in
-                            </span>
-                          </div>
-                        );
-                      }
-                      if (msg.text === '📦__ARCHIVE_NOTICE__') {
-                        return (
-                          <div key={msg.id} className="text-center py-2">
-                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-teal/[0.08] rounded-full text-xs font-medium text-teal">
-                              📦 Chat archived
-                            </span>
-                          </div>
-                        );
-                      }
-                      return (
-                        <div
-                          key={msg.id}
-                          className={`flex gap-2.5 max-w-[72%] ${msg.role === 'student' ? 'self-end flex-row-reverse' : 'self-start'}`}
-                        >
-                          <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold mt-1
-                            ${msg.role === 'ai' ? 'bg-navy text-white' : 'bg-teal text-white'}`}>
-                            {msg.role === 'ai' ? cls.teacherInitial : 'A'}
-                          </div>
-                          <div>
-                            {msg.image ? (
-                              <div className="flex flex-col items-end gap-1">
-                                <img
-                                  src={msg.image.src}
-                                  alt={msg.image.alt}
-                                  className="max-w-[220px] rounded-xl border border-border object-cover"
-                                />
-                                <span className="text-[11px] text-text-muted">{msg.image.fileName}</span>
-                              </div>
-                            ) : msg.attachment ? (
-                              <div className={`px-3.5 py-3 rounded-2xl ${msg.role === 'student' ? 'bg-teal rounded-br-sm shadow-sm' : 'bg-card-bg border border-border rounded-bl-sm shadow-sm'}`}>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xl">{msg.attachment.type}</span>
-                                  <div>
-                                    <div className={`font-semibold text-sm ${msg.role === 'student' ? 'text-white' : 'text-text-primary'}`}>{msg.attachment.name}</div>
-                                    <div className={`text-xs ${msg.role === 'student' ? 'text-white/70' : 'text-text-muted'}`}>{msg.attachment.size}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div
-                                className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed
-                                  ${msg.role === 'ai'
-                                    ? 'bg-card-bg border border-border rounded-bl-sm shadow-sm text-text-primary'
-                                    : 'bg-teal text-white rounded-br-sm shadow-sm'}`}
-                                dangerouslySetInnerHTML={{ __html: msg.text }}
-                              />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {/* Typing indicator */}
-                    {isTyping && (
-                      <div className="flex gap-2.5 self-start max-w-[72%]">
-                        <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center text-xs font-semibold text-white mt-1 flex-shrink-0">
-                          {cls.teacherInitial}
-                        </div>
-                        <div className="bg-card-bg border border-border rounded-2xl rounded-bl-sm shadow-sm px-3.5 py-3">
-                          <div className="flex gap-1">
-                            {[0, 1, 2].map(i => (
-                              <div
-                                key={i}
-                                className="w-2 h-2 rounded-full bg-text-muted opacity-40"
-                                style={{ animation: `typingBounce 1.4s infinite ease-in-out ${i * 0.2}s` }}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Input bar — Tutor */}
-                  <div className="px-4 sm:px-6 py-3 border-t border-border bg-card-bg shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-                    {/* Turn in row */}
-                    {currentChatType === 'lesson' && (
-                      <div className="mb-2.5">
-                        <button
-                          onClick={() => !turnedIn && setShowTurnInConfirm(true)}
-                          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] border font-heading font-semibold text-sm transition-all
-                            ${turnedIn
-                              ? 'bg-success/10 border-success/30 text-success cursor-default pointer-events-none'
-                              : 'border-success text-success hover:bg-success hover:text-white'}`}
-                        >
-                          <Check size={16} weight="fill" />
-                          {turnedIn ? 'Turned in ✓' : 'Turn in'}
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 items-end">
-                      {/* Upload button */}
-                      <div className="relative flex-shrink-0">
-                        <button
-                          onClick={e => { e.stopPropagation(); setShowUploadMenu(v => !v); }}
-                          className="w-[42px] h-[42px] rounded-[10px] border border-border text-text-muted flex items-center justify-center hover:border-teal hover:text-teal transition-colors"
-                        >
-                          <Paperclip size={18} weight="fill" />
-                        </button>
-                        {showUploadMenu && (
-                          <div className="absolute bottom-12 left-0 bg-card-bg border border-border rounded-[10px] p-1.5 min-w-[190px] shadow-lg z-10">
-                            {[
-                              { type: 'photo', Icon: Camera, color: '#4FA3A5', label: 'Photo', sub: 'Take or choose a photo' },
-                              { type: 'file', Icon: FileText, color: '#1F3A5F', label: 'Document', sub: 'PDF, Word, or text file' },
-                              { type: 'drawing', Icon: PencilLine, color: '#E8836B', label: 'Drawing', sub: 'Sketch or handwritten work' },
-                              { type: '3d', Icon: Cube, color: '#8B5CF6', label: '3D Model', sub: 'STL file' },
-                              { type: 'audio', Icon: Microphone, color: '#F59E0B', label: 'Audio / Video', sub: 'Recording or presentation' },
-                            ].map(opt => (
-                              <button
-                                key={opt.type}
-                                onClick={() => simulateUpload(opt.type)}
-                                className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg hover:bg-teal/[0.06] transition-colors text-left"
-                              >
-                                <span className="w-6 text-center flex-shrink-0">
-                                  <opt.Icon size={20} weight="fill" style={{ color: opt.color }} />
-                                </span>
-                                <div>
-                                  <div className="text-sm font-medium text-text-primary">{opt.label}</div>
-                                  <div className="text-xs text-text-muted">{opt.sub}</div>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Text input */}
-                      <textarea
-                        ref={inputRef}
-                        value={inputText}
-                        onChange={handleInputChange}
-                        onKeyDown={handleKeyDown}
-                        placeholder={currentChatType === 'lesson' ? 'Ask about this assignment...' : `Ask anything about ${cls.name.toLowerCase()}...`}
-                        rows={1}
-                        className="flex-1 px-3.5 py-2.5 border border-border rounded-xl text-sm font-[var(--font-body)] bg-warm-white text-text-primary outline-none resize-none min-h-[42px] max-h-[120px] leading-relaxed focus:border-teal transition-colors placeholder:text-text-muted"
-                      />
-
-                      {/* Send button */}
-                      <button
-                        onClick={sendMessage}
-                        className="w-[42px] h-[42px] rounded-[10px] bg-teal text-white flex items-center justify-center hover:bg-teal/90 active:scale-95 transition-all flex-shrink-0"
-                      >
-                        <PaperPlaneRight size={18} weight="fill" />
-                      </button>
                     </div>
-                    <p className="text-center text-[11px] text-text-muted mt-1.5">{cls.teacher}&apos;s assistant can see this conversation</p>
-                  </div>
-                </>
-              )}
+                  ) : null;
+                })()}
 
-              {/* ---- PEER / CLASS CHAT ---- */}
-              {chatMode === 'peer' && (
-                <>
-                  <div ref={peerChatViewRef} className="flex-1 overflow-y-auto flex flex-col">
-                    {/* Assignment banner (shows in both tabs) */}
-                    {currentChatType === 'lesson' && currentChat && (
-                      <div className="mx-4 sm:mx-6 mt-6 mb-2 flex items-center gap-3 px-4 py-3 bg-info/[0.06] border border-info/15 rounded-[10px]">
-                        <ClipboardText size={20} weight="fill" className="text-teal flex-shrink-0" />
-                        <div className="flex-1">
-                          <div className="font-semibold text-sm text-text-primary">{currentChat.name}</div>
-                          <div className="text-xs text-text-muted">{currentChat.due} · {cls.name}</div>
-                        </div>
+                {messages.map(msg => {
+                  // Special notice messages
+                  if (msg.text === '🎉__TURNIN_NOTICE__') {
+                    return (
+                      <div key={msg.id} className="text-center py-2">
+                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-success/[0.08] rounded-full text-xs font-medium text-success">
+                          ✅ Assignment turned in
+                        </span>
                       </div>
-                    )}
-
-                    {/* Monitoring banner */}
-                    <div className="bg-teal/[0.06] text-teal text-xs py-1.5 text-center">
-                      💬 This chat is monitored by your teacher
-                    </div>
-
-                    {/* Peer messages */}
-                    <div className="flex-1 px-4 sm:px-6 py-4 flex flex-col gap-3">
-                      {currentPeerMessages.map(pm => {
-                        const isMe = pm.sender === 'Alex R.';
-                        return (
-                          <div
-                            key={pm.id}
-                            className={`flex gap-2.5 max-w-[72%] ${isMe ? 'self-end flex-row-reverse' : 'self-start'}`}
-                          >
-                            {!isMe && (
-                              <div
-                                className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white mt-1"
-                                style={{ background: pm.color }}
-                              >
-                                {pm.initials}
+                    );
+                  }
+                  if (msg.text === '📦__ARCHIVE_NOTICE__') {
+                    return (
+                      <div key={msg.id} className="text-center py-2">
+                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-teal/[0.08] rounded-full text-xs font-medium text-teal">
+                          📦 Chat archived
+                        </span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex gap-2.5 max-w-[72%] ${msg.role === 'student' ? 'self-end flex-row-reverse' : 'self-start'}`}
+                    >
+                      <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold mt-1
+                        ${msg.role === 'ai' ? 'bg-navy text-white' : 'bg-teal text-white'}`}>
+                        {msg.role === 'ai' ? currentClass.teacherInitial : studentInitials.charAt(0)}
+                      </div>
+                      <div>
+                        {msg.image ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <img
+                              src={msg.image.src}
+                              alt={msg.image.alt}
+                              className="max-w-[220px] rounded-xl border border-border object-cover"
+                            />
+                            <span className="text-[11px] text-text-muted">{msg.image.fileName}</span>
+                          </div>
+                        ) : msg.attachment ? (
+                          <div className={`px-3.5 py-3 rounded-2xl ${msg.role === 'student' ? 'bg-teal rounded-br-sm shadow-sm' : 'bg-card-bg border border-border rounded-bl-sm shadow-sm'}`}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl">{msg.attachment.type}</span>
+                              <div>
+                                <div className={`font-semibold text-sm ${msg.role === 'student' ? 'text-white' : 'text-text-primary'}`}>{msg.attachment.name}</div>
+                                <div className={`text-xs ${msg.role === 'student' ? 'text-white/70' : 'text-text-muted'}`}>{msg.attachment.size}</div>
                               </div>
-                            )}
-                            <div>
-                              {!isMe && (
-                                <div className="flex items-center gap-2 mb-0.5">
-                                  <span className="font-semibold text-xs text-text-primary">{pm.sender}</span>
-                                  <span className="text-[10px] text-text-muted">{pm.time}</span>
-                                </div>
-                              )}
-                              <div
-                                className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed
-                                  ${isMe
-                                    ? 'bg-teal text-white rounded-br-sm shadow-sm'
-                                    : 'bg-card-bg border border-border rounded-bl-sm shadow-sm text-text-primary'}`}
-                              >
-                                {pm.text}
-                              </div>
-                              {isMe && (
-                                <div className="text-[10px] text-text-muted text-right mt-0.5">{pm.time}</div>
-                              )}
                             </div>
                           </div>
-                        );
-                      })}
+                        ) : (
+                          <div
+                            className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed
+                              ${msg.role === 'ai'
+                                ? 'bg-card-bg border border-border rounded-bl-sm shadow-sm text-text-primary'
+                                : 'bg-teal text-white rounded-br-sm shadow-sm'}`}
+                            dangerouslySetInnerHTML={{ __html: msg.text }}
+                          />
+                        )}
+                      </div>
                     </div>
+                  );
+                })}
+
+                {/* Typing indicator */}
+                {isTyping && (
+                  <div className="flex gap-2.5 self-start max-w-[72%]">
+                    <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center text-xs font-semibold text-white mt-1 flex-shrink-0">
+                      {currentClass.teacherInitial}
+                    </div>
+                    <div className="bg-card-bg border border-border rounded-2xl rounded-bl-sm shadow-sm px-3.5 py-3">
+                      <div className="flex gap-1">
+                        {[0, 1, 2].map(i => (
+                          <div
+                            key={i}
+                            className="w-2 h-2 rounded-full bg-text-muted opacity-40"
+                            style={{ animation: `typingBounce 1.4s infinite ease-in-out ${i * 0.2}s` }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input bar */}
+              <div className="px-4 sm:px-6 py-3 border-t border-border bg-card-bg shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                {/* Turn in row */}
+                {currentChatType === 'lesson' && (
+                  <div className="mb-2.5">
+                    <button
+                      onClick={() => !turnedIn && setShowTurnInConfirm(true)}
+                      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] border font-heading font-semibold text-sm transition-all
+                        ${turnedIn
+                          ? 'bg-success/10 border-success/30 text-success cursor-default pointer-events-none'
+                          : 'border-success text-success hover:bg-success hover:text-white'}`}
+                    >
+                      <Check size={16} weight="fill" />
+                      {turnedIn ? 'Turned in ✓' : 'Turn in'}
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex gap-2 items-end">
+                  {/* Upload button */}
+                  <div className="relative flex-shrink-0">
+                    <button
+                      onClick={e => { e.stopPropagation(); setShowUploadMenu(v => !v); }}
+                      className="w-[42px] h-[42px] rounded-[10px] border border-border text-text-muted flex items-center justify-center hover:border-teal hover:text-teal transition-colors"
+                    >
+                      <Paperclip size={18} weight="fill" />
+                    </button>
+                    {showUploadMenu && (
+                      <div className="absolute bottom-12 left-0 bg-card-bg border border-border rounded-[10px] p-1.5 min-w-[190px] shadow-lg z-10">
+                        {[
+                          { type: 'photo', Icon: Camera, color: '#4FA3A5', label: 'Photo', sub: 'Take or choose a photo' },
+                          { type: 'file', Icon: FileText, color: '#1F3A5F', label: 'Document', sub: 'PDF, Word, or text file' },
+                          { type: 'drawing', Icon: PencilLine, color: '#E8836B', label: 'Drawing', sub: 'Sketch or handwritten work' },
+                          { type: '3d', Icon: Cube, color: '#8B5CF6', label: '3D Model', sub: 'STL file' },
+                          { type: 'audio', Icon: Microphone, color: '#F59E0B', label: 'Audio / Video', sub: 'Recording or presentation' },
+                        ].map(opt => (
+                          <button
+                            key={opt.type}
+                            onClick={() => simulateUpload(opt.type)}
+                            className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg hover:bg-teal/[0.06] transition-colors text-left"
+                          >
+                            <span className="w-6 text-center flex-shrink-0">
+                              <opt.Icon size={20} weight="fill" style={{ color: opt.color }} />
+                            </span>
+                            <div>
+                              <div className="text-sm font-medium text-text-primary">{opt.label}</div>
+                              <div className="text-xs text-text-muted">{opt.sub}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Input bar — Peer chat */}
-                  <div className="px-4 sm:px-6 py-3 border-t border-border bg-card-bg shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-                    <div className="flex gap-2 items-end">
-                      <textarea
-                        ref={peerInputRef}
-                        value={peerInputText}
-                        onChange={e => {
-                          setPeerInputText(e.target.value);
-                          e.target.style.height = 'auto';
-                          e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-                        }}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            // Demo: no-op send for peer chat
-                            if (peerInputText.trim()) setPeerInputText('');
-                          }
-                        }}
-                        placeholder="Message your classmates..."
-                        rows={1}
-                        className="flex-1 px-3.5 py-2.5 border border-border rounded-xl text-sm font-[var(--font-body)] bg-warm-white text-text-primary outline-none resize-none min-h-[42px] max-h-[120px] leading-relaxed focus:border-teal transition-colors placeholder:text-text-muted"
-                      />
-                      <button
-                        className="w-[42px] h-[42px] rounded-[10px] bg-teal text-white flex items-center justify-center hover:bg-teal/90 active:scale-95 transition-all flex-shrink-0"
-                      >
-                        <PaperPlaneRight size={18} weight="fill" />
-                      </button>
-                    </div>
-                    <p className="text-center text-[11px] text-text-muted mt-1.5">{cls.teacher} can see this conversation</p>
-                  </div>
-                </>
-              )}
+                  {/* Text input */}
+                  <textarea
+                    ref={inputRef}
+                    value={inputText}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder={currentChatType === 'lesson' ? 'Ask about this assignment...' : `Ask anything about ${currentClass.name.toLowerCase()}...`}
+                    rows={1}
+                    className="flex-1 px-3.5 py-2.5 border border-border rounded-xl text-sm font-[var(--font-body)] bg-warm-white text-text-primary outline-none resize-none min-h-[42px] max-h-[120px] leading-relaxed focus:border-teal transition-colors placeholder:text-text-muted"
+                  />
+
+                  {/* Send button */}
+                  <button
+                    onClick={sendMessage}
+                    className="w-[42px] h-[42px] rounded-[10px] bg-teal text-white flex items-center justify-center hover:bg-teal/90 active:scale-95 transition-all flex-shrink-0"
+                  >
+                    <PaperPlaneRight size={18} weight="fill" />
+                  </button>
+                </div>
+                <p className="text-center text-[11px] text-text-muted mt-1.5">{currentClass.teacher}&apos;s assistant can see this conversation</p>
+              </div>
             </>
           )}
         </div>
       </div>
 
       {/* Turn in confirm modal */}
-      {showTurnInConfirm && (
+      {showTurnInConfirm && currentClass && (
         <div className="fixed inset-0 bg-black/30 z-[200] flex items-center justify-center" onClick={() => setShowTurnInConfirm(false)}>
           <div className="bg-card-bg border border-border rounded-[14px] p-6 max-w-[360px] w-[90%] text-center shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="text-3xl mb-3">✅</div>
             <div className="font-heading font-bold text-base text-text-primary mb-1.5">Turn in this assignment?</div>
             <div className="text-sm text-text-secondary mb-1.5">{chatName}</div>
-            <div className="text-xs text-text-muted mb-5 leading-relaxed">{cls.teacher} will be able to see this entire conversation, including any files you uploaded.</div>
+            <div className="text-xs text-text-muted mb-5 leading-relaxed">{currentClass.teacher} will be able to see this entire conversation, including any files you uploaded.</div>
             <div className="flex gap-2 justify-center">
               <button onClick={() => setShowTurnInConfirm(false)} className="px-5 py-2 border border-border rounded-lg text-sm font-semibold text-text-primary hover:bg-warm-white transition-colors">Not yet</button>
               <button onClick={confirmTurnIn} className="px-5 py-2 bg-success text-white rounded-lg text-sm font-semibold hover:bg-success/90 transition-colors">Turn in</button>

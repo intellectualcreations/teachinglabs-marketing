@@ -1,65 +1,180 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ChartBar, Funnel, MagnifyingGlass, WarningCircle,
   ClipboardText, Fire, ChatText,
 } from '@phosphor-icons/react';
 import BarChart from '@/components/shared/BarChart';
-import {
-  getDemoStudents, DEMO_CLASSES, ACTIVITY_HOURS, ACTIVITY_VALUES,
-  STATUS_LABELS, type DemoStudent,
-} from '@/lib/demo-data';
+import { createClient } from '@/lib/supabase/client';
+import type { Profile, Class } from '@/lib/supabase/types';
 
-type StatusFilter = 'all' | 'attention' | 'on-track' | 'excelling';
+/* ── Types for enrolled student data ── */
+interface EnrolledStudent {
+  id: string;
+  first: string;
+  last: string;
+  classNames: string[];
+  enrolledAt: string;
+  color: string;
+}
+
+const AVATAR_COLORS = [
+  '#1F3A5F', '#4FA3A5', '#E8836B', '#F59E0B', '#8B5CF6',
+  '#059669', '#3B82F6', '#DC2626', '#6366F1', '#0891B2',
+];
+
+const ACTIVITY_HOURS = ['8am', '9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm'];
 
 export default function DashboardPage() {
-  const students = useMemo(() => getDemoStudents(), []);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [students, setStudents] = useState<EnrolledStudent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [classFilter, setClassFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
   const [showCount, setShowCount] = useState(12);
 
-  // Computed
-  const totalInteractions = ACTIVITY_VALUES.reduce((a, b) => a + b, 0);
-  const chatSessions = Math.round(totalInteractions * 0.36);
-  const activeThisWeek = Math.round(students.length * 0.93);
-  const activePercent = Math.round((activeThisWeek / students.length) * 100);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+
+        // Fetch profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        setProfile(profileData as Profile | null);
+
+        // Fetch teacher's classes
+        const { data: classData } = await supabase
+          .from('classes')
+          .select('*')
+          .eq('teacher_id', user.id)
+          .order('created_at', { ascending: false });
+        const teacherClasses = (classData ?? []) as Class[];
+        setClasses(teacherClasses);
+
+        if (teacherClasses.length === 0) {
+          setStudents([]);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch enrollments with student profiles for all teacher classes
+        const classIds = teacherClasses.map((c) => c.id);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: enrollmentData } = await (supabase
+          .from('enrollments')
+          .select('student_id, class_id, enrolled_at, status') as any)
+          .in('class_id', classIds)
+          .eq('status', 'active');
+
+        const enrollments = (enrollmentData ?? []) as Array<{ student_id: string; class_id: string; enrolled_at: string; status: string }>;
+        if (enrollments.length === 0) {
+          setStudents([]);
+          setLoading(false);
+          return;
+        }
+
+        // Get unique student IDs and fetch their profiles
+        const studentIds = [...new Set(enrollments.map((e) => e.student_id))];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: studentProfiles } = await (supabase
+          .from('profiles')
+          .select('*') as any)
+          .in('id', studentIds);
+
+        const profileMap = new Map<string, Profile>();
+        ((studentProfiles ?? []) as Profile[]).forEach((p) => profileMap.set(p.id, p));
+
+        // Build class name lookup
+        const classNameMap = new Map<string, string>();
+        teacherClasses.forEach((c) => classNameMap.set(c.id, c.name));
+
+        // Group enrollments by student
+        const studentMap = new Map<string, EnrolledStudent>();
+        enrollments.forEach((e, i) => {
+          const existing = studentMap.get(e.student_id);
+          const className = classNameMap.get(e.class_id) ?? 'Unknown';
+          if (existing) {
+            if (!existing.classNames.includes(className)) {
+              existing.classNames.push(className);
+            }
+          } else {
+            const p = profileMap.get(e.student_id);
+            const displayName = p?.display_name ?? 'Unknown Student';
+            const parts = displayName.split(' ');
+            studentMap.set(e.student_id, {
+              id: e.student_id,
+              first: parts[0] ?? '',
+              last: parts.slice(1).join(' ') || '',
+              classNames: [className],
+              enrolledAt: e.enrolled_at,
+              color: AVATAR_COLORS[i % AVATAR_COLORS.length],
+            });
+          }
+        });
+
+        setStudents(Array.from(studentMap.values()));
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   const filtered = useMemo(() => {
     return students.filter((s) => {
       if (classFilter !== 'all' && !s.classNames.includes(classFilter)) return false;
-      if (statusFilter !== 'all' && s.status !== statusFilter) return false;
       if (search) {
         const name = `${s.first} ${s.last}`.toLowerCase();
         if (!name.includes(search.toLowerCase())) return false;
       }
       return true;
     });
-  }, [students, classFilter, statusFilter, search]);
+  }, [students, classFilter, search]);
 
-  const counts = useMemo(() => {
-    const base = classFilter === 'all'
-      ? students
-      : students.filter((s) => s.classNames.includes(classFilter));
-    return {
-      all: base.length,
-      attention: base.filter((s) => s.status === 'attention').length,
-      'on-track': base.filter((s) => s.status === 'on-track').length,
-      excelling: base.filter((s) => s.status === 'excelling').length,
-    };
-  }, [students, classFilter]);
-
-  const attentionCount = counts.attention;
   const showing = filtered.slice(0, showCount);
+
+  // Derive teacher display name
+  const teacherFirstName = profile?.display_name?.split(' ')[0] ?? 'Teacher';
+  const initials = profile?.display_name
+    ? profile.display_name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'T';
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-text-secondary text-sm">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-red-400 text-sm">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div>
-      {/* Header — mb matches HTML .dash-topbar margin-bottom: 32px */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-heading text-2xl font-extrabold text-text-primary">
-            Hi Ms. Harper 👋
+            Hi {teacherFirstName} 👋
           </h1>
           <p className="text-sm text-text-secondary mt-0.5">
             Here&apos;s how your students are doing today.
@@ -67,62 +182,49 @@ export default function DashboardPage() {
         </div>
         <div className="hidden sm:flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-navy text-white flex items-center justify-center font-heading font-bold text-sm">
-            MH
+            {initials}
           </div>
         </div>
       </div>
 
-      {/* Overview Row — gap:20px, mb:24px, grid 1fr 1.4fr */}
+      {/* Overview Row */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-5 mb-6">
-        {/* Class Overview card — border-radius: 20px (HTML --radius-lg from shared.css) */}
+        {/* Class Overview card */}
         <div className="bg-card-bg border border-border rounded-[20px] p-6">
-          {/* Overview title: 13px, 700, uppercase, letter-spacing 0.5px */}
           <h2 className="font-heading text-[13px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-4 flex items-center gap-2">
             <ChartBar size={16} weight="fill" className="text-teal" />
             Class Overview
           </h2>
-          {/* stat-grid: 2-col, gap 12px */}
           <div className="grid grid-cols-2 gap-3">
             <StatBox value={students.length} label="Students Enrolled" />
-            <StatBox value={activeThisWeek} label="Active This Week">
-              <span className="text-xs font-semibold text-success">{activePercent}%</span>
+            <StatBox value={students.length} label="Active This Week">
+              <span className="text-xs font-semibold text-success">
+                {students.length > 0 ? '100%' : '0%'}
+              </span>
             </StatBox>
-            <StatBox value={attentionCount} label="Needs Attention">
-              {attentionCount > 0 && (
-                <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-warning/10 text-warning">
-                  ⚠ Review
-                </span>
-              )}
-            </StatBox>
-            <StatBox value={DEMO_CLASSES.length} label="Active Activities" />
+            <StatBox value={0} label="Needs Attention" />
+            <StatBox value={classes.length} label="Active Classes" />
           </div>
         </div>
 
-        {/* Activity card — border-radius: 20px */}
+        {/* Activity card */}
         <div className="bg-card-bg border border-border rounded-[20px] p-6">
           <h2 className="font-heading text-[13px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-4 flex items-center gap-2">
             <Fire size={16} weight="fill" className="text-coral" />
             Activity
           </h2>
-          {/* activity-stats: 2-col, gap 12px, mb 18px */}
           <div className="grid grid-cols-2 gap-3 mb-[18px]">
-            <StatBox value={totalInteractions} label="Total Interactions">
-              <span className="text-xs font-semibold text-success">↑ 23%</span>
-            </StatBox>
-            <StatBox value={chatSessions} label="Chat Sessions">
-              <span className="text-xs font-semibold text-success">↑ 18%</span>
-            </StatBox>
+            <StatBox value={0} label="Total Interactions" />
+            <StatBox value={0} label="Chat Sessions" />
           </div>
-          {/* chart-area: padding 4px 0 */}
           <div className="py-1">
-            {/* chart-label: 12px, color gray, mb 10px */}
             <div className="text-xs text-text-secondary mb-[10px]">Activity by hour (today)</div>
-            <BarChart labels={ACTIVITY_HOURS} values={ACTIVITY_VALUES} />
+            <BarChart labels={ACTIVITY_HOURS} values={[0, 0, 0, 0, 0, 0, 0, 0]} />
           </div>
         </div>
       </div>
 
-      {/* Filters row — gap 12px, mb 20px */}
+      {/* Filters row */}
       <div className="flex items-center gap-3 mb-5 flex-wrap">
         <select
           value={classFilter}
@@ -131,7 +233,7 @@ export default function DashboardPage() {
             bg-surface text-text-primary cursor-pointer focus:border-navy outline-none"
         >
           <option value="all">All Classes</option>
-          {DEMO_CLASSES.map((c) => (
+          {classes.map((c) => (
             <option key={c.id} value={c.name}>{c.name}</option>
           ))}
         </select>
@@ -157,42 +259,8 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Status Pills + Search — mb 16px */}
+      {/* Search */}
       <div className="flex items-center gap-3 flex-wrap mb-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          {(['all', 'attention', 'on-track', 'excelling'] as StatusFilter[]).map((f) => {
-            const isActive = statusFilter === f;
-            const labels: Record<string, string> = {
-              all: 'All',
-              attention: '⚠ Needs Attention',
-              'on-track': '📘 On Track',
-              excelling: '⭐ Excelling',
-            };
-            const activeColors: Record<string, string> = {
-              all: 'bg-navy border-navy',
-              attention: 'bg-warning border-warning',
-              'on-track': 'bg-teal border-teal',
-              excelling: 'bg-success border-success',
-            };
-
-            return (
-              <button
-                key={f}
-                onClick={() => { setStatusFilter(f); setShowCount(12); }}
-                className={`px-4 py-[7px] rounded-full border-[1.5px] text-[13px] font-semibold font-heading
-                  transition-all cursor-pointer ${
-                    isActive
-                      ? `${activeColors[f]} text-white`
-                      : 'border-border text-text-secondary hover:border-navy hover:text-navy'
-                  }`}
-              >
-                {labels[f]} <span className="font-normal opacity-70">({counts[f]})</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Search — width 220px, pl 36px to accommodate icon */}
         <div className="relative ml-auto">
           <MagnifyingGlass size={16} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-text-secondary" />
           <input
@@ -206,8 +274,18 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Student Grid — 3 cols, gap 16px */}
-      {filtered.length === 0 ? (
+      {/* Student Grid */}
+      {students.length === 0 ? (
+        <div className="text-center py-16 px-5 bg-card-bg border-2 border-dashed border-border rounded-[20px] mt-4">
+          <div className="text-[40px] mb-3">👋</div>
+          <h3 className="font-heading font-bold text-base text-text-primary mb-1.5">
+            No students have joined yet
+          </h3>
+          <p className="text-sm text-text-secondary max-w-md mx-auto">
+            Share your class code to get started! Students can join by entering the code on their device.
+          </p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="text-center py-10 text-text-secondary">
           No students match your filters.
         </div>
@@ -233,9 +311,7 @@ export default function DashboardPage() {
   );
 }
 
-// ── StatBox ──
-// HTML: bg-white (var(--white)), border-radius:10px, padding:14px 16px
-// stat-value: 26px 800, stat-label: 12px color gray mt:2px, stat-change: mt:4px
+/* ── StatBox ── */
 function StatBox({
   value,
   label,
@@ -254,23 +330,10 @@ function StatBox({
   );
 }
 
-// ── StudentCard ──
-// HTML: bg:card-bg, border, border-radius:20px (--radius-lg), padding:20px
-function StudentCard({ student: s }: { student: DemoStudent }) {
-  const initials = s.first[0] + s.last[0];
-  const statusStyles: Record<string, string> = {
-    'on-track': 'bg-teal/10 text-teal',
-    attention: 'bg-warning/10 text-warning',
-    excelling: 'bg-success/10 text-success',
-  };
-  const statusIcons: Record<string, string> = {
-    attention: '⚠ ',
-    excelling: '⭐ ',
-    'on-track': '',
-  };
+/* ── StudentCard ── */
+function StudentCard({ student: s }: { student: EnrolledStudent }) {
+  const initials = (s.first[0] ?? '') + (s.last[0] ?? '');
   const classLabel = s.classNames[0] || 'Unassigned';
-  const isRecent = s.lastSession.includes('Just') || s.lastSession.includes('25m');
-  const isStale = s.lastSession === '2 days ago';
 
   return (
     <div
@@ -278,12 +341,7 @@ function StudentCard({ student: s }: { student: DemoStudent }) {
         transition-all hover:shadow-md hover:-translate-y-0.5 relative"
       onClick={() => window.location.href = `/teacher/student-detail?student=${s.id}`}
     >
-      {/* Status pill — absolute top:16px right:16px */}
-      <span className={`absolute top-4 right-4 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${statusStyles[s.status]}`}>
-        {statusIcons[s.status]}{STATUS_LABELS[s.status]}
-      </span>
-
-      {/* Header — gap:12px, mb:14px */}
+      {/* Header */}
       <div className="flex items-center gap-3 mb-3.5">
         <div
           className="w-10 h-10 rounded-full flex items-center justify-center font-heading font-bold text-sm text-white shrink-0"
@@ -292,56 +350,33 @@ function StudentCard({ student: s }: { student: DemoStudent }) {
           {initials}
         </div>
         <div>
-          {/* sc-name: 14px 700 */}
           <div className="font-heading font-bold text-sm text-text-primary">
-            {s.last}, {s.first}
+            {s.last}{s.last ? ', ' : ''}{s.first}
           </div>
-          {/* sc-meta: 12px gray mt:1px */}
           <div className="text-xs text-text-secondary mt-px">
-            {classLabel} · Grade {s.grade}
+            {classLabel}
+            {s.classNames.length > 1 && ` +${s.classNames.length - 1} more`}
           </div>
         </div>
       </div>
 
-      {/* Stats — sc-stats: grid 2-col gap:10px */}
-      {/* HTML has 3 items in 2-col grid — Last Session falls naturally in col 1 of row 2 */}
+      {/* Stats */}
       <div className="grid grid-cols-2 gap-2.5">
         <div>
-          {/* sc-stat-label: 11px gray */}
           <div className="text-[11px] text-text-secondary flex items-center gap-1">
-            <ClipboardText size={12} weight="fill" /> Activities
+            <ClipboardText size={12} weight="fill" /> Classes
           </div>
-          {/* sc-stat-value: 13px 600 */}
-          <div className="text-[13px] font-semibold text-text-primary">{s.activitiesComplete} complete</div>
+          <div className="text-[13px] font-semibold text-text-primary">{s.classNames.length}</div>
         </div>
         <div>
           <div className="text-[11px] text-text-secondary flex items-center gap-1">
-            <Fire size={12} weight="fill" /> Streak
+            <ChatText size={12} weight="fill" /> Enrolled
           </div>
-          <div className="text-[13px] font-semibold text-text-primary">{s.streak} days</div>
-        </div>
-        {/* Last Session — 3rd item, occupies col 1 of row 2 (not col-span-2) */}
-        <div>
-          <div className="text-[11px] text-text-secondary flex items-center gap-1">
-            <ChatText size={12} weight="fill" /> Last Session
-          </div>
-          <div className={`text-[13px] font-semibold ${isRecent ? 'text-warning font-bold' : 'text-text-primary'}`}>
-            {s.lastSession}{isStale ? ' ⚠' : ''}
+          <div className="text-[13px] font-semibold text-text-primary">
+            {new Date(s.enrolledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </div>
         </div>
       </div>
-
-      {/* Concern — HTML: mt:12px, padding:10px 12px, bg rgba(245,158,11,0.06), border rgba(245,158,11,0.15), radius:8px */}
-      {s.concern && (
-        <div className="mt-3 py-[10px] px-3 bg-warning/[0.06] border border-warning/[0.15] rounded-lg">
-          {/* concern-title: 11px 700 uppercase text-warning mb:3px */}
-          <div className="text-[11px] font-bold text-warning uppercase flex items-center gap-1 mb-[3px]">
-            <WarningCircle size={12} weight="fill" /> Concern
-          </div>
-          {/* concern-text: 12px color:#92400E leading:1.5 */}
-          <div className="text-xs text-[#92400E] dark:text-warning/80 leading-relaxed">{s.concern}</div>
-        </div>
-      )}
     </div>
   );
 }

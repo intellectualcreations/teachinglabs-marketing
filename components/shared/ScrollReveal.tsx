@@ -1,25 +1,44 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { animate, inView } from 'framer-motion';
 
 export default function ScrollReveal() {
+  const initialized = useRef(false);
+
   useEffect(() => {
-    const fadeEls = document.querySelectorAll('.fade-up');
-    if (!fadeEls.length) return;
+    if (initialized.current) return;
+    initialized.current = true;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
-    );
+    function reveal(el: Element) {
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+      htmlEl.style.opacity = '1';
+      htmlEl.style.transform = 'translateY(0px)';
+    }
 
-    fadeEls.forEach((el) => observer.observe(el));
+    function setup(el: Element) {
+      const htmlEl = el as HTMLElement;
+      if (htmlEl.dataset.framerReady) return;
+      htmlEl.dataset.framerReady = '1';
+      htmlEl.style.opacity = '0';
+      htmlEl.style.transform = 'translateY(30px)';
+
+      // Check if already in viewport — animate immediately
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.9) {
+        reveal(el);
+      } else {
+        inView(el, () => { reveal(el); }, { amount: 0.1 });
+      }
+    }
+
+    document.querySelectorAll('.fade-up').forEach(setup);
+
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll('.fade-up:not([data-framer-ready])').forEach(setup);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => observer.disconnect();
   }, []);

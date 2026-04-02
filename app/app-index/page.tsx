@@ -24,6 +24,7 @@ const sections = [
     devNote: 'Teacher signup is two screens (profile then auth). School identity is captured before authentication via zip-code-filtered NCES lookup. The Teaching Twin onboarding quiz personalizes the AI agent\'s teaching style. Roster sync (Google Classroom / Microsoft Teams / ClassLink / CSV) should be offered during initial setup. Dashboard uses localStorage for state. All pages share a sidebar layout. Icons are Phosphor Icons (fill weight) on colored circle backgrounds.',
     links: [
       { num: 5, name: 'Teacher Signup (2 screens: profile + auth)', href: '/teacher/signup' },
+      { num: 5.5, name: 'Teaching Twin Onboarding (5-act immersive quiz → personality reveal)', href: '/teacher/onboarding' },
       { num: 6, name: 'Teacher Dashboard (progressive setup flow + alerts when populated)', href: '/teacher/dashboard' },
       { num: 7, name: 'Create Class (icon picker, student picker, join code)', href: '/teacher/create-class' },
       { num: 8, name: 'Edit Class (icon, roster, description, archive)', href: '/teacher/edit-class' },
@@ -57,7 +58,7 @@ const sections = [
     comingSoon: true,
     devNote: 'Admin signup has two paths: (1) invited by district, (2) self-register. Admins are district-level, not school-level. "Find your district" not "Choose your school."',
     links: [
-      { num: 20, name: 'Admin Signup (2 screens: profile + auth)', href: '/admin/signup', tag: 'Coming Soon', tagClass: 'tag-soon' },
+      { num: 20, name: 'Admin Signup (2 screens: profile + auth)', href: '/admin-signup', tag: 'Coming Soon', tagClass: 'tag-soon' },
       { num: 21, name: 'Admin Dashboard', href: '/admin/dashboard', tag: 'Coming Soon', tagClass: 'tag-soon' },
     ],
   },
@@ -132,9 +133,9 @@ const flowLanes = [
     role: 'Administrator',
     color: '#F59E0B',
     steps: [
-      { label: 'Name + Title', href: '/admin/signup' },
-      { label: 'Choose District', href: '/admin/signup' },
-      { label: 'Continue to Login', href: '/admin/signup' },
+      { label: 'Name + Title', href: '/admin-signup' },
+      { label: 'Choose District', href: '/admin-signup' },
+      { label: 'Continue to Login', href: '/admin-signup' },
       { label: 'Coming Soon', href: '/admin/dashboard', comingSoon: true },
     ],
   },

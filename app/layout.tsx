@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter, Open_Sans } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
+import AuthProvider from '@/components/shared/AuthProvider';
+import ServiceWorkerRegistrar from '@/components/shared/ServiceWorkerRegistrar';
 import './globals.css';
 
 const inter = Inter({
@@ -18,6 +20,18 @@ const openSans = Open_Sans({
 export const metadata: Metadata = {
   title: 'TeachingLabs',
   description: 'AI-powered teaching platform for K-12 education',
+  manifest: '/manifest.json',
+  themeColor: '#1F3A5F',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Teaching Labs',
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
 };
 
 export default function RootLayout({
@@ -27,10 +41,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="apple-touch-icon" href="/images/icon-192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+      </head>
       <body className={`${inter.variable} ${openSans.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          {children}
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+            <ServiceWorkerRegistrar />
+            {children}
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

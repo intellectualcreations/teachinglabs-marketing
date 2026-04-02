@@ -1,27 +1,45 @@
-# TASK-COMPLETE — FLU-387: Phase 39 Student Progress Dashboard
+# Phase 44 — Student Attendance Tracking ✅
 
-**Status:** ✅ Complete
-**Commit:** 522f86e
-**Date:** 2026-03-28
+## Completed: 2026-03-29
 
-## What Was Built
+### What was built:
+- `lib/attendance-store.ts` — in-memory store for class sessions and attendance records
+- `POST /api/v1/courses/:courseId/sessions` — create a class session (date, topic)
+- `GET /api/v1/courses/:courseId/sessions` — list sessions for a course
+- `POST /api/v1/sessions/:sessionId/attendance` — mark attendance (single or array of {studentId, status})
+- `GET /api/v1/sessions/:sessionId/attendance` — get all attendance for a session
+- `GET /api/v1/courses/:courseId/students/:studentId/attendance` — student history + attendance percentage
+- `POST /api/v1/sessions/:sessionId/attendance/bulk-present` — marks all enrolled students as present
 
-### New Files
-- **lib/rubric-store.ts** — In-memory rubric & grading store: createRubric, gradeByRubric, getGradesByStudent
-- **lib/progress-store.ts** — Progress tracking store with ProgressEntry interface, student aggregation (assignmentsTotal, assignmentsCompleted, completionRate, avgScore, recentGrades), and course-level student lookup
-- **app/api/students/[id]/progress/route.ts** — GET /api/students/:id/progress returning per-student progress summary
-- **app/api/classes/[id]/progress/route.ts** — GET /api/classes/:id/progress returning aggregated class-level progress with per-student breakdown
+### Key details:
+- Follows existing in-memory store pattern (like discussion-store.ts)
+- Attendance supports upsert (re-marking updates existing record)
+- Status options: present, absent, late
+- Attendance percentage counts both "present" and "late" as attended
+- Bulk-present uses enrollment-store to find enrolled students
+- `npm run build` passes ✅
 
-## Key Design Decisions
-- avgScore computed from rubric grades: sum(total/maxTotal * 100) / count(graded assignments)
-- Divide-by-zero safe: returns avgScore: 0 and completionRate: 0 when no data
-- completionRate as decimal (0.67 = 67%) for precision
-- recentGrades returns last 5 graded assignments sorted by date descending
-- Class progress endpoint aggregates all students who have progress entries for that course
+---
 
-## Definition of Done
-- [x] GET /api/students/:id/progress returns {studentId, assignmentsTotal, assignmentsCompleted, avgScore, recentGrades}
-- [x] GET /api/classes/:id/progress aggregates progress for all students
-- [x] npm run build passes
-- [x] git commit: "feat(phase39): student progress dashboard [FLU-387]"
-- [x] TASK-COMPLETE.md updated
+# Phase 46 — Student Portfolio Builder ✅
+
+## Completed: 2026-03-30
+
+### What was built:
+- `lib/portfolio-store.ts` — in-memory store for portfolio items, endorsements, and share tokens
+- `POST /api/v1/students/:id/portfolio` — create a portfolio item
+- `GET /api/v1/students/:id/portfolio` — list all portfolio items for a student
+- `GET /api/v1/students/:id/portfolio/:itemId` — get single item
+- `DELETE /api/v1/students/:id/portfolio/:itemId` — remove item
+- `POST /api/v1/students/:id/portfolio/share` — generate a public share token
+- `GET /api/v1/portfolio/:token` — public view (no auth required)
+- `POST /api/v1/portfolio/:token/endorse/:itemId` — add instructor endorsement
+
+### Key details:
+- PortfolioItem: id, studentId, title, description, type, createdAt, endorsements
+- Endorsement: id, instructorId, comment, createdAt
+- ShareToken: token, studentId, createdAt
+- Public share link works without authentication
+- Follows existing in-memory store pattern
+- `npm run build` passes ✅
+- Commit: 0c5e7ab feat(phase46): student portfolio builder [TeachingLabs-P46]

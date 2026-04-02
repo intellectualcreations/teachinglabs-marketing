@@ -11,7 +11,7 @@ const ROTATING_WORDS = [
   'Built by a teacher, for teachers',
 ];
 
-const CONFETTI_COLORS = ['#4FA3A5', '#D4A843', '#FF6B6B', '#1F3A5F'];
+const CONFETTI_COLORS = ['#00F6ED', '#4056F4', '#561F37', '#0a1128'];
 
 function ConfettiCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -143,7 +143,7 @@ export default function WaitlistPage() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Honeypot check
@@ -159,13 +159,28 @@ export default function WaitlistPage() {
     }
     setEmailError('');
 
-    // TODO: Connect to backend/API
+    // Submit to waitlist API
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, role, email }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setEmailError(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
+    } catch {
+      setEmailError('Network error. Please try again.');
+      return;
+    }
     setSubmitted(true);
   };
 
   const handleShare = () => {
     const shareText = 'I just joined the Teaching Labs waitlist! AI teaching assistants that adapt to every student. Check it out:';
-    const shareUrl = 'https://teachinglabs.ai/waitlist';
+    const shareUrl = 'https://teachinglabs.com/waitlist';
     if (navigator.share) {
       navigator.share({ title: 'Teaching Labs', text: shareText, url: shareUrl });
     } else {
@@ -183,17 +198,25 @@ export default function WaitlistPage() {
   return (
     <div className="min-h-screen bg-warm-white text-text-secondary overflow-x-hidden" style={{ fontFamily: "var(--font-open-sans, 'Open Sans', sans-serif)" }}>
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-border backdrop-blur-2xl"
+      <nav className="sticky top-0 z-50 border-b border-border/10 backdrop-blur-2xl"
         style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface) 97%, transparent)' }}>
         <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
-          <Link href="/" className="font-heading text-[22px] font-bold text-text-primary">
-            Teaching Labs
+          <Link href="/" className="flex items-center">
+            <img src="/images/logo-horizontal-dark.png" alt="Teaching Labs" className="h-[44px] w-auto dark:hidden" />
+            <img src="/images/logo-horizontal-light.png" alt="Teaching Labs" className="h-[44px] w-auto hidden dark:block" />
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6 max-md:hidden">
+            <Link href="/" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">Home</Link>
+            <Link href="/for-teachers" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Teachers</Link>
+            <Link href="/for-students" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Students</Link>
+            <Link href="/for-districts" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Districts</Link>
+            <Link href="/for-parents" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Parents</Link>
+            <Link href="/our-story" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">About</Link>
+            <Link href="/contact" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">Contact</Link>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="font-heading text-[14px] font-semibold text-white bg-gold px-5 py-2.5 rounded-full max-md:hidden">Join Waitlist</span>
             <ThemeToggle className="border-border text-text-secondary hover:text-text-primary hover:border-navy" />
-            <Link href="/" className="font-heading text-sm font-medium text-text-secondary hover:text-gold transition-colors duration-200">
-              ← Back to Home
-            </Link>
           </div>
         </div>
       </nav>
@@ -202,12 +225,12 @@ export default function WaitlistPage() {
       <section className="relative min-h-[calc(100vh-72px)] flex items-center justify-center overflow-hidden">
         {/* Background blobs matching landing page */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[5%] left-[10%] max-md:w-[300px] max-md:h-[300px] opacity-[0.08] dark:opacity-[0.15]"
-            style={{ background: '#4FA3A5', filter: 'blur(100px)' }} />
-          <div className="blob-gold absolute w-[500px] h-[500px] rounded-full top-[20%] right-[5%] max-md:w-[280px] max-md:h-[280px] opacity-[0.10] dark:opacity-[0.12]"
-            style={{ background: '#F0C95D', filter: 'blur(100px)' }} />
-          <div className="absolute w-[400px] h-[400px] rounded-full bottom-[10%] left-[30%] opacity-0 dark:opacity-[0.06] max-md:hidden"
-            style={{ background: '#FF6B6B', filter: 'blur(100px)' }} />
+          <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[5%] left-[10%] max-md:w-[300px] max-md:h-[300px] opacity-[0.30] dark:opacity-[0.15]"
+            style={{ background: '#00F6ED', filter: 'blur(50px)' }} />
+          <div className="blob-gold absolute w-[500px] h-[500px] rounded-full top-[20%] right-[5%] max-md:w-[280px] max-md:h-[280px] opacity-[0.25] dark:opacity-[0.10]"
+            style={{ background: '#4056F4', filter: 'blur(50px)' }} />
+          <div className="absolute w-[400px] h-[400px] rounded-full bottom-[10%] left-[30%] opacity-[0.07] dark:opacity-[0.12] max-md:hidden"
+            style={{ background: '#561F37', filter: 'blur(50px)' }} />
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6 py-20">
@@ -218,7 +241,7 @@ export default function WaitlistPage() {
             <br className="max-md:hidden" />
             Your{' '}
             <span style={{
-              background: 'linear-gradient(135deg, #4FA3A5, #F0C95D)',
+              background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -307,11 +330,11 @@ export default function WaitlistPage() {
                     onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
                     onFocus={() => handleFocus('email')}
                     onBlur={handleBlur}
-                    className={`${inputClassName('email')} w-[220px]${emailError ? ' !border-red-500' : ''}`}
+                    className={`${inputClassName('email')} w-[440px]${emailError ? ' !border-red-500' : ''}`}
                   />
                   <button
                     type="submit"
-                    className="font-heading text-[15px] font-bold text-white px-6 py-3 rounded-full border-4 border-gold bg-transparent hover:bg-gold hover:text-deep-navy hover:-translate-y-0.5 transition-all duration-300 whitespace-nowrap cursor-pointer"
+                    className="font-heading text-[15px] font-bold text-white dark:text-white px-6 py-3 rounded-full border-4 border-gold dark:border-teal bg-transparent hover:bg-gold dark:hover:bg-teal hover:text-white dark:hover:text-white hover:-translate-y-0.5 transition-all duration-300 whitespace-nowrap cursor-pointer"
                   >
                     Join the Waitlist →
                   </button>
@@ -370,7 +393,7 @@ export default function WaitlistPage() {
                   />
                   <button
                     type="submit"
-                    className="w-full font-heading text-[15px] font-bold text-white px-6 py-3.5 rounded-full border-4 border-gold bg-transparent hover:bg-gold hover:text-deep-navy transition-all duration-300 cursor-pointer"
+                    className="w-full font-heading text-[15px] font-bold text-white dark:text-white px-6 py-3.5 rounded-full border-4 border-gold dark:border-teal bg-transparent hover:bg-gold dark:hover:bg-teal hover:text-white dark:hover:text-white transition-all duration-300 cursor-pointer"
                   >
                     Join the Waitlist →
                   </button>
@@ -395,14 +418,14 @@ export default function WaitlistPage() {
                   <circle
                     cx="50" cy="50" r="45"
                     fill="none"
-                    stroke="#4FA3A5"
+                    stroke="#00F6ED"
                     strokeWidth="4"
                     className="success-circle"
                   />
                   <path
                     d="M30 52 L44 66 L70 38"
                     fill="none"
-                    stroke="#4FA3A5"
+                    stroke="#00F6ED"
                     strokeWidth="4"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -433,7 +456,7 @@ export default function WaitlistPage() {
                 {/* Share button */}
                 <button
                   onClick={handleShare}
-                  className="font-heading text-[15px] font-bold text-white px-8 py-3 rounded-full border-4 border-gold bg-transparent hover:bg-gold hover:text-deep-navy hover:-translate-y-0.5 transition-all duration-300 cursor-pointer success-fade-up"
+                  className="font-heading text-[15px] font-bold text-white dark:text-white px-8 py-3 rounded-full border-4 border-gold dark:border-teal bg-transparent hover:bg-gold dark:hover:bg-teal hover:text-white dark:hover:text-white hover:-translate-y-0.5 transition-all duration-300 cursor-pointer success-fade-up"
                   style={{ animationDelay: '1.7s' }}
                 >
                   Tell a colleague →

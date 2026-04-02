@@ -14,7 +14,7 @@ export default function BarChart({ labels, values, height = 120 }: BarChartProps
       {labels.map((label, i) => {
         const val = values[i] || 0;
         const barH = Math.round((val / maxVal) * height);
-        const color = val > 30 ? '#4FA3A5' : val > 15 ? '#8FC4C5' : '#BFE0E1';
+        const color = val > 30 ? '#00F6ED' : val > 15 ? '#7CF6F0' : '#B3FAF7';
 
         return (
           <div key={label} className="flex-1 flex flex-col items-center gap-1.5 min-w-[28px]">

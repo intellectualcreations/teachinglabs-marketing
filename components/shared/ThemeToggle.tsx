@@ -13,7 +13,7 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
   if (!mounted) {
     return (
       <button
-        className={`w-9 h-9 rounded-lg border border-border flex items-center justify-center ${className}`}
+        className={`flex items-center justify-center ${className}`}
         aria-label="Toggle theme"
       />
     );
@@ -22,8 +22,8 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
   return (
     <button
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className={`w-9 h-9 rounded-lg border border-border flex items-center justify-center
-        text-text-secondary hover:text-text-primary hover:border-navy
+      className={`flex items-center justify-center
+        text-text-secondary hover:text-text-primary
         transition-colors cursor-pointer ${className}`}
       aria-label="Toggle dark mode"
     >

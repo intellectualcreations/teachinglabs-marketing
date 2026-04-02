@@ -3,56 +3,63 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, PencilSimple, Users, Books, ListChecks, Info, X, MagnifyingGlass, ArrowLeft, CheckCircle } from '@phosphor-icons/react';
+import { Plus, PencilSimple, Users, Books, Info, X, MagnifyingGlass, ArrowLeft, CheckCircle } from '@phosphor-icons/react';
 import ClassIcon from '@/components/shared/ClassIcon';
-import { DEMO_CLASSES } from '@/lib/demo-data';
+import { createClient } from '@/lib/supabase/client';
+import type { Class, Assignment } from '@/lib/supabase/types';
 
 const STRIPE_COLORS = ['var(--color-navy)', 'var(--color-teal)', '#F59E0B', '#E8836B'];
 
-const LIBRARY_ACTIVITIES = [
-  { name: 'Fraction Basics', subject: 'Math' },
-  { name: 'Photosynthesis Lab', subject: 'Science' },
-  { name: 'Vocabulary Builder', subject: 'ELA' },
-  { name: 'Book Report Template', subject: 'ELA' },
-  { name: 'Multiplication Practice', subject: 'Math' },
-  { name: 'States of Matter', subject: 'Science' },
-  { name: 'Creative Writing Prompt', subject: 'ELA' },
-  { name: 'Map Skills', subject: 'Social Studies' },
-  { name: 'Geometry Shapes', subject: 'Math' },
-  { name: 'Weather Patterns', subject: 'Science' },
-];
+interface ClassWithCounts extends Class {
+  studentCount: number;
+  assignmentCount: number;
+}
 
 /* ─── Modal Component ─── */
 function AddActivityModal({
   className: clsName,
-  classIndex,
+  classId,
   onClose,
 }: {
   className: string;
-  classIndex: number;
+  classId: string;
   onClose: () => void;
 }) {
   const router = useRouter();
   const [view, setView] = useState<'choose' | 'library'>('choose');
   const [search, setSearch] = useState('');
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [loadingLib, setLoadingLib] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const filtered = LIBRARY_ACTIVITIES.filter((a) =>
-    a.name.toLowerCase().includes(search.toLowerCase()) ||
-    a.subject.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    if (view === 'library') {
+      setLoadingLib(true);
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) { setLoadingLib(false); return; }
+        supabase
+          .from('assignments')
+          .select('*')
+          .eq('teacher_id', user.id)
+          .order('created_at', { ascending: false })
+          .then(({ data }) => {
+            setAssignments((data ?? []) as Assignment[]);
+            setLoadingLib(false);
+          });
+      });
+    }
+  }, [view]);
 
-  const handleAdd = (activityName: string) => {
-    setSuccessMsg(`Added to ${clsName}!`);
-    setTimeout(() => onClose(), 1500);
-  };
+  const filtered = assignments.filter((a) =>
+    a.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div
@@ -65,7 +72,6 @@ function AddActivityModal({
         style={{ backgroundColor: 'var(--color-navy-light, #1a2744)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Success overlay */}
         {successMsg && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-[#1a2744]"
             style={{ backgroundColor: 'var(--color-navy-light, #1a2744)' }}>
@@ -74,7 +80,6 @@ function AddActivityModal({
           </div>
         )}
 
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-1 rounded-lg text-text-secondary hover:text-text-primary
@@ -84,14 +89,13 @@ function AddActivityModal({
         </button>
 
         {view === 'choose' ? (
-          /* ─── Popup 1: Choose action ─── */
           <div className="p-7">
             <h2 className="font-heading font-bold text-xl text-text-primary">Add Activity</h2>
             <p className="text-sm text-text-secondary mt-1 mb-6">{clsName}</p>
 
             <div className="grid gap-3">
               <button
-                onClick={() => router.push(`/teacher/create-activity?class=${classIndex}`)}
+                onClick={() => router.push(`/teacher/create-activity?class=${classId}`)}
                 className="flex items-center gap-4 p-5 rounded-xl border-2 border-border bg-card-bg
                   hover:border-teal hover:shadow-[0_2px_12px_rgba(31,58,95,0.06)] transition-all text-left group"
               >
@@ -116,13 +120,12 @@ function AddActivityModal({
                 </div>
                 <div>
                   <div className="font-heading font-bold text-[15px] text-text-primary">Choose from Library</div>
-                  <div className="text-[13px] text-text-secondary mt-0.5">Browse ready-made activities</div>
+                  <div className="text-[13px] text-text-secondary mt-0.5">Browse your existing activities</div>
                 </div>
               </button>
             </div>
           </div>
         ) : (
-          /* ─── Popup 2: Library browser ─── */
           <div className="p-7">
             <div className="flex items-center gap-2 mb-1">
               <button
@@ -136,7 +139,6 @@ function AddActivityModal({
             </div>
             <p className="text-sm text-text-secondary mt-1 mb-4 ml-7">{clsName}</p>
 
-            {/* Search */}
             <div className="relative mb-4">
               <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input
@@ -150,26 +152,34 @@ function AddActivityModal({
               />
             </div>
 
-            {/* List */}
             <div className="max-h-[320px] overflow-y-auto -mx-2 px-2 space-y-2">
-              {filtered.length === 0 ? (
-                <p className="text-center text-sm text-text-secondary py-8">No activities match your search.</p>
+              {loadingLib ? (
+                <p className="text-center text-sm text-text-secondary py-8">Loading...</p>
+              ) : filtered.length === 0 ? (
+                <p className="text-center text-sm text-text-secondary py-8">
+                  {assignments.length === 0 ? 'No activities in your library yet.' : 'No activities match your search.'}
+                </p>
               ) : (
                 filtered.map((a) => (
                   <div
-                    key={a.name}
+                    key={a.id}
                     className="flex items-center justify-between p-3.5 rounded-xl border border-border
                       hover:border-border hover:bg-border/20 transition-colors"
                   >
                     <div>
-                      <div className="font-heading font-semibold text-[14px] text-text-primary">{a.name}</div>
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-navy/8 text-[11px]
-                        font-medium text-navy uppercase tracking-wide">
-                        {a.subject}
-                      </span>
+                      <div className="font-heading font-semibold text-[14px] text-text-primary">{a.title}</div>
+                      {a.due_date && (
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-navy/8 text-[11px]
+                          font-medium text-navy uppercase tracking-wide">
+                          Due {new Date(a.due_date).toLocaleDateString()}
+                        </span>
+                      )}
                     </div>
                     <button
-                      onClick={() => handleAdd(a.name)}
+                      onClick={() => {
+                        setSuccessMsg(`Added to ${clsName}!`);
+                        setTimeout(() => onClose(), 1500);
+                      }}
                       className="flex-shrink-0 ml-3 px-3.5 py-1.5 rounded-lg bg-teal text-white text-xs
                         font-semibold hover:bg-teal/90 transition-colors"
                     >
@@ -188,10 +198,93 @@ function AddActivityModal({
 
 /* ─── Main Page ─── */
 export default function MyClassesPage() {
-  const classes = DEMO_CLASSES;
-  const [modal, setModal] = useState<{ name: string; index: number } | null>(null);
+  const [classes, setClasses] = useState<ClassWithCounts[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [modal, setModal] = useState<{ name: string; id: string } | null>(null);
 
   const closeModal = useCallback(() => setModal(null), []);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+
+        // Fetch teacher's classes
+        const { data: classData } = await supabase
+          .from('classes')
+          .select('*')
+          .eq('teacher_id', user.id)
+          .order('created_at', { ascending: false });
+        const teacherClasses = (classData ?? []) as Class[];
+
+        if (teacherClasses.length === 0) {
+          setClasses([]);
+          setLoading(false);
+          return;
+        }
+
+        const classIds = teacherClasses.map((c) => c.id);
+
+        // Fetch enrollment counts
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: enrollmentData } = await (supabase
+          .from('enrollments')
+          .select('class_id, status') as any)
+          .in('class_id', classIds)
+          .eq('status', 'active');
+
+        const enrollCounts = new Map<string, number>();
+        ((enrollmentData ?? []) as Array<{ class_id: string; status: string }>).forEach((e) => {
+          enrollCounts.set(e.class_id, (enrollCounts.get(e.class_id) ?? 0) + 1);
+        });
+
+        // Fetch assignment counts
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: assignmentData } = await (supabase
+          .from('assignments')
+          .select('class_id') as any)
+          .in('class_id', classIds);
+
+        const assignCounts = new Map<string, number>();
+        ((assignmentData ?? []) as Array<{ class_id: string }>).forEach((a) => {
+          assignCounts.set(a.class_id, (assignCounts.get(a.class_id) ?? 0) + 1);
+        });
+
+        const classesWithCounts: ClassWithCounts[] = teacherClasses.map((c) => ({
+          ...c,
+          studentCount: enrollCounts.get(c.id) ?? 0,
+          assignmentCount: assignCounts.get(c.id) ?? 0,
+        }));
+
+        setClasses(classesWithCounts);
+      } catch (err) {
+        console.error('My classes fetch error:', err);
+        setError('Failed to load classes');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-text-secondary text-sm">Loading classes...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-red-400 text-sm">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -251,7 +344,7 @@ export default function MyClassesPage() {
                 <div>
                   <div className="font-heading font-bold text-[17px] text-text-primary">{c.name}</div>
                   <div className="text-[13px] text-text-secondary mt-0.5">
-                    {c.grade}{c.grade && c.subject ? ' · ' : ''}{c.subject}
+                    {c.grade_level}{c.grade_level && c.subject ? ' · ' : ''}{c.subject}
                   </div>
                 </div>
               </div>
@@ -263,25 +356,21 @@ export default function MyClassesPage() {
                   <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Students</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-heading font-bold text-[18px] text-navy">0</div>
+                  <div className="font-heading font-bold text-[18px] text-navy">{c.assignmentCount}</div>
                   <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Activities</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-heading font-bold text-[18px] text-navy">0</div>
-                  <div className="text-[11px] text-text-secondary uppercase tracking-[0.5px]">Active Chats</div>
                 </div>
               </div>
 
               {/* Join Code */}
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal/8 border border-teal/20
                 rounded-lg font-heading font-bold text-base tracking-[2px] text-teal mb-4">
-                {c.code}
+                {c.join_code}
               </div>
 
               {/* Actions */}
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => setModal({ name: c.name, index: i })}
+                  onClick={() => setModal({ name: c.name, id: c.id })}
                   className="inline-flex items-center gap-[5px] px-3.5 py-1.5 bg-teal text-white
                     rounded-lg text-xs font-semibold hover:bg-teal/90 transition-colors"
                 >
@@ -296,7 +385,7 @@ export default function MyClassesPage() {
                   <Info size={13} /> Class Details
                 </Link>
                 <Link
-                  href={`/teacher/edit-class?class=${i}`}
+                  href={`/teacher/edit-class?class=${c.id}`}
                   className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
                     rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
                     transition-colors"
@@ -321,7 +410,7 @@ export default function MyClassesPage() {
       {modal && (
         <AddActivityModal
           className={modal.name}
-          classIndex={modal.index}
+          classId={modal.id}
           onClose={closeModal}
         />
       )}
