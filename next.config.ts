@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const isStandalone = process.env.STANDALONE === 'true';
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: '.',
+  },
   ...(isStandalone ? { output: 'standalone' } : {}),
   async headers() {
     return [
@@ -22,6 +25,9 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
       },
     ],
+  },
+  webpack: (config) => {
+    return config;
   },
 };
 

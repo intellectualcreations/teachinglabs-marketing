@@ -28,6 +28,15 @@ export function getProgressByStudentAndCourse(studentId: string, courseId: strin
   return progressEntries.filter(e => e.studentId === studentId && e.courseId === courseId);
 }
 
+export function getStudentIdsByCourse(courseId: string): string[] {
+  return [...new Set(progressEntries.filter(e => e.courseId === courseId).map(e => e.studentId))];
+}
+
+export function getStudentProgress(studentId: string) {
+  const agg = getAggregate(studentId);
+  return { studentId, completionRate: agg.courseCompletion / 100, avgScore: agg.avgScore };
+}
+
 export function getAggregate(studentId: string) {
   const entries = getProgressByStudent(studentId);
   const completed = entries.filter(e => e.completed);
