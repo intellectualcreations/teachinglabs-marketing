@@ -140,27 +140,22 @@ async function redirectUser(
 
     const role: string = (profile as { role?: string } | null)?.role ?? 'teacher';
 
-    if (role === 'student') {
-      const onboarded = user.user_metadata?.onboarded === true;
-      if (!onboarded) {
+    // Check if this is a new signup (came from signup page)
+    const isNewSignup = localStorage.getItem('pending_role') || localStorage.getItem('pending_school_id');
+
+    if (isNewSignup) {
+      // New signups go through onboarding
+      if (role === 'student') {
         window.location.href = '/student/onboarding';
         return;
       }
-    }
-
-    if (role === 'teacher') {
-      const { data: soul } = await supabase
-        .from('teacher_souls')
-        .select('completed_at')
-        .eq('teacher_id', user.id)
-        .single() as { data: { completed_at: string | null } | null };
-
-      if (!soul?.completed_at) {
+      if (role === 'teacher') {
         window.location.href = '/teacher/onboarding';
         return;
       }
     }
 
+    // Existing users (login) go straight to dashboard
     const dashboards: Record<string, string> = {
       admin: '/admin/dashboard',
       teacher: '/teacher/dashboard',
