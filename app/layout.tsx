@@ -46,18 +46,6 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${inter.variable} ${openSans.variable} antialiased`}>
-        <script dangerouslySetInnerHTML={{ __html: `
-          (function(){
-            var mo = new MutationObserver(function(){
-              document.querySelectorAll('.fade-up:not([data-seen])').forEach(function(el){
-                el.setAttribute('data-seen','1');
-                el.style.opacity='0';
-                el.style.transform='translateY(30px)';
-              });
-            });
-            mo.observe(document.documentElement,{childList:true,subtree:true});
-          })();
-        `}} />
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
             <ServiceWorkerRegistrar />
