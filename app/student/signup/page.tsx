@@ -174,6 +174,29 @@ export default function StudentSignupPage() {
     }
   }
 
+  async function handleGoogleSignup() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+  }
+
+  async function handleMicrosoftSignup() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        scopes: 'email profile openid',
+      },
+    });
+  }
+
   const stepDots = [1, 2, 3] as const;
 
   return (
@@ -395,19 +418,30 @@ export default function StudentSignupPage() {
               Enter your email to create your account
             </p>
 
-            {/* SSO buttons — Coming Soon */}
+            {/* SSO buttons */}
             <div className="flex flex-col gap-2.5 mb-5">
-              {SSO_PROVIDERS.map(({ key, icon }) => (
-                <button
-                  key={key}
-                  disabled
-                  className="relative flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-xl border border-border bg-surface dark:bg-card-bg font-heading text-sm font-medium text-text-primary opacity-60 cursor-not-allowed"
-                >
-                  {icon}
-                  Continue with {key}
-                  <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
-                </button>
-              ))}
+              <button
+                onClick={handleGoogleSignup}
+                className="flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
+              >
+                <GoogleIcon />
+                Continue with Google
+              </button>
+              <button
+                onClick={handleMicrosoftSignup}
+                className="flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
+              >
+                <MicrosoftIcon />
+                Continue with Microsoft
+              </button>
+              <button
+                disabled
+                className="relative flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-xl border border-border bg-surface dark:bg-card-bg font-heading text-sm font-medium text-text-primary opacity-60 cursor-not-allowed"
+              >
+                <ClassLinkIcon />
+                Continue with ClassLink
+                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
+              </button>
             </div>
 
             {/* Divider */}

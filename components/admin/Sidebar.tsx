@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: 'Users', href: '/admin/users', icon: 'users' },
   { label: 'Courses', href: '/admin/courses', icon: 'book' },
   { label: 'Analytics', href: '/admin/analytics', icon: 'chart' },
+  { label: 'Waitlist', href: '/admin/waitlist', icon: 'clipboard' },
   { label: 'Back to App', href: '/app-index', icon: 'arrow-left' },
 ];
 
@@ -46,6 +47,13 @@ function NavIcon({ icon, size = 20 }: { icon: string; size?: number }) {
           <line x1="18" y1="20" x2="18" y2="10" />
           <line x1="12" y1="20" x2="12" y2="4" />
           <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+      );
+    case 'clipboard':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
         </svg>
       );
     case 'arrow-left':

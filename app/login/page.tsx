@@ -113,15 +113,25 @@ export default function LoginPage() {
     }
   }
 
-  function handleGoogleSignIn() {
-    // Keep next-auth Google for now; will migrate later
-    const { signIn } = require('next-auth/react');
-    signIn('google', { callbackUrl: '/dashboard' });
+  async function handleGoogleSignIn() {
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
   }
 
-  function handleSSOLogin() {
-    // Placeholder for Microsoft/ClassLink SSO
-    window.location.href = '/teacher/dashboard';
+  async function handleMicrosoftSignIn() {
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        scopes: 'email profile openid',
+      },
+    });
   }
 
   return (
@@ -153,23 +163,21 @@ export default function LoginPage() {
 
         {mode === 'options' && !sent && (
           <>
-            {/* SSO Buttons — Coming Soon */}
+            {/* SSO Buttons */}
             <div className="flex flex-col gap-3 mb-6">
               <button
-                disabled
-                className="relative flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg opacity-60 cursor-not-allowed font-heading text-sm font-medium text-text-primary"
+                onClick={handleGoogleSignIn}
+                className="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
               >
                 <GoogleIcon />
                 Sign in with Google
-                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
               </button>
               <button
-                disabled
-                className="relative flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg opacity-60 cursor-not-allowed font-heading text-sm font-medium text-text-primary"
+                onClick={handleMicrosoftSignIn}
+                className="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
               >
                 <MicrosoftIcon />
                 Sign in with Microsoft
-                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
               </button>
               <button
                 disabled
