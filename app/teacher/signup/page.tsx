@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ChalkboardTeacher, ArrowLeft, MagnifyingGlass, CircleNotch, CheckCircle, EnvelopeSimple } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
@@ -367,7 +368,7 @@ export default function TeacherSignupPage() {
   return (
     <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12 relative">
       {/* Theme toggle */}
-      <ThemeToggle className="absolute top-6 right-6" />
+      <ThemeToggle className="absolute top-6 right-6 z-50" />
 
       {/* Back link */}
       <div className="w-full max-w-[460px] mb-4">
@@ -385,17 +386,23 @@ export default function TeacherSignupPage() {
       </div>
 
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center flex-shrink-0">
-          <svg viewBox="0 0 512 512" fill="none" className="w-6 h-6">
-            <g transform="translate(156,106)">
-              <rect x="60" y="0" width="80" height="300" fill="#FFF" />
-              <rect x="40" y="0" width="160" height="80" fill="#FFF" />
-              <circle cx="160" cy="200" r="40" fill="#4FA3A5" />
-            </g>
-          </svg>
-        </div>
-        <span className="font-heading font-bold text-xl text-text-primary">TeachingLabs</span>
+      <Link href="/" className="mb-6">
+        <Image
+          src="/images/logo-stacked-light.png"
+          alt="TeachingLabs"
+          width={220}
+          height={220}
+          className="w-[160px] sm:w-[200px] h-auto dark:hidden"
+          priority
+        />
+        <Image
+          src="/images/logo-stacked-dark.png"
+          alt="TeachingLabs"
+          width={220}
+          height={220}
+          className="w-[160px] sm:w-[200px] h-auto hidden dark:block"
+          priority
+        />
       </Link>
 
       {/* Step dots */}
@@ -647,9 +654,9 @@ export default function TeacherSignupPage() {
               Next
             </button>
 
-            <p className="text-center text-sm text-text-secondary mt-5">
+            <p className="text-center text-base text-text-secondary mt-5">
               Already have an account?{' '}
-              <Link href="/login" className="text-teal font-medium hover:underline">Log in</Link>
+              <Link href="/login" className="text-[#4FA3A5] font-bold hover:underline">Log in</Link>
             </p>
           </div>
         )}
@@ -732,9 +739,9 @@ export default function TeacherSignupPage() {
               )}
             </button>
 
-            <p className="text-center text-sm text-text-secondary mt-5">
+            <p className="text-center text-base text-text-secondary mt-5">
               Already have an account?{' '}
-              <Link href="/login" className="text-teal font-medium hover:underline">Log in</Link>
+              <Link href="/login" className="text-[#4FA3A5] font-bold hover:underline">Log in</Link>
             </p>
           </div>
         )}
@@ -770,11 +777,11 @@ export default function TeacherSignupPage() {
       </div>
 
       {/* Legal */}
-      <p className="text-xs text-text-muted text-center max-w-sm mt-10 leading-relaxed">
+      <p className="text-sm text-text-muted text-center max-w-sm mt-10 leading-relaxed">
         By creating an account, you agree to our{' '}
-        <Link href="#" className="text-teal hover:underline">Terms of Service</Link>,{' '}
-        <Link href="#" className="text-teal hover:underline">Privacy Policy</Link>, and{' '}
-        <Link href="#" className="text-teal hover:underline">Data Protection Addendum</Link>.
+        <Link href="#" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">Terms of Service</Link>,{' '}
+        <Link href="#" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">Privacy Policy</Link>,<br />
+        and <Link href="#" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">Data Protection Addendum</Link>.
       </p>
 
       <style jsx global>{`
