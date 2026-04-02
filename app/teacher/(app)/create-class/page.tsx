@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   MathOperations, BookOpenText, Flask, GlobeHemisphereWest, PencilLine,
@@ -74,6 +74,8 @@ export default function CreateClassPage() {
   const [subject, setSubject] = useState('');
   const [grade, setGrade] = useState('');
   const [desc, setDesc] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [originalDesc, setOriginalDesc] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [createdClass, setCreatedClass] = useState<{
@@ -260,12 +262,64 @@ export default function CreateClassPage() {
               </label>
               <textarea
                 value={desc}
-                onChange={(e) => setDesc(e.target.value)}
+                onChange={(e) => { setDesc(e.target.value); if (originalDesc !== null) setOriginalDesc(null); }}
                 placeholder="e.g. We'll explore fractions, decimals, and geometry this semester."
                 rows={3}
                 className="w-full px-3 py-2.5 border-[1.5px] border-border rounded-lg text-[14px]
                   bg-surface text-text-primary outline-none focus:border-navy transition-colors resize-y"
               />
+              {desc.trim().length > 10 && (
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    type="button"
+                    disabled={aiLoading}
+                    onClick={async () => {
+                      setAiLoading(true);
+                      setOriginalDesc(desc);
+                      try {
+                        const res = await fetch('/api/v1/ai/improve-text', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            text: desc,
+                            context: `Class: ${className}${subject ? `, Subject: ${subject}` : ''}${grade ? `, Grade: ${grade}` : ''}`,
+                            type: 'class-description',
+                          }),
+                        });
+                        const data = await res.json();
+                        if (data.improved) setDesc(data.improved);
+                      } catch { /* ignore */ }
+                      setAiLoading(false);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-navy dark:text-teal
+                      hover:text-navy/80 dark:hover:text-teal/80 transition-colors disabled:opacity-50"
+                  >
+                    {aiLoading ? (
+                      <>
+                        <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Improving...
+                      </>
+                    ) : (
+                      <>
+                        <Lightbulb size={14} weight="fill" />
+                        Improve with AI
+                      </>
+                    )}
+                  </button>
+                  {originalDesc !== null && !aiLoading && (
+                    <button
+                      type="button"
+                      onClick={() => { setDesc(originalDesc); setOriginalDesc(null); }}
+                      className="text-xs text-text-secondary hover:text-text-primary transition-colors"
+                    >
+                      Undo
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {error && (

@@ -82,9 +82,9 @@ export default function Sidebar() {
             <Image
               src="/images/logo-horizontal-light.png"
               alt="TeachingLabs"
-              width={160}
-              height={40}
-              className="h-8 w-auto"
+              width={320}
+              height={80}
+              className="h-16 w-auto"
             />
           </div>
         </div>

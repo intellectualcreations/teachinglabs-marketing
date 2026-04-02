@@ -149,7 +149,9 @@ async function redirectUser(
     if (pendingRole && (!profile || (profile as { role?: string })?.role !== pendingRole)) {
       updates.role = pendingRole;
     }
-    if (fullName && !(profile as { display_name?: string })?.display_name) {
+    const currentName = (profile as { display_name?: string })?.display_name || '';
+    // Update display name if it's missing, is an email address, or we have a better name from SSO
+    if (fullName && (!currentName || currentName.includes('@'))) {
       updates.display_name = fullName;
     }
     if (pendingSchool) {
