@@ -11,11 +11,10 @@ export default function ScrollReveal() {
     initialized.current = true;
 
     function reveal(el: Element) {
-      animate(
-        el,
-        { opacity: 1, transform: 'translateY(0px)' },
-        { duration: 0.6, easing: 'ease-out' }
-      );
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+      htmlEl.style.opacity = '1';
+      htmlEl.style.transform = 'translateY(0px)';
     }
 
     function setup(el: Element) {

@@ -13,12 +13,12 @@ function isValidEmail(email: string): boolean {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { firstName, lastName, email, schoolName, gradeLevel, state, howHeard } = body;
+    const { firstName, lastName, role, email } = body;
 
     // Validate required fields
-    if (!firstName || !lastName || !email) {
+    if (!firstName || !lastName || !role || !email) {
       return NextResponse.json(
-        { error: 'First name, last name, and email are required.' },
+        { error: 'All fields are required.' },
         { status: 400 }
       );
     }
@@ -33,11 +33,8 @@ export async function POST(req: NextRequest) {
     const { error } = await supabase.from('waitlist').insert({
       first_name: firstName.trim(),
       last_name: lastName.trim(),
+      role: role.trim(),
       email: email.trim().toLowerCase(),
-      school_name: schoolName?.trim() || null,
-      grade_level: gradeLevel || null,
-      state: state || null,
-      how_heard: howHeard?.trim() || null,
     });
 
     if (error) {

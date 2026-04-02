@@ -180,7 +180,7 @@ export default function WaitlistPage() {
 
   const handleShare = () => {
     const shareText = 'I just joined the Teaching Labs waitlist! AI teaching assistants that adapt to every student. Check it out:';
-    const shareUrl = 'https://teachinglabs.ai/waitlist';
+    const shareUrl = 'https://teachinglabs.com/waitlist';
     if (navigator.share) {
       navigator.share({ title: 'Teaching Labs', text: shareText, url: shareUrl });
     } else {
@@ -201,18 +201,18 @@ export default function WaitlistPage() {
       <nav className="sticky top-0 z-50 border-b border-border/10 backdrop-blur-2xl"
         style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface) 97%, transparent)' }}>
         <div className="max-w-[1200px] mx-auto px-12 h-[72px] flex items-center justify-between max-md:px-6">
-          <a href="https://teaching-labs-vps.tail6d84e.ts.net/preview/pages/v4/index.html" className="flex items-center">
+          <Link href="/" className="flex items-center">
             <img src="/images/logo-horizontal-dark.png" alt="Teaching Labs" className="h-[44px] w-auto dark:hidden" />
             <img src="/images/logo-horizontal-light.png" alt="Teaching Labs" className="h-[44px] w-auto hidden dark:block" />
-          </a>
+          </Link>
           <div className="flex items-center gap-6 max-md:hidden">
-            <a href="https://teaching-labs-vps.tail6d84e.ts.net/preview/pages/v4/index.html" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">Home</a>
-            <a href="https://teaching-labs-vps.tail6d84e.ts.net/preview/pages/v4/for-teachers.html" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Teachers</a>
-            <a href="https://teaching-labs-vps.tail6d84e.ts.net/preview/pages/v4/for-students.html" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Students</a>
-            <a href="https://teaching-labs-vps.tail6d84e.ts.net/preview/pages/v4/for-districts.html" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Districts</a>
-            <a href="https://teaching-labs-vps.tail6d84e.ts.net/preview/pages/v4/for-parents.html" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Parents</a>
-            <a href="https://teaching-labs-vps.tail6d84e.ts.net/preview/pages/v4/our-story.html" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">About</a>
-            <a href="https://teaching-labs-vps.tail6d84e.ts.net/preview/pages/v4/contact.html" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">Contact</a>
+            <Link href="/" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">Home</Link>
+            <Link href="/for-teachers" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Teachers</Link>
+            <Link href="/for-students" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Students</Link>
+            <Link href="/for-districts" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Districts</Link>
+            <Link href="/for-parents" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">For Parents</Link>
+            <Link href="/our-story" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">About</Link>
+            <Link href="/contact" className="font-heading text-[13px] font-medium text-text-secondary hover:text-gold dark:hover:text-teal transition-colors duration-200">Contact</Link>
           </div>
           <div className="flex items-center gap-3">
             <span className="font-heading text-[14px] font-semibold text-white bg-gold px-5 py-2.5 rounded-full max-md:hidden">Join Waitlist</span>
