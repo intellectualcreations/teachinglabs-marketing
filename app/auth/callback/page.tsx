@@ -35,8 +35,8 @@ export default function AuthCallbackPage() {
           || hashParams?.get('error_description')
           || 'Unknown error';
         console.error('Auth error:', errorDesc);
-        setStatus('Link expired or invalid. Redirecting to signup...');
-        setTimeout(() => { window.location.href = '/teacher/signup'; }, 2500);
+        setStatus(`Sign-in issue: ${errorDesc}. Redirecting to login...`);
+        setTimeout(() => { window.location.href = '/login'; }, 3000);
         return;
       }
 
@@ -104,12 +104,12 @@ export default function AuthCallbackPage() {
         }
       );
 
-      // Timeout after 8 seconds
+      // Timeout after 12 seconds
       setTimeout(() => {
         subscription.unsubscribe();
-        setStatus('Link expired or invalid. Redirecting to signup...');
-        setTimeout(() => { window.location.href = '/teacher/signup'; }, 2500);
-      }, 8000);
+        setStatus('Taking longer than expected. Redirecting to login...');
+        setTimeout(() => { window.location.href = '/login'; }, 2500);
+      }, 12000);
     }
 
     handleCallback();
