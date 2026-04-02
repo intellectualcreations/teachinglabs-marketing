@@ -42,7 +42,11 @@ export default function DashboardPage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+        if (!user) {
+          // Redirect to login if not authenticated
+          window.location.href = '/login';
+          return;
+        }
 
         // Fetch profile
         const { data: profileData } = await supabase
@@ -147,7 +151,7 @@ export default function DashboardPage() {
   const showing = filtered.slice(0, showCount);
 
   // Derive teacher display name
-  const teacherFirstName = profile?.display_name?.split(' ')[0] ?? 'Teacher';
+  const teacherFirstName = profile?.display_name?.split(' ')[0] || profile?.first_name || 'Teacher';
   const initials = profile?.display_name
     ? profile.display_name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
     : 'T';
