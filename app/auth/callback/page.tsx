@@ -18,6 +18,8 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     async function handleCallback() {
+      // Small delay to avoid auth lock race with other components
+      await new Promise(r => setTimeout(r, 300));
       const supabase = createClient();
       const hash = window.location.hash;
       const params = new URLSearchParams(window.location.search);
