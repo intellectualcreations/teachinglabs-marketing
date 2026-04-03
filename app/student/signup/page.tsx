@@ -6,6 +6,7 @@ import {
   CheckCircle, CaretLeft, ArrowRight, CircleNotch, EnvelopeSimple,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import { createClient } from '@/lib/supabase/client';
 
@@ -228,18 +229,24 @@ export default function StudentSignupPage() {
       </div>
 
       {/* Logo */}
-      <div className="flex items-center gap-2 mb-6">
-        <div className="w-8 h-8 bg-navy rounded-lg flex items-center justify-center">
-          <svg viewBox="0 0 512 512" fill="none" className="w-5 h-5">
-            <g transform="translate(156,106)">
-              <rect x="60" y="0" width="80" height="300" fill="#FFF" />
-              <rect x="40" y="0" width="160" height="80" fill="#FFF" />
-              <circle cx="160" cy="200" r="40" fill="#4FA3A5" />
-            </g>
-          </svg>
-        </div>
-        <span className="font-heading font-bold text-navy dark:text-text-primary text-lg">TeachingLabs</span>
-      </div>
+      <Link href="/" className="mb-6">
+        <Image
+          src="/images/logo-stacked-light.png"
+          alt="TeachingLabs"
+          width={220}
+          height={220}
+          className="w-[160px] sm:w-[200px] h-auto dark:hidden"
+          priority
+        />
+        <Image
+          src="/images/logo-stacked-dark.png"
+          alt="TeachingLabs"
+          width={220}
+          height={220}
+          className="w-[160px] sm:w-[200px] h-auto hidden dark:block"
+          priority
+        />
+      </Link>
 
       {/* Stepper */}
       <div className="flex gap-2 mb-6">
@@ -254,8 +261,8 @@ export default function StudentSignupPage() {
       <div className="w-full max-w-[460px]">
         {/* Role badge */}
         <div className="text-center mb-6">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-teal/10 text-teal rounded-full font-heading text-xs font-semibold">
-            <GraduationCap size={14} weight="fill" />
+          <span className="inline-flex items-center gap-2.5 px-6 py-3 bg-teal/10 text-teal rounded-full font-heading text-xl font-bold tracking-wide">
+            <GraduationCap size={24} weight="fill" />
             Student Account
           </span>
         </div>
