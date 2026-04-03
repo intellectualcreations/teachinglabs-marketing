@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ChatCircle, ArrowRight, PaperPlaneRight, SpeakerHigh, Microphone } from '@phosphor-icons/react';
+import { ChatCircle, ArrowRight, PaperPlaneRight, SpeakerHigh, Microphone, Gear } from '@phosphor-icons/react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -812,6 +812,23 @@ function personalizeGeneralQuestions(
   };
 }
 
+// ─── Voice Helpers ───────────────────────────────────────────────────────────
+
+const FEMALE_VOICE_HINTS = ['samantha', 'victoria', 'karen', 'allison', 'ava', 'alice', 'veena', 'moira', 'tessa', 'fiona', 'kate', 'sarah', 'susan', 'zira', 'female', 'aria', 'jenny', 'emma', 'libby', 'sonia', 'hazel', 'neerja', 'heera'];
+const MALE_VOICE_HINTS = ['daniel', 'alex', 'bruce', 'fred', 'junior', 'ralph', 'tom', 'david', 'lee', 'paul', 'james', 'aaron', 'male', 'rishi', 'george', 'ryan', 'liam', 'arthur', 'oliver'];
+
+function getVoiceGender(name: string): 'Female' | 'Male' | 'Neutral' {
+  const lower = name.toLowerCase();
+  if (FEMALE_VOICE_HINTS.some(h => lower.includes(h))) return 'Female';
+  if (MALE_VOICE_HINTS.some(h => lower.includes(h))) return 'Male';
+  return 'Neutral';
+}
+
+function getFriendlyVoiceLabel(voice: SpeechSynthesisVoice, index: number): string {
+  const gender = getVoiceGender(voice.name);
+  return `Voice ${index + 1} (${gender})`;
+}
+
 // ─── Confetti Component ──────────────────────────────────────────────────────
 
 function Confetti() {
@@ -895,6 +912,31 @@ export default function OnboardingPage() {
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
   const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
+  // Voice picker state
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceURI, setSelectedVoiceURI] = useState('');
+  const [showVoicePanel, setShowVoicePanel] = useState(false);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+
+  const handleVoiceChange = useCallback((uri: string) => {
+    setSelectedVoiceURI(uri);
+    localStorage.setItem('tts_voice_uri', uri);
+  }, []);
+
+  const handleVoicePreview = useCallback(() => {
+    if (!ttsSupported || !selectedVoiceURI) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance("Hello! I'm your Learning Lab Coach");
+    utt.rate = 0.95;
+    utt.pitch = 1.0;
+    const v = window.speechSynthesis.getVoices().find(voice => voice.voiceURI === selectedVoiceURI);
+    if (v) utt.voice = v;
+    utt.onend = () => setIsPreviewPlaying(false);
+    utt.onerror = () => setIsPreviewPlaying(false);
+    setIsPreviewPlaying(true);
+    window.speechSynthesis.speak(utt);
+  }, [ttsSupported, selectedVoiceURI]);
+
   const speakMessage = useCallback((msgId: string, text: string) => {
     if (!ttsSupported) return;
     window.speechSynthesis.cancel();
@@ -905,11 +947,15 @@ export default function OnboardingPage() {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.95;
     utterance.pitch = 1.0;
+    if (selectedVoiceURI) {
+      const v = window.speechSynthesis.getVoices().find(voice => voice.voiceURI === selectedVoiceURI);
+      if (v) utterance.voice = v;
+    }
     utterance.onend = () => setSpeakingMsgId(null);
     utterance.onerror = () => setSpeakingMsgId(null);
     setSpeakingMsgId(msgId);
     window.speechSynthesis.speak(utterance);
-  }, [speakingMsgId, ttsSupported]);
+  }, [speakingMsgId, ttsSupported, selectedVoiceURI]);
 
   // Speech-to-Text
   const [isListening, setIsListening] = useState(false);
@@ -981,6 +1027,24 @@ export default function OnboardingPage() {
       stopListening();
     }
   }, [isListening, sttSupported, stopListening]);
+
+  // Load available voices for voice picker
+  useEffect(() => {
+    if (!ttsSupported) return;
+    const loadVoices = () => {
+      const allVoices = window.speechSynthesis.getVoices();
+      const english = allVoices.filter(v => v.lang.startsWith('en'));
+      if (english.length === 0) return;
+      setVoices(english);
+      const saved = localStorage.getItem('tts_voice_uri');
+      const match = saved ? english.find(v => v.voiceURI === saved) : null;
+      setSelectedVoiceURI(prev => prev || (match ? match.voiceURI : english[0].voiceURI));
+    };
+    loadVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+    return () => { window.speechSynthesis.removeEventListener('voiceschanged', loadVoices); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Cleanup voice APIs on unmount
   useEffect(() => {
@@ -1325,10 +1389,67 @@ export default function OnboardingPage() {
             <div className="font-heading font-semibold text-sm text-text-primary">Teaching Labs Coach</div>
             <div className="text-xs text-text-secondary">I'm here to help you learn!</div>
           </div>
-          <span className="px-2.5 py-1 bg-teal/10 text-teal rounded-full text-xs font-semibold">
-            {step === 'icebreaker' ? '👋 Intro' : step === 'reading' ? '📚 Reading' : step === 'math' ? '🧮 Math' : step === 'writing' ? '✍️ Writing' : '🎉 Done!'}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="px-2.5 py-1 bg-teal/10 text-teal rounded-full text-xs font-semibold">
+              {step === 'icebreaker' ? '👋 Intro' : step === 'reading' ? '📚 Reading' : step === 'math' ? '🧮 Math' : step === 'writing' ? '✍️ Writing' : '🎉 Done!'}
+            </span>
+            {ttsSupported && (
+              <button
+                type="button"
+                onClick={() => setShowVoicePanel(v => !v)}
+                className={`p-1.5 rounded-full transition-colors ${
+                  showVoicePanel
+                    ? 'text-teal bg-teal/10'
+                    : 'text-text-muted hover:text-teal hover:bg-teal/10'
+                }`}
+                title="Voice settings"
+              >
+                <Gear size={16} weight={showVoicePanel ? 'fill' : 'regular'} />
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Voice Settings Panel */}
+        {showVoicePanel && ttsSupported && (
+          <div className="mb-4 p-3 bg-card-bg dark:bg-[#1A2332] border border-border dark:border-[#2A3A4E] rounded-xl animate-[fadeUp_0.2s_ease-out]">
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <Gear size={13} className="text-teal" />
+              <span className="text-xs font-semibold text-text-primary">Voice Settings</span>
+            </div>
+            {voices.length === 0 ? (
+              <p className="text-xs text-text-muted">Loading voices…</p>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedVoiceURI}
+                    onChange={e => handleVoiceChange(e.target.value)}
+                    className="flex-1 text-xs px-3 py-2 border border-border dark:border-[#2A3A4E] rounded-lg bg-warm-white dark:bg-[#0B1426] text-text-primary outline-none focus:border-teal transition-colors"
+                  >
+                    {voices.map((voice, i) => (
+                      <option key={voice.voiceURI} value={voice.voiceURI}>
+                        {getFriendlyVoiceLabel(voice, i)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleVoicePreview}
+                    disabled={isPreviewPlaying || !selectedVoiceURI}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-teal/10 text-teal rounded-lg text-xs font-medium hover:bg-teal/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                  >
+                    <SpeakerHigh size={13} weight={isPreviewPlaying ? 'fill' : 'regular'} className={isPreviewPlaying ? 'animate-pulse' : ''} />
+                    {isPreviewPlaying ? 'Playing…' : 'Preview'}
+                  </button>
+                </div>
+                {voices.length === 1 && (
+                  <p className="text-xs text-text-muted mt-1.5">Only one voice is available in your browser.</p>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         {/* Progress */}
         <div className="mb-4">
