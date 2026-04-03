@@ -21,7 +21,7 @@ export default function LibraryPage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+        if (!user) { window.location.href = '/login'; return; setLoading(false); return; }
 
         // Fetch library data via admin API route (bypasses RLS)
         const res = await fetch(`/api/teacher/library?teacherId=${user.id}`);

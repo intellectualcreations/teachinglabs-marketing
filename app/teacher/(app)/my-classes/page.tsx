@@ -210,7 +210,7 @@ export default function MyClassesPage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+        if (!user) { window.location.href = '/login'; return; setLoading(false); return; }
 
         // Fetch teacher's classes with counts via API route (bypasses RLS)
         const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}`);

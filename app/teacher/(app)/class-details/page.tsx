@@ -340,7 +340,7 @@ function ClassDetailsContent() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          setError('Not authenticated');
+          window.location.href = '/login'; return;
           setLoading(false);
           return;
         }
