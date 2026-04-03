@@ -963,8 +963,10 @@ export default function OnboardingPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const sttSupported = typeof window !== 'undefined' &&
-    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+  const [sttSupported, setSttSupported] = useState(false);
+  useEffect(() => {
+    setSttSupported('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+  }, []);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
