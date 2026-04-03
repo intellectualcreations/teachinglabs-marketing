@@ -51,8 +51,10 @@ export default function AuthCallbackPage() {
         });
         if (error) {
           console.error('Token verification failed:', error.message);
-          setStatus('Link expired or invalid. Redirecting to signup...');
-          setTimeout(() => { window.location.href = '/teacher/signup'; }, 2500);
+          setStatus('Link expired or invalid. Redirecting to login...');
+          const signupRole = localStorage.getItem('pending_role');
+          const dest = signupRole === 'student' ? '/student/signup' : '/login';
+          setTimeout(() => { window.location.href = dest; }, 2500);
           return;
         }
         // Session is now set
