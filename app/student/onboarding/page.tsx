@@ -1322,8 +1322,8 @@ export default function OnboardingPage() {
             <ChatCircle size={24} weight="fill" className="text-white" />
           </div>
           <div className="flex-1">
-            <div className="font-heading font-semibold text-sm text-text-primary">Your Learning Assistant</div>
-            <div className="text-xs text-text-secondary">Getting to know you</div>
+            <div className="font-heading font-semibold text-sm text-text-primary">Learning Lab Coach</div>
+            <div className="text-xs text-text-secondary">I'm here to help you learn!</div>
           </div>
           <span className="px-2.5 py-1 bg-teal/10 text-teal rounded-full text-xs font-semibold">
             {step === 'icebreaker' ? '👋 Intro' : step === 'reading' ? '📚 Reading' : step === 'math' ? '🧮 Math' : step === 'writing' ? '✍️ Writing' : '🎉 Done!'}
