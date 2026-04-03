@@ -494,6 +494,18 @@ function useTTS() {
   return { speak, stop };
 }
 
+
+/* Name safety check */
+const BLOCKED_NAME_PATTERNS = [
+  /\b(ass|damn|hell|shit|fuck|bitch|crap|dick|cock|pussy|bastard|slut|whore|fag|retard|kill|die|hate|stupid|dumb|idiot|loser)\b/i,
+  /^(admin|teacher|god|satan|devil|test|null|undefined|root|system)$/i,
+];
+
+function isNameInappropriate(name: string): boolean {
+  const cleaned = name.trim().toLowerCase();
+  if (cleaned.length < 1 || cleaned.length > 30) return false;
+  return BLOCKED_NAME_PATTERNS.some(p => p.test(cleaned));
+}
 /* ─── Main component ─────────────────────────────────────────────────────────── */
 
 export default function StudentOnboardingPage() {
@@ -630,6 +642,8 @@ export default function StudentOnboardingPage() {
 
     const profile = {
       student_name: answers.name,
+      preferred_name: answers.name,
+      name_flagged: isNameInappropriate(answers.name),
       age: answers.age,
       interests: answers.interests,
       theme: selectedTheme,
@@ -1173,14 +1187,14 @@ function NameAgeScreen({
 }) {
   return (
     <div className="max-w-lg mx-auto w-full">
-      <CoachBubble text="Hey! Let's start simple — what's your name, and how old are you? 👋" />
+      <CoachBubble text="What would you like me to call you? It can be your name, a nickname, whatever you go by! 😊" />
       <div className="space-y-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
         {/* Name input */}
         <div>
-          <label className="block text-text-secondary text-sm font-medium mb-2">Your name</label>
+          <label className="block text-text-secondary text-sm font-medium mb-2">What should I call you?</label>
           <input
             type="text" value={name} onChange={e => onNameChange(e.target.value)}
-            placeholder="Type your name here..." autoFocus
+            placeholder="Your name or nickname..." autoFocus
             className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors text-base"
           />
         </div>
