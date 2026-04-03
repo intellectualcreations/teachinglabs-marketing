@@ -30,8 +30,14 @@ import {
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface Standard {
+  id: string;
   code: string;
-  text: string;
+  shortCode: string;
+  title: string;
+  description: string;
+  subject: string;
+  gradeLevel: string;
+  framework: string;
 }
 
 interface UploadedFile {
@@ -45,47 +51,14 @@ interface LinkRow {
   label: string;
 }
 
-// ─── Standards database ───────────────────────────────────────────────────────
-
-const STANDARDS_DB: Standard[] = [
-  { code: '5.NF.A.1', text: 'Add and subtract fractions with unlike denominators' },
-  { code: '5.NF.A.2', text: 'Solve word problems involving addition and subtraction of fractions' },
-  { code: '5.NF.B.3', text: 'Interpret a fraction as division of the numerator by the denominator' },
-  { code: '5.NF.B.4', text: 'Apply and extend previous understandings of multiplication to multiply a fraction' },
-  { code: '5.NF.B.5', text: 'Interpret multiplication as scaling (resizing)' },
-  { code: '5.NF.B.6', text: 'Solve real world problems involving multiplication of fractions and mixed numbers' },
-  { code: '5.NF.B.7', text: 'Apply and extend previous understandings of division to divide unit fractions' },
-  { code: '5.OA.A.1', text: 'Use parentheses, brackets, or braces in numerical expressions' },
-  { code: '5.OA.A.2', text: 'Write simple expressions that record calculations with numbers' },
-  { code: '5.NBT.A.1', text: 'Recognize that in a multi-digit number, a digit in one place represents 10 times' },
-  { code: '5.NBT.B.5', text: 'Fluently multiply multi-digit whole numbers' },
-  { code: '5.NBT.B.7', text: 'Add, subtract, multiply, and divide decimals to hundredths' },
-  { code: '4.NF.A.1', text: 'Explain why a fraction a/b is equivalent to (n x a)/(n x b)' },
-  { code: '4.NF.A.2', text: 'Compare two fractions with different numerators and different denominators' },
-  { code: '4.NF.B.3', text: 'Understand a fraction a/b with a > 1 as a sum of fractions 1/b' },
-  { code: '4.NF.B.4', text: 'Apply and extend previous understandings of multiplication to multiply a fraction by a whole number' },
-  { code: '6.RP.A.1', text: 'Understand the concept of a ratio' },
-  { code: '6.RP.A.2', text: 'Understand the concept of a unit rate' },
-  { code: '6.RP.A.3', text: 'Use ratio and rate reasoning to solve real-world problems' },
-  { code: '6.EE.A.1', text: 'Write and evaluate numerical expressions involving whole-number exponents' },
-  { code: '6.EE.A.2', text: 'Write, read, and evaluate expressions in which letters stand for numbers' },
-  { code: 'RL.5.1', text: 'Quote accurately from a text when explaining what the text says' },
-  { code: 'RL.5.2', text: 'Determine a theme of a story, drama, or poem from details in the text' },
-  { code: 'RL.5.3', text: 'Compare and contrast two or more characters, settings, or events' },
-  { code: 'RI.5.1', text: 'Quote accurately from a text when explaining inferences drawn from the text' },
-  { code: 'W.5.1', text: 'Write opinion pieces on topics or texts, supporting a point of view with reasons' },
-  { code: 'W.5.2', text: 'Write informative/explanatory texts to examine a topic' },
-  { code: 'W.5.3', text: 'Write narratives to develop real or imagined experiences or events' },
-  { code: '5-ESS1-1', text: 'Support an argument that the apparent brightness of the sun and stars is related to their distance' },
-  { code: '5-PS1-1', text: 'Develop a model to describe that matter is made of particles too small to be seen' },
-  { code: '5-LS1-1', text: 'Support an argument that plants get the materials they need for growth from water and air' },
-];
-
-const SUGGESTED_STANDARDS: Standard[] = [
-  { code: '5.NF.A.1', text: 'Add and subtract fractions with unlike denominators' },
-  { code: '5.NF.A.2', text: 'Solve word problems involving addition and subtraction of fractions' },
-  { code: '4.NF.B.3', text: 'Understand a fraction a/b with a > 1 as a sum of fractions 1/b' },
-];
+// ─── Standards (fetched from API) ─────────────────────────────────────────────
+// Helper to get display text for a standard
+function stdText(s: Standard) {
+  return s.title || s.description;
+}
+function stdCode(s: Standard) {
+  return s.shortCode || s.code;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -134,8 +107,17 @@ export default function CreateActivityPage() {
   // Standards
   const [selectedStandards, setSelectedStandards] = useState<Standard[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestedStandards, setSuggestedStandards] = useState<Standard[]>([]);
   const [standardsSearch, setStandardsSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchResults, setSearchResults] = useState<Standard[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [subjectFilter, setSubjectFilter] = useState('');
+  const [gradeFilter, setGradeFilter] = useState('');
+  const [frameworkFilter, setFrameworkFilter] = useState('');
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
+  const [availableGrades, setAvailableGrades] = useState<string[]>([]);
+  const [availableFrameworks, setAvailableFrameworks] = useState<string[]>([]);
 
   // Links
   const [linkRows, setLinkRows] = useState<LinkRow[]>([{ id: uid(), url: '', label: '' }]);
@@ -153,14 +135,62 @@ export default function CreateActivityPage() {
 
   const searchRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load filter options on mount
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/standards?subjects=true').then((r) => r.json()),
+      fetch('/api/standards?grades=true').then((r) => r.json()),
+      fetch('/api/standards?frameworks=true').then((r) => r.json()),
+    ]).then(([subj, gr, fw]) => {
+      setAvailableSubjects(subj.subjects || []);
+      setAvailableGrades(gr.grades || []);
+      setAvailableFrameworks(fw.frameworks || []);
+    });
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (standardsSearch.length < 2 && !subjectFilter && !gradeFilter && !frameworkFilter) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchLoading(true);
+    debounceRef.current = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (standardsSearch.length >= 2) params.set('q', standardsSearch);
+      if (subjectFilter) params.set('subject', subjectFilter);
+      if (gradeFilter) params.set('grade', gradeFilter);
+      if (frameworkFilter) params.set('framework', frameworkFilter);
+      fetch(`/api/standards?${params.toString()}`)
+        .then((r) => r.json())
+        .then((data) => {
+          setSearchResults((data.standards || []).slice(0, 12));
+          setSearchLoading(false);
+          if (data.standards?.length > 0) setShowDropdown(true);
+        })
+        .catch(() => setSearchLoading(false));
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [standardsSearch, subjectFilter, gradeFilter, frameworkFilter]);
 
   // ── File handling ────────────────────────────────────────────────────────────
 
   function addFiles(fileList: FileList) {
     const newFiles: UploadedFile[] = Array.from(fileList).map((f) => ({ name: f.name, size: f.size }));
     setUploadedFiles((prev) => [...prev, ...newFiles]);
-    // Simulate Teaching Twin analysis
-    setTimeout(() => setShowSuggestions(true), 800);
+    // Simulate Teaching Twin analysis — fetch suggested standards
+    setTimeout(() => {
+      fetch('/api/standards?q=fractions&subject=Math&grade=5')
+        .then((r) => r.json())
+        .then((data) => {
+          setSuggestedStandards((data.standards || []).slice(0, 4));
+          setShowSuggestions(true);
+        })
+        .catch(() => setShowSuggestions(true));
+    }, 800);
   }
 
   function removeFile(index: number) {
@@ -176,24 +206,16 @@ export default function CreateActivityPage() {
   // ── Standards ────────────────────────────────────────────────────────────────
 
   function isSelected(code: string) {
-    return selectedStandards.some((s) => s.code === code);
+    return selectedStandards.some((s) => s.code === code || s.shortCode === code);
   }
 
   function toggleStandard(standard: Standard) {
     setSelectedStandards((prev) =>
-      prev.some((s) => s.code === standard.code)
-        ? prev.filter((s) => s.code !== standard.code)
+      prev.some((s) => s.id === standard.id)
+        ? prev.filter((s) => s.id !== standard.id)
         : [...prev, standard]
     );
   }
-
-  const filteredStandards =
-    standardsSearch.length >= 2
-      ? STANDARDS_DB.filter((s) => {
-          const q = standardsSearch.toLowerCase();
-          return s.code.toLowerCase().includes(q) || s.text.toLowerCase().includes(q);
-        }).slice(0, 8)
-      : [];
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -402,18 +424,18 @@ export default function CreateActivityPage() {
         </div>
 
         {/* Standards Suggestion (shown after upload) */}
-        {showSuggestions && (
+        {showSuggestions && suggestedStandards.length > 0 && (
           <div className="mt-4 bg-teal/[0.06] border border-teal/20 rounded-[10px] p-4">
             <div className="flex items-center gap-2 mb-2.5 font-semibold text-[13px] text-teal">
               <MagicWand size={18} weight="fill" />
               Your Teaching Twin found these standards
             </div>
             <div className="flex flex-wrap">
-              {SUGGESTED_STANDARDS.map((s) => {
+              {suggestedStandards.map((s) => {
                 const sel = isSelected(s.code);
                 return (
                   <button
-                    key={s.code}
+                    key={s.id}
                     onClick={() => toggleStandard(s)}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 border-[1.5px] rounded-lg
                       text-xs font-medium text-text-primary cursor-pointer transition-all mr-1.5 mb-1.5
@@ -422,8 +444,8 @@ export default function CreateActivityPage() {
                         : 'border-border bg-card-bg hover:border-teal'
                       }`}
                   >
-                    <span className="font-bold text-teal">{s.code}</span>
-                    {s.text}
+                    <span className="font-bold text-teal">{stdCode(s)}</span>
+                    {stdText(s)}
                   </button>
                 );
               })}
@@ -487,19 +509,47 @@ export default function CreateActivityPage() {
             <div className="flex flex-wrap mb-2">
               {selectedStandards.map((s) => (
                 <button
-                  key={s.code}
+                  key={s.id}
                   onClick={() => toggleStandard(s)}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 border-[1.5px] border-teal
                     bg-teal/[0.08] rounded-lg text-xs font-medium text-text-primary cursor-pointer
                     transition-all mr-1.5 mb-1.5 hover:bg-teal/[0.14]"
                 >
-                  <span className="font-bold text-teal">{s.code}</span>
-                  {s.text}
+                  <span className="font-bold text-teal">{stdCode(s)}</span>
+                  {stdText(s)}
                   <X size={12} weight="bold" className="text-text-secondary" />
                 </button>
               ))}
             </div>
           )}
+
+          {/* Filter row */}
+          <div className="flex flex-wrap gap-2 mb-2">
+            <select
+              value={subjectFilter}
+              onChange={(e) => setSubjectFilter(e.target.value)}
+              className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
+            >
+              <option value="">All Subjects</option>
+              {availableSubjects.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select
+              value={gradeFilter}
+              onChange={(e) => setGradeFilter(e.target.value)}
+              className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
+            >
+              <option value="">All Grades</option>
+              {availableGrades.map((g) => <option key={g} value={g}>{g}</option>)}
+            </select>
+            <select
+              value={frameworkFilter}
+              onChange={(e) => setFrameworkFilter(e.target.value)}
+              className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
+            >
+              <option value="">All Frameworks</option>
+              {availableFrameworks.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
 
           {/* Search input + dropdown */}
           <div className="relative">
@@ -509,26 +559,31 @@ export default function CreateActivityPage() {
               value={standardsSearch}
               onChange={(e) => {
                 setStandardsSearch(e.target.value);
-                setShowDropdown(e.target.value.length >= 2);
+                if (e.target.value.length >= 2) setShowDropdown(true);
               }}
               onFocus={() => {
-                if (standardsSearch.length >= 2) setShowDropdown(true);
+                if (searchResults.length > 0) setShowDropdown(true);
               }}
               placeholder="Search standards (e.g., 5.NF or 'fractions')"
               className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
                 bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
             />
-            {showDropdown && filteredStandards.length > 0 && (
+            {searchLoading && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-teal border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            {showDropdown && searchResults.length > 0 && (
               <div
                 ref={dropdownRef}
                 className="absolute top-full left-0 right-0 mt-1 bg-card-bg border border-border
-                  rounded-lg max-h-52 overflow-y-auto z-10 shadow-lg"
+                  rounded-lg max-h-64 overflow-y-auto z-10 shadow-lg"
               >
-                {filteredStandards.map((s) => {
+                {searchResults.map((s) => {
                   const sel = isSelected(s.code);
                   return (
                     <div
-                      key={s.code}
+                      key={s.id}
                       onClick={() => {
                         toggleStandard(s);
                         setShowDropdown(false);
@@ -543,8 +598,9 @@ export default function CreateActivityPage() {
                         : <PlusCircleIcon size={16} weight="fill" className="text-text-secondary shrink-0" />
                       }
                       <span>
-                        <strong className="text-teal">{s.code}</strong>{' '}
-                        <span className="text-text-primary">{s.text}</span>
+                        <strong className="text-teal">{stdCode(s)}</strong>{' '}
+                        <span className="text-text-primary">{stdText(s)}</span>
+                        <span className="text-text-muted text-[11px] ml-1">({s.framework} · Grade {s.gradeLevel})</span>
                       </span>
                     </div>
                   );
