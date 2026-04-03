@@ -40,13 +40,14 @@ import ThemeToggle from '@/components/shared/ThemeToggle';
 /* ─── Types ─────────────────────────────────────────────────────────────────── */
 
 type GradeTier = 'lower' | 'middle' | 'upper';
+type LanguageTier = 'young' | 'middle' | 'older';
 type ThemeName = 'gaming' | 'sports' | 'animals' | 'space';
 type DifficultyShift = 'up' | 'same' | 'down';
 type GardnerSignal = 'strong' | 'developing' | 'emerging';
 
 interface StudentAnswers {
   name: string;
-  grade: string;
+  age: number | null;
   interests: string[];
   // Gardner's Multiple Intelligences
   spatialDescription: string;
@@ -70,7 +71,7 @@ interface StudentAnswers {
 
 const INITIAL_ANSWERS: StudentAnswers = {
   name: '',
-  grade: '',
+  age: null,
   interests: [],
   spatialDescription: '',
   musicalSignals: [],
@@ -226,7 +227,8 @@ const INTERESTS = [
   { label: 'Coding', icon: Code, theme: 'gaming' as ThemeName },
 ];
 
-const GRADES = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+// Ages 5–18 (18 represents 18+)
+const AGES = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
 /* ─── Gardner signal options ─────────────────────────────────────────────────── */
 
@@ -358,10 +360,59 @@ function getSpatialPrompt(interests: string[]): string {
 
 /* ─── Helpers ────────────────────────────────────────────────────────────────── */
 
-function gradeToTier(grade: string): GradeTier {
-  if (['6', '7', '8'].includes(grade)) return 'middle';
-  if (['9', '10', '11', '12'].includes(grade)) return 'upper';
-  return 'lower';
+/** Maps student age to content difficulty tier. */
+function ageToTier(age: number): GradeTier {
+  if (age <= 8) return 'lower';
+  if (age <= 12) return 'middle';
+  return 'upper';
+}
+
+/** Maps student age to initial communication language tier. */
+function ageToLanguageTier(age: number): LanguageTier {
+  if (age <= 8) return 'young';
+  if (age <= 12) return 'middle';
+  return 'older';
+}
+
+/**
+ * Returns age-appropriate coach text based on the current language tier.
+ * - young (5–8): simple words, short sentences, lots of emoji
+ * - middle (9–12): conversational, friendly, moderate detail
+ * - older (13–18+): mature tone, treats student as a peer, minimal emoji
+ */
+function coachText(young: string, middle: string, older: string, tier: LanguageTier): string {
+  if (tier === 'young') return young;
+  if (tier === 'middle') return middle;
+  return older;
+}
+
+/** Shifts the language tier up or down based on observed sophistication. */
+function shiftLanguageTier(current: LanguageTier, shift: DifficultyShift): LanguageTier {
+  if (shift === 'up') return current === 'young' ? 'middle' : 'older';
+  if (shift === 'down') return current === 'older' ? 'middle' : 'young';
+  return current;
+}
+
+/** Returns inline styles for age bubble buttons — rainbow effect across ages 5–18. */
+function getAgeBubbleStyle(age: number, isSelected: boolean): React.CSSProperties {
+  const index = age - 5; // 0–13
+  const hue = Math.round((index / 13) * 300); // red → violet
+  if (isSelected) {
+    return {
+      background: `hsl(${hue}, 70%, 50%)`,
+      color: 'white',
+      borderColor: `hsl(${hue}, 70%, 38%)`,
+      borderWidth: '2px',
+      borderStyle: 'solid',
+    };
+  }
+  return {
+    background: `hsl(${hue}, 65%, 94%)`,
+    color: `hsl(${hue}, 70%, 25%)`,
+    borderColor: `hsl(${hue}, 50%, 72%)`,
+    borderWidth: '2px',
+    borderStyle: 'solid',
+  };
 }
 
 function selectTheme(interests: string[]): ThemeName {
@@ -403,7 +454,7 @@ function evaluateMathAnswer(text: string, expected: number): DifficultyShift {
 
 /* ─── Screen + act config ──────────────────────────────────────────────────────
    0  Welcome
-   1  Name + Grade
+   1  Name + Age
    2  Interests
    3  Gardner Part 1: Spatial / Musical / Kinesthetic
    4  Gardner Part 2: Interpersonal / Intrapersonal / Naturalistic
@@ -453,6 +504,7 @@ export default function StudentOnboardingPage() {
   const [answers, setAnswers] = useState<StudentAnswers>(INITIAL_ANSWERS);
   const [readingTier, setReadingTier] = useState<GradeTier>('lower');
   const [mathTier, setMathTier] = useState<GradeTier>('lower');
+  const [languageTier, setLanguageTier] = useState<LanguageTier>('middle');
   const [selectedTheme, setSelectedTheme] = useState<ThemeName>('gaming');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
@@ -496,20 +548,37 @@ export default function StudentOnboardingPage() {
     }, 300);
   }, [animating, screen, stop]);
 
-  // Compute theme + starting tiers when entering Gardner screen
+  // Set language tier immediately when age is selected
+  useEffect(() => {
+    if (answers.age !== null) {
+      setLanguageTier(ageToLanguageTier(answers.age));
+    }
+  }, [answers.age]);
+
+  // Compute theme + starting content tiers when entering Gardner screen
   useEffect(() => {
     if (screen === 3 && answers.interests.length > 0) {
       setSelectedTheme(selectTheme(answers.interests));
-      setReadingTier(gradeToTier(answers.grade));
-      setMathTier(gradeToTier(answers.grade));
+      const tier = ageToTier(answers.age ?? 10);
+      setReadingTier(tier);
+      setMathTier(tier);
     }
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Adjust math tier based on reading response (entering writing screen)
+  // Shift content difficulty AND language tier based on reading response (entering writing screen)
   useEffect(() => {
     if (screen === 8 && answers.readingResponse) {
       const shift = evaluateReadingQuality(answers.readingResponse);
       setMathTier(t => shiftTier(t, shift));
+      setLanguageTier(t => shiftLanguageTier(t, shift));
+    }
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Further refine language tier based on writing response (entering math)
+  useEffect(() => {
+    if (screen === 9 && answers.writingResponse) {
+      const shift = evaluateReadingQuality(answers.writingResponse);
+      setLanguageTier(t => shiftLanguageTier(t, shift));
     }
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -527,7 +596,7 @@ export default function StudentOnboardingPage() {
     if (screen !== 11) return;
 
     const theme = THEMES[selectedTheme];
-    const tier = gradeToTier(answers.grade);
+    const tier = ageToTier(answers.age ?? 10);
     const q1 = theme.mathQ1[mathTier];
     const q2 = theme.mathQ2[mathTier];
     const logicQ = getLogicQuestion(tier);
@@ -539,11 +608,12 @@ export default function StudentOnboardingPage() {
 
     const profile = {
       student_name: answers.name,
-      grade: answers.grade,
+      age: answers.age,
       interests: answers.interests,
       theme: selectedTheme,
       reading_level: readingTier,
       math_level: mathTier,
+      language_tier: languageTier,
       math_performance_q1: mathShift1,
       math_performance_q2: mathShift2,
       writing_response: answers.writingResponse,
@@ -598,7 +668,7 @@ export default function StudentOnboardingPage() {
   const canAdvance = (): boolean => {
     switch (screen) {
       case 0: return true;
-      case 1: return answers.name.trim().length > 0 && answers.grade !== '';
+      case 1: return answers.name.trim().length > 0 && answers.age !== null;
       case 2: return answers.interests.length >= 1;
       case 3:
         return (
@@ -624,8 +694,8 @@ export default function StudentOnboardingPage() {
     : 'onb-slide-in';
 
   const theme = THEMES[selectedTheme];
-  const gradeTier = gradeToTier(answers.grade);
-  const logicQ = getLogicQuestion(gradeTier);
+  const ageTier = ageToTier(answers.age ?? 10);
+  const logicQ = getLogicQuestion(ageTier);
 
   return (
     <div className="min-h-screen bg-surface relative overflow-hidden">
@@ -717,11 +787,11 @@ export default function StudentOnboardingPage() {
       <div className={`relative z-10 min-h-screen flex items-center justify-center px-4 py-24 ${slideClass}`}>
         {screen === 0 && <WelcomeScreen onBegin={goNext} />}
         {screen === 1 && (
-          <NameGradeScreen
+          <NameAgeScreen
             name={answers.name}
-            grade={answers.grade}
+            age={answers.age}
             onNameChange={v => setAnswers(a => ({ ...a, name: v }))}
-            onGradeChange={v => setAnswers(a => ({ ...a, grade: v }))}
+            onAgeChange={v => setAnswers(a => ({ ...a, age: v }))}
             onNext={goNext}
             canAdvance={canAdvance()}
           />
@@ -729,6 +799,7 @@ export default function StudentOnboardingPage() {
         {screen === 2 && (
           <InterestsScreen
             selected={answers.interests}
+            languageTier={languageTier}
             onToggle={interest => setAnswers(a => ({
               ...a,
               interests: a.interests.includes(interest)
@@ -745,6 +816,7 @@ export default function StudentOnboardingPage() {
             spatialDescription={answers.spatialDescription}
             musicalSignals={answers.musicalSignals}
             kinestheticSignals={answers.kinestheticSignals}
+            languageTier={languageTier}
             onSpatialChange={v => setAnswers(a => ({ ...a, spatialDescription: v }))}
             onMusicToggle={key => setAnswers(a => ({
               ...a,
@@ -769,6 +841,7 @@ export default function StudentOnboardingPage() {
             intrapersonalStrengths={answers.intrapersonalStrengths}
             intrapersonalGrowth={answers.intrapersonalGrowth}
             naturalisticSignal={answers.naturalisticSignal}
+            languageTier={languageTier}
             onInterpersonalChange={v => setAnswers(a => ({ ...a, interpersonalStyle: v }))}
             onStrengthsChange={v => setAnswers(a => ({ ...a, intrapersonalStrengths: v }))}
             onGrowthChange={v => setAnswers(a => ({ ...a, intrapersonalGrowth: v }))}
@@ -784,6 +857,7 @@ export default function StudentOnboardingPage() {
             logicAnswer={answers.logicAnswer}
             eqFriendResponse={answers.eqFriendResponse}
             eqSelfResponse={answers.eqSelfResponse}
+            languageTier={languageTier}
             onLogicChange={v => setAnswers(a => ({ ...a, logicAnswer: v }))}
             onFriendChange={v => setAnswers(a => ({ ...a, eqFriendResponse: v }))}
             onSelfChange={v => setAnswers(a => ({ ...a, eqSelfResponse: v }))}
@@ -796,6 +870,7 @@ export default function StudentOnboardingPage() {
           <ReadingPassageScreen
             passage={theme.passage[readingTier]}
             studentName={answers.name}
+            languageTier={languageTier}
             onNext={goNext}
             speak={speak}
           />
@@ -804,6 +879,7 @@ export default function StudentOnboardingPage() {
           <ReadingQuestionScreen
             question={theme.readingQuestion[readingTier]}
             value={answers.readingResponse}
+            languageTier={languageTier}
             onChange={v => setAnswers(a => ({ ...a, readingResponse: v }))}
             onNext={goNext}
             canAdvance={canAdvance()}
@@ -815,6 +891,7 @@ export default function StudentOnboardingPage() {
             passage={theme.writingPassage}
             prompt={theme.writingPrompt}
             value={answers.writingResponse}
+            languageTier={languageTier}
             onChange={v => setAnswers(a => ({ ...a, writingResponse: v }))}
             onNext={goNext}
             canAdvance={canAdvance()}
@@ -824,6 +901,7 @@ export default function StudentOnboardingPage() {
           <MathScreen
             question={theme.mathQ1[mathTier].question}
             value={answers.mathResponse1}
+            languageTier={languageTier}
             onChange={v => setAnswers(a => ({ ...a, mathResponse1: v }))}
             onNext={goNext}
             canAdvance={canAdvance()}
@@ -835,6 +913,7 @@ export default function StudentOnboardingPage() {
           <MathScreen
             question={theme.mathQ2[mathTier].question}
             value={answers.mathResponse2}
+            languageTier={languageTier}
             onChange={v => setAnswers(a => ({ ...a, mathResponse2: v }))}
             onNext={goNext}
             canAdvance={canAdvance()}
@@ -846,12 +925,14 @@ export default function StudentOnboardingPage() {
         {screen === 12 && (
           <ResultsScreen
             name={answers.name}
+            age={answers.age}
             interests={answers.interests}
             theme={selectedTheme}
             readingTier={readingTier}
             mathTier={mathTier}
+            languageTier={languageTier}
             gardnerSignals={computeGardnerSignals(answers, readingTier, mathTier)}
-            logicLevel={evaluateLogic(answers.logicAnswer, gradeTier)}
+            logicLevel={evaluateLogic(answers.logicAnswer, ageTier)}
             onContinue={() => router.push('/student/dashboard')}
           />
         )}
@@ -886,6 +967,11 @@ export default function StudentOnboardingPage() {
           from { opacity: 0; transform: translateY(16px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes onbAgeBounce {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.18); }
+          100% { transform: scale(1.08); }
+        }
         .onb-slide-in { animation: onbSlideInRight 0.35s ease-out both; }
         .onb-slide-out-left { animation: onbSlideOutLeft 0.3s ease-in both; }
         .onb-slide-out-right { animation: onbSlideOutRight 0.3s ease-in both; }
@@ -896,6 +982,7 @@ export default function StudentOnboardingPage() {
         .onb-dot-bounce-1 { animation-delay: 0s; }
         .onb-dot-bounce-2 { animation-delay: 0.2s; }
         .onb-dot-bounce-3 { animation-delay: 0.4s; }
+        .onb-age-selected { animation: onbAgeBounce 0.25s ease-out both; }
       `}</style>
     </div>
   );
@@ -1018,6 +1105,7 @@ function WelcomeScreen({ onBegin }: { onBegin: () => void }) {
         <Image src="/images/logo-stacked-dark.png" alt="Teaching Labs" width={160} height={80} className="mx-auto hidden dark:block" priority />
       </div>
       <div className="onb-fade-up" style={{ animationDelay: '0.15s' }}>
+
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal to-navy flex items-center justify-center shadow-lg onb-pulse-glow">
           <ChatCircle size={32} weight="fill" className="text-white" />
         </div>
@@ -1052,19 +1140,20 @@ function WelcomeScreen({ onBegin }: { onBegin: () => void }) {
   );
 }
 
-/* ─── Screen 1: Name + Grade ──────────────────────────────────────────────────── */
+/* ─── Screen 1: Name + Age ────────────────────────────────────────────────────── */
 
-function NameGradeScreen({
-  name, grade, onNameChange, onGradeChange, onNext, canAdvance,
+function NameAgeScreen({
+  name, age, onNameChange, onAgeChange, onNext, canAdvance,
 }: {
-  name: string; grade: string;
-  onNameChange: (v: string) => void; onGradeChange: (v: string) => void;
+  name: string; age: number | null;
+  onNameChange: (v: string) => void; onAgeChange: (v: number) => void;
   onNext: () => void; canAdvance: boolean;
 }) {
   return (
     <div className="max-w-lg mx-auto w-full">
-      <CoachBubble text="Let's start simple! What's your name, and what grade are you in?" />
-      <div className="space-y-5 onb-card-in" style={{ animationDelay: '0.1s' }}>
+      <CoachBubble text="Hey! Let's start simple — what's your name, and how old are you? 👋" />
+      <div className="space-y-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
+        {/* Name input */}
         <div>
           <label className="block text-text-secondary text-sm font-medium mb-2">Your name</label>
           <input
@@ -1073,29 +1162,41 @@ function NameGradeScreen({
             className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors text-base"
           />
         </div>
+
+        {/* Age selector */}
         <div>
-          <label className="block text-text-secondary text-sm font-medium mb-2">What grade are you in?</label>
-          <div className="flex flex-wrap gap-2">
-            {GRADES.map(g => (
-              <button
-                key={g} onClick={() => onGradeChange(g)}
-                className={`px-4 py-2.5 rounded-xl border-2 font-medium text-sm transition-all cursor-pointer ${
-                  grade === g
-                    ? 'border-navy dark:border-teal bg-navy dark:bg-teal/10 text-white dark:text-teal shadow-md'
-                    : 'border-border bg-card-bg/30 text-text-primary hover:border-teal'
-                }`}
-              >
-                {g === 'K' ? 'K' : `${g}th`}
-              </button>
-            ))}
+          <label className="block text-text-secondary text-sm font-medium mb-3">How old are you? 🎂</label>
+          <div className="flex flex-wrap gap-2.5 justify-center">
+            {AGES.map(a => {
+              const isSelected = age === a;
+              return (
+                <button
+                  key={a}
+                  onClick={() => onAgeChange(a)}
+                  style={getAgeBubbleStyle(a, isSelected)}
+                  className={`w-14 h-14 rounded-full font-bold text-xl transition-transform cursor-pointer flex items-center justify-center shadow-sm hover:shadow-md hover:scale-110 active:scale-95 ${isSelected ? 'onb-age-selected' : ''}`}
+                  aria-label={a === 18 ? '18 or older' : `Age ${a}`}
+                >
+                  <span className="text-base font-bold leading-none">
+                    {a === 18 ? '18+' : a}
+                  </span>
+                </button>
+              );
+            })}
           </div>
+          {age !== null && (
+            <p className="text-center text-text-muted text-xs mt-2">
+              {age === 18 ? '18 or older' : `Age ${age}`} selected ✓
+            </p>
+          )}
         </div>
       </div>
-      {name && grade && (
+
+      {name && age !== null && (
         <div className="mt-4 flex items-start gap-3 onb-fade-up">
           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal/20 flex items-center justify-center"><span>✨</span></div>
           <div className="px-4 py-3 bg-teal/10 rounded-2xl rounded-tl-none border border-teal/20">
-            <p className="text-navy dark:text-white text-sm font-medium">Nice to meet you, {name}!</p>
+            <p className="text-navy dark:text-white text-sm font-medium">Nice to meet you, {name}! 👋</p>
           </div>
         </div>
       )}
@@ -1107,14 +1208,21 @@ function NameGradeScreen({
 /* ─── Screen 2: Interests ─────────────────────────────────────────────────────── */
 
 function InterestsScreen({
-  selected, onToggle, onNext, canAdvance,
+  selected, onToggle, onNext, canAdvance, languageTier,
 }: {
   selected: string[]; onToggle: (interest: string) => void;
-  onNext: () => void; canAdvance: boolean;
+  onNext: () => void; canAdvance: boolean; languageTier: LanguageTier;
 }) {
+  const bubbleText = coachText(
+    'What do you like? Pick everything! 🎉 This helps make learning FUN for you!',
+    'What are you into? Pick as many as you like! This helps me make learning feel more like YOU.',
+    'Pick what interests you. I\'ll use this to shape your learning experience.',
+    languageTier,
+  );
+
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <CoachBubble text="What are you into? Pick as many as you like! This helps me make learning feel more like YOU." />
+      <CoachBubble text={bubbleText} />
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-5">
         {INTERESTS.map((item, i) => {
           const Icon = item.icon;
@@ -1147,19 +1255,27 @@ function InterestsScreen({
 
 function GardnerScreen1({
   interests, spatialDescription, musicalSignals, kinestheticSignals,
-  onSpatialChange, onMusicToggle, onKinesToggle, onNext, canAdvance, speak,
+  onSpatialChange, onMusicToggle, onKinesToggle, onNext, canAdvance, speak, languageTier,
 }: {
   interests: string[];
   spatialDescription: string; musicalSignals: string[]; kinestheticSignals: string[];
   onSpatialChange: (v: string) => void;
   onMusicToggle: (key: string) => void; onKinesToggle: (key: string) => void;
   onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
+  languageTier: LanguageTier;
 }) {
   const spatialPrompt = getSpatialPrompt(interests);
 
+  const bubbleText = coachText(
+    'Everyone\'s brain works in a super cool way! 🧠 Tell me how YOU think best!',
+    'Everyone\'s brain works differently — and that\'s a great thing! Tell me how YOU think best.',
+    'Everyone processes information differently. Tell me about how you learn best.',
+    languageTier,
+  );
+
   return (
     <div className="max-w-xl mx-auto w-full">
-      <CoachBubble text="Everyone's brain works differently — and that's a great thing! Tell me how YOU think best." speak={speak} />
+      <CoachBubble text={bubbleText} speak={speak} />
 
       {/* Spatial */}
       <div className="mb-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
@@ -1237,17 +1353,25 @@ function GardnerScreen1({
 function GardnerScreen2({
   interpersonalStyle, intrapersonalStrengths, intrapersonalGrowth, naturalisticSignal,
   onInterpersonalChange, onStrengthsChange, onGrowthChange, onNaturalisticChange,
-  onNext, canAdvance, speak,
+  onNext, canAdvance, speak, languageTier,
 }: {
   interpersonalStyle: string; intrapersonalStrengths: string;
   intrapersonalGrowth: string; naturalisticSignal: string;
   onInterpersonalChange: (v: string) => void; onStrengthsChange: (v: string) => void;
   onGrowthChange: (v: string) => void; onNaturalisticChange: (v: string) => void;
   onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
+  languageTier: LanguageTier;
 }) {
+  const bubbleText = coachText(
+    'You\'re doing SO great! 🌟 Now tell me about working with friends — and about YOU!',
+    'Almost there! Tell me a little about how you work with others — and how you see yourself.',
+    'Last section here. How do you work with others, and what do you know about yourself?',
+    languageTier,
+  );
+
   return (
     <div className="max-w-xl mx-auto w-full">
-      <CoachBubble text="Almost there! Tell me a little about how you work with others — and how you see yourself." speak={speak} />
+      <CoachBubble text={bubbleText} speak={speak} />
 
       {/* Interpersonal */}
       <div className="mb-5 onb-card-in" style={{ animationDelay: '0.1s' }}>
@@ -1331,16 +1455,36 @@ function GardnerScreen2({
 function EQLogicScreen({
   logicQuestion, logicAnswer, eqFriendResponse, eqSelfResponse,
   onLogicChange, onFriendChange, onSelfChange,
-  onNext, canAdvance, speak,
+  onNext, canAdvance, speak, languageTier,
 }: {
   logicQuestion: LogicQuestion;
   logicAnswer: string; eqFriendResponse: string; eqSelfResponse: string;
   onLogicChange: (v: string) => void; onFriendChange: (v: string) => void; onSelfChange: (v: string) => void;
   onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
+  languageTier: LanguageTier;
 }) {
+  const introBubble = coachText(
+    'Time for some brain teasers! 🧩 Think out loud — there are NO wrong answers!',
+    'Two of my favorite kinds of questions — think out loud! There are no wrong answers here.',
+    'A couple of questions to see how you think. No right or wrong answers — just be real.',
+    languageTier,
+  );
+  const friendBubble = coachText(
+    'Your friend didn\'t get picked for the team they really wanted. What would you say to them? 🤗',
+    'Your friend didn\'t get picked for the team they really wanted to be on. What would you say to them?',
+    'Your friend didn\'t make the team they were hoping for. What do you say to them?',
+    languageTier,
+  );
+  const selfBubble = coachText(
+    'You worked super hard on something, but it didn\'t go the way you hoped. How do you feel? What do you do next? 💪',
+    'You worked really hard on something, but it didn\'t turn out the way you hoped. How does that make you feel — and what do you do next?',
+    'You put real effort into something and it still didn\'t work out. What\'s your response to that?',
+    languageTier,
+  );
+
   return (
     <div className="max-w-xl mx-auto w-full">
-      <CoachBubble text="Two of my favorite kinds of questions — think out loud! There are no wrong answers here." speak={speak} />
+      <CoachBubble text={introBubble} speak={speak} />
 
       {/* Logic puzzle */}
       <div className="mb-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
@@ -1363,7 +1507,7 @@ function EQLogicScreen({
 
       {/* EQ: Friend scenario */}
       <div className="mb-5 onb-card-in" style={{ animationDelay: '0.2s' }}>
-        <CoachBubble text="Your friend didn't get picked for the team they really wanted to be on. What would you say to them?" speak={speak} />
+        <CoachBubble text={friendBubble} speak={speak} />
         <textarea
           value={eqFriendResponse}
           onChange={e => { if (e.target.value.length <= 1000) onFriendChange(e.target.value); }}
@@ -1379,7 +1523,7 @@ function EQLogicScreen({
 
       {/* EQ: Self scenario (optional) */}
       <div className="mb-2 onb-card-in" style={{ animationDelay: '0.3s' }}>
-        <CoachBubble text="You worked really hard on something, but it didn't turn out the way you hoped. How does that make you feel — and what do you do next?" speak={speak} />
+        <CoachBubble text={selfBubble} speak={speak} />
         <textarea
           value={eqSelfResponse}
           onChange={e => { if (e.target.value.length <= 1000) onSelfChange(e.target.value); }}
@@ -1401,16 +1545,27 @@ function EQLogicScreen({
 /* ─── Screen 6: Reading Passage ───────────────────────────────────────────────── */
 
 function ReadingPassageScreen({
-  passage, studentName, onNext, speak,
+  passage, studentName, onNext, speak, languageTier,
 }: {
   passage: string; studentName: string; onNext: () => void; speak: (t: string) => void;
+  languageTier: LanguageTier;
 }) {
+  const introBubble = coachText(
+    `${studentName ? `Hey ${studentName}!` : 'Hey!'} Here's something cool to read! 📖 Take your time — no rush!`,
+    `${studentName ? `Hey ${studentName}!` : 'Hey!'} I found something interesting for you to read. Take your time — there's no rush!`,
+    `${studentName ? `${studentName},` : ''} here's a passage for you. Take your time with it.`.trim(),
+    languageTier,
+  );
+  const continueBubble = coachText(
+    'When you\'re done reading, hit continue and I\'ll ask you about it! 🎯',
+    'When you\'re ready, hit continue and I\'ll ask you a quick question about it!',
+    'When you\'re done, continue and I\'ll ask you a question about it.',
+    languageTier,
+  );
+
   return (
     <div className="max-w-xl mx-auto w-full">
-      <CoachBubble
-        text={`${studentName ? `Hey ${studentName}!` : 'Hey!'} I found something interesting for you to read. Take your time — there's no rush!`}
-        speak={speak}
-      />
+      <CoachBubble text={introBubble} speak={speak} />
       <div className="onb-card-in mb-6" style={{ animationDelay: '0.15s' }}>
         <div className="bg-card-bg border-2 border-border rounded-2xl p-5 shadow-sm relative">
           <div className="flex items-center justify-between mb-3">
@@ -1426,7 +1581,7 @@ function ReadingPassageScreen({
           <p className="text-text-primary text-base leading-[1.75]">{passage}</p>
         </div>
       </div>
-      <CoachBubble text="When you're ready, hit continue and I'll ask you a quick question about it!" />
+      <CoachBubble text={continueBubble} />
       <div className="flex justify-end mt-6">
         <button
           onClick={onNext}
@@ -1442,14 +1597,25 @@ function ReadingPassageScreen({
 /* ─── Screen 7: Reading Question ──────────────────────────────────────────────── */
 
 function ReadingQuestionScreen({
-  question, value, onChange, onNext, canAdvance, speak,
+  question, value, onChange, onNext, canAdvance, speak, languageTier,
 }: {
   question: string; value: string; onChange: (v: string) => void;
   onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
+  languageTier: LanguageTier;
 }) {
+  // The question itself comes from the content bank (already tier-appropriate by readingTier).
+  // We wrap it with a warm age-appropriate lead-in.
+  const leadIn = coachText(
+    'Here\'s my question — just tell me what you think! 🙌',
+    '',
+    '',
+    languageTier,
+  );
+  const displayText = leadIn ? `${leadIn} ${question}` : question;
+
   return (
     <div className="max-w-xl mx-auto w-full">
-      <CoachBubble text={question} speak={speak} />
+      <CoachBubble text={displayText} speak={speak} />
       <div className="onb-card-in" style={{ animationDelay: '0.1s' }}>
         <textarea
           value={value}
@@ -1471,14 +1637,21 @@ function ReadingQuestionScreen({
 /* ─── Screen 8: Writing Assessment ───────────────────────────────────────────── */
 
 function WritingScreen({
-  passage, prompt, value, onChange, onNext, canAdvance,
+  passage, prompt, value, onChange, onNext, canAdvance, languageTier,
 }: {
   passage: string; prompt: string; value: string; onChange: (v: string) => void;
-  onNext: () => void; canAdvance: boolean;
+  onNext: () => void; canAdvance: boolean; languageTier: LanguageTier;
 }) {
+  const introBubble = coachText(
+    'Here\'s a fun one! 🎉 Read the short paragraph below and tell me what YOU think! Type your answer this time!',
+    'Here\'s something fun! For this one, read the paragraph below and type what you think. No voice input on this one — I want to see your writing!',
+    'Read the passage below and share your perspective in writing. I want to see how you express your thinking on paper.',
+    languageTier,
+  );
+
   return (
     <div className="max-w-xl mx-auto w-full">
-      <CoachBubble text="Here's something fun! For this one, read the paragraph below and type what you think. No voice input on this one — I want to see your writing!" />
+      <CoachBubble text={introBubble} />
       <div className="onb-card-in mb-5" style={{ animationDelay: '0.1s' }}>
         <div className="bg-indigo/5 dark:bg-teal/5 border border-indigo/20 dark:border-teal/20 rounded-xl p-4">
           <p className="text-xs font-heading font-semibold text-indigo dark:text-teal uppercase tracking-wider mb-2">Read this:</p>
@@ -1506,18 +1679,29 @@ function WritingScreen({
 /* ─── Screens 9–10: Math ──────────────────────────────────────────────────────── */
 
 function MathScreen({
-  question, value, onChange, onNext, canAdvance, speak, questionNumber,
+  question, value, onChange, onNext, canAdvance, speak, questionNumber, languageTier,
 }: {
   question: string; value: string; onChange: (v: string) => void;
-  onNext: () => void; canAdvance: boolean; speak: (t: string) => void; questionNumber: number;
+  onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
+  questionNumber: number; languageTier: LanguageTier;
 }) {
-  const intros = [
-    "Here's a quick puzzle for you —",
-    "One more — think it through!",
-  ];
+  const intro = questionNumber === 1
+    ? coachText(
+        'Here\'s a quick math puzzle for you! 🔢',
+        'Here\'s a quick puzzle for you —',
+        'Here\'s a problem for you —',
+        languageTier,
+      )
+    : coachText(
+        'One more! You\'re almost done! 🌟',
+        'One more — think it through!',
+        'Last one. Take your time.',
+        languageTier,
+      );
+
   return (
     <div className="max-w-xl mx-auto w-full">
-      <CoachBubble text={`${intros[(questionNumber - 1) % intros.length]} ${question}`} speak={speak} />
+      <CoachBubble text={`${intro} ${question}`} speak={speak} />
       <div className="onb-card-in" style={{ animationDelay: '0.1s' }}>
         <input
           type="text" value={value} onChange={e => onChange(e.target.value)}
@@ -1567,10 +1751,11 @@ function ProcessingScreen({ saving, error }: { saving: boolean; error: boolean }
 /* ─── Screen 12: Results ──────────────────────────────────────────────────────── */
 
 function ResultsScreen({
-  name, interests, theme, readingTier, mathTier, gardnerSignals, logicLevel, onContinue,
+  name, age, interests, theme, readingTier, mathTier, languageTier,
+  gardnerSignals, logicLevel, onContinue,
 }: {
-  name: string; interests: string[]; theme: ThemeName;
-  readingTier: GradeTier; mathTier: GradeTier;
+  name: string; age: number | null; interests: string[]; theme: ThemeName;
+  readingTier: GradeTier; mathTier: GradeTier; languageTier: LanguageTier;
   gardnerSignals: Record<string, GardnerSignal | string[] | string>;
   logicLevel: GardnerSignal;
   onContinue: () => void;
@@ -1587,6 +1772,29 @@ function ResultsScreen({
   const signalLabels: Record<GardnerSignal, string> = {
     strong: 'Strong', developing: 'Developing', emerging: 'Emerging',
   };
+
+  const ageLabel = age === 18 ? '18+' : age !== null ? `${age}` : '';
+
+  const heading = coachText(
+    `Here's what I learned about you${name ? `, ${name}` : ''}! 🎉🌟`,
+    `Here's what I learned about you${name ? `, ${name}` : ''}! 🎉`,
+    `Your Learning Profile${name ? ` — ${name}` : ''}`,
+    languageTier,
+  );
+
+  const subheading = coachText(
+    'I\'m going to make learning super fun for you! 🚀',
+    'I\'m going to make learning awesome for you!',
+    'Your experience will be tailored to your level and learning style.',
+    languageTier,
+  );
+
+  const coachMessage = coachText(
+    `You did AMAZING${name ? `, ${name}` : ''}! 🌟 I can\'t wait to make your lessons super fun!`,
+    `You're all set${name ? `, ${name}` : ''}! I'll use everything I've learned to make your lessons feel interesting and just right for you. Let's start learning!`,
+    `You're all set${name ? `, ${name}` : ''}. I've built a learning profile based on your answers. Your lessons will be personalized to your level and learning style.`,
+    languageTier,
+  );
 
   // Highlight the top Gardner signals (strong ones)
   const gardnerHighlights: string[] = [];
@@ -1618,13 +1826,19 @@ function ResultsScreen({
         <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal to-navy flex items-center justify-center onb-pulse-glow">
           <ChatCircle size={36} weight="fill" className="text-white" />
         </div>
-        <h2 className="font-heading text-3xl font-bold text-text-primary mb-1">
-          Here&apos;s what I learned about you{name ? `, ${name}` : ''}! 🎉
-        </h2>
-        <p className="text-text-secondary text-base">I&apos;m going to make learning awesome for you!</p>
+        <h2 className="font-heading text-3xl font-bold text-text-primary mb-1">{heading}</h2>
+        <p className="text-text-secondary text-base">{subheading}</p>
       </div>
 
       <div className="grid gap-3 mb-6">
+        {/* Age */}
+        {ageLabel && (
+          <div className="p-4 rounded-xl bg-card-bg/50 border border-border/50 onb-card-in" style={{ animationDelay: '0.05s' }}>
+            <p className="text-text-muted text-xs uppercase tracking-wider mb-1 font-heading">Your Age</p>
+            <p className="text-text-primary font-semibold">{ageLabel} years old</p>
+          </div>
+        )}
+
         {/* Learning theme */}
         <div className="p-4 rounded-xl bg-card-bg/50 border border-border/50 onb-card-in" style={{ animationDelay: '0.1s' }}>
           <p className="text-text-muted text-xs uppercase tracking-wider mb-1 font-heading">Your Learning Theme</p>
@@ -1676,7 +1890,7 @@ function ResultsScreen({
         )}
       </div>
 
-      <CoachBubble text={`You're all set${name ? `, ${name}` : ''}! I'll use everything I've learned to make your lessons feel interesting and just right for you. Let's start learning!`} />
+      <CoachBubble text={coachMessage} />
 
       <div className="mt-6 text-center onb-fade-up" style={{ animationDelay: '0.7s' }}>
         <button
