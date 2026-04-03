@@ -926,7 +926,7 @@ export default function OnboardingPage() {
   const handleVoicePreview = useCallback(() => {
     if (!ttsSupported || !selectedVoiceURI) return;
     window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance("Hello! I'm your Learning Lab Coach");
+    const utt = new SpeechSynthesisUtterance("Hello! I'm your Teaching Labs Coach");
     utt.rate = 0.95;
     utt.pitch = 1.0;
     const v = window.speechSynthesis.getVoices().find(voice => voice.voiceURI === selectedVoiceURI);
