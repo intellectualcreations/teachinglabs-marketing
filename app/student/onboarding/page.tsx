@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { GraduationCap, ArrowRight, PaperPlaneRight } from '@phosphor-icons/react';
+import { GraduationCap, ArrowRight, PaperPlaneRight, SpeakerHigh, Microphone } from '@phosphor-icons/react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -889,6 +889,110 @@ export default function OnboardingPage() {
   const [responses, setResponses] = useState<AssessmentProfile['responses']>([]);
   const [initialized, setInitialized] = useState(false);
 
+  // ─── Voice Feature State ──────────────────────────────────────────────────
+
+  // Text-to-Speech
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+  const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+
+  const speakMessage = useCallback((msgId: string, text: string) => {
+    if (!ttsSupported) return;
+    window.speechSynthesis.cancel();
+    if (speakingMsgId === msgId) {
+      setSpeakingMsgId(null);
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    utterance.onend = () => setSpeakingMsgId(null);
+    utterance.onerror = () => setSpeakingMsgId(null);
+    setSpeakingMsgId(msgId);
+    window.speechSynthesis.speak(utterance);
+  }, [speakingMsgId, ttsSupported]);
+
+  // Speech-to-Text
+  const [isListening, setIsListening] = useState(false);
+  const [listeningCountdown, setListeningCountdown] = useState(30);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sttSupported = typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch { /* ignore */ }
+      recognitionRef.current = null;
+    }
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    setIsListening(false);
+    setListeningCountdown(30);
+  }, []);
+
+  const startListening = useCallback(() => {
+    if (!sttSupported) return;
+    if (isListening) { stopListening(); return; }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognitionAPI) return;
+    const recognition = new SpeechRecognitionAPI();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    recognition.maxAlternatives = 1;
+    recognitionRef.current = recognition;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      let remaining = 30;
+      setListeningCountdown(remaining);
+      countdownTimerRef.current = setInterval(() => {
+        remaining--;
+        setListeningCountdown(remaining);
+        if (remaining <= 0) stopListening();
+      }, 1000);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
+      let fullTranscript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        fullTranscript += event.results[i][0].transcript;
+      }
+      setTextInput(fullTranscript);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onerror = (event: any) => {
+      if (event.error !== 'aborted' && event.error !== 'no-speech') {
+        console.warn('Speech recognition error:', event.error);
+      }
+      stopListening();
+    };
+
+    recognition.onend = () => stopListening();
+
+    try { recognition.start(); } catch (err) {
+      console.error('Failed to start speech recognition:', err);
+      stopListening();
+    }
+  }, [isListening, sttSupported, stopListening]);
+
+  // Cleanup voice APIs on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      stopListening();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const addAiMsg = useCallback((text: string): Promise<void> => {
     return new Promise(resolve => {
       setIsTyping(true);
@@ -1251,12 +1355,36 @@ export default function OnboardingPage() {
                 ${msg.role === 'ai' ? 'bg-navy text-white' : 'bg-teal text-white'}`}>
                 {msg.role === 'ai' ? <GraduationCap size={16} weight="fill" /> : studentName.charAt(0).toUpperCase()}
               </div>
-              <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed
-                ${msg.role === 'ai'
-                  ? 'bg-card-bg dark:bg-[#1A2332] border border-border dark:border-[#2A3A4E] rounded-bl-sm text-text-primary'
-                  : 'bg-teal text-white rounded-br-sm'}`}>
-                {msg.text}
-              </div>
+              {msg.role === 'ai' ? (
+                <div className="flex flex-col gap-1">
+                  <div className="px-4 py-3 rounded-2xl rounded-bl-sm text-sm leading-relaxed bg-card-bg dark:bg-[#1A2332] border border-border dark:border-[#2A3A4E] text-text-primary">
+                    {msg.text}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => speakMessage(msg.id, msg.text)}
+                    disabled={!ttsSupported}
+                    className={`self-start p-1.5 rounded-full transition-colors flex items-center gap-1.5 text-xs
+                      ${!ttsSupported
+                        ? 'text-text-muted/30 cursor-not-allowed'
+                        : speakingMsgId === msg.id
+                          ? 'text-teal bg-teal/10'
+                          : 'text-text-muted hover:text-teal hover:bg-teal/10'}`}
+                    title={!ttsSupported ? 'Text-to-speech not supported in this browser' : speakingMsgId === msg.id ? 'Stop reading' : 'Read aloud'}
+                  >
+                    <SpeakerHigh
+                      size={14}
+                      weight={speakingMsgId === msg.id ? 'fill' : 'regular'}
+                      className={speakingMsgId === msg.id ? 'animate-pulse' : ''}
+                    />
+                    {speakingMsgId === msg.id && <span>Stop</span>}
+                  </button>
+                </div>
+              ) : (
+                <div className="px-4 py-3 rounded-2xl rounded-br-sm text-sm leading-relaxed bg-teal text-white">
+                  {msg.text}
+                </div>
+              )}
             </div>
           ))}
 
@@ -1289,42 +1417,94 @@ export default function OnboardingPage() {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-warm-white dark:bg-[#0B1426] border-t border-border dark:border-[#2A3A4E]">
           <div className="max-w-[600px] mx-auto">
             {inputMode === 'textarea' ? (
-              <div className="flex gap-2">
-                <textarea
-                  ref={textareaRef}
-                  value={textInput}
-                  onChange={e => setTextInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Write your response here..."
-                  rows={3}
-                  className="flex-1 px-4 py-3 border border-border dark:border-[#2A3A4E] rounded-xl text-sm bg-card-bg dark:bg-[#1A2332] text-text-primary outline-none focus:border-teal transition-colors resize-none"
-                />
-                <button
-                  onClick={handleSubmitText}
-                  disabled={!textInput.trim()}
-                  className="self-end p-3 bg-teal text-white rounded-xl hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <PaperPlaneRight size={20} weight="fill" />
-                </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <textarea
+                    ref={textareaRef}
+                    value={textInput}
+                    onChange={e => setTextInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Write your response here..."
+                    rows={3}
+                    className="flex-1 px-4 py-3 border border-border dark:border-[#2A3A4E] rounded-xl text-sm bg-card-bg dark:bg-[#1A2332] text-text-primary outline-none focus:border-teal transition-colors resize-none"
+                  />
+                  <div className="flex flex-col gap-2 self-end">
+                    <button
+                      type="button"
+                      onClick={startListening}
+                      disabled={!sttSupported}
+                      className={`p-3 rounded-xl transition-colors
+                        ${!sttSupported
+                          ? 'bg-card-bg dark:bg-[#1A2332] text-text-muted/30 border border-border dark:border-[#2A3A4E] cursor-not-allowed'
+                          : isListening
+                            ? 'bg-red-500 text-white'
+                            : 'bg-card-bg dark:bg-[#1A2332] text-text-secondary border border-border dark:border-[#2A3A4E] hover:border-teal hover:text-teal'}`}
+                      title={!sttSupported ? 'Speech recognition not supported in this browser' : isListening ? `Listening... ${listeningCountdown}s` : 'Start voice input'}
+                    >
+                      <Microphone size={20} weight={isListening ? 'fill' : 'regular'} className={isListening ? 'animate-pulse' : ''} />
+                    </button>
+                    <button
+                      onClick={handleSubmitText}
+                      disabled={!textInput.trim()}
+                      className="p-3 bg-teal text-white rounded-xl hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <PaperPlaneRight size={20} weight="fill" />
+                    </button>
+                  </div>
+                </div>
+                {isListening && (
+                  <div className="flex items-center gap-2 text-xs text-red-500 px-1">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    </span>
+                    Listening... {listeningCountdown}s remaining — click mic to stop
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="flex gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={textInput}
-                  onChange={e => setTextInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={step === 'icebreaker' ? "Tell me what you love to do!" : "Type your answer..."}
-                  className="flex-1 px-4 py-3 border border-border dark:border-[#2A3A4E] rounded-xl text-sm bg-card-bg dark:bg-[#1A2332] text-text-primary outline-none focus:border-teal transition-colors"
-                />
-                <button
-                  onClick={handleSubmitText}
-                  disabled={!textInput.trim()}
-                  className="p-3 bg-teal text-white rounded-xl hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <PaperPlaneRight size={20} weight="fill" />
-                </button>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={textInput}
+                    onChange={e => setTextInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={step === 'icebreaker' ? "Tell me what you love to do!" : "Type your answer..."}
+                    className="flex-1 px-4 py-3 border border-border dark:border-[#2A3A4E] rounded-xl text-sm bg-card-bg dark:bg-[#1A2332] text-text-primary outline-none focus:border-teal transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={startListening}
+                    disabled={!sttSupported}
+                    className={`p-3 rounded-xl transition-colors flex-shrink-0
+                      ${!sttSupported
+                        ? 'bg-card-bg dark:bg-[#1A2332] text-text-muted/30 border border-border dark:border-[#2A3A4E] cursor-not-allowed'
+                        : isListening
+                          ? 'bg-red-500 text-white'
+                          : 'bg-card-bg dark:bg-[#1A2332] text-text-secondary border border-border dark:border-[#2A3A4E] hover:border-teal hover:text-teal'}`}
+                    title={!sttSupported ? 'Speech recognition not supported in this browser' : isListening ? `Listening... ${listeningCountdown}s` : 'Start voice input'}
+                  >
+                    <Microphone size={20} weight={isListening ? 'fill' : 'regular'} className={isListening ? 'animate-pulse' : ''} />
+                  </button>
+                  <button
+                    onClick={handleSubmitText}
+                    disabled={!textInput.trim()}
+                    className="p-3 bg-teal text-white rounded-xl hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                  >
+                    <PaperPlaneRight size={20} weight="fill" />
+                  </button>
+                </div>
+                {isListening && (
+                  <div className="flex items-center gap-2 text-xs text-red-500 px-1">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    </span>
+                    Listening... {listeningCountdown}s remaining — click mic to stop
+                  </div>
+                )}
               </div>
             )}
           </div>
