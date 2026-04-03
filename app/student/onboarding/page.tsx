@@ -1504,7 +1504,7 @@ export default function OnboardingPage() {
                   </button>
                 </div>
               ) : (
-                <div className="px-4 py-3 rounded-2xl rounded-br-sm text-sm leading-relaxed bg-teal text-white">
+                <div className="px-4 py-3 rounded-2xl rounded-br-sm text-sm leading-relaxed bg-teal/20 text-navy dark:text-white">
                   {msg.text}
                 </div>
               )}
