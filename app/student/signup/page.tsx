@@ -276,7 +276,7 @@ export default function StudentSignupPage() {
                 type="text"
                 value={classCode}
                 onChange={e => setClassCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
-                placeholder="e.g. BJB644"
+                placeholder="Example: ABC123"
                 maxLength={14}
                 autoComplete="off"
                 spellCheck={false}
