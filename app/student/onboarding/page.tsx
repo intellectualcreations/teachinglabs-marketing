@@ -974,7 +974,10 @@ export default function StudentOnboardingPage() {
             languageTier={languageTier}
             gardnerSignals={computeGardnerSignals(answers, readingTier, mathTier)}
             logicLevel={evaluateLogic(answers.logicAnswer, ageTier)}
-            onContinue={() => router.push('/student/dashboard')}
+            onContinue={() => {
+              localStorage.setItem('teachinglabs_onboarded', 'true');
+              router.push('/student/dashboard');
+            }}
           />
         )}
       </div>
