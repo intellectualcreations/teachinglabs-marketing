@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { GraduationCap, ArrowRight, PaperPlaneRight, SpeakerHigh, Microphone } from '@phosphor-icons/react';
+import { ChatCircle, ArrowRight, PaperPlaneRight, SpeakerHigh, Microphone } from '@phosphor-icons/react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -1319,7 +1319,7 @@ export default function OnboardingPage() {
         {/* Header */}
         <div className="flex items-center gap-3 pb-4 border-b border-border mb-5">
           <div className="w-11 h-11 rounded-full bg-navy flex items-center justify-center flex-shrink-0">
-            <GraduationCap size={24} weight="fill" className="text-white" />
+            <ChatCircle size={24} weight="fill" className="text-white" />
           </div>
           <div className="flex-1">
             <div className="font-heading font-semibold text-sm text-text-primary">Your Learning Assistant</div>
@@ -1353,7 +1353,7 @@ export default function OnboardingPage() {
             >
               <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-semibold mt-1
                 ${msg.role === 'ai' ? 'bg-navy text-white' : 'bg-teal text-white'}`}>
-                {msg.role === 'ai' ? <GraduationCap size={16} weight="fill" /> : studentName.charAt(0).toUpperCase()}
+                {msg.role === 'ai' ? <ChatCircle size={16} weight="fill" /> : studentName.charAt(0).toUpperCase()}
               </div>
               {msg.role === 'ai' ? (
                 <div className="flex flex-col gap-1">
@@ -1392,7 +1392,7 @@ export default function OnboardingPage() {
           {isTyping && (
             <div className="flex gap-2.5 self-start max-w-[90%]">
               <div className="w-8 h-8 rounded-full bg-navy flex items-center justify-center flex-shrink-0 mt-1">
-                <GraduationCap size={16} weight="fill" className="text-white" />
+                <ChatCircle size={16} weight="fill" className="text-white" />
               </div>
               <div className="bg-card-bg dark:bg-[#1A2332] border border-border dark:border-[#2A3A4E] rounded-2xl rounded-bl-sm px-4 py-3">
                 <div className="flex gap-1">
