@@ -124,7 +124,7 @@ export default function DashboardPage() {
   const showing = filtered.slice(0, showCount);
 
   // Derive teacher display name
-  const teacherFirstName = profile?.display_name?.split(' ')[0] || profile?.first_name || 'Teacher';
+  const teacherFirstName = profile?.display_name?.split(' ')[0] || (profile as any)?.first_name || 'Teacher';
   const initials = profile?.display_name
     ? profile.display_name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
     : 'T';
