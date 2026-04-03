@@ -1135,7 +1135,7 @@ function WelcomeScreen({ onBegin, firstName }: { onBegin: () => void; firstName:
           {firstName ? `Hi ${firstName}! Welcome to the Learning Lab! 👋` : 'Hi there! Welcome to the Learning Lab! 👋'}
         </h1>
         <p className="text-text-secondary text-base leading-relaxed mb-6">
-          I&apos;m here to help you learn in the best way possible — made just for you!
+          I&apos;m your Teaching Labs Coach, here to help you get started!
         </p>
       </div>
       <div className="grid gap-3 mb-8 text-left">
