@@ -208,17 +208,15 @@ export default function MyClassesPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setError('Not authenticated'); setLoading(false); return; }
-
-        // Fetch teacher's classes
-        const { data: classData } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('teacher_id', user.id)
-          .order('created_at', { ascending: false });
-        const teacherClasses = (classData ?? []) as Class[];
+        // Use server-side API route so auth cookies are passed correctly
+        const res = await fetch('/api/supabase/classes', { credentials: 'include' });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setError(body.error ?? `Failed to load classes (${res.status})`);
+          setLoading(false);
+          return;
+        }
+        const teacherClasses = (await res.json()) as Class[];
 
         if (teacherClasses.length === 0) {
           setClasses([]);
@@ -226,6 +224,7 @@ export default function MyClassesPage() {
           return;
         }
 
+        const supabase = createClient();
         const classIds = teacherClasses.map((c) => c.id);
 
         // Fetch enrollment counts

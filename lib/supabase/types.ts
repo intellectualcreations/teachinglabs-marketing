@@ -43,6 +43,8 @@ export interface Class {
   teacher_id: string;
   school_id: string | null;
   join_code: string;
+  description: string | null;
+  icon: string | null;
   created_at: string;
 }
 

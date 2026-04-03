@@ -145,11 +145,12 @@ async function redirectUser(
     const pendingSchool = localStorage.getItem('pending_school_id');
 
     // Update profile if it needs fixing (role from signup, or missing display name)
-    const updates: Record<string, unknown> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updates: any = {};
     if (pendingRole && (!profile || (profile as { role?: string })?.role !== pendingRole)) {
       updates.role = pendingRole;
     }
-    const currentName = (profile as { display_name?: string })?.display_name || '';
+    const currentName = (profile as { display_name?: string } | null)?.display_name || '';
     // Update display name if it's missing, is an email address, or we have a better name from SSO
     if (fullName && (!currentName || currentName.includes('@'))) {
       updates.display_name = fullName;
@@ -158,10 +159,11 @@ async function redirectUser(
       updates.school_id = pendingSchool;
     }
     if (Object.keys(updates).length > 0) {
-      await supabase.from('profiles').update(updates).eq('id', user.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from('profiles') as any).update(updates).eq('id', user.id);
     }
 
-    const role: string = (profile as { role?: string } | null)?.role ?? localStorage.getItem('pending_role') ?? 'teacher';
+    const role: string = ((profile as { role?: string } | null)?.role ?? localStorage.getItem('pending_role')) || 'teacher';
 
     // Check if this is a new signup (came from signup page)
     const isNewSignup = localStorage.getItem('pending_role') || localStorage.getItem('pending_school_id');
