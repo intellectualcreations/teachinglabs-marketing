@@ -511,8 +511,30 @@ export default function StudentOnboardingPage() {
   const [showVoicePicker, setShowVoicePicker] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoiceUri, setSelectedVoiceUri] = useState('');
+  const [profileFirstName, setProfileFirstName] = useState('');
 
   const { speak, stop } = useTTS();
+
+  // Fetch Supabase user on mount — personalize welcome + pre-populate name
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+          const firstName = fullName.split(' ')[0] || '';
+          if (firstName) {
+            setProfileFirstName(firstName);
+            setAnswers(a => ({ ...a, name: a.name || firstName }));
+          }
+        }
+      } catch {
+        // silently ignore — name stays empty
+      }
+    };
+    fetchUser();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -785,7 +807,7 @@ export default function StudentOnboardingPage() {
 
       {/* Content area */}
       <div className={`relative z-10 min-h-screen flex items-center justify-center px-4 py-24 ${slideClass}`}>
-        {screen === 0 && <WelcomeScreen onBegin={goNext} />}
+        {screen === 0 && <WelcomeScreen onBegin={goNext} firstName={profileFirstName} />}
         {screen === 1 && (
           <NameAgeScreen
             name={answers.name}
@@ -1097,7 +1119,7 @@ function NextButton({ onNext, canAdvance, label = 'Continue' }: { onNext: () => 
 
 /* ─── Screen 0: Welcome ───────────────────────────────────────────────────────── */
 
-function WelcomeScreen({ onBegin }: { onBegin: () => void }) {
+function WelcomeScreen({ onBegin, firstName }: { onBegin: () => void; firstName: string }) {
   return (
     <div className="max-w-xl mx-auto text-center px-2">
       <div className="onb-fade-up mb-8">
@@ -1110,7 +1132,7 @@ function WelcomeScreen({ onBegin }: { onBegin: () => void }) {
           <ChatCircle size={32} weight="fill" className="text-white" />
         </div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-3 leading-tight">
-          Hi! I&apos;m your Teaching Labs Coach 👋
+          {firstName ? `Hi ${firstName}! Welcome to the Learning Lab! 👋` : 'Hi there! Welcome to the Learning Lab! 👋'}
         </h1>
         <p className="text-text-secondary text-base leading-relaxed mb-6">
           I&apos;m here to help you learn in the best way possible — made just for you!
