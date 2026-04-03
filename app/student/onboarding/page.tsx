@@ -1345,12 +1345,21 @@ function GardnerScreen1({
         </div>
         <textarea
           value={spatialDescription}
-          onChange={e => { if (e.target.value.length <= 500) onSpatialChange(e.target.value); }}
+          onChange={e => { if (e.target.value.length <= 1000) onSpatialChange(e.target.value); }}
           placeholder="Describe it — as wild or as detailed as you want!"
           rows={3}
-          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none text-sm leading-relaxed"
+          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm leading-relaxed"
         />
-        <p className="text-xs text-text-muted mt-1 text-right">{spatialDescription.length} / 500</p>
+        <div className="flex items-center justify-between mt-1">
+          <VoiceInputButton onResult={text => onSpatialChange(spatialDescription ? `${spatialDescription} ${text}` : text)} />
+          <span className="text-xs text-text-muted">{spatialDescription.length} / 1000</span>
+        </div>
+        <p className="text-xs text-teal/70 mt-1.5 italic">The more you share, the more I get to know you! ✨</p>
+        {spatialDescription.trim().length > 0 && (
+          spatialDescription.length > 200
+            ? <StudentBubble text="Wow, you had a lot to say! 🤩" />
+            : <StudentBubble text={spatialDescription} />
+        )}
       </div>
 
       {/* Musical */}
@@ -1359,15 +1368,15 @@ function GardnerScreen1({
           <MusicNotes size={18} weight="fill" className="text-teal" />
           <p className="text-text-primary font-medium text-sm">What&apos;s true for you about music? Pick everything that fits!</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2">
           {MUSICAL_OPTIONS.map(opt => {
             const isSelected = musicalSignals.includes(opt.key);
             return (
               <button
                 key={opt.key} onClick={() => onMusicToggle(opt.key)}
-                className={`px-3 py-2 rounded-full border-2 text-sm font-medium transition-all cursor-pointer ${
+                className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all cursor-pointer ${
                   isSelected
-                    ? 'border-navy dark:border-teal bg-navy/10 dark:bg-teal/10 text-navy dark:text-teal shadow-sm'
+                    ? 'border-teal bg-teal/10 text-navy dark:text-teal shadow-sm'
                     : 'border-border bg-card-bg/30 text-text-secondary hover:border-teal/50'
                 }`}
               >
@@ -1384,15 +1393,15 @@ function GardnerScreen1({
           <Sparkle size={18} weight="fill" className="text-teal" />
           <p className="text-text-primary font-medium text-sm">How do YOU learn new things best? Pick all that feel right!</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2">
           {KINESTHETIC_OPTIONS.map(opt => {
             const isSelected = kinestheticSignals.includes(opt.key);
             return (
               <button
                 key={opt.key} onClick={() => onKinesToggle(opt.key)}
-                className={`px-3 py-2 rounded-full border-2 text-sm font-medium transition-all cursor-pointer ${
+                className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all cursor-pointer ${
                   isSelected
-                    ? 'border-navy dark:border-teal bg-navy/10 dark:bg-teal/10 text-navy dark:text-teal shadow-sm'
+                    ? 'border-teal bg-teal/10 text-navy dark:text-teal shadow-sm'
                     : 'border-border bg-card-bg/30 text-text-secondary hover:border-teal/50'
                 }`}
               >
@@ -1423,9 +1432,9 @@ function GardnerScreen2({
   languageTier: LanguageTier;
 }) {
   const bubbleText = coachText(
-    'You\'re doing SO great! 🌟 Now tell me about working with friends — and about YOU!',
-    'Almost there! Tell me a little about how you work with others — and how you see yourself.',
-    'Last section here. How do you work with others, and what do you know about yourself?',
+    'Let\'s keep going! 🌟 Tell me about working with friends — and about YOU!',
+    'Let\'s keep going! Tell me a little about how you work with others — and how you see yourself.',
+    'Let\'s keep going. How do you work with others, and what do you know about yourself?',
     languageTier,
   );
 
@@ -1461,24 +1470,36 @@ function GardnerScreen2({
           <UserCircle size={18} weight="fill" className="text-teal" />
           <p className="text-text-primary font-medium text-sm">Tell me a little about YOU:</p>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
             <label className="text-text-secondary text-xs mb-1 block">What&apos;s something you&apos;re really good at?</label>
-            <input
-              type="text" value={intrapersonalStrengths}
-              onChange={e => { if (e.target.value.length <= 200) onStrengthsChange(e.target.value); }}
+            <textarea
+              value={intrapersonalStrengths}
+              onChange={e => { if (e.target.value.length <= 1000) onStrengthsChange(e.target.value); }}
               placeholder="e.g., drawing, making people laugh, remembering facts..."
-              className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors text-sm"
+              rows={2}
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm"
             />
+            <div className="flex items-center justify-between mt-1">
+              <VoiceInputButton onResult={text => onStrengthsChange(intrapersonalStrengths ? `${intrapersonalStrengths} ${text}` : text)} />
+              <span className="text-xs text-text-muted">{intrapersonalStrengths.length} / 1000</span>
+            </div>
+            <p className="text-xs text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
           </div>
           <div>
             <label className="text-text-secondary text-xs mb-1 block">What&apos;s one thing you want to get better at?</label>
-            <input
-              type="text" value={intrapersonalGrowth}
-              onChange={e => { if (e.target.value.length <= 200) onGrowthChange(e.target.value); }}
+            <textarea
+              value={intrapersonalGrowth}
+              onChange={e => { if (e.target.value.length <= 1000) onGrowthChange(e.target.value); }}
               placeholder="e.g., math, being more patient, public speaking..."
-              className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors text-sm"
+              rows={2}
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm"
             />
+            <div className="flex items-center justify-between mt-1">
+              <VoiceInputButton onResult={text => onGrowthChange(intrapersonalGrowth ? `${intrapersonalGrowth} ${text}` : text)} />
+              <span className="text-xs text-text-muted">{intrapersonalGrowth.length} / 1000</span>
+            </div>
+            <p className="text-xs text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
           </div>
         </div>
       </div>
@@ -1679,13 +1700,13 @@ function ReadingQuestionScreen({
       <div className="onb-card-in" style={{ animationDelay: '0.1s' }}>
         <textarea
           value={value}
-          onChange={e => { if (e.target.value.length <= 2000) onChange(e.target.value); }}
+          onChange={e => { if (e.target.value.length <= 1000) onChange(e.target.value); }}
           placeholder="Type your answer here..." rows={4} autoFocus
-          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none text-base leading-relaxed"
+          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-base leading-relaxed"
         />
         <div className="flex items-center justify-between mt-2">
           <VoiceInputButton onResult={text => onChange(value ? `${value} ${text}` : text)} />
-          <span className="text-xs text-text-muted">{value.length} / 2000</span>
+          <span className="text-xs text-text-muted">{value.length} / 1000</span>
         </div>
       </div>
       {value.length >= 20 && <StudentBubble text={value} />}
@@ -1723,12 +1744,12 @@ function WritingScreen({
         <p className="text-xs text-text-muted italic mb-2">For this one, read and type your answer.</p>
         <textarea
           value={value}
-          onChange={e => { if (e.target.value.length <= 2000) onChange(e.target.value); }}
+          onChange={e => { if (e.target.value.length <= 1000) onChange(e.target.value); }}
           placeholder="Write what you think here..." rows={5} autoFocus
-          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none text-base leading-relaxed"
+          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-base leading-relaxed"
         />
         <div className="flex justify-end mt-1">
-          <span className="text-xs text-text-muted">{value.length} / 2000</span>
+          <span className="text-xs text-text-muted">{value.length} / 1000</span>
         </div>
       </div>
       <NextButton onNext={onNext} canAdvance={canAdvance} />
