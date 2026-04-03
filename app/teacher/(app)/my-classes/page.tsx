@@ -208,56 +208,19 @@ export default function MyClassesPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Use server-side API route so auth cookies are passed correctly
-        const res = await fetch('/api/supabase/classes', { credentials: 'include' });
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+
+        // Fetch teacher's classes with counts via API route (bypasses RLS)
+        const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}`);
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           setError(body.error ?? `Failed to load classes (${res.status})`);
           setLoading(false);
           return;
         }
-        const teacherClasses = (await res.json()) as Class[];
-
-        if (teacherClasses.length === 0) {
-          setClasses([]);
-          setLoading(false);
-          return;
-        }
-
-        const supabase = createClient();
-        const classIds = teacherClasses.map((c) => c.id);
-
-        // Fetch enrollment counts
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: enrollmentData } = await (supabase
-          .from('enrollments')
-          .select('class_id, status') as any)
-          .in('class_id', classIds)
-          .eq('status', 'active');
-
-        const enrollCounts = new Map<string, number>();
-        ((enrollmentData ?? []) as Array<{ class_id: string; status: string }>).forEach((e) => {
-          enrollCounts.set(e.class_id, (enrollCounts.get(e.class_id) ?? 0) + 1);
-        });
-
-        // Fetch assignment counts
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: assignmentData } = await (supabase
-          .from('assignments')
-          .select('class_id') as any)
-          .in('class_id', classIds);
-
-        const assignCounts = new Map<string, number>();
-        ((assignmentData ?? []) as Array<{ class_id: string }>).forEach((a) => {
-          assignCounts.set(a.class_id, (assignCounts.get(a.class_id) ?? 0) + 1);
-        });
-
-        const classesWithCounts: ClassWithCounts[] = teacherClasses.map((c) => ({
-          ...c,
-          studentCount: enrollCounts.get(c.id) ?? 0,
-          assignmentCount: assignCounts.get(c.id) ?? 0,
-        }));
-
+        const classesWithCounts = (await res.json()) as ClassWithCounts[];
         setClasses(classesWithCounts);
       } catch (err) {
         console.error('My classes fetch error:', err);
