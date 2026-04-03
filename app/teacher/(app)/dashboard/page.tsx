@@ -43,60 +43,33 @@ export default function DashboardPage() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          // Redirect to login if not authenticated
           window.location.href = '/login';
           return;
         }
 
-        // Fetch profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setProfile(profileData as Profile | null);
+        // Fetch all dashboard data via admin API route (bypasses RLS)
+        const res = await fetch(`/api/teacher/dashboard?teacherId=${user.id}`);
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Failed to load dashboard');
+        }
+        const data = await res.json();
 
-        // Fetch teacher's classes
-        const { data: classData } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('teacher_id', user.id)
-          .order('created_at', { ascending: false });
-        const teacherClasses = (classData ?? []) as Class[];
+        setProfile(data.profile as Profile | null);
+        const teacherClasses = (data.classes ?? []) as Class[];
         setClasses(teacherClasses);
 
-        if (teacherClasses.length === 0) {
+        const enrollments = (data.enrollments ?? []) as Array<{ student_id: string; class_id: string; enrolled_at: string; status: string }>;
+        const studentProfiles = (data.students ?? []) as Profile[];
+
+        if (teacherClasses.length === 0 || enrollments.length === 0) {
           setStudents([]);
           setLoading(false);
           return;
         }
-
-        // Fetch enrollments with student profiles for all teacher classes
-        const classIds = teacherClasses.map((c) => c.id);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: enrollmentData } = await (supabase
-          .from('enrollments')
-          .select('student_id, class_id, enrolled_at, status') as any)
-          .in('class_id', classIds)
-          .eq('status', 'active');
-
-        const enrollments = (enrollmentData ?? []) as Array<{ student_id: string; class_id: string; enrolled_at: string; status: string }>;
-        if (enrollments.length === 0) {
-          setStudents([]);
-          setLoading(false);
-          return;
-        }
-
-        // Get unique student IDs and fetch their profiles
-        const studentIds = [...new Set(enrollments.map((e) => e.student_id))];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: studentProfiles } = await (supabase
-          .from('profiles')
-          .select('*') as any)
-          .in('id', studentIds);
 
         const profileMap = new Map<string, Profile>();
-        ((studentProfiles ?? []) as Profile[]).forEach((p) => profileMap.set(p.id, p));
+        studentProfiles.forEach((p) => profileMap.set(p.id, p));
 
         // Build class name lookup
         const classNameMap = new Map<string, string>();

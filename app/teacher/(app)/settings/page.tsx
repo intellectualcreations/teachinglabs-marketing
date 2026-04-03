@@ -109,14 +109,12 @@ export default function SettingsPage() {
         // Set email from auth
         setEmail(user.email || '');
 
-        // Try to get name from profile first, then auth metadata
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('display_name, first_name, last_name, role, school_id')
-          .eq('id', user.id)
-          .single();
+        // Fetch profile via admin API route (bypasses RLS)
+        const res = await fetch(`/api/teacher/profile?teacherId=${user.id}`);
+        if (!res.ok) return;
+        const data = await res.json();
 
-        const p = profile as { display_name?: string; first_name?: string; last_name?: string; role?: string; school_id?: string } | null;
+        const p = data.profile as { display_name?: string; first_name?: string; last_name?: string; role?: string; school_id?: string } | null;
         const displayName = p?.display_name
           || (p?.first_name && p?.last_name ? `${p.first_name} ${p.last_name}` : null)
           || user.user_metadata?.full_name as string
@@ -125,15 +123,8 @@ export default function SettingsPage() {
         setName(displayName);
         setRole(p?.role || 'Teacher');
 
-        // Get school name if school_id exists
-        if (p?.school_id) {
-          const { data: schoolData } = await supabase
-            .from('schools')
-            .select('name')
-            .eq('id', p.school_id)
-            .single();
-          setSchool((schoolData as { name?: string } | null)?.name || '');
-        }
+        const schoolData = data.school as { name?: string } | null;
+        setSchool(schoolData?.name || '');
       } catch { /* ignore */ }
     }
     loadProfile();

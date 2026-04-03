@@ -23,28 +23,16 @@ export default function LibraryPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setError('Not authenticated'); setLoading(false); return; }
 
-        // Fetch teacher's classes
-        const { data: classData } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('teacher_id', user.id);
-        const teacherClasses = (classData ?? []) as Class[];
-        setClasses(teacherClasses);
-
-        if (teacherClasses.length === 0) {
-          setAssignments([]);
-          setLoading(false);
-          return;
+        // Fetch library data via admin API route (bypasses RLS)
+        const res = await fetch(`/api/teacher/library?teacherId=${user.id}`);
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Failed to load library');
         }
+        const data = await res.json();
 
-        // Fetch assignments for all teacher's classes
-        const { data: assignmentData } = await supabase
-          .from('assignments')
-          .select('*')
-          .eq('teacher_id', user.id)
-          .order('created_at', { ascending: false });
-
-        setAssignments((assignmentData ?? []) as Assignment[]);
+        setClasses((data.classes ?? []) as Class[]);
+        setAssignments((data.assignments ?? []) as Assignment[]);
       } catch (err) {
         console.error('Library fetch error:', err);
         setError('Failed to load activities');

@@ -36,55 +36,28 @@ export default function StudentChatsPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setError('Not authenticated'); setLoading(false); return; }
 
-        // Fetch teacher's classes
-        const { data: classData } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('teacher_id', user.id);
-        const teacherClasses = (classData ?? []) as Class[];
+        // Fetch student chat data via admin API route (bypasses RLS)
+        const res = await fetch(`/api/teacher/student-data?teacherId=${user.id}`);
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Failed to load chats');
+        }
+        const data = await res.json();
+
+        const teacherClasses = (data.classes ?? []) as Class[];
         setClasses(teacherClasses);
 
-        if (teacherClasses.length === 0) {
+        const messages = (data.chatMessages ?? []) as ChatMessage[];
+        const studentProfilesList = (data.studentProfiles ?? []) as Profile[];
+
+        if (teacherClasses.length === 0 || messages.length === 0) {
           setChatGroups([]);
           setLoading(false);
           return;
         }
-
-        const classIds = teacherClasses.map((c) => c.id);
-
-        // Fetch chat messages for teacher's classes
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: messageData } = await (supabase
-          .from('chat_messages')
-          .select('*') as any)
-          .in('class_id', classIds)
-          .order('created_at', { ascending: false })
-          .limit(500);
-
-        const messages = (messageData ?? []) as ChatMessage[];
-        if (messages.length === 0) {
-          setChatGroups([]);
-          setLoading(false);
-          return;
-        }
-
-        // Get unique sender IDs (exclude the teacher)
-        const senderIds = [...new Set(messages.filter((m) => m.sender_id !== user.id).map((m) => m.sender_id))];
-        if (senderIds.length === 0) {
-          setChatGroups([]);
-          setLoading(false);
-          return;
-        }
-
-        // Fetch sender profiles
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: profileData } = await (supabase
-          .from('profiles')
-          .select('*') as any)
-          .in('id', senderIds);
 
         const profileMap = new Map<string, Profile>();
-        ((profileData ?? []) as Profile[]).forEach((p) => profileMap.set(p.id, p));
+        studentProfilesList.forEach((p) => profileMap.set(p.id, p));
 
         const classNameMap = new Map<string, string>();
         teacherClasses.forEach((c) => classNameMap.set(c.id, c.name));
@@ -92,7 +65,7 @@ export default function StudentChatsPage() {
         // Group messages by student + class
         const groupMap = new Map<string, ChatGroup>();
         messages.forEach((m) => {
-          if (m.sender_id === user.id) return; // Skip teacher's own messages from grouping key
+          if (m.sender_id === user.id) return;
           const key = `${m.sender_id}:${m.class_id}`;
           const existing = groupMap.get(key);
           if (existing) {
