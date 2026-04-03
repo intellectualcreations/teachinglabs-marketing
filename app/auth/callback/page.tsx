@@ -163,10 +163,15 @@ async function redirectUser(
       await (supabase.from('profiles') as any).update(updates).eq('id', user.id);
     }
 
-    const role: string = ((profile as { role?: string } | null)?.role ?? localStorage.getItem('pending_role')) || 'teacher';
+    const profileRole = (profile as { role?: string } | null)?.role;
+    const role: string = profileRole ?? pendingRole ?? 'teacher';
 
     // Check if this is a new signup (came from signup page)
-    const isNewSignup = localStorage.getItem('pending_role') || localStorage.getItem('pending_school_id');
+    const isNewSignup = pendingRole || localStorage.getItem('pending_school_id');
+
+    // Clean up localStorage signup flags
+    localStorage.removeItem('pending_role');
+    localStorage.removeItem('pending_school_id');
 
     if (isNewSignup) {
       // New signups go through onboarding
@@ -180,7 +185,7 @@ async function redirectUser(
       }
     }
 
-    // Existing users (login) go straight to dashboard
+    // Existing users go to their role-appropriate dashboard
     const dashboards: Record<string, string> = {
       admin: '/admin/dashboard',
       teacher: '/teacher/dashboard',
@@ -188,8 +193,8 @@ async function redirectUser(
       parent: '/parent/dashboard',
     };
 
-    window.location.href = dashboards[role] || '/teacher/dashboard';
+    window.location.href = dashboards[role] || (role === 'student' ? '/student/dashboard' : '/teacher/dashboard');
   } catch {
-    window.location.href = '/teacher/dashboard';
+    window.location.href = '/login';
   }
 }
