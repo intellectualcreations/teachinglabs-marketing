@@ -49,6 +49,7 @@ interface StudentAnswers {
   name: string;
   age: number | null;
   interests: string[];
+  otherInterests: string;
   // Gardner's Multiple Intelligences
   spatialDescription: string;
   musicalSignals: string[];
@@ -73,6 +74,7 @@ const INITIAL_ANSWERS: StudentAnswers = {
   name: '',
   age: null,
   interests: [],
+  otherInterests: '',
   spatialDescription: '',
   musicalSignals: [],
   kinestheticSignals: [],
@@ -646,6 +648,7 @@ export default function StudentOnboardingPage() {
       name_flagged: isNameInappropriate(answers.name),
       age: answers.age,
       interests: answers.interests,
+      other_interests: answers.otherInterests || null,
       theme: selectedTheme,
       reading_level: readingTier,
       math_level: mathTier,
@@ -835,6 +838,8 @@ export default function StudentOnboardingPage() {
         {screen === 2 && (
           <InterestsScreen
             selected={answers.interests}
+            otherInterests={answers.otherInterests}
+            onOtherChange={v => setAnswers(a => ({ ...a, otherInterests: v }))}
             languageTier={languageTier}
             onToggle={interest => setAnswers(a => ({
               ...a,
@@ -1244,9 +1249,10 @@ function NameAgeScreen({
 /* ─── Screen 2: Interests ─────────────────────────────────────────────────────── */
 
 function InterestsScreen({
-  selected, onToggle, onNext, canAdvance, languageTier,
+  selected, onToggle, otherInterests, onOtherChange, onNext, canAdvance, languageTier,
 }: {
   selected: string[]; onToggle: (interest: string) => void;
+  otherInterests: string; onOtherChange: (v: string) => void;
   onNext: () => void; canAdvance: boolean; languageTier: LanguageTier;
 }) {
   const bubbleText = coachText(
@@ -1278,6 +1284,24 @@ function InterestsScreen({
             </button>
           );
         })}
+      </div>
+      {/* Other interests text field */}
+      <div className="mt-4 mb-4">
+        <label className="block text-text-secondary text-sm font-medium mb-2">
+          {coachText(
+            'Is there something else you love? Tell me! 💬',
+            'Into something not listed? Tell me about it!',
+            'Anything else you\'re into? I\'d like to know.',
+            languageTier,
+          )}
+        </label>
+        <textarea
+          value={otherInterests}
+          onChange={e => onOtherChange(e.target.value)}
+          placeholder="I also really like..."
+          rows={2}
+          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors text-sm resize-none"
+        />
       </div>
       {selected.length > 0 && (
         <StudentBubble text={selected.length === 1 ? `${selected[0]} — great choice!` : `${selected.length} things picked — awesome!`} />
