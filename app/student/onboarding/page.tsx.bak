@@ -41,15 +41,9 @@ import ThemeToggle from '@/components/shared/ThemeToggle';
 
 type GradeTier = 'lower' | 'middle' | 'upper';
 type LanguageTier = 'young' | 'middle' | 'older';
-type ThemeName = 'gaming' | 'sports' | 'animals' | 'space' | 'music' | 'art' | 'science' | 'cooking';
+type ThemeName = 'gaming' | 'sports' | 'animals' | 'space';
 type DifficultyShift = 'up' | 'same' | 'down';
 type GardnerSignal = 'strong' | 'developing' | 'emerging';
-
-interface AuthenticitySignals {
-  pastedFields: string[];
-  followUpResponses: Record<string, string>;
-  suspiciousLength: boolean;
-}
 
 interface StudentAnswers {
   name: string;
@@ -74,8 +68,6 @@ interface StudentAnswers {
   writingResponse: string;
   mathResponse1: string;
   mathResponse2: string;
-  // AI detection
-  authenticitySignals: AuthenticitySignals;
 }
 
 const INITIAL_ANSWERS: StudentAnswers = {
@@ -97,11 +89,6 @@ const INITIAL_ANSWERS: StudentAnswers = {
   writingResponse: '',
   mathResponse1: '',
   mathResponse2: '',
-  authenticitySignals: {
-    pastedFields: [],
-    followUpResponses: {},
-    suspiciousLength: false,
-  },
 };
 
 /* ─── Content Bank ──────────────────────────────────────────────────────────── */
@@ -217,106 +204,6 @@ const THEMES: Record<ThemeName, ThemeContent> = {
       upper: { question: 'A Mars mission takes 9 months each way. Astronauts spend 18 months on Mars. What percentage of the total mission time is spent traveling? Round to the nearest whole percent.', answer: 50 },
     },
   },
-  music: {
-    name: 'music',
-    passage: {
-      lower: `Music is everywhere! Birds sing songs, rain makes rhythm on the roof, and people all around the world make music every day. Some people play instruments like piano, guitar, or drums. Others love to sing or clap along to their favorite songs. Music can make you feel happy, calm, or excited. Scientists have found that music even helps your brain learn and remember things better. Whether you're listening or making your own, music is a powerful part of life.`,
-      middle: `Music is one of the oldest art forms in human history. Every culture on Earth has developed its own musical traditions, from African drumming circles to European orchestras to Japanese koto performances. Music theory — the study of how notes, rhythms, and harmonies work together — is deeply mathematical. Time signatures divide beats into fractions, frequencies are measured in hertz, and the distance between notes follows precise ratios. Many famous musicians, from Beethoven to Billie Eilish, started learning their craft before the age of 10.`,
-      upper: `The neuroscience of music reveals fascinating connections between sound and the brain. When you listen to music, nearly every area of your brain activates simultaneously — the auditory cortex processes sound, the motor cortex taps along, and the limbic system generates emotional responses. Studies at Johns Hopkins found that musicians have measurably different brain structures, with larger corpus callosums connecting their brain hemispheres. Music therapy is now used clinically to treat conditions from PTSD to Parkinson's disease, leveraging rhythm to rebuild neural pathways that other therapies cannot reach.`,
-    },
-    readingQuestion: {
-      lower: 'What is one thing about music from the passage that you thought was cool? Tell me in your own words!',
-      middle: 'The passage mentioned that music theory is mathematical. Can you explain what that means based on what you read?',
-      upper: 'The passage described how music affects the brain. What surprised you most, and why do you think music is used as therapy?',
-    },
-    writingPassage: `Some people say that music is a universal language — it can make you feel something even if you don't understand the words. A sad song can bring tears to your eyes. An upbeat rhythm can make you want to dance. Researchers have found that people from completely different cultures can identify whether a song sounds happy, sad, or scary, even if they've never heard that style of music before.`,
-    writingPrompt: 'Do you think music really is a "universal language"? Why or why not? Write what you honestly think.',
-    mathQ1: {
-      lower: { question: 'A song is 3 minutes long. If you listen to it 4 times, how many minutes of music is that?', answer: 12 },
-      middle: { question: 'A band practices 45 minutes per day, 5 days a week. How many total minutes do they practice in 4 weeks?', answer: 900 },
-      upper: { question: 'A concert venue sells 1,200 tickets at $45 each and 300 VIP tickets at $120 each. What is the total ticket revenue?', answer: 90000 },
-    },
-    mathQ2: {
-      lower: { question: 'A piano has 88 keys. 52 of them are white. How many keys are black?', answer: 36 },
-      middle: { question: 'A song has a tempo of 120 beats per minute. How many beats are in a 3.5-minute song?', answer: 420 },
-      upper: { question: 'A music streaming service has 82 million subscribers. If 15% cancel in a year, how many subscribers remain?', answer: 69700000 },
-    },
-  },
-  art: {
-    name: 'art',
-    passage: {
-      lower: `Art is a way of showing how you see the world. You can make art with crayons, paint, clay, or even things you find outside! Some artists paint pictures of people and places. Others make sculptures or collages. Art doesn't have to look perfect — it just has to come from YOU. Museums are full of art from all around the world and from thousands of years ago. Even cave paintings made by early humans are a kind of art. Everyone can be an artist!`,
-      middle: `Throughout history, art has been a mirror of human experience. The ancient Egyptians painted detailed scenes of daily life on tomb walls. During the Renaissance, artists like Leonardo da Vinci combined art with science, studying anatomy to draw the human body accurately. In the 20th century, artists like Frida Kahlo used bold colors and surreal imagery to express personal pain and cultural identity. Today, digital tools have opened up entirely new forms of art — from 3D modeling to generative algorithms that create images from code.`,
-      upper: `Art criticism and theory explore fundamental questions about human perception and meaning. The concept of "the gaze" — how the viewer's perspective shapes the meaning of an artwork — has been debated since John Berger's seminal 1972 work "Ways of Seeing." Contemporary art increasingly blurs the line between creator and audience: interactive installations respond to viewers' movements, AI-generated art raises questions about authorship, and street art transforms public spaces into galleries accessible to everyone. The global art market, valued at over $65 billion, reflects both cultural significance and complex economic dynamics.`,
-    },
-    readingQuestion: {
-      lower: 'What is one kind of art from the passage that sounds fun to you? Why?',
-      middle: 'The passage talked about how art has changed over time. Pick one example and explain in your own words why that type of art was important.',
-      upper: 'The passage mentioned AI-generated art and questions about authorship. What do you think — can a computer really make "art"? Why or why not?',
-    },
-    writingPassage: `Pablo Picasso once said, "Every child is an artist. The problem is how to remain an artist once we grow up." Many adults stop drawing or painting because they think they aren't "good enough." But art isn't about being perfect — it's about expressing ideas, emotions, and perspectives that words alone can't capture. Some of the most celebrated artworks in history were criticized when they were first created.`,
-    writingPrompt: 'Do you agree with Picasso that every child is an artist? What happens when people grow up — and does it have to be that way? Write what you think.',
-    mathQ1: {
-      lower: { question: 'You have 5 paint colors. You mix every pair of colors to make new ones. How many new colors can you make?', answer: 10 },
-      middle: { question: 'A mural is 12 feet wide and 8 feet tall. What is the total area of the mural in square feet?', answer: 96 },
-      upper: { question: 'An art gallery has 240 pieces. 40% are paintings, 35% are sculptures, and the rest are photographs. How many photographs are there?', answer: 60 },
-    },
-    mathQ2: {
-      lower: { question: 'An art class has 18 students. Each student needs 3 paintbrushes. How many paintbrushes are needed in total?', answer: 54 },
-      middle: { question: 'A canvas costs $8.50 and a set of paints costs $12.75. If you buy 4 canvases and 2 paint sets, how much do you spend?', answer: 59.5 },
-      upper: { question: 'A painting was bought for $2,000 and its value increased by 8% per year. What is it worth after 1 year?', answer: 2160 },
-    },
-  },
-  science: {
-    name: 'science',
-    passage: {
-      lower: `Science is all about asking questions and finding answers! Scientists study everything — from tiny bugs to giant volcanoes. They do experiments to learn how things work. Have you ever mixed baking soda and vinegar? That fizzy reaction is science! Scientists also study weather, plants, rocks, and even your own body. The best part about science is that there's always something new to discover. You don't need a fancy lab to be a scientist — you just need curiosity!`,
-      middle: `The scientific method is the backbone of all scientific discovery. It starts with a question, followed by a hypothesis — an educated guess about what the answer might be. Scientists then design experiments to test their hypotheses, carefully controlling variables to ensure reliable results. Data is collected, analyzed, and compared against predictions. If results don't match the hypothesis, scientists revise and test again. Some of history's greatest breakthroughs — from penicillin to the structure of DNA — came from unexpected experimental results that curious scientists chose to investigate rather than ignore.`,
-      upper: `Modern science increasingly operates at the intersection of multiple disciplines. Bioinformatics combines biology with computer science to decode genomes. Materials science merges physics and chemistry to engineer substances with unprecedented properties, from self-healing polymers to superconductors. The replication crisis — where many published studies fail to produce the same results when repeated — has sparked a fundamental rethinking of scientific methodology and peer review. Open science initiatives are pushing for greater transparency, data sharing, and pre-registration of experiments to strengthen the reliability of scientific knowledge.`,
-    },
-    readingQuestion: {
-      lower: 'What is something from the passage that made you curious? What would you want to learn more about?',
-      middle: 'The passage described the scientific method. Can you explain in your own words why scientists test their ideas with experiments instead of just guessing?',
-      upper: 'The passage mentioned the "replication crisis." What does that mean, and why is it a problem for science?',
-    },
-    writingPassage: `Albert Einstein once said, "Imagination is more important than knowledge." Many people think science is only about memorizing facts and formulas. But the greatest scientific discoveries came from people who imagined something nobody else had thought of before. Einstein imagined riding a beam of light. Darwin imagined how tiny changes over millions of years could create entirely new species. Science needs creativity just as much as it needs logic.`,
-    writingPrompt: 'Do you agree that imagination is more important than knowledge in science? Why or why not? Write what you think.',
-    mathQ1: {
-      lower: { question: 'A scientist plants 6 rows of seeds with 7 seeds in each row. How many seeds did she plant?', answer: 42 },
-      middle: { question: 'A chemistry experiment requires 2.5 liters of solution. If you need to run the experiment 8 times, how many liters do you need in total?', answer: 20 },
-      upper: { question: 'A bacteria colony doubles in size every 20 minutes. Starting with 500 bacteria, how many will there be after 1 hour?', answer: 4000 },
-    },
-    mathQ2: {
-      lower: { question: 'A science class has 24 students. They split into groups of 4 for an experiment. How many groups are there?', answer: 6 },
-      middle: { question: 'A telescope can see stars up to 400 light-years away. A new lens makes it 3 times more powerful. How far can it see now?', answer: 1200 },
-      upper: { question: 'A lab runs 150 experiments per month. 18% produce significant results. How many significant results is that per month?', answer: 27 },
-    },
-  },
-  cooking: {
-    name: 'cooking',
-    passage: {
-      lower: `Cooking is like doing a fun science experiment you can eat! When you mix ingredients together and add heat, amazing things happen. Bread rises because of tiny living things called yeast. Cookies turn golden brown in the oven because of a special reaction between sugar and heat. People all over the world make different kinds of food — from tacos in Mexico to sushi in Japan to pasta in Italy. Learning to cook means you can make your favorite foods anytime!`,
-      middle: `Cooking is a blend of science, culture, and creativity. The Maillard reaction — the chemical process that browns food and creates complex flavors — is one of the most important reactions in the kitchen. Understanding how heat transfers through conduction, convection, and radiation helps chefs cook food perfectly every time. Baking is especially precise: too much flour makes bread dense, too little makes it crumbly. Professional chefs train for years, learning techniques from different culinary traditions around the world and understanding the chemistry behind every dish they create.`,
-      upper: `The intersection of food science and gastronomy has revolutionized modern cooking. Molecular gastronomy, pioneered by chefs like Ferran Adria and Heston Blumenthal, applies scientific techniques — spherification, gelification, emulsification — to transform familiar ingredients into entirely new textures and forms. Beyond technique, the global food system raises profound ethical and environmental questions: industrial agriculture produces 26% of global greenhouse gas emissions, and food scientists are developing alternatives from lab-grown meat to precision fermentation. Understanding the science of nutrition, sustainability, and food chemistry is becoming as important as knowing how to follow a recipe.`,
-    },
-    readingQuestion: {
-      lower: 'What is one thing from the passage that you thought was interesting about cooking? Tell me about it!',
-      middle: 'The passage mentioned the Maillard reaction. In your own words, what is it and why does it matter in cooking?',
-      upper: 'The passage discussed molecular gastronomy and food sustainability. Which topic interests you more, and why?',
-    },
-    writingPassage: `Julia Child, one of the most famous chefs in history, didn't learn to cook until she was 36 years old. She believed that mistakes in the kitchen were not failures but lessons. "The only time to eat diet food," she said, "is while waiting for the steak to cook." Her philosophy was simple: cooking should be fun, food should taste good, and everyone can learn to make a great meal with practice and patience.`,
-    writingPrompt: 'Julia Child believed cooking should be fun and that mistakes are just lessons. Do you agree? What do you think makes someone a good cook? Write what you think.',
-    mathQ1: {
-      lower: { question: 'A recipe needs 2 cups of flour. If you want to make 3 batches, how many cups of flour do you need?', answer: 6 },
-      middle: { question: 'A recipe serves 4 people and calls for 1.5 cups of rice. If you need to serve 12 people, how many cups of rice do you need?', answer: 4.5 },
-      upper: { question: 'A bakery makes 480 cupcakes per day. Ingredients cost $0.85 per cupcake and each sells for $3.50. What is the daily profit?', answer: 1272 },
-    },
-    mathQ2: {
-      lower: { question: 'You bake 24 cookies and share them equally among 6 friends. How many cookies does each friend get?', answer: 4 },
-      middle: { question: 'A pizza is cut into 8 equal slices. If you eat 3 slices, what percentage of the pizza did you eat? Round to the nearest whole percent.', answer: 38 },
-      upper: { question: 'A restaurant serves 200 meals per day. Food costs are 32% of revenue. If daily revenue is $8,400, what are the daily food costs?', answer: 2688 },
-    },
-  },
 };
 
 /* ─── Interest definitions ───────────────────────────────────────────────────── */
@@ -324,22 +211,22 @@ const THEMES: Record<ThemeName, ThemeContent> = {
 const INTERESTS = [
   { label: 'Gaming', icon: GameController, theme: 'gaming' as ThemeName },
   { label: 'Sports', icon: Trophy, theme: 'sports' as ThemeName },
-  { label: 'Music', icon: MusicNotes, theme: 'music' as ThemeName },
-  { label: 'Art', icon: Palette, theme: 'art' as ThemeName },
+  { label: 'Music', icon: MusicNotes, theme: 'sports' as ThemeName },
+  { label: 'Art', icon: Palette, theme: 'animals' as ThemeName },
   { label: 'Animals', icon: PawPrint, theme: 'animals' as ThemeName },
   { label: 'Space', icon: Planet, theme: 'space' as ThemeName },
-  { label: 'Science', icon: Flask, theme: 'science' as ThemeName },
-  { label: 'Cooking', icon: ChefHat, theme: 'cooking' as ThemeName },
+  { label: 'Science', icon: Flask, theme: 'space' as ThemeName },
+  { label: 'Cooking', icon: ChefHat, theme: 'animals' as ThemeName },
   { label: 'Reading', icon: BookOpen, theme: 'space' as ThemeName },
   { label: 'Movies', icon: FilmSlate, theme: 'gaming' as ThemeName },
-  { label: 'Building Things', icon: Hammer, theme: 'science' as ThemeName },
+  { label: 'Building Things', icon: Hammer, theme: 'gaming' as ThemeName },
   { label: 'Nature', icon: Leaf, theme: 'animals' as ThemeName },
-  { label: 'Math', icon: Calculator, theme: 'science' as ThemeName },
+  { label: 'Math', icon: Calculator, theme: 'space' as ThemeName },
   { label: 'History', icon: Scroll, theme: 'space' as ThemeName },
-  { label: 'Dancing', icon: Star, theme: 'music' as ThemeName },
-  { label: 'Fashion', icon: Bicycle, theme: 'art' as ThemeName },
+  { label: 'Dancing', icon: Star, theme: 'sports' as ThemeName },
+  { label: 'Fashion', icon: Bicycle, theme: 'sports' as ThemeName },
   { label: 'Cars', icon: Car, theme: 'gaming' as ThemeName },
-  { label: 'Coding', icon: Code, theme: 'science' as ThemeName },
+  { label: 'Coding', icon: Code, theme: 'gaming' as ThemeName },
 ];
 
 // Ages 5–18 (18 represents 18+)
@@ -469,10 +356,6 @@ function getSpatialPrompt(interests: string[]): string {
     sports: 'Picture your dream sports arena or training ground. What\'s in it and what makes it special?',
     animals: 'You get to design a perfect wildlife sanctuary. What animals are there and what does it look like?',
     space: 'You\'re designing your own space station. What\'s in it and how does it work?',
-    music: 'If you could build your dream music studio or concert venue, what would it look like? Describe it!',
-    art: 'You get to design your own art studio or gallery. What\'s in it and what kind of art fills the walls?',
-    science: 'If you could build the ultimate science lab, what experiments would you run and what would it look like?',
-    cooking: 'You get to design your dream kitchen or restaurant. What\'s in it and what would you cook first?',
   };
   return map[theme];
 }
@@ -535,7 +418,7 @@ function getAgeBubbleStyle(age: number, isSelected: boolean): React.CSSPropertie
 }
 
 function selectTheme(interests: string[]): ThemeName {
-  const scores: Record<ThemeName, number> = { gaming: 0, sports: 0, animals: 0, space: 0, music: 0, art: 0, science: 0, cooking: 0 };
+  const scores: Record<ThemeName, number> = { gaming: 0, sports: 0, animals: 0, space: 0 };
   for (const interest of interests) {
     const found = INTERESTS.find(i => i.label === interest);
     if (found) scores[found.theme]++;
@@ -614,115 +497,6 @@ function useTTS() {
 }
 
 
-/* ─── AI Detection Helpers ────────────────────────────────────────────────── */
-
-const FOLLOW_UP_QUESTIONS = [
-  'Nice answer! Can you tell me one specific example from your own life?',
-  'What made you think of that?',
-  'Can you tell me more about that in your own words?',
-  'What part of that answer means the most to you personally?',
-  'If you had to explain that to a friend, how would you say it?',
-];
-
-function getRandomFollowUp(): string {
-  return FOLLOW_UP_QUESTIONS[Math.floor(Math.random() * FOLLOW_UP_QUESTIONS.length)];
-}
-
-/** Detect if text uses unusually complex vocabulary for the grade tier. */
-function hasComplexVocabulary(text: string, tier: GradeTier): boolean {
-  const complexWords = text.split(/\s+/).filter(w => w.length > 10).length;
-  const totalWords = text.split(/\s+/).filter(Boolean).length;
-  if (totalWords === 0) return false;
-  const ratio = complexWords / totalWords;
-  if (tier === 'lower') return ratio > 0.08;
-  if (tier === 'middle') return ratio > 0.15;
-  return ratio > 0.25;
-}
-
-/** Check if a response should trigger a follow-up question. */
-function shouldTriggerFollowUp(text: string, isPasted: boolean, tier: GradeTier): boolean {
-  if (isPasted) return true;
-  if (text.length > 800) return true;
-  if (hasComplexVocabulary(text, tier)) return true;
-  return false;
-}
-
-/* ─── Shared: Character-counting textarea ─────────────────────────────────── */
-
-function CharCountTextarea({
-  value, onChange, onPaste, placeholder, rows, autoFocus, className, maxDisplay = 1000,
-}: {
-  value: string; onChange: (v: string) => void; onPaste?: (e: React.ClipboardEvent) => void;
-  placeholder?: string; rows?: number; autoFocus?: boolean; className?: string; maxDisplay?: number;
-}) {
-  const charColor = value.length >= 1200 ? 'text-red-500' : value.length >= 800 ? 'text-amber-500' : 'text-text-muted';
-  return (
-    <div>
-      <textarea
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        onPaste={onPaste}
-        placeholder={placeholder}
-        rows={rows}
-        autoFocus={autoFocus}
-        className={className || 'w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm leading-relaxed'}
-      />
-      <div className="flex justify-end mt-1">
-        <span className={`text-xs ${charColor}`}>{value.length} / {maxDisplay.toLocaleString()} characters</span>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Follow-Up Modal ─────────────────────────────────────────────────────── */
-
-function FollowUpModal({
-  question, onSubmit, onSkip,
-}: {
-  question: string; onSubmit: (response: string) => void; onSkip: () => void;
-}) {
-  const [response, setResponse] = useState('');
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-card-bg border border-border rounded-2xl shadow-2xl p-6 max-w-md mx-4 onb-card-in">
-        <div className="flex items-start gap-3 mb-4">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-teal to-navy flex items-center justify-center">
-            <ChatCircle size={22} weight="fill" className="text-white" />
-          </div>
-          <p className="text-text-primary text-base leading-relaxed pt-2">{question}</p>
-        </div>
-        <textarea
-          value={response}
-          onChange={e => setResponse(e.target.value)}
-          placeholder="Tell me a bit more..."
-          rows={3}
-          autoFocus
-          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none text-sm leading-relaxed mb-4"
-        />
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onSkip}
-            className="px-4 py-2 rounded-full text-sm font-medium text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-          >
-            Skip
-          </button>
-          <button
-            onClick={() => onSubmit(response)}
-            disabled={response.trim().length < 3}
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition-all cursor-pointer ${
-              response.trim().length >= 3
-                ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:bg-navy/90 dark:hover:bg-teal/90'
-                : 'bg-border text-text-muted cursor-not-allowed'
-            }`}
-          >
-            Submit
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* Name safety check */
 const BLOCKED_NAME_PATTERNS = [
   /\b(ass|damn|hell|shit|fuck|bitch|crap|dick|cock|pussy|bastard|slut|whore|fag|retard|kill|die|hate|stupid|dumb|idiot|loser)\b/i,
@@ -752,8 +526,6 @@ export default function StudentOnboardingPage() {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoiceUri, setSelectedVoiceUri] = useState('');
   const [profileFirstName, setProfileFirstName] = useState('');
-  const [followUpField, setFollowUpField] = useState<string | null>(null);
-  const [followUpQuestion, setFollowUpQuestion] = useState('');
 
   const { speak, stop } = useTTS();
 
@@ -811,62 +583,6 @@ export default function StudentOnboardingPage() {
       setAnimating(false);
     }, 300);
   }, [animating, screen, stop]);
-
-  /** Handle paste detection for a given field name. */
-  const handlePaste = useCallback((fieldName: string, e: React.ClipboardEvent) => {
-    const pasted = e.clipboardData?.getData('text') || '';
-    if (pasted.length > 100) {
-      setAnswers(a => ({
-        ...a,
-        authenticitySignals: {
-          ...a.authenticitySignals,
-          pastedFields: a.authenticitySignals.pastedFields.includes(fieldName)
-            ? a.authenticitySignals.pastedFields
-            : [...a.authenticitySignals.pastedFields, fieldName],
-        },
-      }));
-    }
-  }, []);
-
-  /** Check if follow-up is needed before advancing from a text response screen. */
-  const checkFollowUpAndAdvance = useCallback((fieldName: string, text: string) => {
-    const isPasted = answers.authenticitySignals.pastedFields.includes(fieldName);
-    const tier = ageToTier(answers.age ?? 10);
-    // Check suspicious length
-    if (text.length > 800) {
-      setAnswers(a => ({
-        ...a,
-        authenticitySignals: { ...a.authenticitySignals, suspiciousLength: true },
-      }));
-    }
-    if (shouldTriggerFollowUp(text, isPasted, tier) && !answers.authenticitySignals.followUpResponses[fieldName]) {
-      setFollowUpField(fieldName);
-      setFollowUpQuestion(getRandomFollowUp());
-      return; // Don't advance yet
-    }
-    goNext();
-  }, [answers.authenticitySignals, answers.age, goNext]);
-
-  const handleFollowUpSubmit = useCallback((response: string) => {
-    if (followUpField) {
-      setAnswers(a => ({
-        ...a,
-        authenticitySignals: {
-          ...a.authenticitySignals,
-          followUpResponses: { ...a.authenticitySignals.followUpResponses, [followUpField]: response },
-        },
-      }));
-    }
-    setFollowUpField(null);
-    setFollowUpQuestion('');
-    goNext();
-  }, [followUpField, goNext]);
-
-  const handleFollowUpSkip = useCallback(() => {
-    setFollowUpField(null);
-    setFollowUpQuestion('');
-    goNext();
-  }, [goNext]);
 
   // Set language tier immediately when age is selected
   useEffect(() => {
@@ -948,7 +664,6 @@ export default function StudentOnboardingPage() {
         friend_response: answers.eqFriendResponse,
         self_response: answers.eqSelfResponse,
       },
-      authenticity_signals: answers.authenticitySignals,
       completed_at: new Date().toISOString(),
     };
 
@@ -1225,8 +940,6 @@ export default function StudentOnboardingPage() {
             languageTier={languageTier}
             onFriendChange={v => setAnswers(a => ({ ...a, eqFriendResponse: v }))}
             onSelfChange={v => setAnswers(a => ({ ...a, eqSelfResponse: v }))}
-            onFriendPaste={e => handlePaste('eqFriendResponse', e)}
-            onSelfPaste={e => handlePaste('eqSelfResponse', e)}
             onNext={goNext}
             canAdvance={canAdvance()}
             speak={speak}
@@ -1258,8 +971,7 @@ export default function StudentOnboardingPage() {
             value={answers.readingResponse}
             languageTier={languageTier}
             onChange={v => setAnswers(a => ({ ...a, readingResponse: v }))}
-            onNext={() => checkFollowUpAndAdvance('readingResponse', answers.readingResponse)}
-            onPaste={e => handlePaste('readingResponse', e)}
+            onNext={goNext}
             canAdvance={canAdvance()}
             speak={speak}
           />
@@ -1271,8 +983,7 @@ export default function StudentOnboardingPage() {
             value={answers.writingResponse}
             languageTier={languageTier}
             onChange={v => setAnswers(a => ({ ...a, writingResponse: v }))}
-            onNext={() => checkFollowUpAndAdvance('writingResponse', answers.writingResponse)}
-            onPaste={e => handlePaste('writingResponse', e)}
+            onNext={goNext}
             canAdvance={canAdvance()}
           />
         )}
@@ -1319,15 +1030,6 @@ export default function StudentOnboardingPage() {
           />
         )}
       </div>
-
-      {/* Follow-up modal */}
-      {followUpField && (
-        <FollowUpModal
-          question={followUpQuestion}
-          onSubmit={handleFollowUpSubmit}
-          onSkip={handleFollowUpSkip}
-        />
-      )}
 
       <style>{`
         @keyframes onbFadeUp {
@@ -1690,15 +1392,16 @@ function SpatialScreen({
           <Brain size={18} weight="fill" className="text-teal" />
           <p className="text-text-primary font-medium text-sm">{spatialPrompt}</p>
         </div>
-        <CharCountTextarea
+        <textarea
           value={spatialDescription}
-          onChange={v => onSpatialChange(v)}
+          onChange={e => { if (e.target.value.length <= 1000) onSpatialChange(e.target.value); }}
           placeholder="Describe it — as wild or as detailed as you want!"
           rows={4}
           className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm leading-relaxed"
         />
-        <div className="flex items-center mt-1">
+        <div className="flex items-center justify-between mt-1">
           <VoiceInputButton onResult={text => onSpatialChange(spatialDescription ? `${spatialDescription} ${text}` : text)} />
+          <span className="text-xs text-text-muted">{spatialDescription.length} / 1000</span>
         </div>
         <p className="text-xs text-teal/70 mt-1.5 italic">The more you share, the more I get to know you! ✨</p>
 
@@ -1886,15 +1589,16 @@ function AboutYouScreen({
           <UserCircle size={18} weight="fill" className="text-teal" />
           <label className="text-text-primary font-medium text-sm">What&apos;s something you&apos;re really good at?</label>
         </div>
-        <CharCountTextarea
+        <textarea
           value={intrapersonalStrengths}
-          onChange={v => onStrengthsChange(v)}
+          onChange={e => { if (e.target.value.length <= 1000) onStrengthsChange(e.target.value); }}
           placeholder="e.g., drawing, making people laugh, remembering facts..."
           rows={2}
           className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm"
         />
-        <div className="flex items-center mt-1">
+        <div className="flex items-center justify-between mt-1">
           <VoiceInputButton onResult={text => onStrengthsChange(intrapersonalStrengths ? `${intrapersonalStrengths} ${text}` : text)} />
+          <span className="text-xs text-text-muted">{intrapersonalStrengths.length} / 1000</span>
         </div>
         <p className="text-xs text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
       </div>
@@ -1905,15 +1609,16 @@ function AboutYouScreen({
           <Star size={18} weight="fill" className="text-teal" />
           <label className="text-text-primary font-medium text-sm">What&apos;s one thing you want to get better at?</label>
         </div>
-        <CharCountTextarea
+        <textarea
           value={intrapersonalGrowth}
-          onChange={v => onGrowthChange(v)}
+          onChange={e => { if (e.target.value.length <= 1000) onGrowthChange(e.target.value); }}
           placeholder="e.g., math, being more patient, public speaking..."
           rows={2}
           className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm"
         />
-        <div className="flex items-center mt-1">
+        <div className="flex items-center justify-between mt-1">
           <VoiceInputButton onResult={text => onGrowthChange(intrapersonalGrowth ? `${intrapersonalGrowth} ${text}` : text)} />
+          <span className="text-xs text-text-muted">{intrapersonalGrowth.length} / 1000</span>
         </div>
         <p className="text-xs text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
       </div>
@@ -1927,12 +1632,10 @@ function AboutYouScreen({
 function EQScreen({
   eqFriendResponse, eqSelfResponse,
   onFriendChange, onSelfChange,
-  onFriendPaste, onSelfPaste,
   onNext, canAdvance, speak, languageTier,
 }: {
   eqFriendResponse: string; eqSelfResponse: string;
   onFriendChange: (v: string) => void; onSelfChange: (v: string) => void;
-  onFriendPaste?: (e: React.ClipboardEvent) => void; onSelfPaste?: (e: React.ClipboardEvent) => void;
   onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
   languageTier: LanguageTier;
 }) {
@@ -1962,32 +1665,32 @@ function EQScreen({
       {/* EQ: Friend scenario */}
       <div className="mb-5 onb-card-in" style={{ animationDelay: '0.1s' }}>
         <CoachBubble text={friendBubble} speak={speak} />
-        <CharCountTextarea
+        <textarea
           value={eqFriendResponse}
-          onChange={v => onFriendChange(v)}
-          onPaste={onFriendPaste}
+          onChange={e => { if (e.target.value.length <= 1000) onFriendChange(e.target.value); }}
           placeholder="What would you actually say to your friend?"
           rows={3}
           className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none text-sm leading-relaxed"
         />
-        <div className="flex items-center mt-1">
+        <div className="flex items-center justify-between mt-1">
           <VoiceInputButton onResult={text => onFriendChange(eqFriendResponse ? `${eqFriendResponse} ${text}` : text)} />
+          <span className="text-xs text-text-muted">{eqFriendResponse.length} / 1000</span>
         </div>
       </div>
 
       {/* EQ: Self scenario (optional) */}
       <div className="mb-2 onb-card-in" style={{ animationDelay: '0.2s' }}>
         <CoachBubble text={selfBubble} speak={speak} />
-        <CharCountTextarea
+        <textarea
           value={eqSelfResponse}
-          onChange={v => onSelfChange(v)}
-          onPaste={onSelfPaste}
+          onChange={e => { if (e.target.value.length <= 1000) onSelfChange(e.target.value); }}
           placeholder="Be honest — there's no right or wrong answer! (Optional)"
           rows={3}
           className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none text-sm leading-relaxed"
         />
-        <div className="flex items-center mt-1">
+        <div className="flex items-center justify-between mt-1">
           <VoiceInputButton onResult={text => onSelfChange(eqSelfResponse ? `${eqSelfResponse} ${text}` : text)} />
+          <span className="text-xs text-text-muted">{eqSelfResponse.length} / 1000</span>
         </div>
       </div>
 
@@ -2097,10 +1800,10 @@ function ReadingPassageScreen({
 /* ─── Screen 7: Reading Question ──────────────────────────────────────────────── */
 
 function ReadingQuestionScreen({
-  question, value, onChange, onNext, onPaste, canAdvance, speak, languageTier,
+  question, value, onChange, onNext, canAdvance, speak, languageTier,
 }: {
   question: string; value: string; onChange: (v: string) => void;
-  onNext: () => void; onPaste?: (e: React.ClipboardEvent) => void; canAdvance: boolean; speak: (t: string) => void;
+  onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
   languageTier: LanguageTier;
 }) {
   // The question itself comes from the content bank (already tier-appropriate by readingTier).
@@ -2117,17 +1820,15 @@ function ReadingQuestionScreen({
     <div className="max-w-xl mx-auto w-full">
       <CoachBubble text={displayText} speak={speak} />
       <div className="onb-card-in" style={{ animationDelay: '0.1s' }}>
-        <CharCountTextarea
+        <textarea
           value={value}
-          onChange={v => onChange(v)}
-          onPaste={onPaste}
-          placeholder="Type your answer here..."
-          rows={4}
-          autoFocus
+          onChange={e => { if (e.target.value.length <= 1000) onChange(e.target.value); }}
+          placeholder="Type your answer here..." rows={4} autoFocus
           className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-base leading-relaxed"
         />
-        <div className="flex items-center mt-1">
+        <div className="flex items-center justify-between mt-2">
           <VoiceInputButton onResult={text => onChange(value ? `${value} ${text}` : text)} />
+          <span className="text-xs text-text-muted">{value.length} / 1000</span>
         </div>
       </div>
       <NextButton onNext={onNext} canAdvance={canAdvance} />
@@ -2138,10 +1839,10 @@ function ReadingQuestionScreen({
 /* ─── Screen 8: Writing Assessment ───────────────────────────────────────────── */
 
 function WritingScreen({
-  passage, prompt, value, onChange, onNext, onPaste, canAdvance, languageTier,
+  passage, prompt, value, onChange, onNext, canAdvance, languageTier,
 }: {
   passage: string; prompt: string; value: string; onChange: (v: string) => void;
-  onNext: () => void; onPaste?: (e: React.ClipboardEvent) => void; canAdvance: boolean; languageTier: LanguageTier;
+  onNext: () => void; canAdvance: boolean; languageTier: LanguageTier;
 }) {
   const introBubble = coachText(
     'Here\'s a fun one! Read the short paragraph below and tell me what YOU think! Type your answer this time!',
@@ -2162,15 +1863,15 @@ function WritingScreen({
       <CoachBubble text={prompt} />
       <div className="onb-card-in" style={{ animationDelay: '0.25s' }}>
         <p className="text-xs text-text-muted italic mb-2">For this one, read and type your answer.</p>
-        <CharCountTextarea
+        <textarea
           value={value}
-          onChange={v => onChange(v)}
-          onPaste={onPaste}
-          placeholder="Write what you think here..."
-          rows={5}
-          autoFocus
+          onChange={e => { if (e.target.value.length <= 1000) onChange(e.target.value); }}
+          placeholder="Write what you think here..." rows={5} autoFocus
           className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-base leading-relaxed"
         />
+        <div className="flex justify-end mt-1">
+          <span className="text-xs text-text-muted">{value.length} / 1000</span>
+        </div>
       </div>
       <NextButton onNext={onNext} canAdvance={canAdvance} />
     </div>
@@ -2263,8 +1964,6 @@ function ResultsScreen({
   const themeLabels: Record<ThemeName, string> = {
     gaming: 'Gaming & Technology', sports: 'Sports & Movement',
     animals: 'Animals & Nature', space: 'Science & Space',
-    music: 'Music & Sound', art: 'Art & Design',
-    science: 'Science & Discovery', cooking: 'Cooking & Food',
   };
   const tierLabels: Record<GradeTier, string> = {
     lower: 'Building Strong Foundations',
