@@ -5,6 +5,7 @@ import {
   User, Lock, Palette, GearSix, Plugs, Info, Trash,
   Eye, EyeSlash, Bell, Sun, Moon, Desktop, BookOpen, Check,
 } from '@phosphor-icons/react';
+import { useTheme } from 'next-themes';
 import { createClient } from '@/lib/supabase/client';
 
 /* ─── Toggle Switch ─── */
@@ -157,8 +158,8 @@ export default function SettingsPage() {
     special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(newPw),
   };
 
-  // Appearance
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
+  // Appearance — use global next-themes
+  const { theme, setTheme } = useTheme();
   const [peerChat, setPeerChat] = useState(false);
   const [emailNotif, setEmailNotif] = useState(true);
   const [notifSound, setNotifSound] = useState(true);
