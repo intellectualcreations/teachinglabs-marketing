@@ -279,11 +279,12 @@ export default function CreateCoursePage() {
               <select
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-3 py-2.5 bg-card-bg border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-colors"
+                className="w-full px-3 py-2.5 bg-white text-gray-900 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-colors"
+                style={{ colorScheme: 'light' }}
               >
                 <option value="">Select a subject...</option>
                 {SUBJECTS.map((s) => (
-                  <option key={s.value} value={s.value}>
+                  <option key={s.value} value={s.value} style={{ backgroundColor: '#fff', color: '#111' }}>
                     {s.label}
                   </option>
                 ))}
