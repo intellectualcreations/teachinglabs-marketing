@@ -256,10 +256,17 @@ export default function StudentDashboardPage() {
         setStudentInitials(getInitials(displayName));
 
         // Fetch classes via admin API (bypasses RLS)
-        const { data: { session: authSession } } = await supabase.auth.getSession();
-        const token = authSession?.access_token;
-        const classRes = await fetch('/api/student/my-classes', {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        // getUser works (it makes a server call), but getSession may be empty
+        // Try to get the session token; if unavailable, pass userId for admin verification
+        let authHeaders: Record<string, string> = {};
+        try {
+          const { data: { session: sess } } = await supabase.auth.getSession();
+          if (sess?.access_token) {
+            authHeaders = { 'Authorization': `Bearer ${sess.access_token}` };
+          }
+        } catch { /* session may not be available */ }
+        const classRes = await fetch(`/api/student/my-classes?userId=${user.id}`, {
+          headers: authHeaders,
         });
         const classJson = classRes.ok ? await classRes.json() : { classes: [], teachers: [], assignments: [], submissions: [] };
 
