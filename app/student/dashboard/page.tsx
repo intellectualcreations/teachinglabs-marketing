@@ -271,7 +271,7 @@ export default function StudentDashboardPage() {
         const classJson = classRes.ok ? await classRes.json() : { classes: [], teachers: [], assignments: [], submissions: [] };
 
         const classRows = (classJson.classes ?? []) as Class[];
-        const teachers = (classJson.teachers ?? []) as Profile[];
+        const teachers = (classJson.teachers ?? []) as (Profile & { email?: string })[];
         const assignments = (classJson.assignments ?? []) as Assignment[];
         const submissions = (classJson.submissions ?? []) as Submission[];
 
@@ -300,7 +300,8 @@ export default function StudentDashboardPage() {
         const enrichedClasses: EnrichedClass[] = classRows.map(cls => {
           const style = getSubjectStyle(cls.subject);
           const teacher = teacherMap.get(cls.teacher_id);
-          const teacherName = teacher?.display_name || 'Teacher';
+          const teacher2 = teacher as (Profile & { email?: string }) | undefined;
+          const teacherName = teacher2?.display_name || teacher2?.email?.split('@')[0] || 'Teacher';
           const classAssignments = assignments.filter(a => a.class_id === cls.id);
           const completedAssignments = classAssignments.filter(a => submittedAssignmentIds.has(a.id)).length;
           const totalAssignments = classAssignments.length;
@@ -517,12 +518,7 @@ export default function StudentDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-xs truncate text-white">{cls.name}</div>
-                  <div className="text-[11px] text-white/50">{cls.teacherName}</div>
-                  {/* Progress bar */}
-                  <div className="mt-1.5 h-1 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-teal rounded-full transition-all duration-500" style={{ width: `${cls.progress}%` }} />
-                  </div>
-                  <div className="text-[10px] text-white/40 mt-0.5">{cls.progress}% complete</div>
+
                 </div>
               </Link>
             ))
