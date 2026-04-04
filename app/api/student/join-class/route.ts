@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
+import { createClient as createBrowserClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/supabase/types';
 
 /**
  * POST /api/student/join-class
  * Body: { joinCode: string }
  * Enrolls the authenticated student in a class by join code.
- * Auth: tries cookie-based session first, falls back to Authorization header.
+ * Auth: tries cookie-based session first, falls back to Authorization header token.
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -27,14 +29,43 @@ export async function POST(request: NextRequest) {
     // Cookie auth failed — try header
   }
 
-  // Method 2: Authorization header (for incognito / cookie-less contexts)
+  // Method 2: Authorization header with JWT token
   if (!userId) {
     const authHeader = request.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.slice(7);
-      const admin = createAdminClient();
-      const { data: { user } } = await admin.auth.getUser(token);
-      if (user) userId = user.id;
+      try {
+        // Create a client with the user's token to verify and get their user info
+        const tokenClient = createBrowserClient<Database>(
+          process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
+          {
+            auth: {
+              persistSession: false,
+            },
+          }
+        );
+
+        // Set the session with the token to use it for auth
+        const { data, error } = await tokenClient.auth.getSession();
+        if (error) throw error;
+
+        // Actually, better approach: call the Supabase REST API directly
+        const userRes = await fetch(
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          userId = userData.id;
+        }
+      } catch (err) {
+        console.error('Token verification error:', err);
+        // Token verification failed
+      }
     }
   }
 
