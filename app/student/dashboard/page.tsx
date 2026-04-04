@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   SquaresFour, BookOpenText, MathOperations, Flask, GlobeHemisphereWest,
@@ -76,6 +76,99 @@ interface EnrichedClass {
 }
 
 const ACTIVITY_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/* ─── Join Class Inline ──────────────────────────────────────────────────── */
+function JoinClassInline({ onJoined }: { onJoined: () => void }) {
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const handleJoin = useCallback(async () => {
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed) return;
+    setLoading(true);
+    setError('');
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setError('Not logged in'); setLoading(false); return; }
+
+      // Look up class by join code
+      const { data: clsData, error: clsErr } = await supabase
+        .from('classes')
+        .select('id, name')
+        .eq('join_code', trimmed)
+        .single();
+      if (clsErr || !clsData) { setError('Invalid class code. Check with your teacher and try again.'); setLoading(false); return; }
+      const classId = (clsData as { id: string; name: string }).id;
+      const className = (clsData as { id: string; name: string }).name;
+
+      // Check if already enrolled
+      const { data: existing } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', user.id)
+        .eq('class_id', classId)
+        .single();
+      if (existing) { setError(`You're already in ${className}!`); setLoading(false); return; }
+
+      // Enroll
+      const { error: enrollErr } = await supabase
+        .from('enrollments')
+        .insert({ student_id: user.id, class_id: classId, status: 'active' } as never);
+      if (enrollErr) { setError('Could not join class. Please try again.'); setLoading(false); return; }
+
+      setSuccess(true);
+      setTimeout(() => onJoined(), 1200);
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [code, onJoined]);
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center py-6 text-center">
+        <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
+          <Backpack size={32} weight="fill" className="text-green-500" />
+        </div>
+        <p className="text-sm font-semibold text-green-600">You're in! Loading your class...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center py-6 text-center">
+      <div className="w-16 h-16 rounded-full bg-teal/10 flex items-center justify-center mb-4">
+        <Backpack size={32} weight="fill" className="text-teal/60" />
+      </div>
+      <p className="text-sm text-text-secondary max-w-xs mb-3">
+        You&apos;re all set! Enter your class code to join.
+      </p>
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(''); }}
+          onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
+          placeholder="CLASS CODE"
+          maxLength={10}
+          className="w-32 px-3 py-2 border-2 border-border rounded-lg text-center text-sm font-heading font-bold tracking-widest bg-surface text-text-primary uppercase focus:border-teal outline-none"
+        />
+        <button
+          onClick={handleJoin}
+          disabled={loading || !code.trim()}
+          className="px-4 py-2 bg-navy text-white rounded-lg text-sm font-heading font-semibold hover:bg-[#162D48] transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Joining...' : 'Join'}
+        </button>
+      </div>
+      {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+    </div>
+  );
+}
 
 export default function StudentDashboardPage() {
   const router = useRouter();
@@ -482,20 +575,7 @@ export default function StudentDashboardPage() {
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center py-6 text-center">
-              <div className="w-16 h-16 rounded-full bg-teal/10 flex items-center justify-center mb-4">
-                <Backpack size={32} weight="fill" className="text-teal/60" />
-              </div>
-              <p className="text-sm text-text-secondary max-w-xs mb-2">
-                You&apos;re all set! Join a class with your class code to get started.
-              </p>
-              <Link
-                href="/student/signup"
-                className="text-sm font-semibold text-teal hover:text-navy transition-colors"
-              >
-                Join a class →
-              </Link>
-            </div>
+            <JoinClassInline onJoined={() => window.location.reload()} />
           )}
         </div>
 
