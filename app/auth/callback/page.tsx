@@ -18,8 +18,6 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     async function handleCallback() {
-      // Small delay to avoid auth lock race with other components
-      await new Promise(r => setTimeout(r, 300));
       const supabase = createClient();
       const hash = window.location.hash;
       const params = new URLSearchParams(window.location.search);
@@ -42,22 +40,26 @@ export default function AuthCallbackPage() {
 
       // Method 1: token_hash from custom email template
       const tokenHash = params.get('token_hash');
-      const type = params.get('type') as 'signup' | 'magiclink' | 'email' | undefined;
+      const type = params.get('type');
       if (tokenHash && type) {
         console.log('Auth callback - verifying token_hash, type:', type);
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: type === 'signup' ? 'email' : 'magiclink',
-        });
-        if (error) {
-          console.error('Token verification failed:', error.message);
-          setStatus('Link expired or invalid. Redirecting to login...');
-          const signupRole = localStorage.getItem('pending_role');
-          const dest = signupRole === 'student' ? '/student/signup' : '/login';
-          setTimeout(() => { window.location.href = dest; }, 2500);
-          return;
+        try {
+          const otpType = type === 'signup' ? 'email' : 'magiclink';
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: otpType,
+          });
+          if (error) {
+            console.error('Token verification failed:', error.message);
+            // Don't give up — Supabase detectSessionInUrl might have handled it
+          }
+        } catch (err) {
+          console.error('verifyOtp exception:', err);
+          // Continue — session might still be set
         }
-        // Session is now set
+
+        // Check for session after verify attempt
+        await new Promise(r => setTimeout(r, 500));
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           setStatus('Setting up your account...');
@@ -70,15 +72,18 @@ export default function AuthCallbackPage() {
       const code = params.get('code');
       if (code) {
         console.log('Auth callback - exchanging code for session');
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          console.error('Code exchange failed:', error.message);
-          // Don't give up yet — check if session exists anyway
-        }
-        if (data?.session?.user) {
-          setStatus('Setting up your account...');
-          await redirectUser(supabase, data.session.user);
-          return;
+        try {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error('Code exchange failed:', error.message);
+          }
+          if (data?.session?.user) {
+            setStatus('Setting up your account...');
+            await redirectUser(supabase, data.session.user);
+            return;
+          }
+        } catch (err) {
+          console.error('Code exchange exception:', err);
         }
       }
 
@@ -88,7 +93,7 @@ export default function AuthCallbackPage() {
         await new Promise(r => setTimeout(r, 1500));
       }
 
-      // Check if we have a session now (covers both flows)
+      // Check if we have a session now (covers all flows + detectSessionInUrl)
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setStatus('Setting up your account...');
@@ -108,7 +113,7 @@ export default function AuthCallbackPage() {
         }
       );
 
-      // Timeout after 12 seconds
+      // Timeout after 15 seconds
       setTimeout(() => {
         subscription.unsubscribe();
         setStatus('Taking longer than expected. Redirecting to login...');
@@ -116,7 +121,11 @@ export default function AuthCallbackPage() {
       }, 15000);
     }
 
-    handleCallback();
+    handleCallback().catch(err => {
+      console.error('Auth callback unhandled error:', err);
+      setStatus('Something went wrong. Redirecting to login...');
+      setTimeout(() => { window.location.href = '/login'; }, 2500);
+    });
   }, []);
 
   return (
@@ -194,7 +203,8 @@ async function redirectUser(
     };
 
     window.location.href = dashboards[role] || '/student/dashboard';
-  } catch {
+  } catch (err) {
+    console.error('redirectUser error:', err);
     window.location.href = '/login';
   }
 }
