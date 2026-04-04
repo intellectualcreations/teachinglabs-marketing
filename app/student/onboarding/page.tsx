@@ -678,6 +678,28 @@ export default function StudentOnboardingPage() {
             { student_id: user.id, ...profile },
             { onConflict: 'student_id' }
           );
+
+          // Complete signup: enroll student in their class
+          const pendingClassId = localStorage.getItem('pending_class_id');
+          const pendingBirthYear = localStorage.getItem('pending_birth_year');
+          if (pendingClassId) {
+            try {
+              await fetch('/api/student/complete-signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  class_id: pendingClassId,
+                  birth_year: pendingBirthYear ? parseInt(pendingBirthYear, 10) : undefined,
+                }),
+              });
+              localStorage.removeItem('pending_class_id');
+              localStorage.removeItem('pending_birth_year');
+              localStorage.removeItem('pending_student_name');
+            } catch (enrollErr) {
+              console.error('Enrollment failed:', enrollErr);
+              // Don't block onboarding completion for enrollment failure
+            }
+          }
         } else {
           localStorage.setItem('student_assessment', JSON.stringify(profile));
         }
