@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import Link from 'next/link';
 import {
   PlusCircle,
   CloudArrowUp,
@@ -25,6 +26,8 @@ import {
   ShieldCheck,
   PlusCircle as PlusCircleIcon,
   Check,
+  MagnifyingGlass,
+  Target,
 } from '@phosphor-icons/react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -51,8 +54,8 @@ interface LinkRow {
   label: string;
 }
 
-// ─── Standards (fetched from API) ─────────────────────────────────────────────
-// Helper to get display text for a standard
+// ─── Standards helpers ────────────────────────────────────────────────────────
+
 function stdText(s: Standard) {
   return s.title || s.description;
 }
@@ -109,7 +112,6 @@ export default function CreateActivityPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestedStandards, setSuggestedStandards] = useState<Standard[]>([]);
   const [standardsSearch, setStandardsSearch] = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
   const [searchResults, setSearchResults] = useState<Standard[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [subjectFilter, setSubjectFilter] = useState('');
@@ -118,6 +120,7 @@ export default function CreateActivityPage() {
   const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
   const [availableGrades, setAvailableGrades] = useState<string[]>([]);
   const [availableFrameworks, setAvailableFrameworks] = useState<string[]>([]);
+  const [showStandardsModal, setShowStandardsModal] = useState(false);
 
   // Links
   const [linkRows, setLinkRows] = useState<LinkRow[]>([{ id: uid(), url: '', label: '' }]);
@@ -129,12 +132,13 @@ export default function CreateActivityPage() {
   const [enhanced, setEnhanced] = useState(false);
   const [guidance, setGuidance] = useState('');
 
+  // TODO: wire to real profile data
+  const [hasFrameworksSelected] = useState(false);
+
   // Success overlay
   const [successVisible, setSuccessVisible] = useState(false);
   const [successTitle, setSuccessTitle] = useState('');
 
-  const searchRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load filter options on mount
@@ -150,7 +154,7 @@ export default function CreateActivityPage() {
     });
   }, []);
 
-  // Debounced search
+  // Debounced search (used inside modal)
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (standardsSearch.length < 2 && !subjectFilter && !gradeFilter && !frameworkFilter) {
@@ -169,7 +173,6 @@ export default function CreateActivityPage() {
         .then((data) => {
           setSearchResults((data.standards || []).slice(0, 12));
           setSearchLoading(false);
-          if (data.standards?.length > 0) setShowDropdown(true);
         })
         .catch(() => setSearchLoading(false));
     }, 300);
@@ -181,16 +184,6 @@ export default function CreateActivityPage() {
   function addFiles(fileList: FileList) {
     const newFiles: UploadedFile[] = Array.from(fileList).map((f) => ({ name: f.name, size: f.size }));
     setUploadedFiles((prev) => [...prev, ...newFiles]);
-    // Simulate Teaching Twin analysis — fetch suggested standards
-    setTimeout(() => {
-      fetch('/api/standards?q=fractions&subject=Math&grade=5')
-        .then((r) => r.json())
-        .then((data) => {
-          setSuggestedStandards((data.standards || []).slice(0, 4));
-          setShowSuggestions(true);
-        })
-        .catch(() => setShowSuggestions(true));
-    }, 800);
   }
 
   function removeFile(index: number) {
@@ -217,21 +210,17 @@ export default function CreateActivityPage() {
     );
   }
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(e.target as Node) &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowDropdown(false);
-      }
-    }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, []);
+  // Mock: simulate Teaching Twin suggesting standards based on activity description
+  function triggerSuggestions() {
+    if (!instructions.trim()) return;
+    fetch('/api/standards?q=fractions&subject=Math&grade=5')
+      .then((r) => r.json())
+      .then((data) => {
+        setSuggestedStandards((data.standards || []).slice(0, 4));
+        setShowSuggestions(true);
+      })
+      .catch(() => setShowSuggestions(true));
+  }
 
   // ── Links ────────────────────────────────────────────────────────────────────
 
@@ -256,6 +245,8 @@ export default function CreateActivityPage() {
       );
     }
     setEnhanced(true);
+    // Also trigger suggestions mock
+    triggerSuggestions();
   }
 
   // ── Save ─────────────────────────────────────────────────────────────────────
@@ -285,12 +276,21 @@ export default function CreateActivityPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function openStandardsModal() {
+    setStandardsSearch('');
+    setSubjectFilter('');
+    setGradeFilter('');
+    setFrameworkFilter('');
+    setSearchResults([]);
+    setShowStandardsModal(true);
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
     <div>
       {/* Page Header */}
-      <div className="mb-7">
+      <div className="mb-5">
         <h1 className="font-heading font-extrabold text-2xl text-text-primary flex items-center gap-2.5 mb-1.5">
           <PlusCircle size={24} weight="fill" className="text-teal" />
           Create Activity
@@ -300,17 +300,177 @@ export default function CreateActivityPage() {
         </p>
       </div>
 
-      {/* ── Card 1: Materials ──────────────────────────────────────────────────── */}
+      {/* ── Reminder Banner ────────────────────────────────────────────────────── */}
+      <div className="bg-teal/[0.06] border border-teal/20 rounded-[10px] p-4 mb-5">
+        <p className="text-[13px] text-text-secondary leading-relaxed">
+          💡 You can reuse this activity with multiple groups of students. Assign due dates and classes later — just focus on the activity itself for now.
+        </p>
+      </div>
+
+      {/* ── Card 1: Activity Name + Description ───────────────────────────────── */}
       <div className="bg-card-bg border border-border rounded-[14px] p-6 mb-5 relative overflow-hidden">
-        {/* Teal accent bar */}
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-navy" />
+
+        <h2 className="font-heading font-bold text-base text-text-primary flex items-center gap-2 mb-1.5">
+          <NotePencil size={18} weight="fill" className="text-navy" />
+          Activity Details
+        </h2>
+        <p className="text-[13px] text-text-secondary mb-4 leading-relaxed">
+          Give this activity a name and describe what students will do.
+        </p>
+
+        {/* Activity Name */}
+        <div className="mb-4">
+          <label className="font-semibold text-[13px] text-text-primary block mb-1.5">
+            Activity Name
+          </label>
+          <input
+            id="activity-name"
+            type="text"
+            value={activityName}
+            onChange={(e) => { setActivityName(e.target.value); setNameError(false); }}
+            placeholder="e.g., Adding Fractions with Unlike Denominators"
+            className={`w-full px-3.5 py-2.5 border-[1.5px] rounded-lg text-sm bg-card-bg
+              text-text-primary outline-none transition-colors
+              ${nameError ? 'border-red-500' : 'border-border focus:border-teal'}`}
+          />
+          {nameError && (
+            <p className="text-xs text-red-500 mt-1">Activity name is required.</p>
+          )}
+        </div>
+
+        {/* Activity Description (was "Student Instructions") */}
+        <div>
+          <label className="font-semibold text-[13px] text-text-primary flex items-center gap-1.5 mb-1.5">
+            Activity Description
+            <span className="font-normal text-xs text-text-secondary">(optional)</span>
+          </label>
+          <textarea
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            rows={3}
+            placeholder="Tell about the activity — what students will learn or do."
+            className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
+              bg-card-bg text-text-primary outline-none focus:border-teal transition-colors resize-y"
+          />
+          <button
+            onClick={handleEnhance}
+            className={`mt-2 flex items-center gap-1 px-3 py-1.5 border rounded-md text-xs font-semibold
+              cursor-pointer transition-colors bg-transparent
+              ${enhanced
+                ? 'border-emerald-500 text-emerald-500'
+                : 'border-border text-teal hover:border-teal'
+              }`}
+          >
+            {enhanced
+              ? <><Check size={14} weight="bold" /> Enhanced!</>
+              : <><MagicWand size={14} weight="fill" /> Enhance with Teaching Twin</>
+            }
+          </button>
+        </div>
+      </div>
+
+      {/* ── Card 2: Standards ──────────────────────────────────────────────────── */}
+      <div className="bg-card-bg border border-border rounded-[14px] p-6 mb-5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-teal" />
+
+        <h2 className="font-heading font-bold text-base text-text-primary flex items-center gap-2 mb-1.5">
+          <Target size={18} weight="fill" className="text-teal" />
+          Standards Alignment
+        </h2>
+        <p className="text-[13px] text-text-secondary mb-4 leading-relaxed">
+          Tag this activity with the standards it covers. Your Teaching Twin can suggest matches based on what you described above.
+        </p>
+
+        {/* Conditional: no frameworks selected in profile */}
+        {!hasFrameworksSelected && (
+          <div className="bg-amber-500/[0.08] border border-amber-500/20 rounded-[10px] p-3 mb-4">
+            <p className="text-[13px] text-text-secondary leading-relaxed">
+              For your Twin to suggest standards, select frameworks in your{' '}
+              <Link href="/teacher/settings" className="text-teal font-medium hover:underline">
+                profile
+              </Link>.
+            </p>
+          </div>
+        )}
+
+        {/* Teaching Twin suggestions */}
+        {showSuggestions && suggestedStandards.length > 0 && (
+          <div className="bg-teal/[0.06] border border-teal/20 rounded-[10px] p-4 mb-4">
+            <p className="text-[12px] text-text-secondary mb-2 leading-relaxed">
+              Based on your activity details, your Teaching Twin suggests these standards.
+            </p>
+            <div className="flex items-center gap-2 mb-2.5 font-semibold text-[13px] text-teal">
+              <MagicWand size={18} weight="fill" />
+              Your Teaching Twin found these standards
+            </div>
+            <div className="flex flex-wrap">
+              {suggestedStandards.map((s) => {
+                const sel = isSelected(s.code);
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => toggleStandard(s)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 border-[1.5px] rounded-lg
+                      text-xs font-medium text-text-primary cursor-pointer transition-all mr-1.5 mb-1.5
+                      ${sel
+                        ? 'border-teal bg-teal/[0.08]'
+                        : 'border-border bg-card-bg hover:border-teal'
+                      }`}
+                  >
+                    <span className="font-bold text-teal">{stdCode(s)}</span>
+                    {stdText(s)}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-text-secondary mt-2">
+              Click to select. You can also search for more standards below.
+            </p>
+          </div>
+        )}
+
+        {/* Selected standards chips */}
+        {selectedStandards.length > 0 && (
+          <div className="flex flex-wrap mb-3">
+            {selectedStandards.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => toggleStandard(s)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 border-[1.5px] border-teal
+                  bg-teal/[0.08] rounded-lg text-xs font-medium text-text-primary cursor-pointer
+                  transition-all mr-1.5 mb-1.5 hover:bg-teal/[0.14]"
+              >
+                <span className="font-bold text-teal">{stdCode(s)}</span>
+                {stdText(s)}
+                <X size={12} weight="bold" className="text-text-secondary" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Search button — opens modal */}
+        <button
+          onClick={openStandardsModal}
+          className="flex items-center gap-2 px-4 py-2.5 border-[1.5px] border-dashed border-border
+            rounded-lg text-teal text-[13px] font-semibold hover:border-teal cursor-pointer
+            transition-colors bg-transparent w-full justify-center"
+        >
+          <MagnifyingGlass size={16} weight="bold" />
+          Search &amp; Add Standards
+        </button>
+      </div>
+
+      {/* ── Card 3: Materials & Web Links ──────────────────────────────────────── */}
+      <div className="bg-card-bg border border-border rounded-[14px] p-6 mb-5 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-teal" />
 
         <h2 className="font-heading font-bold text-base text-text-primary flex items-center gap-2 mb-1.5">
           <CloudArrowUp size={18} weight="fill" className="text-teal" />
-          Your Materials
+          Materials &amp; Web Links
         </h2>
         <p className="text-[13px] text-text-secondary mb-4 leading-relaxed">
-          Drop in the worksheets, handouts, videos, or anything else you already use. Your Teaching Twin reads them all and suggests which standards they cover.
+          Drop in the worksheets, handouts, videos, or anything else you already use. Your Teaching Twin reads them all to help guide students.
         </p>
 
         {/* Upload Zone */}
@@ -382,7 +542,7 @@ export default function CreateActivityPage() {
           </p>
 
           <div className="space-y-2">
-            {linkRows.map((row, idx) => (
+            {linkRows.map((row) => (
               <div key={row.id} className="flex gap-2">
                 <input
                   type="url"
@@ -423,39 +583,6 @@ export default function CreateActivityPage() {
           </button>
         </div>
 
-        {/* Standards Suggestion (shown after upload) */}
-        {showSuggestions && suggestedStandards.length > 0 && (
-          <div className="mt-4 bg-teal/[0.06] border border-teal/20 rounded-[10px] p-4">
-            <div className="flex items-center gap-2 mb-2.5 font-semibold text-[13px] text-teal">
-              <MagicWand size={18} weight="fill" />
-              Your Teaching Twin found these standards
-            </div>
-            <div className="flex flex-wrap">
-              {suggestedStandards.map((s) => {
-                const sel = isSelected(s.code);
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => toggleStandard(s)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 border-[1.5px] rounded-lg
-                      text-xs font-medium text-text-primary cursor-pointer transition-all mr-1.5 mb-1.5
-                      ${sel
-                        ? 'border-teal bg-teal/[0.08]'
-                        : 'border-border bg-card-bg hover:border-teal'
-                      }`}
-                  >
-                    <span className="font-bold text-teal">{stdCode(s)}</span>
-                    {stdText(s)}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-[11px] text-text-secondary mt-2">
-              Click to select. You can also search for standards below.
-            </p>
-          </div>
-        )}
-
         {/* Privacy notice */}
         <div className="flex items-start gap-2.5 p-3.5 bg-teal/[0.06] border border-teal/20 rounded-[10px] mt-4">
           <ShieldCheck size={18} weight="fill" className="text-teal shrink-0 mt-px" />
@@ -465,185 +592,8 @@ export default function CreateActivityPage() {
         </div>
       </div>
 
-      {/* ── Card 2: Activity Details ───────────────────────────────────────────── */}
+      {/* ── Card 4: Guidance ───────────────────────────────────────────────────── */}
       <div className="bg-card-bg border border-border rounded-[14px] p-6 mb-5 relative overflow-hidden">
-        {/* Navy accent bar */}
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-navy" />
-
-        <h2 className="font-heading font-bold text-base text-text-primary flex items-center gap-2 mb-1.5">
-          <NotePencil size={18} weight="fill" className="text-navy" />
-          Activity Details
-        </h2>
-        <p className="text-[13px] text-text-secondary mb-4 leading-relaxed">
-          Give this activity a name and tell your students what to do.
-        </p>
-
-        {/* Activity Name */}
-        <div className="mb-4">
-          <label className="font-semibold text-[13px] text-text-primary block mb-1.5">
-            Activity Name
-          </label>
-          <input
-            id="activity-name"
-            type="text"
-            value={activityName}
-            onChange={(e) => { setActivityName(e.target.value); setNameError(false); }}
-            placeholder="e.g., Adding Fractions with Unlike Denominators"
-            className={`w-full px-3.5 py-2.5 border-[1.5px] rounded-lg text-sm bg-card-bg
-              text-text-primary outline-none transition-colors
-              ${nameError ? 'border-red-500' : 'border-border focus:border-teal'}`}
-          />
-          {nameError && (
-            <p className="text-xs text-red-500 mt-1">Activity name is required.</p>
-          )}
-        </div>
-
-        {/* Standards Alignment */}
-        <div className="mb-4">
-          <label className="font-semibold text-[13px] text-text-primary block mb-1.5">
-            Standards Alignment
-          </label>
-
-          {/* Selected chips */}
-          {selectedStandards.length > 0 && (
-            <div className="flex flex-wrap mb-2">
-              {selectedStandards.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => toggleStandard(s)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border-[1.5px] border-teal
-                    bg-teal/[0.08] rounded-lg text-xs font-medium text-text-primary cursor-pointer
-                    transition-all mr-1.5 mb-1.5 hover:bg-teal/[0.14]"
-                >
-                  <span className="font-bold text-teal">{stdCode(s)}</span>
-                  {stdText(s)}
-                  <X size={12} weight="bold" className="text-text-secondary" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Filter row */}
-          <div className="flex flex-wrap gap-2 mb-2">
-            <select
-              value={subjectFilter}
-              onChange={(e) => setSubjectFilter(e.target.value)}
-              className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
-            >
-              <option value="">All Subjects</option>
-              {availableSubjects.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <select
-              value={gradeFilter}
-              onChange={(e) => setGradeFilter(e.target.value)}
-              className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
-            >
-              <option value="">All Grades</option>
-              {availableGrades.map((g) => <option key={g} value={g}>{g}</option>)}
-            </select>
-            <select
-              value={frameworkFilter}
-              onChange={(e) => setFrameworkFilter(e.target.value)}
-              className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
-            >
-              <option value="">All Frameworks</option>
-              {availableFrameworks.map((f) => <option key={f} value={f}>{f}</option>)}
-            </select>
-          </div>
-
-          {/* Search input + dropdown */}
-          <div className="relative">
-            <input
-              ref={searchRef}
-              type="text"
-              value={standardsSearch}
-              onChange={(e) => {
-                setStandardsSearch(e.target.value);
-                if (e.target.value.length >= 2) setShowDropdown(true);
-              }}
-              onFocus={() => {
-                if (searchResults.length > 0) setShowDropdown(true);
-              }}
-              placeholder="Search standards (e.g., 5.NF or 'fractions')"
-              className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
-                bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
-            />
-            {searchLoading && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <div className="w-4 h-4 border-2 border-teal border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-            {showDropdown && searchResults.length > 0 && (
-              <div
-                ref={dropdownRef}
-                className="absolute top-full left-0 right-0 mt-1 bg-card-bg border border-border
-                  rounded-lg max-h-64 overflow-y-auto z-10 shadow-lg"
-              >
-                {searchResults.map((s) => {
-                  const sel = isSelected(s.code);
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => {
-                        toggleStandard(s);
-                        setShowDropdown(false);
-                        setStandardsSearch('');
-                      }}
-                      className={`flex items-center gap-2 px-3.5 py-2.5 cursor-pointer border-b border-border
-                        text-[13px] transition-colors last:border-0
-                        ${sel ? 'bg-teal/[0.06]' : 'hover:bg-teal/[0.06]'}`}
-                    >
-                      {sel
-                        ? <CheckCircle size={16} weight="fill" className="text-teal shrink-0" />
-                        : <PlusCircleIcon size={16} weight="fill" className="text-text-secondary shrink-0" />
-                      }
-                      <span>
-                        <strong className="text-teal">{stdCode(s)}</strong>{' '}
-                        <span className="text-text-primary">{stdText(s)}</span>
-                        <span className="text-text-muted text-[11px] ml-1">({s.framework} · Grade {s.gradeLevel})</span>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Student Instructions */}
-        <div>
-          <label className="font-semibold text-[13px] text-text-primary flex items-center gap-1.5 mb-1.5">
-            Student Instructions
-            <span className="font-normal text-xs text-text-secondary">(optional)</span>
-          </label>
-          <textarea
-            value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
-            rows={3}
-            placeholder="What should students do? Your Teaching Twin will use these instructions to guide them."
-            className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
-              bg-card-bg text-text-primary outline-none focus:border-teal transition-colors resize-y"
-          />
-          <button
-            onClick={handleEnhance}
-            className={`mt-2 flex items-center gap-1 px-3 py-1.5 border rounded-md text-xs font-semibold
-              cursor-pointer transition-colors bg-transparent
-              ${enhanced
-                ? 'border-emerald-500 text-emerald-500'
-                : 'border-border text-teal hover:border-teal'
-              }`}
-          >
-            {enhanced
-              ? <><Check size={14} weight="bold" /> Enhanced!</>
-              : <><MagicWand size={14} weight="fill" /> Enhance with Teaching Twin</>
-            }
-          </button>
-        </div>
-      </div>
-
-      {/* ── Card 3: Guidance ───────────────────────────────────────────────────── */}
-      <div className="bg-card-bg border border-border rounded-[14px] p-6 mb-5 relative overflow-hidden">
-        {/* Amber accent bar */}
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#F59E0B]" />
 
         <h2 className="font-heading font-bold text-base text-text-primary flex items-center gap-2 mb-1.5">
@@ -677,6 +627,129 @@ export default function CreateActivityPage() {
       <p className="text-xs text-text-secondary text-center mt-2">
         You can assign this activity to classes after saving.
       </p>
+
+      {/* ── Standards Search Modal ─────────────────────────────────────────────── */}
+      {showStandardsModal && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowStandardsModal(false)}
+        >
+          <div
+            className="bg-card-bg border border-border rounded-2xl w-full max-w-xl max-h-[80vh] flex flex-col shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="font-heading font-bold text-lg text-text-primary flex items-center gap-2">
+                <Target size={20} weight="fill" className="text-teal" />
+                Add Standards
+              </h3>
+              <button
+                onClick={() => setShowStandardsModal(false)}
+                className="text-text-secondary hover:text-text-primary transition-colors p-1 cursor-pointer"
+              >
+                <X size={20} weight="bold" />
+              </button>
+            </div>
+
+            {/* Modal body */}
+            <div className="px-6 py-4 overflow-y-auto flex-1">
+              {/* Filter row */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                <select
+                  value={subjectFilter}
+                  onChange={(e) => setSubjectFilter(e.target.value)}
+                  className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
+                >
+                  <option value="">All Subjects</option>
+                  {availableSubjects.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select
+                  value={gradeFilter}
+                  onChange={(e) => setGradeFilter(e.target.value)}
+                  className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
+                >
+                  <option value="">All Grades</option>
+                  {availableGrades.map((g) => <option key={g} value={g}>{g}</option>)}
+                </select>
+                <select
+                  value={frameworkFilter}
+                  onChange={(e) => setFrameworkFilter(e.target.value)}
+                  className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-xs bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
+                >
+                  <option value="">All Frameworks</option>
+                  {availableFrameworks.map((f) => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </div>
+
+              {/* Search input */}
+              <div className="relative mb-4">
+                <MagnifyingGlass size={16} weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+                <input
+                  type="text"
+                  value={standardsSearch}
+                  onChange={(e) => setStandardsSearch(e.target.value)}
+                  placeholder="Search standards (e.g., 5.NF or 'fractions')"
+                  className="w-full pl-9 pr-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
+                    bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
+                  autoFocus
+                />
+                {searchLoading && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="w-4 h-4 border-2 border-teal border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              {/* Results list */}
+              {searchResults.length > 0 ? (
+                <div className="border border-border rounded-lg overflow-hidden">
+                  {searchResults.map((s) => {
+                    const sel = isSelected(s.code);
+                    return (
+                      <div
+                        key={s.id}
+                        onClick={() => toggleStandard(s)}
+                        className={`flex items-center gap-2 px-3.5 py-2.5 cursor-pointer border-b border-border
+                          text-[13px] transition-colors last:border-0
+                          ${sel ? 'bg-teal/[0.06]' : 'hover:bg-teal/[0.06]'}`}
+                      >
+                        {sel
+                          ? <CheckCircle size={16} weight="fill" className="text-teal shrink-0" />
+                          : <PlusCircleIcon size={16} weight="fill" className="text-text-secondary shrink-0" />
+                        }
+                        <span className="flex-1">
+                          <strong className="text-teal">{stdCode(s)}</strong>{' '}
+                          <span className="text-text-primary">{stdText(s)}</span>
+                          <span className="text-text-muted text-[11px] ml-1">({s.framework} · Grade {s.gradeLevel})</span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                standardsSearch.length >= 2 && !searchLoading && (
+                  <p className="text-sm text-text-secondary text-center py-6">No standards found. Try a different search.</p>
+                )
+              )}
+            </div>
+
+            {/* Modal footer */}
+            <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+              <p className="text-xs text-text-secondary">
+                {selectedStandards.length} standard{selectedStandards.length !== 1 ? 's' : ''} selected
+              </p>
+              <button
+                onClick={() => setShowStandardsModal(false)}
+                className="px-5 py-2.5 bg-teal text-navy rounded-lg text-[13px] font-semibold
+                  cursor-pointer hover:bg-teal/85 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Success Overlay ────────────────────────────────────────────────────── */}
       {successVisible && (

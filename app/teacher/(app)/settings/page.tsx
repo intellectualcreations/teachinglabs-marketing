@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
   User, Lock, Palette, GearSix, Plugs, Info, Trash,
-  Eye, EyeSlash, Bell, Sun, Moon, Desktop,
+  Eye, EyeSlash, Bell, Sun, Moon, Desktop, BookOpen, Check,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -163,6 +163,34 @@ export default function SettingsPage() {
   const [submissionNotif, setSubmissionNotif] = useState<'immediately' | 'daily' | 'weekly'>('immediately');
   const [aiSensitivity, setAiSensitivity] = useState<'low' | 'medium' | 'high'>('medium');
 
+  // Standards & Frameworks
+  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([]);
+  const [stateInput, setStateInput] = useState('');
+  const [customFrameworkInput, setCustomFrameworkInput] = useState('');
+  const [frameworkSaved, setFrameworkSaved] = useState(false);
+
+  const frameworkOptions = [
+    'Common Core State Standards (CCSS)',
+    'Next Generation Science Standards (NGSS)',
+    'C3 Framework (Social Studies)',
+    'National Core Arts Standards',
+    'ISTE Standards for Students',
+    'State-Specific Standards',
+    'Custom Standards',
+  ];
+
+  function toggleFramework(fw: string) {
+    setSelectedFrameworks((prev) =>
+      prev.includes(fw) ? prev.filter((f) => f !== fw) : [...prev, fw]
+    );
+    setFrameworkSaved(false);
+  }
+
+  function saveFrameworkPreferences() {
+    setFrameworkSaved(true);
+    setTimeout(() => setFrameworkSaved(false), 2500);
+  }
+
   // Delete modal
   const [showDelete, setShowDelete] = useState(false);
 
@@ -248,7 +276,84 @@ export default function SettingsPage() {
           </div>
         </Section>
 
-        {/* ─── 2. Security ─── */}
+        {/* ─── 2. Standards & Frameworks ─── */}
+        <Section icon={BookOpen} title="Standards & Frameworks">
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-text-primary mb-1">Select the standards frameworks you use</p>
+              <p className="text-sm text-text-secondary mb-3">
+                Your Teaching Twin will suggest standards from these frameworks when you create activities.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              {frameworkOptions.map((fw) => {
+                const checked = selectedFrameworks.includes(fw);
+                return (
+                  <div key={fw}>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div
+                        className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors shrink-0 ${
+                          checked
+                            ? 'bg-teal border-teal'
+                            : 'border-border group-hover:border-teal/50'
+                        }`}
+                        onClick={(e) => { e.preventDefault(); toggleFramework(fw); }}
+                      >
+                        {checked && <Check size={14} weight="bold" className="text-navy" />}
+                      </div>
+                      <span
+                        className="text-sm text-text-primary"
+                        onClick={(e) => { e.preventDefault(); toggleFramework(fw); }}
+                      >
+                        {fw}
+                      </span>
+                    </label>
+
+                    {fw === 'State-Specific Standards' && checked && (
+                      <div className="ml-8 mt-2">
+                        <label className="block text-sm text-text-secondary mb-1">Which state?</label>
+                        <input
+                          type="text"
+                          value={stateInput}
+                          onChange={(e) => setStateInput(e.target.value)}
+                          placeholder="e.g., Texas, California"
+                          className="w-64 px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
+                        />
+                      </div>
+                    )}
+
+                    {fw === 'Custom Standards' && checked && (
+                      <div className="ml-8 mt-2">
+                        <label className="block text-sm text-text-secondary mb-1">Name your custom framework</label>
+                        <input
+                          type="text"
+                          value={customFrameworkInput}
+                          onChange={(e) => setCustomFrameworkInput(e.target.value)}
+                          placeholder="e.g., Our District Math Standards"
+                          className="w-64 px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={saveFrameworkPreferences}
+              className={`mt-2 px-5 py-2 text-sm font-medium rounded-lg transition-colors ${
+                frameworkSaved
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-teal text-navy hover:bg-teal/90'
+              }`}
+            >
+              {frameworkSaved ? '✓ Preferences Saved' : 'Save Preferences'}
+            </button>
+          </div>
+        </Section>
+
+        {/* ─── 3. Security ─── */}
         <Section icon={Lock} title="Security">
           <div className="space-y-4 max-w-md">
             {/* Password fields */}
