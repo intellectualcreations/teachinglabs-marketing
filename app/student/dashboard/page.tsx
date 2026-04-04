@@ -558,9 +558,9 @@ export default function StudentDashboardPage() {
                 key={cls.id}
                 href={`/student/main?class=${cls.id}`}
                 onClick={() => setMobileOpen(false)}
-                className="flex items-start gap-2.5 px-4 py-2.5 hover:bg-white/[0.12] transition-colors text-white/70 hover:text-white"
+                className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-white/[0.12] transition-colors text-white/70 hover:text-white"
               >
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: cls.avatarColor }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.avatarColor }}>
                   <cls.Icon size={16} weight="fill" className="text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
