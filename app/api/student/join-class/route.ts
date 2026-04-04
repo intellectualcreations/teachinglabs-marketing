@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/student/join-class
  * Body: { joinCode: string }
  * Enrolls the authenticated student in a class by join code.
- * Uses admin client to bypass RLS on classes table.
+ * Uses admin client to bypass RLS on classes/enrollments tables.
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -16,10 +15,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'joinCode required' }, { status: 400 });
   }
 
-  // Get the authenticated user from the user's session
-  const userSupabase = await createClient();
-  const { data: { user }, error: authErr } = await userSupabase.auth.getUser();
-  if (authErr || !user) {
+  // Get the authenticated user from the cookie-based session
+  let userId: string;
+  try {
+    const userSupabase = await createClient();
+    const { data: { user }, error: authErr } = await userSupabase.auth.getUser();
+    if (authErr || !user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+    userId = user.id;
+  } catch (err) {
+    console.error('Join-class auth error:', err);
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
@@ -33,7 +39,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (clsErr || !cls) {
-    return NextResponse.json({ error: 'Invalid class code' }, { status: 404 });
+    return NextResponse.json({ error: 'Invalid class code. Check with your teacher and try again.' }, { status: 404 });
   }
 
   const classId = (cls as { id: string; name: string }).id;
@@ -43,7 +49,7 @@ export async function POST(request: NextRequest) {
   const { data: existing } = await admin
     .from('enrollments')
     .select('id')
-    .eq('student_id', user.id)
+    .eq('student_id', userId)
     .eq('class_id', classId)
     .single();
 
@@ -54,7 +60,7 @@ export async function POST(request: NextRequest) {
   // Enroll via admin (bypasses RLS)
   const { error: enrollErr } = await admin
     .from('enrollments')
-    .insert({ student_id: user.id, class_id: classId, status: 'active' } as never);
+    .insert({ student_id: userId, class_id: classId, status: 'active' } as never);
 
   if (enrollErr) {
     console.error('Enrollment error:', enrollErr.message);
