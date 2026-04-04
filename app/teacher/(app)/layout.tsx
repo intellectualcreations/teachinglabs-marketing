@@ -1,3 +1,4 @@
+import './teacher.css';
 import Sidebar from '@/components/teacher/Sidebar';
 import PostAuthHandler from '@/components/shared/PostAuthHandler';
 

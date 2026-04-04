@@ -61,11 +61,10 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`
-          fixed lg:sticky top-0 left-0 h-screen w-60 bg-navy flex flex-col z-50 shrink-0
-          transition-transform duration-200
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
+        className={[
+          'fixed lg:sticky top-0 left-0 h-screen w-60 bg-navy flex flex-col z-50 shrink-0 transition-transform duration-200',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+        ].join(' ')}
       >
         {/* Close button (mobile) */}
         <button
@@ -99,13 +98,10 @@ export default function Sidebar() {
                 key={item.page}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`
-                  flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors
-                  ${isActive
-                    ? 'bg-white/[0.12] text-white'
-                    : 'text-white/70 hover:text-white hover:bg-white/[0.08]'
-                  }
-                `}
+                className={[
+                  'flex items-center gap-3 px-5 py-2.5 text-sm font-medium transition-colors',
+                  isActive ? 'bg-white/[0.12] text-white' : 'text-white/70 hover:text-white hover:bg-white/[0.08]',
+                ].join(' ')}
               >
                 {Icon && <Icon size={20} weight="fill" />}
                 {item.label}
