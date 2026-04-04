@@ -358,6 +358,7 @@ export default function TeacherSignupPage() {
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
         scopes: 'email profile openid',
+        queryParams: { prompt: 'select_account' },
       },
     });
   }
