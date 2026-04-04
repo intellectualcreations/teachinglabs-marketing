@@ -94,14 +94,37 @@ export default function StudentDashboardPage() {
   const [activityValues, setActivityValues] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
   const [recentActivity, setRecentActivity] = useState<{ text: string; time: string; color: string }[]>([]);
 
-  // Onboarding redirect check
+  // Onboarding redirect check: localStorage first, then DB fallback
   useEffect(() => {
     const onboarded = localStorage.getItem('teachinglabs_onboarded');
-    if (!onboarded) {
-      router.replace('/student/onboarding');
+    if (onboarded) {
+      setOnboardingChecked(true);
       return;
     }
-    setOnboardingChecked(true);
+    // Check database for completed assessment
+    async function checkAssessment() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { router.replace('/login'); return; }
+        const { data: assessment } = await supabase
+          .from('student_assessments')
+          .select('completed_at')
+          .eq('student_id', user.id)
+          .single() as { data: { completed_at: string | null } | null };
+        if (assessment?.completed_at) {
+          // Assessment exists in DB — set localStorage and continue
+          localStorage.setItem('teachinglabs_onboarded', 'true');
+          setOnboardingChecked(true);
+        } else {
+          router.replace('/student/onboarding');
+        }
+      } catch {
+        // Table missing or error — send to onboarding
+        router.replace('/student/onboarding');
+      }
+    }
+    checkAssessment();
   }, [router]);
 
   useEffect(() => {

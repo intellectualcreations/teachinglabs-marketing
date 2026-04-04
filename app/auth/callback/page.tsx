@@ -187,6 +187,26 @@ async function redirectUser(
       }
     }
 
+    // For returning students: check if they've completed the baseline assessment
+    if (role === 'student') {
+      try {
+        const { data: assessment } = await supabase
+          .from('student_assessments')
+          .select('completed_at')
+          .eq('student_id', user.id)
+          .single() as { data: { completed_at: string | null } | null };
+        if (!assessment?.completed_at) {
+          // No assessment completed — send back to onboarding
+          window.location.href = '/student/onboarding';
+          return;
+        }
+      } catch {
+        // Table might not exist or query failed — send to onboarding to be safe
+        window.location.href = '/student/onboarding';
+        return;
+      }
+    }
+
     // Existing users go to their role-appropriate dashboard
     const dashboards: Record<string, string> = {
       admin: '/admin/dashboard',
