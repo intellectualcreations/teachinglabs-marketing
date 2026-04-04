@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     // Fetch profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('display_name, first_name, last_name, role, school_id')
+      .select('display_name, first_name, last_name, role, school_id, preferred_name')
       .eq('id', teacherId)
       .single();
 
@@ -43,4 +43,40 @@ export async function GET(request: NextRequest) {
     console.error('Profile API error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+/**
+ * PATCH /api/teacher/profile
+ * Body: { teacherId, display_name?, preferred_name? }
+ * Updates teacher profile fields.
+ */
+export async function PATCH(request: NextRequest) {
+  const body = await request.json();
+  const { teacherId, ...updates } = body;
+
+  if (!teacherId) {
+    return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
+  }
+
+  // Only allow safe fields
+  const allowed: Record<string, string> = {};
+  if (typeof updates.display_name === 'string') allowed.display_name = updates.display_name;
+  if (typeof updates.preferred_name === 'string') allowed.preferred_name = updates.preferred_name;
+
+  if (Object.keys(allowed).length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+  }
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from('profiles')
+    .update(allowed as never)
+    .eq('id', teacherId);
+
+  if (error) {
+    console.error('Profile update error:', error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

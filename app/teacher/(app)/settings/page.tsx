@@ -94,10 +94,14 @@ function DeleteModal({ onClose, onConfirm }: { onClose: () => void; onConfirm: (
 export default function SettingsPage() {
   // Profile
   const [name, setName] = useState('');
+  const [preferredName, setPreferredName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [school, setSchool] = useState('');
   const [profileDirty, setProfileDirty] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
     async function loadProfile() {
@@ -121,7 +125,9 @@ export default function SettingsPage() {
           || user.user_metadata?.name as string
           || '';
         setName(displayName);
+        setPreferredName((p as { preferred_name?: string })?.preferred_name || '');
         setRole(p?.role || 'Teacher');
+        setUserId(user.id);
 
         const schoolData = data.school as { name?: string } | null;
         setSchool(schoolData?.name || '');
@@ -264,12 +270,48 @@ export default function SettingsPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">
+                  Preferred Name
+                  <span className="font-normal text-text-muted ml-1">(what students see)</span>
+                </label>
+                <input
+                  type="text"
+                  value={preferredName}
+                  onChange={(e) => { setPreferredName(e.target.value); setProfileDirty(true); }}
+                  placeholder="e.g. Mrs. Stewart, Mr. D, Coach K"
+                  className="w-full px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
+                />
+                <p className="text-xs text-text-muted mt-1">Students will see this name instead of your full name.</p>
+              </div>
+
               {profileDirty && (
                 <button
-                  onClick={() => setProfileDirty(false)}
-                  className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-navy rounded-lg hover:bg-teal/90 transition-colors"
+                  onClick={async () => {
+                    if (!userId) return;
+                    setProfileSaving(true);
+                    try {
+                      const res = await fetch('/api/teacher/profile', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          teacherId: userId,
+                          display_name: name,
+                          preferred_name: preferredName,
+                        }),
+                      });
+                      if (res.ok) {
+                        setProfileDirty(false);
+                        setProfileSaved(true);
+                        setTimeout(() => setProfileSaved(false), 2500);
+                      }
+                    } catch { /* ignore */ }
+                    setProfileSaving(false);
+                  }}
+                  disabled={profileSaving}
+                  className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-navy rounded-lg hover:bg-teal/90 transition-colors flex items-center gap-2"
                 >
-                  Save Changes
+                  {profileSaved ? <><Check size={14} weight="bold" /> Saved!</> : profileSaving ? 'Saving...' : 'Save Changes'}
                 </button>
               )}
             </div>

@@ -14,6 +14,7 @@ export type AttendanceStatusType = "present" | "absent" | "late";
 export interface Profile {
   id: string;
   display_name: string | null;
+  preferred_name: string | null;
   role: UserRole;
   school_id: string | null;
   avatar_url: string | null;

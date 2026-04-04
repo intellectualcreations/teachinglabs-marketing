@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   MathOperations, BookOpenText, Flask, GlobeHemisphereWest, PencilLine,
@@ -12,11 +12,24 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Student {
-  first: string;
-  last: string;
+interface EnrolledStudent {
   id: string;
-  grade: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  enrolled_at: string;
+}
+
+interface ClassRecord {
+  id: string;
+  name: string;
+  subject: string | null;
+  grade_level: string | null;
+  teacher_id: string;
+  school_id: string | null;
+  join_code: string;
+  description: string | null;
+  icon: string | null;
+  created_at: string;
 }
 
 interface IconOption {
@@ -26,17 +39,7 @@ interface IconOption {
   val: string;
 }
 
-interface DemoClass {
-  name: string;
-  subject: string;
-  grade: string;
-  count: number;
-  code: string;
-  iconIdx: number;
-  desc: string;
-}
-
-// ─── Demo Data ────────────────────────────────────────────────────────────────
+// ─── Icon Options ─────────────────────────────────────────────────────────────
 
 const ICON_OPTIONS: IconOption[] = [
   { icon: MathOperations, bg: '#1F3A5F', label: 'Math', val: 'math' },
@@ -71,40 +74,6 @@ const ICON_OPTIONS: IconOption[] = [
   { icon: HouseLine, bg: '#64748B', label: 'Homeroom', val: 'homeroom' },
 ];
 
-const DEMO_CLASSES: DemoClass[] = [
-  { name: '5th Grade Math', subject: 'Math', grade: '5th', count: 14, code: 'TL-X7K2', iconIdx: 0, desc: '' },
-  { name: 'Reading Circle', subject: 'English / Language Arts', grade: '4th', count: 10, code: 'TL-M3P9', iconIdx: 1, desc: 'Focused on comprehension and fluency.' },
-  { name: 'Science Explorers', subject: 'Science', grade: '5th', count: 12, code: 'TL-Q8R4', iconIdx: 2, desc: '' },
-];
-
-const ALL_STUDENTS: Student[] = [
-  { first: 'Emma', last: 'Johnson', id: 'STU-10042', grade: '5' },
-  { first: 'Liam', last: 'Martinez', id: 'STU-10087', grade: '5' },
-  { first: 'Sophia', last: 'Williams', id: 'STU-10103', grade: '5' },
-  { first: 'Noah', last: 'Brown', id: 'STU-10156', grade: '5' },
-  { first: 'Olivia', last: 'Garcia', id: 'STU-10201', grade: '5' },
-  { first: 'Aiden', last: 'Davis', id: 'STU-10245', grade: '5' },
-  { first: 'Isabella', last: 'Rodriguez', id: 'STU-10302', grade: '4' },
-  { first: 'Mason', last: 'Wilson', id: 'STU-10367', grade: '4' },
-  { first: 'Ava', last: 'Anderson', id: 'STU-10412', grade: '4' },
-  { first: 'Ethan', last: 'Thomas', id: 'STU-10458', grade: '5' },
-  { first: 'Mia', last: 'Jackson', id: 'STU-10503', grade: '5' },
-  { first: 'Lucas', last: 'White', id: 'STU-10547', grade: '4' },
-  { first: 'Amelia', last: 'Harris', id: 'STU-10602', grade: '5' },
-  { first: 'James', last: 'Clark', id: 'STU-10651', grade: '5' },
-  { first: 'Harper', last: 'Lewis', id: 'STU-10703', grade: '4' },
-  { first: 'Benjamin', last: 'Robinson', id: 'STU-10756', grade: '5' },
-  { first: 'Ella', last: 'Walker', id: 'STU-10801', grade: '5' },
-  { first: 'Alexander', last: 'Young', id: 'STU-10845', grade: '4' },
-  { first: 'Charlotte', last: 'Allen', id: 'STU-10902', grade: '5' },
-  { first: 'Daniel', last: 'King', id: 'STU-10958', grade: '5' },
-  { first: 'Scarlett', last: 'Wright', id: 'STU-11003', grade: '4' },
-  { first: 'Henry', last: 'Scott', id: 'STU-11047', grade: '5' },
-  { first: 'Grace', last: 'Adams', id: 'STU-11102', grade: '4' },
-  { first: 'Sebastian', last: 'Baker', id: 'STU-11156', grade: '5' },
-  { first: 'Chloe', last: 'Gonzalez', id: 'STU-11201', grade: '5' },
-];
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function EditClassPageWrapper() {
@@ -118,65 +87,163 @@ export default function EditClassPageWrapper() {
 function EditClassPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const classIndex = parseInt(searchParams.get('class') ?? '0', 10);
-  const cls = DEMO_CLASSES[classIndex] ?? DEMO_CLASSES[0];
+  const classId = searchParams.get('class') ?? '';
 
-  // Form state — initialized from demo class
-  const [className, setClassName] = useState(cls.name);
-  const [subject, setSubject] = useState(cls.subject);
-  const [grade, setGrade] = useState(cls.grade);
-  const [desc, setDesc] = useState(cls.desc);
-  const [selectedIconIdx, setSelectedIconIdx] = useState(cls.iconIdx);
+  // Loading / error state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [classRecord, setClassRecord] = useState<ClassRecord | null>(null);
+  const [students, setStudents] = useState<EnrolledStudent[]>([]);
+
+  // Form state
+  const [className, setClassName] = useState('');
+  const [subject, setSubject] = useState('');
+  const [grade, setGrade] = useState('');
+  const [desc, setDesc] = useState('');
+  const [selectedIconIdx, setSelectedIconIdx] = useState(0);
   const [copied, setCopied] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  // Student selection — pre-select first N students
-  const [selected, setSelected] = useState<Set<string>>(() => {
-    const s = new Set<string>();
-    for (let i = 0; i < Math.min(cls.count, ALL_STUDENTS.length); i++) {
-      s.add(ALL_STUDENTS[i].id);
+  // Load class data from API
+  const loadClassData = useCallback(async () => {
+    if (!classId) {
+      setError('No class ID provided');
+      setLoading(false);
+      return;
     }
-    return s;
-  });
 
-  // Reset when class index changes
+    try {
+      const res = await fetch(`/api/teacher/class-details?classId=${classId}`);
+      if (!res.ok) {
+        setError('Class not found');
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+      const cls: ClassRecord = data.class;
+      setClassRecord(cls);
+      setStudents(data.students ?? []);
+
+      // Populate form state from loaded class
+      setClassName(cls.name);
+      setSubject(cls.subject ?? '');
+      setGrade(cls.grade_level ?? '');
+      setDesc(cls.description ?? '');
+
+      // Find matching icon index by val
+      const iconIdx = ICON_OPTIONS.findIndex((opt) => opt.val === cls.icon);
+      setSelectedIconIdx(iconIdx >= 0 ? iconIdx : 0);
+
+      setLoading(false);
+    } catch {
+      setError('Failed to load class data');
+      setLoading(false);
+    }
+  }, [classId]);
+
   useEffect(() => {
-    setClassName(cls.name);
-    setSubject(cls.subject);
-    setGrade(cls.grade);
-    setDesc(cls.desc);
-    setSelectedIconIdx(cls.iconIdx);
-    const s = new Set<string>();
-    for (let i = 0; i < Math.min(cls.count, ALL_STUDENTS.length); i++) {
-      s.add(ALL_STUDENTS[i].id);
-    }
-    setSelected(s);
-  }, [classIndex, cls]);
-
-  function toggleStudent(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }
+    loadClassData();
+  }, [loadClassData]);
 
   function copyCode() {
-    navigator.clipboard.writeText(cls.code).catch(() => {});
+    if (!classRecord) return;
+    navigator.clipboard.writeText(classRecord.join_code).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function saveClass() {
-    setSaved(true);
-    setTimeout(() => {
-      router.push('/teacher/my-classes');
-    }, 800);
+  async function saveClass() {
+    if (saving) return;
+    setSaving(true);
+
+    try {
+      const res = await fetch('/api/teacher/edit-class', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classId,
+          name: className,
+          subject,
+          grade_level: grade,
+          description: desc,
+          icon: ICON_OPTIONS[selectedIconIdx]?.val ?? 'star',
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        console.error('Save failed:', errData.error);
+        setSaving(false);
+        return;
+      }
+
+      setSaved(true);
+      setTimeout(() => {
+        router.push('/teacher/my-classes');
+      }, 800);
+    } catch (err) {
+      console.error('Save error:', err);
+      setSaving(false);
+    }
   }
 
-  function deleteClass() {
-    router.push('/teacher/my-classes');
+  async function deleteClass() {
+    if (deleting) return;
+    setDeleting(true);
+
+    try {
+      const res = await fetch(`/api/teacher/edit-class?classId=${classId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        console.error('Delete failed:', errData.error);
+        setDeleting(false);
+        return;
+      }
+
+      router.push('/teacher/my-classes');
+    } catch (err) {
+      console.error('Delete error:', err);
+      setDeleting(false);
+    }
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="max-w-[900px] w-full mx-auto py-8 px-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 w-32 bg-border rounded" />
+          <div className="h-8 w-64 bg-border rounded" />
+          <div className="h-4 w-96 bg-border rounded" />
+          <div className="h-48 bg-border rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !classRecord) {
+    return (
+      <div className="max-w-[900px] w-full mx-auto py-8 px-6">
+        <button
+          onClick={() => router.push('/teacher/my-classes')}
+          className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-navy
+            transition-colors mb-6 cursor-pointer"
+        >
+          <CaretLeft size={14} /> Back to My Classes
+        </button>
+        <div className="bg-card-bg border border-border rounded-2xl p-8 text-center">
+          <p className="text-text-secondary text-[15px]">{error ?? 'Class not found'}</p>
+        </div>
+      </div>
+    );
   }
 
   const IconComp = ICON_OPTIONS[selectedIconIdx]?.icon ?? Star;
@@ -197,7 +264,7 @@ function EditClassPage() {
       {/* Page header */}
       <div className="mb-8">
         <h1 className="font-heading text-[28px] font-bold text-text-primary mb-1.5">
-          Edit: {cls.name}
+          Edit: {classRecord.name}
         </h1>
         <p className="text-[15px] text-text-secondary">Update class details, change the icon, or manage students.</p>
       </div>
@@ -311,7 +378,7 @@ function EditClassPage() {
 
         <div className="flex items-center gap-4 px-5 py-4 bg-teal/[0.04] border border-teal/15 rounded-xl">
           <div>
-            <div className="font-heading font-bold text-[22px] tracking-[3px] text-teal">{cls.code}</div>
+            <div className="font-heading font-bold text-[22px] tracking-[3px] text-teal">{classRecord.join_code}</div>
             <div className="text-[13px] text-text-secondary mt-0.5">Class join code</div>
           </div>
           <button
@@ -329,46 +396,59 @@ function EditClassPage() {
       {/* ── Students card ── */}
       <div className="bg-card-bg border border-border rounded-2xl p-8 mb-6">
         <div className="font-heading font-semibold text-[17px] text-text-primary mb-1">Students in this class</div>
-        <div className="text-[14px] text-text-secondary mb-5">Manage which students are in this class.</div>
+        <div className="text-[14px] text-text-secondary mb-5">Students currently enrolled in this class.</div>
 
-        <div className="border border-border rounded-lg max-h-[350px] overflow-y-auto">
-          {ALL_STUDENTS.map((s, i) => {
-            const isSelected = selected.has(s.id);
-            const initials = s.first[0] + s.last[0];
-            return (
-              <div
-                key={s.id}
-                onClick={() => toggleStudent(s.id)}
-                className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors
-                  ${i < ALL_STUDENTS.length - 1 ? 'border-b border-border' : ''}
-                  ${isSelected ? 'bg-teal/[0.06]' : 'hover:bg-teal/[0.03]'}`}
-              >
+        {students.length === 0 ? (
+          <div className="border border-border rounded-lg px-4 py-8 text-center">
+            <p className="text-[14px] text-text-secondary">No students enrolled yet. Share the join code above to invite students.</p>
+          </div>
+        ) : (
+          <div className="border border-border rounded-lg max-h-[350px] overflow-y-auto">
+            {students.map((s, i) => {
+              const name = s.display_name ?? 'Unknown Student';
+              const parts = name.split(' ');
+              const initials = parts.length >= 2
+                ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                : name.slice(0, 2).toUpperCase();
+              return (
                 <div
-                  className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all
-                    ${isSelected ? 'bg-teal border-teal' : 'border-border'}`}
+                  key={s.id}
+                  className={`flex items-center gap-3 px-4 py-2.5 transition-colors
+                    ${i < students.length - 1 ? 'border-b border-border' : ''}
+                    bg-teal/[0.06]`}
                 >
-                  {isSelected && <Check size={12} weight="bold" color="white" />}
+                  <div className="w-5 h-5 rounded border-2 flex items-center justify-center shrink-0
+                    bg-teal border-teal">
+                    <Check size={12} weight="bold" color="white" />
+                  </div>
+                  {s.avatar_url ? (
+                    <img
+                      src={s.avatar_url}
+                      alt={name}
+                      className="w-8 h-8 rounded-full shrink-0 object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-surface text-navy flex items-center justify-center
+                      font-heading font-semibold text-[12px] shrink-0">
+                      {initials}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <div className="font-medium text-[14px] text-text-primary">{name}</div>
+                    <div className="text-[12px] text-text-secondary font-heading">
+                      Enrolled {new Date(s.enrolled_at).toLocaleDateString()}
+                    </div>
+                  </div>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-surface text-navy flex items-center justify-center
-                  font-heading font-semibold text-[12px] shrink-0">
-                  {initials}
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-[14px] text-text-primary">{s.first} {s.last}</div>
-                  <div className="text-[12px] text-text-secondary font-heading">{s.id}</div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full bg-navy/[0.08] text-[12px] font-semibold text-navy">
-                  {s.grade}th
-                </span>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="flex items-center justify-between px-4 py-3 bg-teal/[0.06] border border-teal/20
           rounded-lg mt-4 text-[14px]">
           <span>
-            <span className="font-semibold text-teal">{selected.size}</span> students in class
+            <span className="font-semibold text-teal">{students.length}</span> student{students.length !== 1 ? 's' : ''} enrolled
           </span>
         </div>
       </div>
@@ -393,10 +473,12 @@ function EditClassPage() {
         </div>
         <button
           onClick={saveClass}
+          disabled={saving || saved}
           className="px-7 py-3 bg-navy text-white rounded-lg font-heading font-semibold text-[14px]
-            hover:bg-navy/90 transition-colors cursor-pointer flex items-center gap-2"
+            hover:bg-navy/90 transition-colors cursor-pointer flex items-center gap-2
+            disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {saved ? <><Check size={16} weight="bold" /> Saved!</> : 'Save changes'}
+          {saved ? <><Check size={16} weight="bold" /> Saved!</> : saving ? 'Saving...' : 'Save changes'}
         </button>
       </div>
 
@@ -412,7 +494,7 @@ function EditClassPage() {
           >
             <h2 className="font-heading font-bold text-[18px] text-text-primary mb-2">Delete class?</h2>
             <p className="text-[14px] text-text-secondary mb-6">
-              Delete &quot;{cls.name}&quot;? This cannot be undone. Students will lose access.
+              Delete &quot;{classRecord.name}&quot;? This cannot be undone. Students will lose access.
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -424,10 +506,11 @@ function EditClassPage() {
               </button>
               <button
                 onClick={deleteClass}
+                disabled={deleting}
                 className="px-5 py-2.5 bg-red-600 text-white rounded-lg text-[13px] font-bold
-                  hover:bg-red-700 transition-colors cursor-pointer"
+                  hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-60"
               >
-                Delete
+                {deleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
