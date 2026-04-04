@@ -37,7 +37,14 @@ export default function Sidebar() {
     loadUser();
   }, []);
 
-  const activePage = TEACHER_NAV.find(n => pathname.startsWith(n.href))?.page || 'dashboard';
+  // Map sub-pages to their parent nav item
+  const subPageMap: Record<string, string> = {
+    '/teacher/create-course': '/teacher/library',
+    '/teacher/create-activity': '/teacher/library',
+    '/teacher/edit-class': '/teacher/my-classes',
+  };
+  const effectivePath = Object.entries(subPageMap).find(([prefix]) => pathname.startsWith(prefix))?.[1] || pathname;
+  const activePage = TEACHER_NAV.find(n => effectivePath.startsWith(n.href))?.page || 'dashboard';
 
   return (
     <>
