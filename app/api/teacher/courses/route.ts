@@ -149,20 +149,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await (admin.from('courses') as any)
-      .insert({
-        title,
-        description: description || null,
-        subject: subject || null,
-        grade_level: grade_level || null,
-        standards: standards || null,
-        teacher_id,
-        is_published: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+    const insertData: Record<string, unknown> = {
+      title,
+      description: description || null,
+      subject: subject || null,
+      grade_level: grade_level || null,
+      teacher_id,
+      is_published: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    if (standards) insertData.standards = standards;
+
+    let { data, error } = await (admin.from('courses') as any)
+      .insert(insertData)
       .select()
       .single();
+
+    // If standards column doesn't exist yet, retry without it
+    if (error?.message?.includes('standards')) {
+      delete insertData.standards;
+      const retry = await (admin.from('courses') as any)
+        .insert(insertData)
+        .select()
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       console.error('Create course error:', error.message);
