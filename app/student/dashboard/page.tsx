@@ -229,7 +229,21 @@ export default function StudentDashboardPage() {
           .single();
 
         const profile = profileData as unknown as Profile | null;
-        const displayName = profile?.display_name || 'Student';
+
+        // Try to get preferred name from student_assessments
+        let preferredName = '';
+        try {
+          const { data: assessmentData } = await supabase
+            .from('student_assessments')
+            .select('preferred_name')
+            .eq('student_id', user.id)
+            .single();
+          if (assessmentData && (assessmentData as { preferred_name?: string }).preferred_name) {
+            preferredName = (assessmentData as { preferred_name: string }).preferred_name;
+          }
+        } catch { /* table may not exist */ }
+
+        const displayName = preferredName || profile?.display_name || 'Student';
         setStudentName(displayName.split(' ')[0]);
         setStudentInitials(getInitials(displayName));
 
@@ -465,7 +479,7 @@ export default function StudentDashboardPage() {
           <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center font-heading font-bold text-xs flex-shrink-0">TL</div>
           <div>
             <div className="font-heading font-bold text-sm text-white">TeachingLabs</div>
-            <div className="text-xs text-white/50">Student Portal</div>
+            <div className="text-xs text-white/50">{studentName ? `${studentName}'s Learning Portal` : 'Learning Portal'}</div>
           </div>
         </div>
 
@@ -484,6 +498,13 @@ export default function StudentDashboardPage() {
           >
             <ChartBar size={18} weight="fill" />
             Analytics
+          </Link>
+          <Link
+            href="/student/messages"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-white/60 font-semibold text-sm hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <ChatText size={18} weight="fill" />
+            Messages
           </Link>
           <Link
             href="/student/subscription"
