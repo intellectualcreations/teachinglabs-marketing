@@ -134,39 +134,32 @@ async function redirectUser(
   user: { id: string; email?: string; user_metadata?: Record<string, unknown> }
 ) {
   try {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, display_name')
-      .eq('id', user.id)
-      .single();
+    // Use admin API route to get role (bypasses RLS)
+    const res = await fetch(`/api/auth/user-role?userId=${user.id}`);
+    const { role: dbRole, displayName: dbName, hasAssessment } = res.ok
+      ? await res.json()
+      : { role: null, displayName: null, hasAssessment: false };
 
-    // Ensure profile has correct role and display name
     const meta = user.user_metadata || {};
     const fullName = (meta.full_name || meta.name || '') as string;
     const pendingRole = localStorage.getItem('pending_role');
     const pendingSchool = localStorage.getItem('pending_school_id');
 
-    // Update profile if it needs fixing (role from signup, or missing display name)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updates: any = {};
-    if (pendingRole && (!profile || (profile as { role?: string })?.role !== pendingRole)) {
-      updates.role = pendingRole;
-    }
-    const currentName = (profile as { display_name?: string } | null)?.display_name || '';
-    // Update display name if it's missing, is an email address, or we have a better name from SSO
-    if (fullName && (!currentName || currentName.includes('@'))) {
-      updates.display_name = fullName;
-    }
-    if (pendingSchool) {
-      updates.school_id = pendingSchool;
-    }
-    if (Object.keys(updates).length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from('profiles') as any).update(updates).eq('id', user.id);
+    // If we have pending signup data, update the profile
+    if (pendingRole || pendingSchool || fullName) {
+      const updates: Record<string, string> = {};
+      if (pendingRole && dbRole !== pendingRole) updates.role = pendingRole;
+      if (pendingSchool) updates.school_id = pendingSchool;
+      if (fullName && (!dbName || dbName.includes('@'))) {
+        updates.display_name = fullName;
+      }
+      if (Object.keys(updates).length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase.from('profiles') as any).update(updates).eq('id', user.id);
+      }
     }
 
-    const profileRole = (profile as { role?: string } | null)?.role;
-    const role: string = profileRole ?? pendingRole ?? 'teacher';
+    const role: string = dbRole ?? pendingRole ?? 'student';
 
     // Check if this is a new signup (came from signup page)
     const isNewSignup = pendingRole || localStorage.getItem('pending_school_id');
@@ -176,7 +169,6 @@ async function redirectUser(
     localStorage.removeItem('pending_school_id');
 
     if (isNewSignup) {
-      // New signups go through onboarding
       if (role === 'student') {
         window.location.href = '/student/onboarding';
         return;
@@ -187,27 +179,13 @@ async function redirectUser(
       }
     }
 
-    // For returning students: check if they've completed the baseline assessment
-    if (role === 'student') {
-      try {
-        const { data: assessment } = await supabase
-          .from('student_assessments')
-          .select('completed_at')
-          .eq('student_id', user.id)
-          .single() as { data: { completed_at: string | null } | null };
-        if (!assessment?.completed_at) {
-          // No assessment completed — send back to onboarding
-          window.location.href = '/student/onboarding';
-          return;
-        }
-      } catch {
-        // Table might not exist or query failed — send to onboarding to be safe
-        window.location.href = '/student/onboarding';
-        return;
-      }
+    // For returning students: check baseline assessment
+    if (role === 'student' && !hasAssessment) {
+      window.location.href = '/student/onboarding';
+      return;
     }
 
-    // Existing users go to their role-appropriate dashboard
+    // Route to role-appropriate dashboard
     const dashboards: Record<string, string> = {
       admin: '/admin/dashboard',
       teacher: '/teacher/dashboard',
@@ -215,7 +193,7 @@ async function redirectUser(
       parent: '/parent/dashboard',
     };
 
-    window.location.href = dashboards[role] || (role === 'student' ? '/student/dashboard' : '/teacher/dashboard');
+    window.location.href = dashboards[role] || '/student/dashboard';
   } catch {
     window.location.href = '/login';
   }
