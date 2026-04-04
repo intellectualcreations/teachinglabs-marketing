@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import {
   ChatsCircle, PaperPlaneRight, ArrowLeft, Plus, Clock, Sparkle,
+  Paperclip, Image as ImageIcon, FileText, VideoCamera, X,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -24,6 +25,12 @@ interface ChatSession {
   messages: ChatMessage[];
 }
 
+interface PendingAttachment {
+  file: File;
+  preview: string;
+  type: 'image' | 'video' | 'document';
+}
+
 function timeAgo(dateStr: string): string {
   const now = new Date();
   const date = new Date(dateStr);
@@ -37,6 +44,37 @@ function timeAgo(dateStr: string): string {
   if (diffDays === 1) return 'Yesterday';
   if (diffDays < 7) return `${diffDays} days ago`;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function getFileType(file: File): 'image' | 'video' | 'document' {
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type.startsWith('video/')) return 'video';
+  return 'document';
+}
+
+function getFileIcon(type: string) {
+  if (type === 'image') return ImageIcon;
+  if (type === 'video') return VideoCamera;
+  return FileText;
+}
+
+/** Parse attachment from message content if present */
+function parseAttachment(content: string): { text: string; attachmentUrl?: string; attachmentType?: string; attachmentName?: string } {
+  if (content.startsWith('[[ATTACHMENT:')) {
+    const endIdx = content.indexOf(']]');
+    if (endIdx > 0) {
+      try {
+        const meta = JSON.parse(content.substring(13, endIdx));
+        return {
+          text: content.substring(endIdx + 2).trim(),
+          attachmentUrl: meta.url,
+          attachmentType: meta.type,
+          attachmentName: meta.name,
+        };
+      } catch { /* ignore */ }
+    }
+  }
+  return { text: content };
 }
 
 /** Group messages into sessions by 30-min gaps */
@@ -87,8 +125,12 @@ export default function ClassChatPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [className, setClassName] = useState('');
   const [studentName, setStudentName] = useState('');
+  const [pendingAttachment, setPendingAttachment] = useState<PendingAttachment | null>(null);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -159,18 +201,96 @@ export default function ClassChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeSession?.messages, isTyping]);
 
-  // Focus input when entering chat mode
   useEffect(() => {
     if (newChatMode || activeSession) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [newChatMode, activeSession]);
 
+  // Close attach menu on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (attachMenuRef.current && !attachMenuRef.current.contains(e.target as Node)) {
+        setShowAttachMenu(false);
+      }
+    }
+    if (showAttachMenu) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showAttachMenu]);
+
+  const handleFileSelect = useCallback((accept: string) => {
+    setShowAttachMenu(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.accept = accept;
+      fileInputRef.current.click();
+    }
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const type = getFileType(file);
+    let preview = '';
+    if (type === 'image') {
+      preview = URL.createObjectURL(file);
+    }
+
+    setPendingAttachment({ file, preview, type });
+    // Reset file input
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, []);
+
+  const uploadFile = useCallback(async (file: File, uid: string): Promise<string | null> => {
+    try {
+      const supabase = createClient();
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `${uid}/${Date.now()}.${ext}`;
+
+      const { error } = await supabase.storage
+        .from('chat-attachments')
+        .upload(path, file, { contentType: file.type, upsert: false });
+
+      if (error) {
+        console.error('Upload error:', error);
+        return null;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-attachments')
+        .getPublicUrl(path);
+
+      return publicUrl;
+    } catch (err) {
+      console.error('Upload error:', err);
+      return null;
+    }
+  }, []);
+
   const handleSend = useCallback(async () => {
-    if (!input.trim() || !userId || sending) return;
+    if ((!input.trim() && !pendingAttachment) || !userId || sending) return;
     const text = input.trim();
     setSending(true);
     setInput('');
+
+    let messageContent = text;
+    let attachmentMeta = '';
+
+    // Upload attachment if any
+    if (pendingAttachment) {
+      const url = await uploadFile(pendingAttachment.file, userId);
+      if (url) {
+        attachmentMeta = `[[ATTACHMENT:${JSON.stringify({ url, type: pendingAttachment.type, name: pendingAttachment.file.name })}]]`;
+        messageContent = attachmentMeta + (text ? ' ' + text : '');
+      }
+      if (pendingAttachment.preview) URL.revokeObjectURL(pendingAttachment.preview);
+      setPendingAttachment(null);
+    }
+
+    if (!messageContent) {
+      setSending(false);
+      return;
+    }
 
     // Optimistic add of student message
     const tempId = `temp-${Date.now()}`;
@@ -178,7 +298,7 @@ export default function ClassChatPage() {
       id: tempId,
       sender_id: userId,
       class_id: classId,
-      content: text,
+      content: messageContent,
       message_type: 'student',
       created_at: new Date().toISOString(),
     };
@@ -192,7 +312,7 @@ export default function ClassChatPage() {
     } else if (newChatMode) {
       const newSession: ChatSession = {
         id: tempId,
-        firstMessage: text,
+        firstMessage: text || pendingAttachment?.file.name || 'Attachment',
         lastActivity: tempMsg.created_at,
         messageCount: 1,
         messages: [tempMsg],
@@ -204,12 +324,9 @@ export default function ClassChatPage() {
     setIsTyping(true);
 
     try {
-      // Get auth token
       const supabase = createClient();
       const { data: { session: sess } } = await supabase.auth.getSession();
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (sess?.access_token) {
         headers['Cookie'] = `sb-access-token=${sess.access_token}`;
       }
@@ -217,7 +334,7 @@ export default function ClassChatPage() {
       const res = await fetch('/api/student/chat', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ class_id: classId, content: text }),
+        body: JSON.stringify({ class_id: classId, content: messageContent }),
       });
 
       if (res.ok) {
@@ -243,37 +360,29 @@ export default function ClassChatPage() {
         }
       } else {
         setIsTyping(false);
-        const errorMsg: ChatMessage = {
-          id: `err-${Date.now()}`,
-          sender_id: 'system',
-          class_id: classId,
-          content: "Sorry, I couldn't send that. Please try again!",
-          message_type: 'ai',
-          created_at: new Date().toISOString(),
-        };
         setActiveSession(prev => prev ? {
           ...prev,
-          messages: [...prev.messages, errorMsg],
+          messages: [...prev.messages, {
+            id: `err-${Date.now()}`, sender_id: 'system', class_id: classId,
+            content: "Sorry, I couldn't send that. Please try again!",
+            message_type: 'ai', created_at: new Date().toISOString(),
+          }],
         } : null);
       }
     } catch {
       setIsTyping(false);
-      const errorMsg: ChatMessage = {
-        id: `err-${Date.now()}`,
-        sender_id: 'system',
-        class_id: classId,
-        content: "Something went wrong. Please try again!",
-        message_type: 'ai',
-        created_at: new Date().toISOString(),
-      };
       setActiveSession(prev => prev ? {
         ...prev,
-        messages: [...prev.messages, errorMsg],
+        messages: [...prev.messages, {
+          id: `err-${Date.now()}`, sender_id: 'system', class_id: classId,
+          content: "Something went wrong. Please try again!",
+          message_type: 'ai', created_at: new Date().toISOString(),
+        }],
       } : null);
     } finally {
       setSending(false);
     }
-  }, [input, userId, classId, sending, activeSession, newChatMode]);
+  }, [input, userId, classId, sending, activeSession, newChatMode, pendingAttachment, uploadFile]);
 
   if (loading) {
     return (
@@ -288,10 +397,13 @@ export default function ClassChatPage() {
     const messages = activeSession?.messages ?? [];
     return (
       <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-3.5rem)]">
+        {/* Hidden file input */}
+        <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+
         {/* Header */}
         <div className="flex items-center gap-3 pb-4 border-b border-border mb-4 flex-shrink-0">
           <button
-            onClick={() => { setActiveSession(null); setNewChatMode(false); }}
+            onClick={() => { setActiveSession(null); setNewChatMode(false); setPendingAttachment(null); }}
             className="w-8 h-8 rounded-lg bg-card-bg border border-border flex items-center justify-center hover:bg-border transition-colors"
           >
             <ArrowLeft size={16} className="text-text-secondary" />
@@ -311,12 +423,12 @@ export default function ClassChatPage() {
             <div className="flex justify-start">
               <div className="max-w-[80%]">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <div className="w-7 h-7 rounded-full bg-teal/20 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-navy/30 flex items-center justify-center">
                     <Sparkle size={14} weight="fill" className="text-teal" />
                   </div>
                   <span className="text-xs font-semibold text-teal">AI Tutor</span>
                 </div>
-                <div className="bg-card-bg border border-border rounded-2xl rounded-bl-md px-4 py-3 text-sm text-text-primary">
+                <div className="bg-navy/20 rounded-2xl rounded-bl-md px-4 py-3 text-sm text-white">
                   Hi {studentName}! 👋 What would you like to chat about in {className}?
                 </div>
               </div>
@@ -325,29 +437,64 @@ export default function ClassChatPage() {
 
           {messages.map(msg => {
             const isStudent = msg.message_type === 'student';
+            const parsed = parseAttachment(msg.content);
             return (
               <div
                 key={msg.id}
                 className={`flex ${isStudent ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`max-w-[80%] ${!isStudent ? '' : ''}`}>
+                <div className="max-w-[80%]">
                   {!isStudent && (
                     <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-7 h-7 rounded-full bg-teal/20 flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-full bg-navy/30 flex items-center justify-center">
                         <Sparkle size={14} weight="fill" className="text-teal" />
                       </div>
                       <span className="text-xs font-semibold text-teal">AI Tutor</span>
                     </div>
                   )}
-                  <div
-                    className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
-                      isStudent
-                        ? 'bg-teal text-navy rounded-br-md ml-auto'
-                        : 'bg-card-bg border border-border text-text-primary rounded-bl-md'
-                    }`}
-                  >
-                    {msg.content}
-                  </div>
+
+                  {/* Attachment preview */}
+                  {parsed.attachmentUrl && (
+                    <div className={`mb-1 ${isStudent ? 'ml-auto' : ''}`}>
+                      {parsed.attachmentType === 'image' ? (
+                        <img
+                          src={parsed.attachmentUrl}
+                          alt={parsed.attachmentName || 'Image'}
+                          className="max-w-full rounded-xl max-h-64 object-cover"
+                        />
+                      ) : parsed.attachmentType === 'video' ? (
+                        <video
+                          src={parsed.attachmentUrl}
+                          controls
+                          className="max-w-full rounded-xl max-h-64"
+                        />
+                      ) : (
+                        <a
+                          href={parsed.attachmentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs ${
+                            isStudent ? 'bg-white/20 text-navy' : 'bg-navy/10 text-text-primary'
+                          }`}
+                        >
+                          <FileText size={16} />
+                          {parsed.attachmentName || 'Document'}
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {parsed.text && (
+                    <div
+                      className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+                        isStudent
+                          ? 'bg-white text-navy rounded-br-md ml-auto'
+                          : 'bg-navy/20 text-white rounded-bl-md'
+                      }`}
+                    >
+                      {parsed.text}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -358,16 +505,16 @@ export default function ClassChatPage() {
             <div className="flex justify-start">
               <div className="max-w-[80%]">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <div className="w-7 h-7 rounded-full bg-teal/20 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-navy/30 flex items-center justify-center">
                     <Sparkle size={14} weight="fill" className="text-teal" />
                   </div>
                   <span className="text-xs font-semibold text-teal">AI Tutor</span>
                 </div>
-                <div className="bg-card-bg border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="bg-navy/20 rounded-2xl rounded-bl-md px-4 py-3">
                   <div className="flex gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-teal/40 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 rounded-full bg-teal/40 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 rounded-full bg-teal/40 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -377,9 +524,73 @@ export default function ClassChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Pending attachment preview */}
+        {pendingAttachment && (
+          <div className="border-t border-border pt-2 pb-1 flex-shrink-0">
+            <div className="flex items-center gap-2 px-2">
+              <div className="relative">
+                {pendingAttachment.type === 'image' && pendingAttachment.preview ? (
+                  <img src={pendingAttachment.preview} alt="Preview" className="w-16 h-16 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-16 h-16 rounded-lg bg-card-bg border border-border flex flex-col items-center justify-center">
+                    {(() => { const Icon = getFileIcon(pendingAttachment.type); return <Icon size={20} className="text-text-secondary" />; })()}
+                    <span className="text-[10px] text-text-muted mt-1 truncate max-w-[56px]">{pendingAttachment.file.name.split('.').pop()}</span>
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    if (pendingAttachment.preview) URL.revokeObjectURL(pendingAttachment.preview);
+                    setPendingAttachment(null);
+                  }}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center"
+                >
+                  <X size={10} weight="bold" />
+                </button>
+              </div>
+              <span className="text-xs text-text-secondary truncate">{pendingAttachment.file.name}</span>
+            </div>
+          </div>
+        )}
+
         {/* Input */}
         <div className="border-t border-border pt-4 pb-2 flex-shrink-0">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-end">
+            {/* Attach button */}
+            <div className="relative" ref={attachMenuRef}>
+              <button
+                onClick={() => setShowAttachMenu(!showAttachMenu)}
+                className="w-11 h-11 rounded-xl bg-card-bg border border-border flex items-center justify-center hover:bg-border transition-colors"
+              >
+                <Paperclip size={18} className="text-text-secondary" />
+              </button>
+
+              {showAttachMenu && (
+                <div className="absolute bottom-14 left-0 bg-card-bg border border-border rounded-xl shadow-lg py-1 w-44 z-10">
+                  <button
+                    onClick={() => handleFileSelect('image/*')}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-text-primary hover:bg-border/50 transition-colors"
+                  >
+                    <ImageIcon size={16} className="text-teal" />
+                    Photo or Drawing
+                  </button>
+                  <button
+                    onClick={() => handleFileSelect('video/*')}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-text-primary hover:bg-border/50 transition-colors"
+                  >
+                    <VideoCamera size={16} className="text-purple-400" />
+                    Video
+                  </button>
+                  <button
+                    onClick={() => handleFileSelect('.pdf,.doc,.docx,.txt')}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-text-primary hover:bg-border/50 transition-colors"
+                  >
+                    <FileText size={16} className="text-orange-400" />
+                    Document
+                  </button>
+                </div>
+              )}
+            </div>
+
             <input
               ref={inputRef}
               type="text"
@@ -392,7 +603,7 @@ export default function ClassChatPage() {
             />
             <button
               onClick={handleSend}
-              disabled={!input.trim() || sending}
+              disabled={(!input.trim() && !pendingAttachment) || sending}
               className="w-11 h-11 rounded-xl bg-teal text-navy flex items-center justify-center hover:bg-teal/90 transition-colors disabled:opacity-50"
             >
               <PaperPlaneRight size={18} weight="fill" />
@@ -446,7 +657,11 @@ export default function ClassChatPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-text-primary truncate group-hover:text-teal transition-colors">
-                    {session.firstMessage.length > 80 ? session.firstMessage.slice(0, 80) + '...' : session.firstMessage}
+                    {(() => {
+                      const p = parseAttachment(session.firstMessage);
+                      const label = p.text || p.attachmentName || 'Chat session';
+                      return label.length > 80 ? label.slice(0, 80) + '...' : label;
+                    })()}
                   </p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-xs text-text-muted flex items-center gap-1">
