@@ -345,7 +345,7 @@ export default function CreateClassPage() {
 
           <div className="flex gap-3">
             <button
-              onClick={() => router.push('/teacher/dashboard')}
+              onClick={() => router.push('/teacher/my-classes')}
               className="flex-1 px-6 py-3 bg-teal text-navy rounded-lg font-heading font-semibold text-[14px]
                 hover:bg-teal/90 transition-colors cursor-pointer text-center"
             >
