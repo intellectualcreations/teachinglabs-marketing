@@ -5,7 +5,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   SquaresFour, BookOpenText, MathOperations, Flask, GlobeHemisphereWest,
-  ChartBar, ChatText, List, X, Gear, SignOut,
+  ChartBar, ChatText, List, X, Gear, SignOut, CaretRight, CaretDown,
+  ChatsCircle, ClipboardText,
   PencilLine, Palette, MusicNotes, Desktop, Calculator, Article, TestTube, Planet,
   Dna, Bank, MapTrifold, Translate, Basketball, PersonSimpleRun, Books, MaskHappy,
   Heartbeat, Leaf, Robot, Ruler, Target, Lightbulb, Star, HouseSimple,
@@ -78,7 +79,16 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
   const [studentName, setStudentName] = useState('');
   const [studentInitials, setStudentInitials] = useState('');
   const [classes, setClasses] = useState<SidebarClass[]>([]);
+  const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+
+  // Auto-expand class based on current URL
+  useEffect(() => {
+    const match = pathname.match(/\/student\/class\/([^/]+)/);
+    if (match) {
+      setExpandedClassId(match[1]);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     async function init() {
@@ -172,6 +182,10 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
     router.push('/student/signup');
   }, [router]);
 
+  const toggleClass = useCallback((classId: string) => {
+    setExpandedClassId(prev => prev === classId ? null : classId);
+  }, []);
+
   if (!ready) {
     return (
       <div className="flex h-screen items-center justify-center bg-warm-white">
@@ -231,7 +245,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => { setMobileOpen(false); setExpandedClassId(null); }}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive
                     ? 'bg-teal text-navy font-semibold'
@@ -255,26 +269,79 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
             <div className="px-4 py-3 text-xs text-white/40">No classes yet</div>
           ) : (
             classes.map(cls => {
-              const classPath = `/student/class/${cls.id}`;
-              const isActive = pathname === classPath;
+              const isExpanded = expandedClassId === cls.id;
+              const classBasePath = `/student/class/${cls.id}`;
+              const isClassActive = pathname.startsWith(classBasePath);
+              const isChatActive = pathname === `${classBasePath}/chat`;
+              const isActivitiesActive = pathname === `${classBasePath}/activities`;
+              const isClassDashActive = pathname === classBasePath;
+
               return (
-                <Link
-                  key={cls.id}
-                  href={classPath}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-2.5 px-4 py-2.5 transition-colors ${
-                    isActive
-                      ? 'bg-white/[0.15] text-white'
-                      : 'text-white/70 hover:bg-white/[0.12] hover:text-white'
-                  }`}
-                >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.avatarColor }}>
-                    <cls.Icon size={16} weight="fill" className="text-white" />
+                <div key={cls.id}>
+                  {/* Class row */}
+                  <div className={`flex items-center gap-1 px-2 transition-colors ${
+                    isClassActive ? 'bg-white/[0.08]' : ''
+                  }`}>
+                    {/* Caret toggle */}
+                    <button
+                      onClick={() => toggleClass(cls.id)}
+                      className="w-6 h-6 flex items-center justify-center text-white/40 hover:text-white/70 flex-shrink-0"
+                      aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                    >
+                      {isExpanded ? (
+                        <CaretDown size={12} weight="bold" />
+                      ) : (
+                        <CaretRight size={12} weight="bold" />
+                      )}
+                    </button>
+
+                    {/* Class name link */}
+                    <Link
+                      href={classBasePath}
+                      onClick={() => { setMobileOpen(false); setExpandedClassId(cls.id); }}
+                      className={`flex items-center gap-2.5 flex-1 py-2.5 pr-2 transition-colors ${
+                        isClassDashActive
+                          ? 'text-white'
+                          : 'text-white/70 hover:text-white'
+                      }`}
+                    >
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.avatarColor }}>
+                        <cls.Icon size={14} weight="fill" className="text-white" />
+                      </div>
+                      <span className="font-semibold text-xs truncate">{cls.name}</span>
+                    </Link>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-xs truncate text-white">{cls.name}</div>
-                  </div>
-                </Link>
+
+                  {/* Expanded sub-items */}
+                  {isExpanded && (
+                    <div className="ml-8 border-l border-white/10 pl-2 py-1 space-y-0.5">
+                      <Link
+                        href={`${classBasePath}/chat`}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center gap-2 px-2.5 py-2 rounded-md text-xs transition-colors ${
+                          isChatActive
+                            ? 'bg-teal/20 text-teal font-semibold'
+                            : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                        }`}
+                      >
+                        <ChatsCircle size={14} weight="fill" />
+                        Chat
+                      </Link>
+                      <Link
+                        href={`${classBasePath}/activities`}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center gap-2 px-2.5 py-2 rounded-md text-xs transition-colors ${
+                          isActivitiesActive
+                            ? 'bg-teal/20 text-teal font-semibold'
+                            : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                        }`}
+                      >
+                        <ClipboardText size={14} weight="fill" />
+                        Activities
+                      </Link>
+                    </div>
+                  )}
+                </div>
               );
             })
           )}
