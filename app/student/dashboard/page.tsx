@@ -90,35 +90,18 @@ function JoinClassInline({ onJoined }: { onJoined: () => void }) {
     setLoading(true);
     setError('');
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setError('Not logged in'); setLoading(false); return; }
-
-      // Look up class by join code
-      const { data: clsData, error: clsErr } = await supabase
-        .from('classes')
-        .select('id, name')
-        .eq('join_code', trimmed)
-        .single();
-      if (clsErr || !clsData) { setError('Invalid class code. Check with your teacher and try again.'); setLoading(false); return; }
-      const classId = (clsData as { id: string; name: string }).id;
-      const className = (clsData as { id: string; name: string }).name;
-
-      // Check if already enrolled
-      const { data: existing } = await supabase
-        .from('enrollments')
-        .select('id')
-        .eq('student_id', user.id)
-        .eq('class_id', classId)
-        .single();
-      if (existing) { setError(`You're already in ${className}!`); setLoading(false); return; }
-
-      // Enroll
-      const { error: enrollErr } = await supabase
-        .from('enrollments')
-        .insert({ student_id: user.id, class_id: classId, status: 'active' } as never);
-      if (enrollErr) { setError('Could not join class. Please try again.'); setLoading(false); return; }
-
+      const res = await fetch('/api/student/join-class', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ joinCode: trimmed }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        if (res.status === 409) setError(`You're already in that class!`);
+        else setError(json.error ?? 'Invalid class code. Check with your teacher and try again.');
+        setLoading(false);
+        return;
+      }
       setSuccess(true);
       setTimeout(() => onJoined(), 1200);
     } catch {
