@@ -7,6 +7,9 @@ import {
   ChatsCircle, ClipboardText, ChatText, Trophy, ChartBar,
   ClockCounterClockwise, HandWaving, HouseSimple, List, X,
   Backpack, VideoCamera, ArrowSquareOut, Calendar, CurrencyDollar,
+  PencilLine, Palette, MusicNotes, Desktop, Calculator, Article, TestTube, Planet,
+  Dna, Bank, MapTrifold, Translate, Basketball, PersonSimpleRun, Books, MaskHappy,
+  Heartbeat, Leaf, Robot, Ruler, Target, Lightbulb, Star,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
@@ -41,6 +44,46 @@ function getSubjectStyle(subject: string | null) {
   return { Icon: BookOpenText, color: '#4FA3A5' };
 }
 
+const ICON_MAP: Record<string, { icon: typeof MathOperations; bg: string }> = {
+  math: { icon: MathOperations, bg: '#1F3A5F' },
+  reading: { icon: BookOpenText, bg: '#4FA3A5' },
+  science: { icon: Flask, bg: '#7C3AED' },
+  social: { icon: GlobeHemisphereWest, bg: '#0891B2' },
+  writing: { icon: PencilLine, bg: '#E8836B' },
+  art: { icon: Palette, bg: '#EC4899' },
+  music: { icon: MusicNotes, bg: '#8B5CF6' },
+  cs: { icon: Desktop, bg: '#334155' },
+  algebra: { icon: Calculator, bg: '#1F3A5F' },
+  ela: { icon: Article, bg: '#4FA3A5' },
+  chem: { icon: TestTube, bg: '#059669' },
+  astro: { icon: Planet, bg: '#6366F1' },
+  bio: { icon: Dna, bg: '#10B981' },
+  stats: { icon: ChartBar, bg: '#F59E0B' },
+  history: { icon: Bank, bg: '#92400E' },
+  geo: { icon: MapTrifold, bg: '#0D9488' },
+  spanish: { icon: Translate, bg: '#DC2626' },
+  french: { icon: ChatsCircle, bg: '#2563EB' },
+  pe: { icon: Basketball, bg: '#EA580C' },
+  fitness: { icon: PersonSimpleRun, bg: '#D97706' },
+  library: { icon: Books, bg: '#7C3AED' },
+  drama: { icon: MaskHappy, bg: '#BE185D' },
+  health: { icon: Heartbeat, bg: '#DC2626' },
+  env: { icon: Leaf, bg: '#059669' },
+  robotics: { icon: Robot, bg: '#475569' },
+  geometry: { icon: Ruler, bg: '#1F3A5F' },
+  focus: { icon: Target, bg: '#E8836B' },
+  ideas: { icon: Lightbulb, bg: '#F59E0B' },
+  star: { icon: Star, bg: '#4FA3A5' },
+  homeroom: { icon: HouseSimple, bg: '#64748B' },
+};
+
+function getIconForClass(iconVal: string | null, subject: string | null) {
+  if (iconVal && ICON_MAP[iconVal]) return ICON_MAP[iconVal];
+  // Fallback to subject-based
+  const style = getSubjectStyle(subject);
+  return { icon: style.Icon, bg: style.color };
+}
+
 function getInitials(name: string | null): string {
   if (!name) return '?';
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -65,6 +108,7 @@ interface EnrichedClass {
   id: string;
   name: string;
   subject: string | null;
+  iconVal: string | null;
   teacherName: string;
   initials: string;
   avatarColor: string;
@@ -167,6 +211,9 @@ export default function StudentDashboardPage() {
   const [barsVisible, setBarsVisible] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [activityRange, setActivityRange] = useState<'week' | 'custom'>('week');
+  const [activityStartDate, setActivityStartDate] = useState('');
+  const [activityEndDate, setActivityEndDate] = useState('');
 
   // Real data state
   const [loading, setLoading] = useState(true);
@@ -298,7 +345,7 @@ export default function StudentDashboardPage() {
 
         // Build enriched classes
         const enrichedClasses: EnrichedClass[] = classRows.map(cls => {
-          const style = getSubjectStyle(cls.subject);
+          const iconInfo = getIconForClass(cls.icon, cls.subject);
           const teacher = teacherMap.get(cls.teacher_id);
           const teacher2 = teacher as (Profile & { email?: string }) | undefined;
           const teacherName = (teacher2 as { preferred_name?: string })?.preferred_name || teacher2?.display_name || teacher2?.email?.split('@')[0] || 'Teacher';
@@ -311,11 +358,12 @@ export default function StudentDashboardPage() {
             id: cls.id,
             name: cls.name,
             subject: cls.subject,
+            iconVal: cls.icon,
             teacherName,
             initials: getInitials(teacherName),
-            avatarColor: style.color,
-            Icon: style.Icon,
-            color: style.color,
+            avatarColor: iconInfo.bg,
+            Icon: iconInfo.icon,
+            color: iconInfo.bg,
             assignmentCount: totalAssignments,
             completedAssignments,
             progress,
@@ -513,8 +561,8 @@ export default function StudentDashboardPage() {
                 onClick={() => setMobileOpen(false)}
                 className="flex items-start gap-2.5 px-4 py-2.5 hover:bg-white/[0.12] transition-colors text-white/70 hover:text-white"
               >
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white mt-0.5" style={{ background: cls.avatarColor }}>
-                  {cls.initials}
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: cls.avatarColor }}>
+                  <cls.Icon size={16} weight="fill" className="text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-xs truncate text-white">{cls.name}</div>
@@ -577,15 +625,12 @@ export default function StudentDashboardPage() {
                   className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group"
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: cls.avatarColor }}>
-                      {cls.initials}
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.avatarColor }}>
+                      <ClassIcon size={20} weight="fill" className="text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-heading font-semibold text-sm text-text-primary truncate group-hover:text-teal transition-colors">{cls.name}</div>
                       <div className="text-xs text-text-secondary">{cls.teacherName}</div>
-                    </div>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: cls.color }}>
-                      <ClassIcon size={16} weight="fill" className="text-white" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-xs text-text-muted mb-1.5">
@@ -628,9 +673,38 @@ export default function StudentDashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             {/* Activity chart */}
             <div className="bg-card-bg border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary mb-4">
-                <ChartBar size={16} weight="fill" className="text-teal" />
-                This Week&apos;s Activity
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 font-heading font-bold text-sm text-text-primary">
+                  <ChartBar size={16} weight="fill" className="text-teal" />
+                  Activity
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={activityRange}
+                    onChange={(e) => setActivityRange(e.target.value as 'week' | 'custom')}
+                    className="text-xs bg-surface border border-border rounded-lg px-2 py-1 text-text-secondary focus:outline-none"
+                  >
+                    <option value="week">This Week</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
+                  {activityRange === 'custom' && (
+                    <>
+                      <input
+                        type="date"
+                        value={activityStartDate}
+                        onChange={(e) => setActivityStartDate(e.target.value)}
+                        className="text-xs bg-surface border border-border rounded-lg px-2 py-1 text-text-secondary focus:outline-none"
+                      />
+                      <span className="text-xs text-text-muted">to</span>
+                      <input
+                        type="date"
+                        value={activityEndDate}
+                        onChange={(e) => setActivityEndDate(e.target.value)}
+                        className="text-xs bg-surface border border-border rounded-lg px-2 py-1 text-text-secondary focus:outline-none"
+                      />
+                    </>
+                  )}
+                </div>
               </div>
               {chartMax > 0 ? (
                 <div className="flex items-end gap-2 h-[120px]" ref={barsRef}>
