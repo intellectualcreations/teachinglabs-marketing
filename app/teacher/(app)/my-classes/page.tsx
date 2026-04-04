@@ -330,37 +330,37 @@ export default function MyClassesPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 <button
                   onClick={() => setModal({ name: c.name, id: c.id })}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 bg-teal text-navy
-                    rounded-lg text-xs font-semibold hover:bg-teal/90 transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-teal text-navy
+                    rounded-lg text-[11px] font-semibold hover:bg-teal/90 transition-colors"
                 >
-                  <Plus size={13} weight="bold" /> Add Activity
+                  <Plus size={12} weight="bold" /> Add Activity
                 </button>
                 <Link
                   href={`/teacher/class-details?class=${c.id}`}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
-                    rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[1.5px] border-border
+                    rounded-lg text-[11px] font-medium text-text-secondary hover:border-navy hover:text-navy
                     transition-colors"
                 >
-                  <Info size={13} /> Class Details
-                </Link>
-                <Link
-                  href={`/teacher/edit-class?class=${c.id}`}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
-                    rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
-                    transition-colors"
-                >
-                  <PencilSimple size={13} /> Edit
+                  <Info size={12} /> Class Details
                 </Link>
                 <Link
                   href={`/teacher/students?class=${c.id}`}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
-                    rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[1.5px] border-border
+                    rounded-lg text-[11px] font-medium text-text-secondary hover:border-navy hover:text-navy
                     transition-colors"
                 >
-                  <Users size={13} /> Manage Students
+                  <Users size={12} /> Students
+                </Link>
+                <Link
+                  href={`/teacher/edit-class?class=${c.id}`}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[1.5px] border-border
+                    rounded-lg text-[11px] font-medium text-text-secondary hover:border-navy hover:text-navy
+                    transition-colors"
+                >
+                  <PencilSimple size={12} /> Edit
                 </Link>
               </div>
             </div>
