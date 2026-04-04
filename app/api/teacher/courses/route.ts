@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, description, subject, grade_level, teacher_id } = body;
+    const { title, description, subject, grade_level, standards, teacher_id } = body;
 
     if (!title || !teacher_id) {
       return NextResponse.json(
@@ -155,6 +155,7 @@ export async function POST(request: NextRequest) {
         description: description || null,
         subject: subject || null,
         grade_level: grade_level || null,
+        standards: standards || null,
         teacher_id,
         is_published: false,
         created_at: new Date().toISOString(),

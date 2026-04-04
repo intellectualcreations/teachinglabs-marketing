@@ -65,6 +65,8 @@ export default function CreateCoursePage() {
   const [description, setDescription] = useState('');
   const [subject, setSubject] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
+  const [standards, setStandards] = useState<string[]>([]);
+  const [standardInput, setStandardInput] = useState('');
 
   // Step 2: Modules
   const [modules, setModules] = useState<ModuleItem[]>([]);
@@ -132,7 +134,8 @@ export default function CreateCoursePage() {
           title: title.trim(),
           description: description.trim() || null,
           subject,
-          grade_level: gradeLevel.trim() || null,
+          grade_level: gradeLevel || null,
+          standards: standards.length > 0 ? standards : null,
           teacher_id: user.id,
         }),
       });
@@ -294,13 +297,71 @@ export default function CreateCoursePage() {
               <label className="block text-sm font-medium text-text-primary mb-1.5">
                 Grade Level
               </label>
-              <input
-                type="text"
+              <select
                 value={gradeLevel}
                 onChange={(e) => setGradeLevel(e.target.value)}
-                placeholder="e.g. 7th Grade, K-2, 9-12"
-                className="w-full px-3 py-2.5 bg-card-bg border border-border rounded-lg text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-colors"
-              />
+                className="w-full px-3 py-2.5 bg-white text-gray-900 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-colors"
+                style={{ colorScheme: 'light' }}
+              >
+                <option value="">Select grade level...</option>
+                <option value="K">Kindergarten (K)</option>
+                {[1,2,3,4,5,6,7,8,9,10,11,12].map(g => (
+                  <option key={g} value={String(g)}>Grade {g}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">
+                Standards <span className="text-text-muted font-normal">(optional)</span>
+              </label>
+              <p className="text-xs text-text-muted mb-2">
+                Add standards codes (e.g. CCSS.ELA-LITERACY.RI.7.1). These cascade to all modules and activities in this course.
+              </p>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={standardInput}
+                  onChange={(e) => setStandardInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ',') && standardInput.trim()) {
+                      e.preventDefault();
+                      const val = standardInput.trim().replace(/,$/, '');
+                      if (val && !standards.includes(val)) setStandards([...standards, val]);
+                      setStandardInput('');
+                    }
+                  }}
+                  placeholder="Type a standard and press Enter"
+                  className="flex-1 px-3 py-2 bg-card-bg border border-border rounded-lg text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const val = standardInput.trim();
+                    if (val && !standards.includes(val)) setStandards([...standards, val]);
+                    setStandardInput('');
+                  }}
+                  className="px-3 py-2 bg-navy text-white text-sm font-medium rounded-lg hover:bg-navy/90 transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+              {standards.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {standards.map((s) => (
+                    <span key={s} className="flex items-center gap-1 px-2 py-0.5 bg-teal/10 text-teal text-xs rounded-full border border-teal/20">
+                      {s}
+                      <button
+                        type="button"
+                        onClick={() => setStandards(standards.filter(x => x !== s))}
+                        className="text-teal/60 hover:text-teal ml-0.5"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -436,7 +497,19 @@ export default function CreateCoursePage() {
                       Grade Level
                     </div>
                     <div className="text-text-primary text-sm font-medium">
-                      {gradeLevel}
+                      {gradeLevel === 'K' ? 'Kindergarten' : `Grade ${gradeLevel}`}
+                    </div>
+                  </div>
+                )}
+                {standards.length > 0 && (
+                  <div className="bg-card-bg border border-border rounded-lg p-4 col-span-2">
+                    <div className="text-xs text-text-muted uppercase tracking-wide mb-2">
+                      Standards ({standards.length})
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {standards.map((s) => (
+                        <span key={s} className="px-2 py-0.5 bg-teal/10 text-teal text-xs rounded-full border border-teal/20">{s}</span>
+                      ))}
                     </div>
                   </div>
                 )}
