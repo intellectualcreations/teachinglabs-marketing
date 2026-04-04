@@ -3,10 +3,11 @@ import { createAdminClient, createClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/student/my-classes
- * Returns the student's enrolled classes with teacher info.
+ * Returns the student's enrolled classes with teacher info, assignments, submissions.
  * Bypasses RLS using admin client after verifying the student's identity.
  */
 export async function GET(request: NextRequest) {
+  const admin = createAdminClient();
   let userId: string | null = null;
 
   // Method 1: Cookie-based session
@@ -16,27 +17,19 @@ export async function GET(request: NextRequest) {
     if (user) userId = user.id;
   } catch { /* try header */ }
 
-  // Method 2: Authorization header
+  // Method 2: Authorization header — use admin client to verify JWT
   if (!userId) {
     const authHeader = request.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.slice(7);
-      const userRes = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        userId = userData.id;
-      }
+      const { data: { user }, error } = await admin.auth.getUser(token);
+      if (!error && user) userId = user.id;
     }
   }
 
   if (!userId) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
-
-  const admin = createAdminClient();
 
   // Fetch enrollments
   const { data: enrollments } = await admin
@@ -46,7 +39,7 @@ export async function GET(request: NextRequest) {
     .eq('status', 'active');
 
   if (!enrollments || enrollments.length === 0) {
-    return NextResponse.json({ classes: [], teachers: [], enrollments: [] });
+    return NextResponse.json({ classes: [], teachers: [], enrollments: [], assignments: [], submissions: [] });
   }
 
   const classIds = enrollments.map((e: { class_id: string }) => e.class_id);

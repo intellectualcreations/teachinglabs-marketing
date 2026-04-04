@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
-import { createClient as createBrowserClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/supabase/types';
 
 /**
  * POST /api/student/join-class
  * Body: { joinCode: string }
  * Enrolls the authenticated student in a class by join code.
- * Auth: tries cookie-based session first, falls back to Authorization header token.
+ * Auth: tries cookie-based session first, falls back to Authorization header.
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -17,7 +15,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'joinCode required' }, { status: 400 });
   }
 
-  // Get the authenticated user — try cookie session first, then Authorization header
+  const admin = createAdminClient();
   let userId: string | null = null;
 
   // Method 1: Cookie-based session
@@ -25,55 +23,21 @@ export async function POST(request: NextRequest) {
     const userSupabase = await createClient();
     const { data: { user } } = await userSupabase.auth.getUser();
     if (user) userId = user.id;
-  } catch {
-    // Cookie auth failed — try header
-  }
+  } catch { /* try header */ }
 
-  // Method 2: Authorization header with JWT token
+  // Method 2: Authorization header — use admin client to verify JWT
   if (!userId) {
     const authHeader = request.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.slice(7);
-      try {
-        // Create a client with the user's token to verify and get their user info
-        const tokenClient = createBrowserClient<Database>(
-          process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
-          {
-            auth: {
-              persistSession: false,
-            },
-          }
-        );
-
-        // Set the session with the token to use it for auth
-        const { data, error } = await tokenClient.auth.getSession();
-        if (error) throw error;
-
-        // Actually, better approach: call the Supabase REST API directly
-        const userRes = await fetch(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (userRes.ok) {
-          const userData = await userRes.json();
-          userId = userData.id;
-        }
-      } catch (err) {
-        console.error('Token verification error:', err);
-        // Token verification failed
-      }
+      const { data: { user }, error } = await admin.auth.getUser(token);
+      if (!error && user) userId = user.id;
     }
   }
 
   if (!userId) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
-
-  const admin = createAdminClient();
 
   // Look up class by join code (bypasses RLS)
   const { data: cls, error: clsErr } = await admin
