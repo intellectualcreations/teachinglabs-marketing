@@ -50,10 +50,9 @@ function groupIntoSessions(messages: ChatMessage[]): ChatSession[] {
   for (let i = 1; i < sorted.length; i++) {
     const gap = new Date(sorted[i].created_at).getTime() - new Date(sorted[i - 1].created_at).getTime();
     if (gap > 30 * 60 * 1000) {
-      // 30 min gap = new session
       sessions.push({
         id: currentSession[0].id,
-        firstMessage: currentSession[0].content,
+        firstMessage: currentSession.find(m => m.message_type === 'student')?.content || currentSession[0].content,
         lastActivity: currentSession[currentSession.length - 1].created_at,
         messageCount: currentSession.length,
         messages: currentSession,
@@ -64,16 +63,14 @@ function groupIntoSessions(messages: ChatMessage[]): ChatSession[] {
     }
   }
 
-  // Push last session
   sessions.push({
     id: currentSession[0].id,
-    firstMessage: currentSession[0].content,
+    firstMessage: currentSession.find(m => m.message_type === 'student')?.content || currentSession[0].content,
     lastActivity: currentSession[currentSession.length - 1].created_at,
     messageCount: currentSession.length,
     messages: currentSession,
   });
 
-  // Most recent first
   return sessions.reverse();
 }
 
@@ -85,10 +82,13 @@ export default function ClassChatPage() {
   const [newChatMode, setNewChatMode] = useState(false);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [className, setClassName] = useState('');
+  const [studentName, setStudentName] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -98,7 +98,32 @@ export default function ClassChatPage() {
         if (!user) return;
         setUserId(user.id);
 
-        // Get class name
+        // Get student preferred name
+        let name = 'there';
+        try {
+          const { data: assessmentData } = await supabase
+            .from('student_assessments')
+            .select('preferred_name')
+            .eq('student_id', user.id)
+            .single();
+          if (assessmentData && (assessmentData as { preferred_name?: string }).preferred_name) {
+            name = (assessmentData as { preferred_name: string }).preferred_name;
+          }
+        } catch { /* ignore */ }
+        if (name === 'there') {
+          const { data: profileRaw } = await supabase
+            .from('profiles')
+            .select('preferred_name, display_name')
+            .eq('id', user.id)
+            .single();
+          const profile = profileRaw as { preferred_name: string | null; display_name: string | null } | null;
+          if (profile) {
+            name = profile.preferred_name || profile.display_name?.split(' ')[0] || 'there';
+          }
+        }
+        setStudentName(name);
+
+        // Get class info
         let authHeaders: Record<string, string> = {};
         try {
           const { data: { session: sess } } = await supabase.auth.getSession();
@@ -112,7 +137,7 @@ export default function ClassChatPage() {
           if (cls) setClassName(cls.name);
         }
 
-        // Get chat messages for this class from this student + AI
+        // Get chat messages for this class
         const { data: messages } = await supabase
           .from('chat_messages')
           .select('*')
@@ -132,48 +157,119 @@ export default function ClassChatPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeSession?.messages]);
+  }, [activeSession?.messages, isTyping]);
+
+  // Focus input when entering chat mode
+  useEffect(() => {
+    if (newChatMode || activeSession) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [newChatMode, activeSession]);
 
   const handleSend = useCallback(async () => {
     if (!input.trim() || !userId || sending) return;
+    const text = input.trim();
     setSending(true);
+    setInput('');
+
+    // Optimistic add of student message
+    const tempId = `temp-${Date.now()}`;
+    const tempMsg: ChatMessage = {
+      id: tempId,
+      sender_id: userId,
+      class_id: classId,
+      content: text,
+      message_type: 'student',
+      created_at: new Date().toISOString(),
+    };
+
+    if (activeSession) {
+      setActiveSession(prev => prev ? {
+        ...prev,
+        messages: [...prev.messages, tempMsg],
+        messageCount: prev.messageCount + 1,
+      } : null);
+    } else if (newChatMode) {
+      const newSession: ChatSession = {
+        id: tempId,
+        firstMessage: text,
+        lastActivity: tempMsg.created_at,
+        messageCount: 1,
+        messages: [tempMsg],
+      };
+      setActiveSession(newSession);
+      setNewChatMode(false);
+    }
+
+    setIsTyping(true);
 
     try {
+      // Get auth token
       const supabase = createClient();
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .insert({
-          sender_id: userId,
-          class_id: classId,
-          content: input.trim(),
-          message_type: 'student',
-        } as never)
-        .select()
-        .single();
+      const { data: { session: sess } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (sess?.access_token) {
+        headers['Cookie'] = `sb-access-token=${sess.access_token}`;
+      }
 
-      if (!error && data) {
-        const newMsg = data as ChatMessage;
-        if (activeSession) {
+      const res = await fetch('/api/student/chat', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ class_id: classId, content: text }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setIsTyping(false);
+
+        if (data.aiMessage) {
+          const aiMsg: ChatMessage = {
+            id: data.aiMessage.id || `ai-${Date.now()}`,
+            sender_id: userId,
+            class_id: classId,
+            content: data.aiMessage.content,
+            message_type: 'ai',
+            created_at: data.aiMessage.created_at || new Date().toISOString(),
+          };
+
           setActiveSession(prev => prev ? {
             ...prev,
-            messages: [...prev.messages, newMsg],
+            messages: [...prev.messages, aiMsg],
             messageCount: prev.messageCount + 1,
-            lastActivity: newMsg.created_at,
+            lastActivity: aiMsg.created_at,
           } : null);
-        } else if (newChatMode) {
-          const newSession: ChatSession = {
-            id: newMsg.id,
-            firstMessage: newMsg.content,
-            lastActivity: newMsg.created_at,
-            messageCount: 1,
-            messages: [newMsg],
-          };
-          setActiveSession(newSession);
-          setSessions(prev => [newSession, ...prev]);
-          setNewChatMode(false);
         }
-        setInput('');
+      } else {
+        setIsTyping(false);
+        const errorMsg: ChatMessage = {
+          id: `err-${Date.now()}`,
+          sender_id: 'system',
+          class_id: classId,
+          content: "Sorry, I couldn't send that. Please try again!",
+          message_type: 'ai',
+          created_at: new Date().toISOString(),
+        };
+        setActiveSession(prev => prev ? {
+          ...prev,
+          messages: [...prev.messages, errorMsg],
+        } : null);
       }
+    } catch {
+      setIsTyping(false);
+      const errorMsg: ChatMessage = {
+        id: `err-${Date.now()}`,
+        sender_id: 'system',
+        class_id: classId,
+        content: "Something went wrong. Please try again!",
+        message_type: 'ai',
+        created_at: new Date().toISOString(),
+      };
+      setActiveSession(prev => prev ? {
+        ...prev,
+        messages: [...prev.messages, errorMsg],
+      } : null);
     } finally {
       setSending(false);
     }
@@ -187,13 +283,13 @@ export default function ClassChatPage() {
     );
   }
 
-  // Active chat view (viewing a session or new chat)
+  // Active chat view
   if (activeSession || newChatMode) {
     const messages = activeSession?.messages ?? [];
     return (
       <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-3.5rem)]">
         {/* Header */}
-        <div className="flex items-center gap-3 pb-4 border-b border-border mb-4">
+        <div className="flex items-center gap-3 pb-4 border-b border-border mb-4 flex-shrink-0">
           <button
             onClick={() => { setActiveSession(null); setNewChatMode(false); }}
             className="w-8 h-8 rounded-lg bg-card-bg border border-border flex items-center justify-center hover:bg-border transition-colors"
@@ -202,7 +298,7 @@ export default function ClassChatPage() {
           </button>
           <div>
             <h1 className="font-heading font-bold text-text-primary">
-              {newChatMode ? 'New Chat' : `Chat Session`}
+              {newChatMode ? 'New Chat' : 'Chat'}
             </h1>
             <p className="text-xs text-text-secondary">{className}</p>
           </div>
@@ -210,42 +306,89 @@ export default function ClassChatPage() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-3 pb-4">
-          {messages.length === 0 && newChatMode && (
-            <div className="text-center py-12">
-              <Sparkle size={40} weight="fill" className="text-teal/30 mx-auto mb-3" />
-              <p className="text-text-secondary text-sm">Start a conversation about {className}!</p>
-              <p className="text-text-muted text-xs mt-1">Ask questions, get help with activities, or explore topics.</p>
-            </div>
-          )}
-          {messages.map(msg => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.sender_id === userId ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
-                  msg.sender_id === userId
-                    ? 'bg-teal text-navy rounded-br-md'
-                    : 'bg-card-bg border border-border text-text-primary rounded-bl-md'
-                }`}
-              >
-                {msg.content}
+          {/* Greeting for new chat */}
+          {(newChatMode || messages.length === 0) && messages.length === 0 && (
+            <div className="flex justify-start">
+              <div className="max-w-[80%]">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-7 h-7 rounded-full bg-teal/20 flex items-center justify-center">
+                    <Sparkle size={14} weight="fill" className="text-teal" />
+                  </div>
+                  <span className="text-xs font-semibold text-teal">AI Tutor</span>
+                </div>
+                <div className="bg-card-bg border border-border rounded-2xl rounded-bl-md px-4 py-3 text-sm text-text-primary">
+                  Hi {studentName}! 👋 What would you like to chat about in {className}?
+                </div>
               </div>
             </div>
-          ))}
+          )}
+
+          {messages.map(msg => {
+            const isStudent = msg.message_type === 'student';
+            return (
+              <div
+                key={msg.id}
+                className={`flex ${isStudent ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`max-w-[80%] ${!isStudent ? '' : ''}`}>
+                  {!isStudent && (
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="w-7 h-7 rounded-full bg-teal/20 flex items-center justify-center">
+                        <Sparkle size={14} weight="fill" className="text-teal" />
+                      </div>
+                      <span className="text-xs font-semibold text-teal">AI Tutor</span>
+                    </div>
+                  )}
+                  <div
+                    className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+                      isStudent
+                        ? 'bg-teal text-navy rounded-br-md ml-auto'
+                        : 'bg-card-bg border border-border text-text-primary rounded-bl-md'
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Typing indicator */}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="max-w-[80%]">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-7 h-7 rounded-full bg-teal/20 flex items-center justify-center">
+                    <Sparkle size={14} weight="fill" className="text-teal" />
+                  </div>
+                  <span className="text-xs font-semibold text-teal">AI Tutor</span>
+                </div>
+                <div className="bg-card-bg border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                  <div className="flex gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-teal/40 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-teal/40 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-teal/40 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
-        <div className="border-t border-border pt-4 pb-2">
+        <div className="border-t border-border pt-4 pb-2 flex-shrink-0">
           <div className="flex gap-2">
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Type a message..."
-              className="flex-1 px-4 py-3 rounded-xl bg-card-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
+              placeholder="Ask a question..."
+              disabled={sending}
+              className="flex-1 px-4 py-3 rounded-xl bg-card-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
             />
             <button
               onClick={handleSend}
