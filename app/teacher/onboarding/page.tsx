@@ -36,6 +36,7 @@ import ThemeToggle from '@/components/shared/ThemeToggle';
    ──────────────────────────────────────── */
 
 interface Answers {
+  preferredName: string;
   teachingStyle: string;
   classroomVibe: string[];
   feedbackApproach: string;
@@ -47,6 +48,7 @@ interface Answers {
 }
 
 const INITIAL_ANSWERS: Answers = {
+  preferredName: '',
   teachingStyle: '',
   classroomVibe: [],
   feedbackApproach: '',
@@ -188,8 +190,8 @@ function getPriorityLabel(key: string): string {
    Screen definitions
    ──────────────────────────────────────── */
 
-const TOTAL_SCREENS = 10; // 1 hook + 3 DNA + 1 assistant + 3 voice + 1 loading + 1 reveal
-const ACT_MAP = [1, 2, 2, 2, 3, 4, 4, 4, 5, 5]; // which act each screen belongs to
+const TOTAL_SCREENS = 11; // 1 hook + 1 name + 3 DNA + 1 assistant + 3 voice + 1 loading + 1 reveal
+const ACT_MAP = [1, 1, 2, 2, 2, 3, 4, 4, 4, 5, 5]; // which act each screen belongs to
 
 /* ────────────────────────────────────────
    Main Component
@@ -229,7 +231,7 @@ export default function TeacherOnboardingPage() {
 
   // Save to Supabase on reveal screen
   useEffect(() => {
-    if (screen === 8) {
+    if (screen === 9) {
       // Loading screen — compute archetype, save, then advance
       const result = computeArchetype(answers);
       setArchetype(result);
@@ -258,6 +260,14 @@ export default function TeacherOnboardingPage() {
           if (user) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (supabase.from as any)('teacher_souls').upsert(payload, { onConflict: 'teacher_id' });
+
+            // Save preferred name to profiles
+            if (answers.preferredName.trim()) {
+              await supabase
+                .from('profiles')
+                .update({ preferred_name: answers.preferredName.trim() } as never)
+                .eq('id', user.id);
+            }
           } else {
             // Demo mode fallback
             localStorage.setItem('teacher_soul', JSON.stringify(payload));
@@ -277,7 +287,7 @@ export default function TeacherOnboardingPage() {
         setDirection('forward');
         setAnimating(true);
         setTimeout(() => {
-          setScreen(9);
+          setScreen(10);
           setAnimating(false);
           setTimeout(() => setRevealed(true), 100);
         }, 300);
@@ -294,13 +304,14 @@ export default function TeacherOnboardingPage() {
   const canAdvance = (): boolean => {
     switch (screen) {
       case 0: return true;
-      case 1: return answers.teachingStyle.length > 10;
-      case 2: return answers.classroomVibe.length >= 4;
-      case 3: return !!answers.feedbackApproach;
-      case 4: return answers.assistantPriorities.length === 3;
-      case 5: return !!answers.mistakeResponse;
-      case 6: return answers.strugglingStudentNote.length > 10 && answers.whyLearnResponse.length > 10;
-      case 7: return answers.northStar.length > 3;
+      case 1: return !!answers.preferredName.trim();
+      case 2: return answers.teachingStyle.length > 10;
+      case 3: return answers.classroomVibe.length >= 4;
+      case 4: return !!answers.feedbackApproach;
+      case 5: return answers.assistantPriorities.length === 3;
+      case 6: return !!answers.mistakeResponse;
+      case 7: return answers.strugglingStudentNote.length > 10 && answers.whyLearnResponse.length > 10;
+      case 8: return answers.northStar.length > 3;
       default: return false;
     }
   };
@@ -321,7 +332,7 @@ export default function TeacherOnboardingPage() {
 
       {/* Top bar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4">
-        {screen > 0 && screen < 8 ? (
+        {screen > 0 && screen < 9 ? (
           <button
             onClick={goBack}
             className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary transition-colors text-sm font-medium cursor-pointer"
@@ -336,7 +347,7 @@ export default function TeacherOnboardingPage() {
       </div>
 
       {/* Progress indicator */}
-      {screen < 8 && (
+      {screen < 9 && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
           {[1, 2, 3, 4, 5].map(act => (
             <div key={act} className="flex items-center gap-2">
@@ -359,8 +370,45 @@ export default function TeacherOnboardingPage() {
         {/* Act 1: The Hook */}
         {screen === 0 && <HookScreen onBegin={goNext} />}
 
-        {/* Act 2a: Teaching Style — Free Text */}
+        {/* Act 1b: Preferred Name */}
         {screen === 1 && (
+          <div className="max-w-2xl mx-auto w-full">
+            <p className="text-indigo dark:text-indigo dark:text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Getting to Know You</p>
+            <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-4 onb-fade-up" style={{ animationDelay: '0.05s' }}>
+              What do your students call you?
+            </h2>
+            <p className="text-text-secondary text-sm mb-8 onb-fade-up" style={{ animationDelay: '0.1s' }}>
+              This is how students will see your name in TeachingLabs. For example: Mrs. Stewart, Mr. D, Coach K, or just your first name.
+            </p>
+            <div className="onb-card-in" style={{ animationDelay: '0.15s' }}>
+              <input
+                type="text"
+                value={answers.preferredName}
+                onChange={(e) => setAnswers(a => ({ ...a, preferredName: e.target.value }))}
+                placeholder="e.g. Mrs. Stewart, Mr. D, Coach K"
+                className="w-full p-5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-indigo dark:focus:border-teal focus:outline-none transition-colors font-body text-lg"
+                maxLength={100}
+                autoFocus
+              />
+            </div>
+            <div className="mt-8 flex justify-end onb-fade-up" style={{ animationDelay: '0.3s' }}>
+              <button
+                onClick={goNext}
+                disabled={!answers.preferredName.trim()}
+                className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
+                  answers.preferredName.trim()
+                    ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:scale-[1.02] active:scale-[0.98] shadow-lg'
+                    : 'bg-border text-text-muted cursor-not-allowed'
+                }`}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Act 2a: Teaching Style — Free Text */}
+        {screen === 2 && (
           <FreeTextScreen
             value={answers.teachingStyle}
             onChange={(v) => setAnswers(a => ({ ...a, teachingStyle: v }))}
@@ -370,7 +418,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 2b: Classroom Vibe */}
-        {screen === 2 && (
+        {screen === 3 && (
           <VibeScreen
             selected={answers.classroomVibe}
             onToggle={(vibe) => {
@@ -389,7 +437,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 2c: Feedback Style */}
-        {screen === 3 && (
+        {screen === 4 && (
           <SelectionScreen
             title="A student just turned in solid (not spectacular) work. You'd most likely:"
             actLabel="Your Teaching DNA"
@@ -407,7 +455,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 3: Dream Assistant */}
-        {screen === 4 && (
+        {screen === 5 && (
           <PrioritiesScreen
             selected={answers.assistantPriorities}
             onToggle={(key) => {
@@ -426,7 +474,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 4a: Scenario */}
-        {screen === 5 && (
+        {screen === 6 && (
           <ScenarioWithOtherScreen
             answers={answers}
             onSelect={(key) => setAnswers(a => ({ ...a, mistakeResponse: key }))}
@@ -436,7 +484,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 4b: In Your Own Words */}
-        {screen === 6 && (
+        {screen === 7 && (
           <WritingScreen
             answers={answers}
             onUpdate={(field, value) => setAnswers(a => ({ ...a, [field]: value }))}
@@ -446,7 +494,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 4c: North Star */}
-        {screen === 7 && (
+        {screen === 8 && (
           <NorthStarScreen
             value={answers.northStar}
             onChange={(v) => setAnswers(a => ({ ...a, northStar: v }))}
@@ -456,10 +504,10 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Loading screen */}
-        {screen === 8 && <LoadingScreen />}
+        {screen === 9 && <LoadingScreen />}
 
         {/* Act 5: The Reveal */}
-        {screen === 9 && archetype && (
+        {screen === 10 && archetype && (
           <RevealScreen
             archetype={archetype}
             answers={answers}

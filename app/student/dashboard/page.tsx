@@ -77,11 +77,10 @@ const ICON_MAP: Record<string, { icon: typeof MathOperations; bg: string }> = {
   homeroom: { icon: HouseSimple, bg: '#64748B' },
 };
 
-function getIconForClass(iconVal: string | null, subject: string | null) {
+function getIconForClass(iconVal: string | null, _subject: string | null) {
   if (iconVal && ICON_MAP[iconVal]) return ICON_MAP[iconVal];
-  // Fallback to subject-based
-  const style = getSubjectStyle(subject);
-  return { icon: style.Icon, bg: style.color };
+  // Fallback to lightbulb (no guessing)
+  return { icon: Lightbulb, bg: '#F59E0B' };
 }
 
 function getInitials(name: string | null): string {
@@ -506,10 +505,10 @@ export default function StudentDashboardPage() {
 
         {/* Logo */}
         <div className="px-4 py-4 border-b border-white/10 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center font-heading font-bold text-xs flex-shrink-0">TL</div>
-          <div>
-            <div className="font-heading font-bold text-sm text-white">TeachingLabs</div>
-            <div className="text-xs text-white/50">{studentName ? `${studentName}'s Learning Portal` : 'Learning Portal'}</div>
+          <img src="/images/logo-icon.svg" alt="TeachingLabs" className="w-8 h-8 flex-shrink-0" />
+          <div className="flex flex-col justify-center">
+            <div className="font-heading font-bold text-sm text-white leading-tight">TeachingLabs</div>
+            <div className="text-xs text-white/50 leading-tight">{studentName ? `${studentName}'s Learning Portal` : 'Learning Portal'}</div>
           </div>
         </div>
 
