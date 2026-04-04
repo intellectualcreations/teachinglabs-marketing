@@ -9,7 +9,7 @@ import {
   Backpack, VideoCamera, ArrowSquareOut, Calendar, CurrencyDollar,
   PencilLine, Palette, MusicNotes, Desktop, Calculator, Article, TestTube, Planet,
   Dna, Bank, MapTrifold, Translate, Basketball, PersonSimpleRun, Books, MaskHappy,
-  Heartbeat, Leaf, Robot, Ruler, Target, Lightbulb, Star,
+  Heartbeat, Leaf, Robot, Ruler, Target, Lightbulb, Star, Gear, SignOut,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
@@ -570,6 +570,29 @@ export default function StudentDashboardPage() {
               </Link>
             ))
           )}
+        </div>
+
+        {/* Settings & Logout */}
+        <div className="px-2 py-2 border-t border-white/10 space-y-1">
+          <Link
+            href="/student/settings"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-white/60 font-semibold text-sm hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <Gear size={18} weight="fill" />
+            Settings
+          </Link>
+          <button
+            onClick={async () => {
+              const supabase = (await import('@/lib/supabase/client')).createClient();
+              await supabase.auth.signOut();
+              localStorage.removeItem('sb-auth-token');
+              router.push('/student/signup');
+            }}
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-white/60 font-semibold text-sm hover:bg-white/10 hover:text-white transition-colors w-full text-left"
+          >
+            <SignOut size={18} weight="fill" />
+            Log Out
+          </button>
         </div>
 
         {/* Student footer */}
