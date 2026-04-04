@@ -132,6 +132,13 @@ export default function CreateActivityPage() {
   const [enhanced, setEnhanced] = useState(false);
   const [guidance, setGuidance] = useState('');
 
+  // Course/Module assignment (optional — activities can be orphaned)
+  const [courses, setCourses] = useState<{ id: string; title: string; subject: string }[]>([]);
+  const [modules, setModules] = useState<{ id: string; title: string }[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [selectedModuleId, setSelectedModuleId] = useState('');
+  const [coursesLoaded, setCoursesLoaded] = useState(false);
+
   // TODO: wire to real profile data
   const [hasFrameworksSelected] = useState(false);
 
@@ -140,6 +147,34 @@ export default function CreateActivityPage() {
   const [successTitle, setSuccessTitle] = useState('');
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load courses for the current teacher
+  useEffect(() => {
+    async function loadCourses() {
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const res = await fetch(`/api/teacher/courses?teacherId=${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setCourses((data.courses || []).map((c: { id: string; title: string; subject: string }) => ({ id: c.id, title: c.title, subject: c.subject })));
+        }
+      } catch { /* courses table may not exist yet */ }
+      setCoursesLoaded(true);
+    }
+    loadCourses();
+  }, []);
+
+  // Load modules when course changes
+  useEffect(() => {
+    if (!selectedCourseId) { setModules([]); setSelectedModuleId(''); return; }
+    fetch(`/api/teacher/courses/${selectedCourseId}/modules`)
+      .then(r => r.json())
+      .then(data => setModules(data.modules || []))
+      .catch(() => setModules([]));
+  }, [selectedCourseId]);
 
   // Load filter options on mount
   useEffect(() => {
@@ -338,6 +373,46 @@ export default function CreateActivityPage() {
             <p className="text-xs text-red-500 mt-1">Activity name is required.</p>
           )}
         </div>
+
+        {/* Course & Module (optional) */}
+        {coursesLoaded && courses.length > 0 && (
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="font-semibold text-[13px] text-text-primary block mb-1.5">
+                Course <span className="font-normal text-xs text-text-secondary">(optional)</span>
+              </label>
+              <select
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
+                  bg-card-bg text-text-primary outline-none focus:border-teal transition-colors"
+              >
+                <option value="">No course (orphaned activity)</option>
+                {courses.map(c => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="font-semibold text-[13px] text-text-primary block mb-1.5">
+                Module <span className="font-normal text-xs text-text-secondary">(optional)</span>
+              </label>
+              <select
+                value={selectedModuleId}
+                onChange={(e) => setSelectedModuleId(e.target.value)}
+                disabled={!selectedCourseId || modules.length === 0}
+                className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
+                  bg-card-bg text-text-primary outline-none focus:border-teal transition-colors
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">{selectedCourseId ? (modules.length ? 'Select a module' : 'No modules yet') : 'Select a course first'}</option>
+                {modules.map(m => (
+                  <option key={m.id} value={m.id}>{m.title}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         {/* Activity Description (was "Student Instructions") */}
         <div>
