@@ -484,7 +484,7 @@ function ClassDetailsContent() {
       {/* ─── 1. Top Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
-          <ClassIcon name={cls.name} size={48} iconSize={24} />
+          <ClassIcon name={cls.name} icon={cls.icon} size={48} iconSize={24} />
           <div>
             <h1 className="font-heading text-[26px] font-bold text-text-primary">{cls.name}</h1>
             <p className="text-[14px] text-text-secondary mt-0.5">

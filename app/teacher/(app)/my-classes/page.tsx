@@ -302,7 +302,7 @@ export default function MyClassesPage() {
 
               {/* Header */}
               <div className="flex items-center gap-3.5 mb-4">
-                <ClassIcon name={c.name} size={36} />
+                <ClassIcon name={c.name} icon={c.icon} size={36} />
                 <div>
                   <div className="font-heading font-bold text-[17px] text-text-primary">{c.name}</div>
                   <div className="text-[13px] text-text-secondary mt-0.5">
