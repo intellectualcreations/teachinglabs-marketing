@@ -239,7 +239,7 @@ export default function SettingsPage() {
               {profileDirty && (
                 <button
                   onClick={() => setProfileDirty(false)}
-                  className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-white rounded-lg hover:bg-teal/90 transition-colors"
+                  className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-navy rounded-lg hover:bg-teal/90 transition-colors"
                 >
                   Save Changes
                 </button>
@@ -298,7 +298,7 @@ export default function SettingsPage() {
               </div>
             )}
 
-            <button className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-white rounded-lg hover:bg-teal/90 transition-colors">
+            <button className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-navy rounded-lg hover:bg-teal/90 transition-colors">
               Update Password
             </button>
           </div>
@@ -329,7 +329,7 @@ export default function SettingsPage() {
                     onClick={() => setTheme(value)}
                     className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors ${
                       theme === value
-                        ? 'bg-teal text-white'
+                        ? 'bg-teal text-navy'
                         : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >
@@ -432,7 +432,7 @@ export default function SettingsPage() {
                     onClick={() => setAiSensitivity(level)}
                     className={`px-4 py-2 text-sm font-medium capitalize transition-colors ${
                       aiSensitivity === level
-                        ? 'bg-teal text-white'
+                        ? 'bg-teal text-navy'
                         : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >

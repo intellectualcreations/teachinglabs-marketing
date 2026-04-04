@@ -194,7 +194,7 @@ function MessageModal({
             <button
               onClick={handleSend}
               disabled={!message.trim()}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal text-white rounded-lg text-sm
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal text-navy rounded-lg text-sm
                 font-semibold hover:bg-teal/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <PaperPlaneRight size={15} weight="fill" /> Send Message
@@ -530,7 +530,7 @@ function ClassDetailsContent() {
           </h2>
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal text-white rounded-lg text-xs font-semibold hover:bg-teal/90 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal text-navy rounded-lg text-xs font-semibold hover:bg-teal/90 transition-colors"
           >
             <Plus size={13} weight="bold" /> Add Activity
           </button>
@@ -720,7 +720,7 @@ function ClassDetailsContent() {
       <div className="flex flex-wrap gap-3">
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-teal text-white rounded-xl font-heading font-bold text-sm hover:bg-teal/90 transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-teal text-navy rounded-xl font-heading font-bold text-sm hover:bg-teal/90 transition-colors"
         >
           <Plus size={16} weight="bold" /> Add Activity
         </button>

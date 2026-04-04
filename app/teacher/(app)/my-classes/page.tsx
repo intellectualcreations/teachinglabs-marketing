@@ -180,7 +180,7 @@ function AddActivityModal({
                         setSuccessMsg(`Added to ${clsName}!`);
                         setTimeout(() => onClose(), 1500);
                       }}
-                      className="flex-shrink-0 ml-3 px-3.5 py-1.5 rounded-lg bg-teal text-white text-xs
+                      className="flex-shrink-0 ml-3 px-3.5 py-1.5 rounded-lg bg-teal text-navy text-xs
                         font-semibold hover:bg-teal/90 transition-colors"
                     >
                       Add to Class
@@ -333,7 +333,7 @@ export default function MyClassesPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setModal({ name: c.name, id: c.id })}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 bg-teal text-white
+                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 bg-teal text-navy
                     rounded-lg text-xs font-semibold hover:bg-teal/90 transition-colors"
                 >
                   <Plus size={13} weight="bold" /> Add Activity

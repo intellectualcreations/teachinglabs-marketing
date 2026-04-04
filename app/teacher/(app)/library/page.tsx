@@ -94,7 +94,7 @@ export default function LibraryPage() {
         </div>
         <Link
           href="/teacher/create-activity"
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-teal text-white
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-teal text-navy
             font-heading font-bold text-sm hover:bg-teal/85 transition-colors shrink-0"
         >
           <Plus size={16} weight="bold" /> Create Activity
@@ -128,7 +128,7 @@ export default function LibraryPage() {
           </p>
           <Link
             href="/teacher/create-activity"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-teal text-white
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-teal text-navy
               font-heading font-bold text-sm"
           >
             <Plus size={16} weight="bold" /> Create Activity

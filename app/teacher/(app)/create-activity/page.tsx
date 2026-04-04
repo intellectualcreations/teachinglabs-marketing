@@ -667,7 +667,7 @@ export default function CreateActivityPage() {
       {/* ── Save Button ────────────────────────────────────────────────────────── */}
       <button
         onClick={saveActivity}
-        className="w-full flex items-center justify-center gap-2 py-3.5 px-7 bg-teal text-white
+        className="w-full flex items-center justify-center gap-2 py-3.5 px-7 bg-teal text-navy
           rounded-[10px] text-[15px] font-heading font-bold cursor-pointer
           hover:bg-teal/85 hover:-translate-y-px transition-all"
       >
@@ -699,7 +699,7 @@ export default function CreateActivityPage() {
               </button>
               <a
                 href="/teacher/library"
-                className="px-5 py-2.5 bg-teal text-white rounded-lg text-[13px] font-semibold
+                className="px-5 py-2.5 bg-teal text-navy rounded-lg text-[13px] font-semibold
                   cursor-pointer hover:bg-teal/85 transition-colors"
               >
                 Go to Library

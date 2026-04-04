@@ -529,7 +529,7 @@ export default function GroupChatsPage() {
               onClick={() => setTimeRange(tr.key)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 timeRange === tr.key
-                  ? 'bg-teal text-white'
+                  ? 'bg-teal text-navy'
                   : 'text-text-secondary hover:text-text-primary'
               }`}
             >
