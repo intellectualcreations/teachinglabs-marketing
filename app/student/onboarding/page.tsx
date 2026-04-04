@@ -1907,7 +1907,7 @@ function ResultsScreen({
   );
 
   const coachMessage = coachText(
-    `You did AMAZING${name ? `, ${name}` : ''}! 🌟 I can\'t wait to make your lessons super fun!`,
+    `You did AMAZING${name ? `, ${name}` : ''}! 🌟 I can\'t wait to help you learn!`,
     `You're all set${name ? `, ${name}` : ''}! I'll use everything I've learned to make your lessons feel interesting and just right for you. Let's start learning!`,
     `You're all set${name ? `, ${name}` : ''}. I've built a learning profile based on your answers. Your lessons will be personalized to your level and learning style.`,
     languageTier,
