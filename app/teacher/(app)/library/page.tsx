@@ -37,6 +37,7 @@ interface EnrichedCourse {
   subject?: string;
   grade_level?: string;
   status?: string;
+  is_published?: boolean;
   teacher_id: string;
   created_at: string;
   modules: EnrichedModule[];
@@ -157,6 +158,23 @@ export default function LibraryPage() {
     const d = new Date(str);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${months[d.getMonth()]} ${d.getDate()}`;
+  }
+
+  async function togglePublish(courseId: string, currentlyPublished: boolean) {
+    try {
+      const res = await fetch(`/api/teacher/courses/${courseId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_published: !currentlyPublished }),
+      });
+      if (res.ok) {
+        setCourses(prev => prev.map(c =>
+          c.id === courseId ? { ...c, is_published: !currentlyPublished } : c
+        ));
+      }
+    } catch (e) {
+      console.error('Toggle publish error:', e);
+    }
   }
 
   function subjectBadge(subject?: string) {
@@ -398,11 +416,16 @@ export default function LibraryPage() {
                         <PencilSimple size={14} weight="fill" /> Edit
                       </button>
                       <button
-                        className="px-3.5 py-2 border-[1.5px] border-border rounded-md text-xs font-semibold
-                          text-text-primary flex items-center gap-1 hover:border-teal hover:text-teal
-                          transition-colors cursor-pointer"
+                onClick={() => togglePublish(course.id, !!course.is_published)}
+                        className={`px-3.5 py-2 border-[1.5px] rounded-md text-xs font-semibold
+                          flex items-center gap-1 transition-colors cursor-pointer ${
+                            course.is_published
+                              ? 'border-yellow-500/30 text-yellow-400 hover:border-yellow-500 hover:text-yellow-300'
+                              : 'border-border text-text-primary hover:border-teal hover:text-teal'
+                          }`}
                       >
-                        <ShareNetwork size={14} weight="fill" /> Share to Library
+                        <ShareNetwork size={14} weight="fill" />
+                        {course.is_published ? 'Unpublish' : 'Share to Library'}
                       </button>
                     </div>
                   </div>
