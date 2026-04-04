@@ -255,61 +255,27 @@ export default function StudentDashboardPage() {
         setStudentName(displayName.split(' ')[0]);
         setStudentInitials(getInitials(displayName));
 
-        // Fetch enrollments with classes
-        const { data: enrollmentData } = await supabase
-          .from('enrollments')
-          .select('*')
-          .eq('student_id', user.id)
-          .eq('status', 'active');
+        // Fetch classes via admin API (bypasses RLS)
+        const { data: { session: authSession } } = await supabase.auth.getSession();
+        const token = authSession?.access_token;
+        const classRes = await fetch('/api/student/my-classes', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        });
+        const classJson = classRes.ok ? await classRes.json() : { classes: [], teachers: [], assignments: [], submissions: [] };
 
-        const enrollments = (enrollmentData ?? []) as unknown as Enrollment[];
+        const classRows = (classJson.classes ?? []) as Class[];
+        const teachers = (classJson.teachers ?? []) as Profile[];
+        const assignments = (classJson.assignments ?? []) as Assignment[];
+        const submissions = (classJson.submissions ?? []) as Submission[];
 
-        if (enrollments.length === 0) {
+        if (classRows.length === 0) {
           setClasses([]);
           setLoading(false);
           return;
         }
 
-        const classIds = enrollments.map(e => e.class_id);
-
-        // Fetch classes
-        const { data: classData } = await supabase
-          .from('classes')
-          .select('*')
-          .in('id', classIds);
-
-        const classRows = (classData ?? []) as unknown as Class[];
-
-        // Fetch teacher profiles
-        const teacherIds = [...new Set(classRows.map(c => c.teacher_id))];
-        const { data: teacherData } = await supabase
-          .from('profiles')
-          .select('*')
-          .in('id', teacherIds);
-
-        const teachers = (teacherData ?? []) as unknown as Profile[];
+        const classIds = classRows.map((c: Class) => c.id);
         const teacherMap = new Map(teachers.map(t => [t.id, t]));
-
-        // Fetch assignments for all classes
-        const { data: assignmentData } = await supabase
-          .from('assignments')
-          .select('*')
-          .in('class_id', classIds);
-
-        const assignments = (assignmentData ?? []) as unknown as Assignment[];
-
-        // Fetch submissions for this student
-        const assignmentIds = assignments.map(a => a.id);
-        let submissions: Submission[] = [];
-        if (assignmentIds.length > 0) {
-          const { data: submissionData } = await supabase
-            .from('submissions')
-            .select('*')
-            .eq('student_id', user.id)
-            .in('assignment_id', assignmentIds);
-
-          submissions = (submissionData ?? []) as unknown as Submission[];
-        }
         const submittedAssignmentIds = new Set(submissions.map(s => s.assignment_id));
 
         // Fetch chat messages for this student across all classes
