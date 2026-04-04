@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
         subject: subject || null,
         grade_level: grade_level || null,
         teacher_id,
-        status: 'draft',
+        is_published: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
