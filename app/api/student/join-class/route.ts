@@ -5,7 +5,7 @@ import { createAdminClient, createClient } from '@/lib/supabase/server';
  * POST /api/student/join-class
  * Body: { joinCode: string }
  * Enrolls the authenticated student in a class by join code.
- * Uses admin client to bypass RLS on classes/enrollments tables.
+ * Auth: tries cookie-based session first, falls back to Authorization header.
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -15,17 +15,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'joinCode required' }, { status: 400 });
   }
 
-  // Get the authenticated user from the cookie-based session
-  let userId: string;
+  // Get the authenticated user — try cookie session first, then Authorization header
+  let userId: string | null = null;
+
+  // Method 1: Cookie-based session
   try {
     const userSupabase = await createClient();
-    const { data: { user }, error: authErr } = await userSupabase.auth.getUser();
-    if (authErr || !user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    const { data: { user } } = await userSupabase.auth.getUser();
+    if (user) userId = user.id;
+  } catch {
+    // Cookie auth failed — try header
+  }
+
+  // Method 2: Authorization header (for incognito / cookie-less contexts)
+  if (!userId) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.slice(7);
+      const admin = createAdminClient();
+      const { data: { user } } = await admin.auth.getUser(token);
+      if (user) userId = user.id;
     }
-    userId = user.id;
-  } catch (err) {
-    console.error('Join-class auth error:', err);
+  }
+
+  if (!userId) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 

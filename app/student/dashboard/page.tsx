@@ -90,9 +90,17 @@ function JoinClassInline({ onJoined }: { onJoined: () => void }) {
     setLoading(true);
     setError('');
     try {
+      // Get access token from client-side session to pass to API
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
       const res = await fetch('/api/student/join-class', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
+        },
         body: JSON.stringify({ joinCode: trimmed }),
       });
       const json = await res.json();
