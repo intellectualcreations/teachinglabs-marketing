@@ -244,7 +244,7 @@ const MUSICAL_OPTIONS = [
 ];
 
 const KINESTHETIC_OPTIONS = [
-  { key: 'hands_on', label: '🙌 Doing it with my hands' },
+  { key: 'hands_on', label: 'Doing it with my hands' },
   { key: 'moving', label: '🚶 Moving around while I learn' },
   { key: 'watching', label: '👀 Watching someone show me first' },
   { key: 'reading_first', label: '📖 Reading or listening to instructions first' },
@@ -470,7 +470,7 @@ function evaluateMathAnswer(text: string, expected: number): DifficultyShift {
    12 Results
 ──────────────────────────────────────────────────────────────────────────────── */
 
-const TOTAL_SCREENS = 15;
+const TOTAL_SCREENS = 16;
 const ACT_MAP = [1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5];
 const TOTAL_ACTS = 5;
 
@@ -603,7 +603,7 @@ export default function StudentOnboardingPage() {
 
   // Shift content difficulty AND language tier based on reading response (entering writing screen)
   useEffect(() => {
-    if (screen === 10 && answers.readingResponse) {
+    if (screen === 11 && answers.readingResponse) {
       const shift = evaluateReadingQuality(answers.readingResponse);
       setMathTier(t => shiftTier(t, shift));
       setLanguageTier(t => shiftLanguageTier(t, shift));
@@ -612,7 +612,7 @@ export default function StudentOnboardingPage() {
 
   // Further refine language tier based on writing response (entering math)
   useEffect(() => {
-    if (screen === 11 && answers.writingResponse) {
+    if (screen === 12 && answers.writingResponse) {
       const shift = evaluateReadingQuality(answers.writingResponse);
       setLanguageTier(t => shiftLanguageTier(t, shift));
     }
@@ -620,7 +620,7 @@ export default function StudentOnboardingPage() {
 
   // Adjust math tier based on Q1 (entering Q2)
   useEffect(() => {
-    if (screen === 12 && answers.mathResponse1) {
+    if (screen === 13 && answers.mathResponse1) {
       const q1 = THEMES[selectedTheme].mathQ1[mathTier];
       const shift = evaluateMathAnswer(answers.mathResponse1, q1.answer);
       setMathTier(t => shiftTier(t, shift));
@@ -629,7 +629,7 @@ export default function StudentOnboardingPage() {
 
   // Processing screen — save and auto-advance
   useEffect(() => {
-    if (screen !== 13) return;
+    if (screen !== 14) return;
 
     const theme = THEMES[selectedTheme];
     const tier = ageToTier(answers.age ?? 10);
@@ -695,7 +695,7 @@ export default function StudentOnboardingPage() {
       setDirection('forward');
       setAnimating(true);
       setTimeout(() => {
-        setScreen(14);
+        setScreen(15);
         setAnimating(false);
       }, 300);
     }, 3000);
@@ -717,12 +717,14 @@ export default function StudentOnboardingPage() {
       case 6:
         return answers.intrapersonalStrengths.trim().length > 2;
       case 7:
-        return answers.logicAnswer.trim().length > 0 && answers.eqFriendResponse.trim().length >= 10;
-      case 8: return true;
-      case 9: return answers.readingResponse.trim().length >= 10;
-      case 10: return answers.writingResponse.trim().length >= 20;
-      case 11: return answers.mathResponse1.trim().length > 0;
-      case 12: return answers.mathResponse2.trim().length > 0;
+        return answers.eqFriendResponse.trim().length >= 10;
+      case 8:
+        return answers.logicAnswer.trim().length > 0;
+      case 9: return true;
+      case 10: return answers.readingResponse.trim().length >= 10;
+      case 11: return answers.writingResponse.trim().length >= 20;
+      case 12: return answers.mathResponse1.trim().length > 0;
+      case 13: return answers.mathResponse2.trim().length > 0;
       default: return false;
     }
   };
@@ -828,7 +830,10 @@ export default function StudentOnboardingPage() {
           <NameAgeScreen
             name={answers.name}
             age={answers.age}
-            onNameChange={v => setAnswers(a => ({ ...a, name: v }))}
+            onNameChange={v => {
+              const capitalized = v.replace(/\b\w/g, c => c.toUpperCase());
+              setAnswers(a => ({ ...a, name: capitalized }));
+            }}
             onAgeChange={v => setAnswers(a => ({ ...a, age: v }))}
             onNext={goNext}
             canAdvance={canAdvance()}
@@ -907,13 +912,10 @@ export default function StudentOnboardingPage() {
           />
         )}
         {screen === 7 && (
-          <EQLogicScreen
-            logicQuestion={logicQ}
-            logicAnswer={answers.logicAnswer}
+          <EQScreen
             eqFriendResponse={answers.eqFriendResponse}
             eqSelfResponse={answers.eqSelfResponse}
             languageTier={languageTier}
-            onLogicChange={v => setAnswers(a => ({ ...a, logicAnswer: v }))}
             onFriendChange={v => setAnswers(a => ({ ...a, eqFriendResponse: v }))}
             onSelfChange={v => setAnswers(a => ({ ...a, eqSelfResponse: v }))}
             onNext={goNext}
@@ -922,6 +924,17 @@ export default function StudentOnboardingPage() {
           />
         )}
         {screen === 8 && (
+          <LogicScreen
+            logicQuestion={logicQ}
+            logicAnswer={answers.logicAnswer}
+            languageTier={languageTier}
+            onLogicChange={v => setAnswers(a => ({ ...a, logicAnswer: v }))}
+            onNext={goNext}
+            canAdvance={canAdvance()}
+            speak={speak}
+          />
+        )}
+        {screen === 9 && (
           <ReadingPassageScreen
             passage={theme.passage[readingTier]}
             studentName={answers.name}
@@ -930,7 +943,7 @@ export default function StudentOnboardingPage() {
             speak={speak}
           />
         )}
-        {screen === 9 && (
+        {screen === 10 && (
           <ReadingQuestionScreen
             question={theme.readingQuestion[readingTier]}
             value={answers.readingResponse}
@@ -941,7 +954,7 @@ export default function StudentOnboardingPage() {
             speak={speak}
           />
         )}
-        {screen === 10 && (
+        {screen === 11 && (
           <WritingScreen
             passage={theme.writingPassage}
             prompt={theme.writingPrompt}
@@ -952,7 +965,7 @@ export default function StudentOnboardingPage() {
             canAdvance={canAdvance()}
           />
         )}
-        {screen === 11 && (
+        {screen === 12 && (
           <MathScreen
             question={theme.mathQ1[mathTier].question}
             value={answers.mathResponse1}
@@ -964,7 +977,7 @@ export default function StudentOnboardingPage() {
             questionNumber={1}
           />
         )}
-        {screen === 12 && (
+        {screen === 13 && (
           <MathScreen
             question={theme.mathQ2[mathTier].question}
             value={answers.mathResponse2}
@@ -976,8 +989,8 @@ export default function StudentOnboardingPage() {
             questionNumber={2}
           />
         )}
-        {screen === 13 && <ProcessingScreen saving={saving} error={saveError} />}
-        {screen === 14 && (
+        {screen === 14 && <ProcessingScreen saving={saving} error={saveError} />}
+        {screen === 15 && (
           <ResultsScreen
             name={answers.name}
             age={answers.age}
@@ -1079,7 +1092,7 @@ function StudentBubble({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-3 mt-3 onb-fade-up">
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal/20 flex items-center justify-center">
-        <span className="text-sm">💬</span>
+        <span className="text-sm"></span>
       </div>
       <div className="px-4 py-3 bg-teal/10 rounded-2xl rounded-tl-none border border-teal/20">
         <p className="text-navy dark:text-white text-sm font-medium">{text}</p>
@@ -1209,7 +1222,7 @@ function NameAgeScreen({
 }) {
   return (
     <div className="max-w-lg mx-auto w-full">
-      <CoachBubble text="What would you like me to call you? It can be your name, a nickname, whatever you go by! 😊" />
+      <CoachBubble text="What would you like me to call you? It can be your name, a nickname, whatever you go by! " />
       <div className="space-y-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
         {/* Name input */}
         <div>
@@ -1223,7 +1236,7 @@ function NameAgeScreen({
 
         {/* Age selector */}
         <div>
-          <label className="block text-text-secondary text-sm font-medium mb-3">How old are you? 🎂</label>
+          <label className="block text-text-secondary text-sm font-medium mb-3">How old are you? </label>
           <div className="flex flex-wrap gap-2.5 justify-center">
             {AGES.map(a => {
               const isSelected = age === a;
@@ -1273,7 +1286,7 @@ function InterestsScreen({
   onNext: () => void; canAdvance: boolean; languageTier: LanguageTier;
 }) {
   const bubbleText = coachText(
-    'What do you like? Pick everything! 🎉 This helps make learning FUN for you!',
+    'What do you like? Pick everything! This helps make learning FUN for you!',
     'What are you into? Pick as many as you like! This helps me make learning feel more like YOU.',
     'Pick what interests you. I\'ll use this to shape your learning experience.',
     languageTier,
@@ -1306,7 +1319,7 @@ function InterestsScreen({
       <div className="mt-4 mb-4">
         <label className="block text-text-secondary text-sm font-medium mb-2">
           {coachText(
-            'Is there something else you love? Tell me! 💬',
+            'Is there something else you love? Tell me! ',
             'Into something not listed? Tell me about it!',
             'Anything else you\'re into? I\'d like to know.',
             languageTier,
@@ -1342,7 +1355,7 @@ function SpatialScreen({
   const spatialPrompt = getSpatialPrompt(interests);
 
   const bubbleText = coachText(
-    'Everyone\'s brain works in a super cool way! 🧠 Tell me how YOU think!',
+    'Everyone\'s brain works in a super cool way! Tell me how YOU think!',
     'Everyone\'s brain works differently — and that\'s a great thing! Tell me how YOU think.',
     'Everyone processes information differently. Tell me about how you think.',
     languageTier,
@@ -1388,7 +1401,7 @@ function MusicKinestheticScreen({
   languageTier: LanguageTier;
 }) {
   const bubbleText = coachText(
-    'Now tell me about music and how you like to move! 🎵',
+    'Now tell me about music and how you like to move! ',
     'Let\'s talk about music and how you learn best!',
     'Tell me about your relationship with music and how you prefer to learn.',
     languageTier,
@@ -1466,7 +1479,7 @@ function SocialNatureScreen({
   languageTier: LanguageTier;
 }) {
   const bubbleText = coachText(
-    "Let's keep going! 🌟 How do you like to work?",
+    "Let's keep going! How do you like to work?",
     "Let's keep going! Tell me a little about how you work with others.",
     "Let's keep going. How do you work best?",
     languageTier,
@@ -1538,7 +1551,7 @@ function AboutYouScreen({
   languageTier: LanguageTier;
 }) {
   const bubbleText = coachText(
-    "Tell me a little about YOU! 💪",
+    "Tell me a little about YOU! ",
     "Now tell me about YOU — what makes you awesome?",
     "Tell me about yourself — your strengths and what you want to work on.",
     languageTier,
@@ -1592,35 +1605,34 @@ function AboutYouScreen({
     </div>
   );
 }
-/* ─── Screen 5: EQ + Logic ────────────────────────────────────────────────────── */
+/* ─── Screen 7: EQ ──────────────────────────────────────────────────────────── */
 
-function EQLogicScreen({
-  logicQuestion, logicAnswer, eqFriendResponse, eqSelfResponse,
-  onLogicChange, onFriendChange, onSelfChange,
+function EQScreen({
+  eqFriendResponse, eqSelfResponse,
+  onFriendChange, onSelfChange,
   onNext, canAdvance, speak, languageTier,
 }: {
-  logicQuestion: LogicQuestion;
-  logicAnswer: string; eqFriendResponse: string; eqSelfResponse: string;
-  onLogicChange: (v: string) => void; onFriendChange: (v: string) => void; onSelfChange: (v: string) => void;
+  eqFriendResponse: string; eqSelfResponse: string;
+  onFriendChange: (v: string) => void; onSelfChange: (v: string) => void;
   onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
   languageTier: LanguageTier;
 }) {
   const introBubble = coachText(
-    'Time for some brain teasers! 🧩 Think out loud — there are NO wrong answers!',
-    'Two of my favorite kinds of questions — think out loud! There are no wrong answers here.',
-    'A couple of questions to see how you think. No right or wrong answers — just be real.',
+    "How would you handle these situations? There are NO wrong answers!",
+    "How would you handle these situations? There are no wrong answers here.",
+    "A couple of scenarios to see how you think. No right or wrong answers — just be real.",
     languageTier,
   );
   const friendBubble = coachText(
-    'Your friend didn\'t get picked for the team they really wanted. What would you say to them? 🤗',
-    'Your friend didn\'t get picked for the team they really wanted to be on. What would you say to them?',
-    'Your friend didn\'t make the team they were hoping for. What do you say to them?',
+    "Your friend didn't get picked for the team they really wanted. What would you say to them?",
+    "Your friend didn't get picked for the team they really wanted to be on. What would you say to them?",
+    "Your friend didn't make the team they were hoping for. What do you say to them?",
     languageTier,
   );
   const selfBubble = coachText(
-    'You worked super hard on something, but it didn\'t go the way you hoped. How do you feel? What do you do next? 💪',
-    'You worked really hard on something, but it didn\'t turn out the way you hoped. How does that make you feel — and what do you do next?',
-    'You put real effort into something and it still didn\'t work out. What\'s your response to that?',
+    "You worked super hard on something, but it didn't go the way you hoped. How do you feel? What do you do next?",
+    "You worked really hard on something, but it didn't turn out the way you hoped. How does that make you feel — and what do you do next?",
+    "You put real effort into something and it still didn't work out. What's your response to that?",
     languageTier,
   );
 
@@ -1628,27 +1640,8 @@ function EQLogicScreen({
     <div className="max-w-xl mx-auto w-full">
       <CoachBubble text={introBubble} speak={speak} />
 
-      {/* Logic puzzle */}
-      <div className="mb-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
-        <div className="bg-indigo/5 dark:bg-teal/5 border border-indigo/20 dark:border-teal/20 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Brain size={18} weight="fill" className="text-indigo dark:text-teal" />
-            <p className="text-xs font-heading font-semibold text-indigo dark:text-teal uppercase tracking-wider">Quick puzzle</p>
-          </div>
-          <p className="text-text-primary font-medium text-base mb-3">{logicQuestion.question}</p>
-          <input
-            type="text" value={logicAnswer}
-            onChange={e => onLogicChange(e.target.value)}
-            placeholder="Your answer..."
-            autoFocus
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors text-base"
-          />
-          <p className="text-text-muted text-xs mt-2 italic">{logicQuestion.hint}</p>
-        </div>
-      </div>
-
       {/* EQ: Friend scenario */}
-      <div className="mb-5 onb-card-in" style={{ animationDelay: '0.2s' }}>
+      <div className="mb-5 onb-card-in" style={{ animationDelay: '0.1s' }}>
         <CoachBubble text={friendBubble} speak={speak} />
         <textarea
           value={eqFriendResponse}
@@ -1664,7 +1657,7 @@ function EQLogicScreen({
       </div>
 
       {/* EQ: Self scenario (optional) */}
-      <div className="mb-2 onb-card-in" style={{ animationDelay: '0.3s' }}>
+      <div className="mb-2 onb-card-in" style={{ animationDelay: '0.2s' }}>
         <CoachBubble text={selfBubble} speak={speak} />
         <textarea
           value={eqSelfResponse}
@@ -1684,6 +1677,52 @@ function EQLogicScreen({
   );
 }
 
+/* ─── Screen 8: Logic Puzzle ─────────────────────────────────────────────────── */
+
+function LogicScreen({
+  logicQuestion, logicAnswer,
+  onLogicChange,
+  onNext, canAdvance, speak, languageTier,
+}: {
+  logicQuestion: LogicQuestion;
+  logicAnswer: string;
+  onLogicChange: (v: string) => void;
+  onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
+  languageTier: LanguageTier;
+}) {
+  const introBubble = coachText(
+    "Quick brain teaser! Can you figure this one out?",
+    "Here's a quick puzzle for you. See what you think!",
+    "One more question — this one's a quick brain teaser.",
+    languageTier,
+  );
+
+  return (
+    <div className="max-w-xl mx-auto w-full">
+      <CoachBubble text={introBubble} speak={speak} />
+
+      <div className="mb-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
+        <div className="bg-indigo/5 dark:bg-teal/5 border border-indigo/20 dark:border-teal/20 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Brain size={18} weight="fill" className="text-indigo dark:text-teal" />
+            <p className="text-xs font-heading font-semibold text-indigo dark:text-teal uppercase tracking-wider">Quick puzzle</p>
+          </div>
+          <p className="text-text-primary font-medium text-base mb-3">{logicQuestion.question}</p>
+          <input
+            type="text" value={logicAnswer}
+            onChange={e => onLogicChange(e.target.value)}
+            placeholder="Your answer..."
+            autoFocus
+            className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors text-base"
+          />
+          <p className="text-text-muted text-xs mt-2 italic">{logicQuestion.hint}</p>
+        </div>
+      </div>
+
+      <NextButton onNext={onNext} canAdvance={canAdvance} />
+    </div>
+  );
+}
 /* ─── Screen 6: Reading Passage ───────────────────────────────────────────────── */
 
 function ReadingPassageScreen({
@@ -1693,13 +1732,13 @@ function ReadingPassageScreen({
   languageTier: LanguageTier;
 }) {
   const introBubble = coachText(
-    `${studentName ? `Hey ${studentName}!` : 'Hey!'} Here's something cool to read! 📖 Take your time — no rush!`,
+    `${studentName ? `Hey ${studentName}!` : 'Hey!'} Here's something cool to read! Take your time — no rush!`,
     `${studentName ? `Hey ${studentName}!` : 'Hey!'} I found something interesting for you to read. Take your time — there's no rush!`,
     `${studentName ? `${studentName},` : ''} here's a passage for you. Take your time with it.`.trim(),
     languageTier,
   );
   const continueBubble = coachText(
-    'When you\'re done reading, hit continue and I\'ll ask you about it! 🎯',
+    'When you\'re done reading, hit continue and I\'ll ask you about it!',
     'When you\'re ready, hit continue and I\'ll ask you a quick question about it!',
     'When you\'re done, continue and I\'ll ask you a question about it.',
     languageTier,
@@ -1748,7 +1787,7 @@ function ReadingQuestionScreen({
   // The question itself comes from the content bank (already tier-appropriate by readingTier).
   // We wrap it with a warm age-appropriate lead-in.
   const leadIn = coachText(
-    'Here\'s my question — just tell me what you think! 🙌',
+    'Here\'s my question — just tell me what you think!',
     '',
     '',
     languageTier,
@@ -1770,7 +1809,6 @@ function ReadingQuestionScreen({
           <span className="text-xs text-text-muted">{value.length} / 1000</span>
         </div>
       </div>
-      {value.length >= 20 && <StudentBubble text={value} />}
       <NextButton onNext={onNext} canAdvance={canAdvance} />
     </div>
   );
@@ -1785,7 +1823,7 @@ function WritingScreen({
   onNext: () => void; canAdvance: boolean; languageTier: LanguageTier;
 }) {
   const introBubble = coachText(
-    'Here\'s a fun one! 🎉 Read the short paragraph below and tell me what YOU think! Type your answer this time!',
+    'Here\'s a fun one! Read the short paragraph below and tell me what YOU think! Type your answer this time!',
     'Here\'s something fun! For this one, read the paragraph below and type what you think. No voice input on this one — I want to see your writing!',
     'Read the passage below and share your perspective in writing. I want to see how you express your thinking on paper.',
     languageTier,
@@ -1829,13 +1867,13 @@ function MathScreen({
 }) {
   const intro = questionNumber === 1
     ? coachText(
-        'Here\'s a quick math puzzle for you! 🔢',
+        'Here\'s a quick math puzzle for you!',
         'Here\'s a quick puzzle for you —',
         'Here\'s a problem for you —',
         languageTier,
       )
     : coachText(
-        'One more! You\'re almost done! 🌟',
+        'One more! You\'re almost done! ',
         'One more — think it through!',
         'Last one. Take your time.',
         languageTier,
@@ -1855,7 +1893,6 @@ function MathScreen({
           <p className="text-xs text-text-muted italic">You can type a number or explain your thinking</p>
         </div>
       </div>
-      {value.trim().length > 0 && <StudentBubble text={value} />}
       <NextButton onNext={onNext} canAdvance={canAdvance} />
     </div>
   );
@@ -1918,21 +1955,21 @@ function ResultsScreen({
   const ageLabel = age === 18 ? '18+' : age !== null ? `${age}` : '';
 
   const heading = coachText(
-    `Here's what I learned about you${name ? `, ${name}` : ''}! 🎉🌟`,
-    `Here's what I learned about you${name ? `, ${name}` : ''}! 🎉`,
+    `Here's what I learned about you${name ? `, ${name}` : ''}! `,
+    `Here's what I learned about you${name ? `, ${name}` : ''}! `,
     `Your Learning Profile${name ? ` — ${name}` : ''}`,
     languageTier,
   );
 
   const subheading = coachText(
-    'I\'m going to make learning super fun for you! 🚀',
-    'I\'m going to make learning awesome for you!',
+    'I can\'t wait to help you learn!',
+    'I can\'t wait to help you learn!',
     'Your experience will be tailored to your level and learning style.',
     languageTier,
   );
 
   const coachMessage = coachText(
-    `You did AMAZING${name ? `, ${name}` : ''}! 🌟 I can\'t wait to help you learn!`,
+    `You did AMAZING${name ? `, ${name}` : ''}! I can\'t wait to help you learn!`,
     `You're all set${name ? `, ${name}` : ''}! I'll use everything I've learned to make your lessons feel interesting and just right for you. Let's start learning!`,
     `You're all set${name ? `, ${name}` : ''}. I've built a learning profile based on your answers. Your lessons will be personalized to your level and learning style.`,
     languageTier,
