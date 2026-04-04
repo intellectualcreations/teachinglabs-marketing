@@ -470,7 +470,7 @@ function evaluateMathAnswer(text: string, expected: number): DifficultyShift {
    12 Results
 ──────────────────────────────────────────────────────────────────────────────── */
 
-const TOTAL_SCREENS = 13;
+const TOTAL_SCREENS = 14;
 const ACT_MAP = [1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5];
 const TOTAL_ACTS = 5;
 
@@ -593,7 +593,7 @@ export default function StudentOnboardingPage() {
 
   // Compute theme + starting content tiers when entering Gardner screen
   useEffect(() => {
-    if (screen === 3 && answers.interests.length > 0) {
+    if ((screen === 3 || screen === 4) && answers.interests.length > 0) {
       setSelectedTheme(selectTheme(answers.interests));
       const tier = ageToTier(answers.age ?? 10);
       setReadingTier(tier);
@@ -603,7 +603,7 @@ export default function StudentOnboardingPage() {
 
   // Shift content difficulty AND language tier based on reading response (entering writing screen)
   useEffect(() => {
-    if (screen === 8 && answers.readingResponse) {
+    if (screen === 9 && answers.readingResponse) {
       const shift = evaluateReadingQuality(answers.readingResponse);
       setMathTier(t => shiftTier(t, shift));
       setLanguageTier(t => shiftLanguageTier(t, shift));
@@ -612,7 +612,7 @@ export default function StudentOnboardingPage() {
 
   // Further refine language tier based on writing response (entering math)
   useEffect(() => {
-    if (screen === 9 && answers.writingResponse) {
+    if (screen === 10 && answers.writingResponse) {
       const shift = evaluateReadingQuality(answers.writingResponse);
       setLanguageTier(t => shiftLanguageTier(t, shift));
     }
@@ -620,7 +620,7 @@ export default function StudentOnboardingPage() {
 
   // Adjust math tier based on Q1 (entering Q2)
   useEffect(() => {
-    if (screen === 10 && answers.mathResponse1) {
+    if (screen === 11 && answers.mathResponse1) {
       const q1 = THEMES[selectedTheme].mathQ1[mathTier];
       const shift = evaluateMathAnswer(answers.mathResponse1, q1.answer);
       setMathTier(t => shiftTier(t, shift));
@@ -629,7 +629,7 @@ export default function StudentOnboardingPage() {
 
   // Processing screen — save and auto-advance
   useEffect(() => {
-    if (screen !== 11) return;
+    if (screen !== 12) return;
 
     const theme = THEMES[selectedTheme];
     const tier = ageToTier(answers.age ?? 10);
@@ -695,7 +695,7 @@ export default function StudentOnboardingPage() {
       setDirection('forward');
       setAnimating(true);
       setTimeout(() => {
-        setScreen(12);
+        setScreen(13);
         setAnimating(false);
       }, 300);
     }, 3000);
@@ -709,21 +709,18 @@ export default function StudentOnboardingPage() {
       case 0: return true;
       case 1: return answers.name.trim().length > 0 && answers.age !== null;
       case 2: return answers.interests.length >= 1;
-      case 3:
-        return (
-          answers.musicalSignals.length > 0 ||
-          answers.kinestheticSignals.length > 0 ||
-          answers.spatialDescription.trim().length > 3
-        );
+      case 3: return answers.spatialDescription.trim().length > 3;
       case 4:
-        return answers.interpersonalStyle !== '' && answers.intrapersonalStrengths.trim().length > 2;
+        return answers.musicalSignals.length > 0 && answers.kinestheticSignals.length > 0;
       case 5:
+        return answers.interpersonalStyle !== '' && answers.intrapersonalStrengths.trim().length > 2;
+      case 6:
         return answers.logicAnswer.trim().length > 0 && answers.eqFriendResponse.trim().length >= 10;
-      case 6: return true;
-      case 7: return answers.readingResponse.trim().length >= 10;
-      case 8: return answers.writingResponse.trim().length >= 20;
-      case 9: return answers.mathResponse1.trim().length > 0;
-      case 10: return answers.mathResponse2.trim().length > 0;
+      case 7: return true;
+      case 8: return answers.readingResponse.trim().length >= 10;
+      case 9: return answers.writingResponse.trim().length >= 20;
+      case 10: return answers.mathResponse1.trim().length > 0;
+      case 11: return answers.mathResponse2.trim().length > 0;
       default: return false;
     }
   };
@@ -852,13 +849,21 @@ export default function StudentOnboardingPage() {
           />
         )}
         {screen === 3 && (
-          <GardnerScreen1
+          <SpatialScreen
             interests={answers.interests}
             spatialDescription={answers.spatialDescription}
+            languageTier={languageTier}
+            onSpatialChange={v => setAnswers(a => ({ ...a, spatialDescription: v }))}
+            onNext={goNext}
+            canAdvance={canAdvance()}
+            speak={speak}
+          />
+        )}
+        {screen === 4 && (
+          <MusicKinestheticScreen
             musicalSignals={answers.musicalSignals}
             kinestheticSignals={answers.kinestheticSignals}
             languageTier={languageTier}
-            onSpatialChange={v => setAnswers(a => ({ ...a, spatialDescription: v }))}
             onMusicToggle={key => setAnswers(a => ({
               ...a,
               musicalSignals: a.musicalSignals.includes(key)
@@ -873,10 +878,9 @@ export default function StudentOnboardingPage() {
             }))}
             onNext={goNext}
             canAdvance={canAdvance()}
-            speak={speak}
           />
         )}
-        {screen === 4 && (
+        {screen === 5 && (
           <GardnerScreen2
             interpersonalStyle={answers.interpersonalStyle}
             intrapersonalStrengths={answers.intrapersonalStrengths}
@@ -892,7 +896,7 @@ export default function StudentOnboardingPage() {
             speak={speak}
           />
         )}
-        {screen === 5 && (
+        {screen === 6 && (
           <EQLogicScreen
             logicQuestion={logicQ}
             logicAnswer={answers.logicAnswer}
@@ -907,7 +911,7 @@ export default function StudentOnboardingPage() {
             speak={speak}
           />
         )}
-        {screen === 6 && (
+        {screen === 7 && (
           <ReadingPassageScreen
             passage={theme.passage[readingTier]}
             studentName={answers.name}
@@ -916,7 +920,7 @@ export default function StudentOnboardingPage() {
             speak={speak}
           />
         )}
-        {screen === 7 && (
+        {screen === 8 && (
           <ReadingQuestionScreen
             question={theme.readingQuestion[readingTier]}
             value={answers.readingResponse}
@@ -927,7 +931,7 @@ export default function StudentOnboardingPage() {
             speak={speak}
           />
         )}
-        {screen === 8 && (
+        {screen === 9 && (
           <WritingScreen
             passage={theme.writingPassage}
             prompt={theme.writingPrompt}
@@ -938,7 +942,7 @@ export default function StudentOnboardingPage() {
             canAdvance={canAdvance()}
           />
         )}
-        {screen === 9 && (
+        {screen === 10 && (
           <MathScreen
             question={theme.mathQ1[mathTier].question}
             value={answers.mathResponse1}
@@ -950,7 +954,7 @@ export default function StudentOnboardingPage() {
             questionNumber={1}
           />
         )}
-        {screen === 10 && (
+        {screen === 11 && (
           <MathScreen
             question={theme.mathQ2[mathTier].question}
             value={answers.mathResponse2}
@@ -962,8 +966,8 @@ export default function StudentOnboardingPage() {
             questionNumber={2}
           />
         )}
-        {screen === 11 && <ProcessingScreen saving={saving} error={saveError} />}
-        {screen === 12 && (
+        {screen === 12 && <ProcessingScreen saving={saving} error={saveError} />}
+        {screen === 13 && (
           <ResultsScreen
             name={answers.name}
             age={answers.age}
@@ -1316,23 +1320,21 @@ function InterestsScreen({
 
 /* ─── Screen 3: Gardner Part 1 — How Your Brain Works ────────────────────────── */
 
-function GardnerScreen1({
-  interests, spatialDescription, musicalSignals, kinestheticSignals,
-  onSpatialChange, onMusicToggle, onKinesToggle, onNext, canAdvance, speak, languageTier,
+function SpatialScreen({
+  interests, spatialDescription, onSpatialChange, onNext, canAdvance, speak, languageTier,
 }: {
   interests: string[];
-  spatialDescription: string; musicalSignals: string[]; kinestheticSignals: string[];
+  spatialDescription: string;
   onSpatialChange: (v: string) => void;
-  onMusicToggle: (key: string) => void; onKinesToggle: (key: string) => void;
   onNext: () => void; canAdvance: boolean; speak: (t: string) => void;
   languageTier: LanguageTier;
 }) {
   const spatialPrompt = getSpatialPrompt(interests);
 
   const bubbleText = coachText(
-    'Everyone\'s brain works in a super cool way! 🧠 Tell me how YOU think best!',
-    'Everyone\'s brain works differently — and that\'s a great thing! Tell me how YOU think best.',
-    'Everyone processes information differently. Tell me about how you learn best.',
+    'Everyone\'s brain works in a super cool way! 🧠 Tell me how YOU think!',
+    'Everyone\'s brain works differently — and that\'s a great thing! Tell me how YOU think.',
+    'Everyone processes information differently. Tell me about how you think.',
     languageTier,
   );
 
@@ -1340,7 +1342,6 @@ function GardnerScreen1({
     <div className="max-w-xl mx-auto w-full">
       <CoachBubble text={bubbleText} speak={speak} />
 
-      {/* Spatial */}
       <div className="mb-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
         <div className="flex items-center gap-2 mb-2">
           <Brain size={18} weight="fill" className="text-teal" />
@@ -1350,7 +1351,7 @@ function GardnerScreen1({
           value={spatialDescription}
           onChange={e => { if (e.target.value.length <= 1000) onSpatialChange(e.target.value); }}
           placeholder="Describe it — as wild or as detailed as you want!"
-          rows={3}
+          rows={4}
           className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm leading-relaxed"
         />
         <div className="flex items-center justify-between mt-1">
@@ -1365,8 +1366,34 @@ function GardnerScreen1({
         )}
       </div>
 
+      <NextButton onNext={onNext} canAdvance={canAdvance} />
+    </div>
+  );
+}
+
+/* ─── Screen 4: Music + Kinesthetic ───────────────────────────────────────────── */
+
+function MusicKinestheticScreen({
+  musicalSignals, kinestheticSignals, onMusicToggle, onKinesToggle, onNext, canAdvance, languageTier,
+}: {
+  musicalSignals: string[]; kinestheticSignals: string[];
+  onMusicToggle: (key: string) => void; onKinesToggle: (key: string) => void;
+  onNext: () => void; canAdvance: boolean;
+  languageTier: LanguageTier;
+}) {
+  const bubbleText = coachText(
+    'Now tell me about music and how you like to move! 🎵',
+    'Let\'s talk about music and how you learn best!',
+    'Tell me about your relationship with music and how you prefer to learn.',
+    languageTier,
+  );
+
+  return (
+    <div className="max-w-xl mx-auto w-full">
+      <CoachBubble text={bubbleText} />
+
       {/* Musical */}
-      <div className="mb-6 onb-card-in" style={{ animationDelay: '0.2s' }}>
+      <div className="mb-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
         <div className="flex items-center gap-2 mb-3">
           <MusicNotes size={18} weight="fill" className="text-teal" />
           <p className="text-text-primary font-medium text-sm">What&apos;s true for you about music? Pick everything that fits!</p>
@@ -1391,7 +1418,7 @@ function GardnerScreen1({
       </div>
 
       {/* Kinesthetic */}
-      <div className="mb-2 onb-card-in" style={{ animationDelay: '0.3s' }}>
+      <div className="mb-2 onb-card-in" style={{ animationDelay: '0.2s' }}>
         <div className="flex items-center gap-2 mb-3">
           <Sparkle size={18} weight="fill" className="text-teal" />
           <p className="text-text-primary font-medium text-sm">How do YOU learn new things best? Pick all that feel right!</p>
@@ -1445,6 +1472,26 @@ function GardnerScreen2({
     <div className="max-w-xl mx-auto w-full">
       <CoachBubble text={bubbleText} speak={speak} />
 
+      {/* Growth — moved here per Dottie's request */}
+      <div className="mb-5 onb-card-in" style={{ animationDelay: '0.05s' }}>
+        <div className="flex items-center gap-2 mb-2">
+          <Star size={18} weight="fill" className="text-teal" />
+          <label className="text-text-primary font-medium text-sm">What&apos;s one thing you want to get better at?</label>
+        </div>
+        <textarea
+          value={intrapersonalGrowth}
+          onChange={e => { if (e.target.value.length <= 1000) onGrowthChange(e.target.value); }}
+          placeholder="e.g., math, being more patient, public speaking..."
+          rows={2}
+          className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm"
+        />
+        <div className="flex items-center justify-between mt-1">
+          <VoiceInputButton onResult={text => onGrowthChange(intrapersonalGrowth ? `${intrapersonalGrowth} ${text}` : text)} />
+          <span className="text-xs text-text-muted">{intrapersonalGrowth.length} / 1000</span>
+        </div>
+        <p className="text-xs text-teal/70 mt-1 italic">The more you share, the more I get to know you! \u2728</p>
+      </div>
+
       {/* Interpersonal */}
       <div className="mb-5 onb-card-in" style={{ animationDelay: '0.1s' }}>
         <div className="flex items-center gap-2 mb-3">
@@ -1489,21 +1536,7 @@ function GardnerScreen2({
             </div>
             <p className="text-xs text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
           </div>
-          <div>
-            <label className="text-text-secondary text-xs mb-1 block">What&apos;s one thing you want to get better at?</label>
-            <textarea
-              value={intrapersonalGrowth}
-              onChange={e => { if (e.target.value.length <= 1000) onGrowthChange(e.target.value); }}
-              placeholder="e.g., math, being more patient, public speaking..."
-              rows={2}
-              className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm"
-            />
-            <div className="flex items-center justify-between mt-1">
-              <VoiceInputButton onResult={text => onGrowthChange(intrapersonalGrowth ? `${intrapersonalGrowth} ${text}` : text)} />
-              <span className="text-xs text-text-muted">{intrapersonalGrowth.length} / 1000</span>
-            </div>
-            <p className="text-xs text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
-          </div>
+
         </div>
       </div>
 
