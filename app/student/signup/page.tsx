@@ -78,6 +78,7 @@ export default function StudentSignupPage() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [sentAt, setSentAt] = useState('');
 
   // Validate class code against Supabase
   useEffect(() => {
@@ -167,6 +168,7 @@ export default function StudentSignupPage() {
       localStorage.setItem('pending_birth_year', birthYear);
       localStorage.setItem('pending_student_name', `${firstName.trim()} ${lastName.trim()}`);
 
+      setSentAt(new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }));
       setScreen(3);
     } catch {
       setError('Something went wrong. Please try again.');
@@ -517,6 +519,11 @@ export default function StudentSignupPage() {
               We sent a magic link to <strong className="text-text-primary">{email}</strong>.
               Click the link to sign in and join your class.
             </p>
+            {sentAt && (
+              <p className="text-xs text-text-muted mb-4">
+                Sent at {sentAt}
+              </p>
+            )}
             <div className="flex items-start gap-3 bg-card-bg dark:bg-[#1A2332] rounded-xl p-4 text-left mb-6">
               <CheckCircle size={20} weight="fill" className="text-teal flex-shrink-0 mt-0.5" />
               <div className="text-sm text-text-secondary">

@@ -84,6 +84,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sentAt, setSentAt] = useState('');
   const [error, setError] = useState('');
 
   async function handleMagicLink(e: React.FormEvent) {
@@ -110,6 +111,7 @@ export default function LoginPage() {
         return;
       }
 
+      setSentAt(new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }));
       setSent(true);
     } catch {
       setError('Something went wrong. Please try again.');
@@ -264,6 +266,11 @@ export default function LoginPage() {
               We sent a magic link to <span className="font-medium text-text-primary">{email}</span>.
               Click the link in your email to sign in.
             </p>
+            {sentAt && (
+              <p className="text-xs text-text-muted mb-4">
+                Sent at {sentAt}
+              </p>
+            )}
             <button
               onClick={() => { setSent(false); setEmail(''); setMode('options'); }}
               className="text-sm text-teal font-medium hover:underline"
