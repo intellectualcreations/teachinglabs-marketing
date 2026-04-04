@@ -58,7 +58,7 @@ export default function CertificatePage() {
           </p>
           <Link
             href="/student/dashboard"
-            className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+            className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-navy px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
           >
             <ArrowLeft size={16} weight="bold" />
             Back to Dashboard
@@ -87,7 +87,7 @@ export default function CertificatePage() {
         </Link>
         <button
           onClick={() => window.print()}
-          className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-5 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+          className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-navy px-5 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
         >
           <Printer size={16} weight="bold" />
           Print Certificate

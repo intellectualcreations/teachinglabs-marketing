@@ -28,7 +28,7 @@ interface CourseInfo {
 }
 
 const SUBJECT_COLORS: Record<string, string> = {
-  Math: 'bg-teal text-white',
+  Math: 'bg-teal text-navy',
   Science: 'bg-[#059669] text-white',
   English: 'bg-coral text-white',
   'Social Studies': 'bg-navy text-white',
@@ -169,7 +169,7 @@ export default function InstructorCourseDetailPage() {
               className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer border-0 ${
                 course.published
                   ? 'bg-gold/10 text-gold hover:bg-gold/20'
-                  : 'bg-teal text-white hover:bg-teal/90'
+                  : 'bg-teal text-navy hover:bg-teal/90'
               } disabled:opacity-50`}
             >
               {toggling

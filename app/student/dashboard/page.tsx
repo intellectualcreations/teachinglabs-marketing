@@ -317,7 +317,7 @@ export default function StudentDashboardPage() {
           <p className="text-sm text-text-secondary mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-5 py-2 bg-teal text-white rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors"
+            className="px-5 py-2 bg-teal text-navy rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors"
           >
             Try Again
           </button>
@@ -374,7 +374,7 @@ export default function StudentDashboardPage() {
         <nav className="px-2 py-2 border-b border-white/10 space-y-1">
           <Link
             href="/student/dashboard"
-            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-teal text-white font-semibold text-sm hover:bg-teal/90 transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-teal text-navy font-semibold text-sm hover:bg-teal/90 transition-colors"
           >
             <SquaresFour size={18} weight="fill" />
             Dashboard

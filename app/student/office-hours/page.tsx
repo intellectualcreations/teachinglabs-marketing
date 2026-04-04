@@ -210,7 +210,7 @@ export default function StudentOfficeHoursPage() {
               <button
                 type="submit"
                 disabled={submitting || !newQuestion.trim()}
-                className="px-4 py-2 rounded-lg bg-teal text-white text-sm font-semibold hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg bg-teal text-navy text-sm font-semibold hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 <PaperPlaneTilt size={16} />
                 {submitting ? 'Sending...' : 'Ask'}

@@ -235,7 +235,7 @@ export default function CourseViewerPage() {
           </p>
           <Link
             href="/student/dashboard"
-            className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+            className="inline-flex items-center font-heading text-sm font-bold bg-teal text-navy px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
           >
             Back to Dashboard
           </Link>
@@ -266,7 +266,7 @@ export default function CourseViewerPage() {
           </p>
           <Link
             href="/student/dashboard"
-            className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+            className="inline-flex items-center font-heading text-sm font-bold bg-teal text-navy px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
           >
             Back to Dashboard
           </Link>
@@ -556,7 +556,7 @@ export default function CourseViewerPage() {
                 <div className="flex items-center justify-center gap-3 mt-4">
                   <Link
                     href="/student/dashboard"
-                    className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                    className="inline-flex items-center font-heading text-sm font-bold bg-teal text-navy px-6 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
                   >
                     Back to Dashboard
                   </Link>
@@ -711,7 +711,7 @@ export default function CourseViewerPage() {
                           <div
                             className={`max-w-[80%] rounded-xl px-4 py-2.5 ${
                               msg.message_type === 'student'
-                                ? 'bg-teal text-white rounded-br-sm'
+                                ? 'bg-teal text-navy rounded-br-sm'
                                 : msg.message_type === 'teacher'
                                 ? 'bg-navy/10 text-text-primary rounded-bl-sm'
                                 : 'bg-border text-text-secondary rounded-bl-sm'

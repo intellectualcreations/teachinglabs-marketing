@@ -124,7 +124,7 @@ export default function AdminStandardsPage() {
         </div>
         <button
           onClick={() => setShowImport(!showImport)}
-          className="flex items-center gap-2 px-4 py-2 bg-teal text-white rounded-lg text-sm font-medium hover:bg-teal/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-teal text-navy rounded-lg text-sm font-medium hover:bg-teal/90 transition-colors"
         >
           <Upload size={18} />
           Import Standards

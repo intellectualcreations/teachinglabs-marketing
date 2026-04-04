@@ -403,7 +403,7 @@ export default function StudentSignupPage() {
             <button
               onClick={goToScreen2}
               disabled={!canProceed}
-              className="flex items-center justify-center gap-2 w-full py-3.5 bg-teal text-white font-heading font-semibold rounded-xl text-base hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-teal text-navy font-heading font-semibold rounded-xl text-base hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
               <ArrowRight size={18} weight="fill" />
@@ -482,7 +482,7 @@ export default function StudentSignupPage() {
             <button
               onClick={handleSignup}
               disabled={submitting}
-              className="flex items-center justify-center gap-2 w-full py-3.5 bg-teal text-white font-heading font-semibold rounded-xl text-base hover:bg-teal/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-teal text-navy font-heading font-semibold rounded-xl text-base hover:bg-teal/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>

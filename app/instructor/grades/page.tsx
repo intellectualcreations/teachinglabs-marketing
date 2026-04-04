@@ -168,7 +168,7 @@ export default function InstructorGradesPage() {
             onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               filter === f
-                ? 'bg-teal text-white'
+                ? 'bg-teal text-navy'
                 : 'bg-card-bg border border-border text-text-secondary hover:border-teal/40'
             }`}
           >
@@ -321,7 +321,7 @@ export default function InstructorGradesPage() {
                             <button
                               onClick={() => handleGrade(s.submissionId)}
                               disabled={submitting === s.submissionId}
-                              className="px-4 py-2 rounded-lg bg-teal text-white text-sm font-semibold hover:bg-teal/90 transition-colors disabled:opacity-50"
+                              className="px-4 py-2 rounded-lg bg-teal text-navy text-sm font-semibold hover:bg-teal/90 transition-colors disabled:opacity-50"
                             >
                               {submitting === s.submissionId ? 'Saving...' : 'Update'}
                             </button>
@@ -412,7 +412,7 @@ export default function InstructorGradesPage() {
                         <button
                           onClick={() => handleGrade(s.submissionId)}
                           disabled={submitting === s.submissionId || !scoreInputs[s.submissionId]}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-teal text-white text-sm font-semibold hover:bg-teal/90 transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-teal text-navy text-sm font-semibold hover:bg-teal/90 transition-colors disabled:opacity-50"
                         >
                           <PaperPlaneTilt size={16} weight="fill" />
                           {submitting === s.submissionId ? 'Submitting...' : 'Submit Grade'}

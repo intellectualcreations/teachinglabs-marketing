@@ -157,7 +157,7 @@ export default function StudentForumPage() {
           </h1>
           <button
             onClick={() => { setShowNewPost(true); setSelectedPost(null); }}
-            className="inline-flex items-center gap-1.5 font-heading text-sm font-bold bg-teal text-white px-4 py-2 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+            className="inline-flex items-center gap-1.5 font-heading text-sm font-bold bg-teal text-navy px-4 py-2 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
           >
             <Plus size={16} weight="bold" />
             New Post
@@ -190,7 +190,7 @@ export default function StudentForumPage() {
             <button
               onClick={handleCreatePost}
               disabled={!newTitle.trim() || !newBody.trim() || submitting}
-              className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-5 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-navy px-5 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Posting...' : 'Post'}
             </button>
@@ -259,7 +259,7 @@ export default function StudentForumPage() {
                 <button
                   onClick={handleReply}
                   disabled={!replyBody.trim() || submitting}
-                  className="self-end inline-flex items-center gap-1.5 font-heading text-sm font-bold bg-teal text-white px-4 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                  className="self-end inline-flex items-center gap-1.5 font-heading text-sm font-bold bg-teal text-navy px-4 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                 >
                   <PaperPlaneTilt size={14} weight="fill" />
                   Reply
