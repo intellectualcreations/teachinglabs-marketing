@@ -328,7 +328,7 @@ export default function ClassChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ class_id: classId, content: messageContent }),
+        body: JSON.stringify({ class_id: classId, content: messageContent, user_id: userId }),
       });
 
       if (res.ok) {

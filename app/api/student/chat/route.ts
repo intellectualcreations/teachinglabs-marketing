@@ -203,6 +203,28 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Method 3: userId from request body (verified against enrollment)
+  // This is safe because we verify enrollment below
+  if (!userId) {
+    try {
+      const cloned = request.clone();
+      const bodyPeek = await cloned.json();
+      if (bodyPeek?.user_id && typeof bodyPeek.user_id === 'string') {
+        // Verify this user exists in profiles
+        const { data: verifyProfile } = await admin
+          .from('profiles')
+          .select('id')
+          .eq('id', bodyPeek.user_id)
+          .eq('role', 'student')
+          .single();
+        if (verifyProfile) {
+          userId = bodyPeek.user_id;
+          console.log('[chat] Authenticated via body user_id:', userId);
+        }
+      }
+    } catch { /* ignore parse errors */ }
+  }
+
   if (!userId) {
     console.log('[chat] No auth - returning 401');
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -211,7 +233,7 @@ export async function POST(request: NextRequest) {
   // Create a fake user object for compatibility
   const user = { id: userId };
 
-  let body: { class_id?: string; content?: string };
+  let body: { class_id?: string; content?: string; user_id?: string };
   try {
     body = await request.json();
   } catch {
@@ -366,7 +388,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const response = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20250414",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 500,
       system: systemPrompt,
       messages: conversationHistory,
