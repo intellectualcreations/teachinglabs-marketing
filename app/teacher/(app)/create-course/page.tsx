@@ -279,12 +279,11 @@ export default function CreateCoursePage() {
               <select
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-3 py-2.5 bg-white text-gray-900 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-colors"
-                style={{ colorScheme: 'light' }}
+                className="w-full px-3 py-2.5 bg-card-bg border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal transition-colors [&>option]:bg-white [&>option]:text-gray-900"
               >
-                <option value="">Select a subject...</option>
+                <option value="" className="bg-white text-gray-900">Select a subject...</option>
                 {SUBJECTS.map((s) => (
-                  <option key={s.value} value={s.value} style={{ backgroundColor: '#fff', color: '#111' }}>
+                  <option key={s.value} value={s.value} className="bg-white text-gray-900">
                     {s.label}
                   </option>
                 ))}
@@ -320,7 +319,7 @@ export default function CreateCoursePage() {
               </div>
               <button
                 onClick={addModule}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-teal text-white text-sm font-medium rounded-lg hover:bg-teal/90 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-navy text-white text-sm font-medium rounded-lg hover:bg-navy/90 transition-colors"
               >
                 <Plus size={14} weight="bold" />
                 Add Module
@@ -504,7 +503,7 @@ export default function CreateCoursePage() {
           <button
             onClick={nextStep}
             disabled={!canAdvance()}
-            className="flex items-center gap-1.5 px-5 py-2.5 bg-teal text-white text-sm font-medium rounded-lg hover:bg-teal/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1.5 px-5 py-2.5 bg-navy text-white text-sm font-medium rounded-lg hover:bg-navy/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             Continue
             <ArrowRight size={16} weight="bold" />
@@ -513,7 +512,7 @@ export default function CreateCoursePage() {
           <button
             onClick={handleCreate}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-teal text-white text-sm font-medium rounded-lg hover:bg-teal/90 disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 px-6 py-2.5 bg-navy text-white text-sm font-medium rounded-lg hover:bg-navy/90 disabled:opacity-60 transition-colors"
           >
             {saving ? (
               <>
