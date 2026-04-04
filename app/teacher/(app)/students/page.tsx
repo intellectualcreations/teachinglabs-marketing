@@ -10,7 +10,8 @@ import { createClient } from '@/lib/supabase/client';
 import type { Profile, Class } from '@/lib/supabase/types';
 
 /* ─── Types ─── */
-type SortOption = 'name-az' | 'name-za' | 'enrollment';
+type SortOption = 'first-az' | 'first-za' | 'last-az' | 'last-za' | 'enrollment';
+type NameFormat = 'first-last' | 'last-first';
 
 interface StudentRow {
   id: string;
@@ -31,8 +32,10 @@ const AVATAR_COLORS = [
 ];
 
 const SORT_LABELS: Record<SortOption, string> = {
-  'name-az': 'Name A-Z',
-  'name-za': 'Name Z-A',
+  'first-az': 'First Name A–Z',
+  'first-za': 'First Name Z–A',
+  'last-az': 'Last Name A–Z',
+  'last-za': 'Last Name Z–A',
   enrollment: 'Enrollment Date',
 };
 
@@ -54,7 +57,8 @@ function StudentsContent() {
   // State
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState<string>(classParam ?? 'all');
-  const [sort, setSort] = useState<SortOption>('name-az');
+  const [sort, setSort] = useState<SortOption>('first-az');
+  const [nameFormat, setNameFormat] = useState<NameFormat>('first-last');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -158,11 +162,17 @@ function StudentsContent() {
 
     list = [...list];
     switch (sort) {
-      case 'name-az':
-        list.sort((a, b) => `${a.last} ${a.first}`.localeCompare(`${b.last} ${b.first}`));
+      case 'first-az':
+        list.sort((a, b) => a.first.localeCompare(b.first) || a.last.localeCompare(b.last));
         break;
-      case 'name-za':
-        list.sort((a, b) => `${b.last} ${b.first}`.localeCompare(`${a.last} ${a.first}`));
+      case 'first-za':
+        list.sort((a, b) => b.first.localeCompare(a.first) || b.last.localeCompare(a.last));
+        break;
+      case 'last-az':
+        list.sort((a, b) => a.last.localeCompare(b.last) || a.first.localeCompare(b.first));
+        break;
+      case 'last-za':
+        list.sort((a, b) => b.last.localeCompare(a.last) || b.first.localeCompare(a.first));
         break;
       case 'enrollment':
         list.sort((a, b) => new Date(b.enrolledAt).getTime() - new Date(a.enrolledAt).getTime());
@@ -245,6 +255,15 @@ function StudentsContent() {
               className="w-full pl-[38px] pr-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm bg-card-bg text-text-primary outline-none focus:border-navy"
             />
           </div>
+
+          {/* Name format toggle */}
+          <button
+            onClick={() => setNameFormat(nameFormat === 'first-last' ? 'last-first' : 'first-last')}
+            className="flex items-center gap-2 px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm text-text-secondary hover:border-navy cursor-pointer"
+            title={nameFormat === 'first-last' ? 'Switch to Last, First' : 'Switch to First Last'}
+          >
+            {nameFormat === 'first-last' ? 'First Last' : 'Last, First'}
+          </button>
 
           {/* Sort dropdown */}
           <div className="relative">
@@ -345,7 +364,9 @@ function StudentsContent() {
                         >
                           {getInitials(s.first, s.last)}
                         </div>
-                        <span className="font-semibold text-sm text-text-primary">{s.first} {s.last}</span>
+                        <span className="font-semibold text-sm text-text-primary">
+                          {nameFormat === 'last-first' ? `${s.last}, ${s.first}` : `${s.first} ${s.last}`}
+                        </span>
                       </a>
                     </td>
                     <td className="px-3 py-3">
