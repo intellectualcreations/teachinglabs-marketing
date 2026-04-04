@@ -22,6 +22,7 @@ interface StudentRow {
   classIds: string[];
   enrolledAt: string;
   baselineDate: string | null;
+  preferredName: string | null;
   color: string;
   studentNumber: string | null;
 }
@@ -98,7 +99,11 @@ function StudentsContent() {
         teacherClasses.forEach((c) => classNameMap.set(c.id, c.name));
 
         const assessmentMap = new Map<string, string>();
-        assessmentsList.forEach((a) => assessmentMap.set(a.student_id, a.completed_at));
+        const preferredNameMap = new Map<string, string>();
+        assessmentsList.forEach((a: { student_id: string; completed_at: string; preferred_name?: string }) => {
+          assessmentMap.set(a.student_id, a.completed_at);
+          if (a.preferred_name) preferredNameMap.set(a.student_id, a.preferred_name);
+        });
 
         // Group enrollments by student (dedup across classes)
         const studentMap = new Map<string, StudentRow>();
@@ -123,6 +128,7 @@ function StudentsContent() {
               classIds: [e.class_id],
               enrolledAt: e.enrolled_at,
               baselineDate: assessmentMap.get(e.student_id) ?? null,
+              preferredName: preferredNameMap.get(e.student_id) ?? null,
               color: AVATAR_COLORS[i % AVATAR_COLORS.length],
               studentNumber: null,
             });
@@ -339,6 +345,7 @@ function StudentsContent() {
                     />
                   </th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Student</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Preferred Name</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Classes</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Enrolled</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Last Baseline</th>
@@ -368,6 +375,12 @@ function StudentsContent() {
                           {nameFormat === 'last-first' ? `${s.last}, ${s.first}` : `${s.first} ${s.last}`}
                         </span>
                       </a>
+                    </td>
+                    <td className="px-3 py-3 text-sm text-text-secondary">
+                      {s.preferredName
+                        ? <span className={s.preferredName.toLowerCase() !== s.first.toLowerCase() ? 'text-amber-600 font-medium' : ''}>{s.preferredName}</span>
+                        : <span className="text-text-muted">—</span>
+                      }
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-1">

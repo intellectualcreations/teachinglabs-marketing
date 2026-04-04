@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     try {
       const { data: assessmentData } = await supabase
         .from('student_assessments')
-        .select('student_id, completed_at')
+        .select('student_id, completed_at, preferred_name')
         .in('student_id', studentIds);
       assessments = (assessmentData ?? []) as { student_id: string; completed_at: string }[];
     } catch {
