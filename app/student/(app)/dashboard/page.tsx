@@ -266,8 +266,9 @@ export default function StudentDashboardPage() {
         const enrichedClasses: EnrichedClass[] = classRows.map(cls => {
           const iconInfo = getIconForClass(cls.icon);
           const teacher = teacherMap.get(cls.teacher_id);
-          const teacher2 = teacher as (Profile & { email?: string }) | undefined;
-          const teacherName = (teacher2 as { preferred_name?: string })?.preferred_name || teacher2?.display_name || teacher2?.email?.split('@')[0] || 'Teacher';
+          const teacher2 = teacher as (Profile & { preferred_name?: string; email?: string }) | undefined;
+          console.log('[dashboard] cls:', cls.name, 'teacher_id:', cls.teacher_id, 'teacher:', JSON.stringify(teacher2));
+          const teacherName = teacher2?.preferred_name || teacher2?.display_name || teacher2?.email?.split('@')[0] || 'Teacher';
           const classAssignments = assignments.filter(a => a.class_id === cls.id);
           const completedAssignments = classAssignments.filter(a => submittedAssignmentIds.has(a.id)).length;
           const totalAssignments = classAssignments.length;

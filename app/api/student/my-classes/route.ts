@@ -76,6 +76,8 @@ export async function GET(request: NextRequest) {
     .select('id, display_name, preferred_name, email')
     .in('id', teacherIds);
 
+  console.log('[my-classes] teacherIds:', teacherIds, 'teachers:', JSON.stringify(teachers));
+
   // Fetch assignments
   const { data: assignments } = await admin
     .from('assignments')

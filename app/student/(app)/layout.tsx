@@ -218,12 +218,9 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
         </button>
 
         {/* Logo */}
-        <div className="px-4 py-4 border-b border-white/10 flex items-center gap-2.5">
-          <img src="/images/logo-icon.svg" alt="TeachingLabs" className="w-8 h-8 flex-shrink-0" />
-          <div className="flex flex-col justify-center">
-            <div className="font-heading font-bold text-sm text-white leading-tight">TeachingLabs</div>
-            <div className="text-xs text-white/50 leading-tight">{studentName ? `${studentName}'s Learning Portal` : 'Learning Portal'}</div>
-          </div>
+        <div className="px-4 py-4 border-b border-white/10 flex flex-col items-center">
+          <img src="/images/logo-stacked-dark.png" alt="TeachingLabs" className="h-14 mb-1" />
+          <div className="text-xs text-white/50 leading-tight">{studentName ? `${studentName}'s Learning Portal` : 'Learning Portal'}</div>
         </div>
 
         {/* Nav */}
