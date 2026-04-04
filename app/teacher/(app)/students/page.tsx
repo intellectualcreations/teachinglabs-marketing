@@ -18,6 +18,7 @@ interface StudentRow {
   first: string;
   last: string;
   classNames: string[];
+  classIds: string[];
   enrolledAt: string;
   color: string;
   studentNumber: string | null;
@@ -96,7 +97,8 @@ function StudentsContent() {
           const existing = studentMap.get(e.student_id);
           const className = classNameMap.get(e.class_id) ?? 'Unknown';
           if (existing) {
-            if (!existing.classNames.includes(className)) {
+            if (!existing.classIds.includes(e.class_id)) {
+              existing.classIds.push(e.class_id);
               existing.classNames.push(className);
             }
           } else {
@@ -109,6 +111,7 @@ function StudentsContent() {
               first: parts[0] ?? '',
               last: parts.slice(1).join(' ') || '',
               classNames: [className],
+              classIds: [e.class_id],
               enrolledAt: e.enrolled_at,
               color: AVATAR_COLORS[i % AVATAR_COLORS.length],
               studentNumber: null,
@@ -135,15 +138,10 @@ function StudentsContent() {
     }
   }, [classParam, classes]);
 
-  const filterClassName = useMemo(() => {
-    if (classFilter === 'all') return null;
-    return classes.find((c) => c.id === classFilter)?.name ?? null;
-  }, [classFilter, classes]);
-
   // Filtered + sorted students
   const filtered = useMemo(() => {
     let list = students.filter((s) => {
-      if (filterClassName && !s.classNames.includes(filterClassName)) return false;
+      if (classFilter !== 'all' && !s.classIds.includes(classFilter)) return false;
       if (search) {
         const q = search.toLowerCase();
         const name = `${s.first} ${s.last}`.toLowerCase();
@@ -165,7 +163,7 @@ function StudentsContent() {
         break;
     }
     return list;
-  }, [students, filterClassName, search, sort]);
+  }, [students, classFilter, search, sort]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -200,6 +198,7 @@ function StudentsContent() {
     );
   }
 
+  const filterClassName = classFilter !== 'all' ? (classes.find((c) => c.id === classFilter)?.name ?? null) : null;
   const title = filterClassName ? `Manage Students — ${filterClassName}` : 'Manage Students';
 
   return (
@@ -332,7 +331,7 @@ function StudentsContent() {
                       />
                     </td>
                     <td className="px-3 py-3">
-                      <div className="flex items-center gap-3">
+                      <a href={`/teacher/student-detail?student=${s.id}`} className="flex items-center gap-3 no-underline cursor-pointer hover:opacity-80">
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                           style={{ backgroundColor: s.color }}
@@ -340,7 +339,7 @@ function StudentsContent() {
                           {getInitials(s.first, s.last)}
                         </div>
                         <span className="font-semibold text-sm text-text-primary">{s.first} {s.last}</span>
-                      </div>
+                      </a>
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-1">
