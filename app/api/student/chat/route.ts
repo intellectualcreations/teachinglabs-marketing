@@ -7,6 +7,177 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+/* ─── Types ─── */
+interface TeacherSoul {
+  teaching_style: string;
+  classroom_vibe: string[];
+  feedback_approach: string;
+  mistake_response: string;
+  assistant_priorities: string[];
+  twin_archetype: string;
+  twin_traits: {
+    style: string;
+    energy: string;
+    approach: string;
+    strengths: string[];
+  };
+  scenario_responses?: {
+    northStar?: string;
+  };
+  why_learn_response?: string;
+}
+
+interface StudentAssessment {
+  preferred_name: string | null;
+  age: number | null;
+  interests: string[] | null;
+  other_interests: string | null;
+  reading_level: string | null;
+  math_level: string | null;
+  language_tier: string | null;
+  math_performance_q1: string | null;
+  math_performance_q2: string | null;
+  multiple_intelligences: Record<string, string> | null;
+  logic_reasoning_level: string | null;
+  emotional_intelligence_signals: Record<string, string> | null;
+}
+
+/* ─── Build system prompt ─── */
+function buildSystemPrompt(
+  studentName: string,
+  className: string,
+  subject: string,
+  gradeLevel: string,
+  classDesc: string,
+  teacherName: string,
+  teacherSoul: TeacherSoul | null,
+  studentAssessment: StudentAssessment | null,
+): string {
+  // Language tier mapping
+  const languageTierMap: Record<string, string> = {
+    young: "Use very simple words, short sentences, and a warm, playful tone. Think 1st-2nd grade level. Use encouragement like 'Great job!' and 'You got this!'",
+    developing: "Use clear, simple language with some variety. Think 3rd-5th grade level. Be encouraging and patient. Use relatable examples from everyday life.",
+    intermediate: "Use grade-appropriate vocabulary. Think 6th-8th grade level. Be conversational but still supportive. You can use more complex explanations.",
+    advanced: "Use sophisticated but accessible language. Think 9th-12th grade level. Be respectful of their maturity. You can discuss concepts at a deeper level.",
+  };
+
+  const languageGuidance = studentAssessment?.language_tier
+    ? languageTierMap[studentAssessment.language_tier] || languageTierMap.developing
+    : gradeLevel
+      ? parseInt(gradeLevel) <= 2
+        ? languageTierMap.young
+        : parseInt(gradeLevel) <= 5
+          ? languageTierMap.developing
+          : parseInt(gradeLevel) <= 8
+            ? languageTierMap.intermediate
+            : languageTierMap.advanced
+      : languageTierMap.developing;
+
+  // Student strengths from multiple intelligences
+  let strengthsNote = "";
+  if (studentAssessment?.multiple_intelligences) {
+    const mi = studentAssessment.multiple_intelligences;
+    const strong = Object.entries(mi)
+      .filter(([k, v]) => v === "strong" && !k.includes("_raw"))
+      .map(([k]) => k.replace(/_/g, " "));
+    const lower = Object.entries(mi)
+      .filter(([k, v]) => v === "lower" && !k.includes("_raw"))
+      .map(([k]) => k.replace(/_/g, " "));
+    if (strong.length) strengthsNote += `Strong in: ${strong.join(", ")}. `;
+    if (lower.length) strengthsNote += `Working on: ${lower.join(", ")}. `;
+  }
+
+  // Student interests
+  const interests = [
+    ...(studentAssessment?.interests || []),
+    ...(studentAssessment?.other_interests ? [studentAssessment.other_interests] : []),
+  ].filter(Boolean);
+
+  // Teacher soul guidance
+  let teacherVoice = "";
+  if (teacherSoul) {
+    const traits = teacherSoul.twin_traits;
+    teacherVoice = `
+TEACHER VOICE & STYLE:
+You are embodying the teaching style of ${teacherName} (archetype: "${teacherSoul.twin_archetype}").
+- Energy: ${traits.energy}
+- Teaching approach: ${traits.style}
+- Feedback style: ${traits.approach}
+- Core strengths: ${traits.strengths.join(", ")}
+- Classroom vibe: ${teacherSoul.classroom_vibe.join(", ")}
+${teacherSoul.scenario_responses?.northStar ? `- North star: ${teacherSoul.scenario_responses.northStar}` : ""}
+
+When the student makes a mistake, channel ${teacherName}'s approach: ${teacherSoul.mistake_response.substring(0, 300)}
+
+Match ${teacherName}'s energy level (${traits.energy}) and feedback style (${teacherSoul.feedback_approach}) in every response.`;
+  }
+
+  return `You are the AI Teaching Twin for ${teacherName}'s ${className} class on TeachingLabs, a K-12 education platform.
+
+STUDENT PROFILE:
+- Name: ${studentName}
+${studentAssessment?.age ? `- Age: ${studentAssessment.age}` : ""}
+- Class: ${className} (${subject})${gradeLevel ? ` — Grade ${gradeLevel}` : ""}
+${classDesc ? `- Class description: ${classDesc}` : ""}
+${studentAssessment?.reading_level ? `- Reading level: ${studentAssessment.reading_level}` : ""}
+${studentAssessment?.math_level ? `- Math level: ${studentAssessment.math_level}` : ""}
+${studentAssessment?.logic_reasoning_level ? `- Logic/reasoning: ${studentAssessment.logic_reasoning_level}` : ""}
+${strengthsNote ? `- Learning profile: ${strengthsNote}` : ""}
+${interests.length ? `- Interests: ${interests.join(", ")}` : ""}
+
+LANGUAGE LEVEL (CRITICAL):
+${languageGuidance}
+${studentAssessment?.age ? `This student is ${studentAssessment.age} years old. Your vocabulary, sentence complexity, and tone MUST match this age.` : ""}
+${teacherVoice}
+
+CORE RULES (NON-NEGOTIABLE):
+
+1. NEVER GIVE ANSWERS DIRECTLY.
+   - You are a coach, not an answer machine
+   - Guide with questions: "What do you think happens when...?" "Can you try...?"
+   - Break problems into smaller steps and walk alongside the student
+   - If they ask "What's the answer?", respond with a guiding question
+   - Celebrate when they figure it out themselves
+
+2. BRAIN-BASED LEARNING SCIENCE:
+   - Use retrieval practice: "Before we look at this, what do you remember about...?"
+   - Spaced repetition: reference topics from earlier conversations
+   - Productive struggle: give hints, not answers. Struggle builds learning
+   - Metacognition: "What part makes sense? What part is confusing?"
+   - Growth mindset: "You don't understand this YET" / "Mistakes mean you're learning"
+   - Praise effort and strategy, not just results
+
+3. DETECT AND HANDLE COPIED CONTENT:
+   - If a student sends an unusually long, formal, or sophisticated response that doesn't match their language tier (${studentAssessment?.language_tier || "unknown"}), gently ask:
+     "That's a really detailed answer! Can you tell me in your own words what that means?"
+   - If it reads like AI-generated text (perfect grammar, formal structure, overly comprehensive), redirect:
+     "I'd love to hear YOUR thinking on this. What's the main idea in your own words?"
+   - Never accuse. Always redirect to understanding.
+
+4. STAY ON TOPIC:
+   - Focus on ${subject} and related learning
+   - If they go off-topic, gently bring it back: "That's interesting! Now let's get back to..."
+   - Use their interests (${interests.join(", ") || "their world"}) to make connections to the subject
+
+5. SAFETY (K-12 ENVIRONMENT):
+   - All content must be age-appropriate for ${studentAssessment?.age ? `a ${studentAssessment.age}-year-old` : "a K-12 student"}
+   - Never discuss inappropriate content
+   - If a student shares something concerning (bullying, harm, etc.), say: "That sounds important. I think ${teacherName} would want to know about this. Would you feel comfortable talking to them?"
+   - Protect student privacy. Never ask for personal information
+
+6. RESPONSE FORMAT:
+   - Keep responses SHORT. Most under 100 words unless explaining a complex concept
+   - Use bullet points or numbered steps for processes
+   - Ask ONE question at a time (don't overwhelm)
+   - Include encouragement naturally
+   - Use the student's name sometimes
+
+7. DATA PRIVACY:
+   - This conversation is saved and visible to ${teacherName}
+   - Do not train on or retain any student data outside this conversation
+   - Never reference other students or share any student information`;
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const admin = createAdminClient();
@@ -41,7 +212,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Verify student is enrolled in this class
+  // Verify student is enrolled
   const { data: enrollment } = await admin
     .from("enrollments")
     .select("id")
@@ -57,16 +228,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Fetch class info for context
-  const { data: classData } = await admin
+  // Fetch class info
+  const { data: classRaw } = await admin
     .from("classes")
     .select("name, subject, grade_level, description, teacher_id")
     .eq("id", class_id)
     .single();
+  const classInfo = classRaw as {
+    name: string;
+    subject: string | null;
+    grade_level: string | null;
+    description: string | null;
+    teacher_id: string | null;
+  } | null;
 
-  const classInfo = classData as { name: string; subject: string | null; grade_level: string | null; description: string | null; teacher_id: string | null } | null;
-
+  // Fetch teacher profile and soul
   let teacherName = "your teacher";
+  let teacherSoul: TeacherSoul | null = null;
+
   if (classInfo?.teacher_id) {
     const { data: tp } = await admin
       .from("profiles")
@@ -75,14 +254,21 @@ export async function POST(request: NextRequest) {
       .single();
     const teacherProfile = tp as { preferred_name: string | null; display_name: string | null } | null;
     if (teacherProfile) {
-      teacherName =
-        teacherProfile.preferred_name ||
-        teacherProfile.display_name ||
-        "your teacher";
+      teacherName = teacherProfile.preferred_name || teacherProfile.display_name || "your teacher";
+    }
+
+    // Fetch teacher soul
+    const { data: soulRaw } = await admin
+      .from("teacher_souls")
+      .select("*")
+      .eq("teacher_id", classInfo.teacher_id)
+      .single();
+    if (soulRaw) {
+      teacherSoul = soulRaw as unknown as TeacherSoul;
     }
   }
 
-  // Fetch student info
+  // Fetch student profile and assessment
   const { data: sp } = await admin
     .from("profiles")
     .select("preferred_name, display_name")
@@ -90,21 +276,20 @@ export async function POST(request: NextRequest) {
     .single();
   const studentProfile = sp as { preferred_name: string | null; display_name: string | null } | null;
 
-  let studentPreferredName = "";
-  // Also check assessment for preferred name
-  const { data: assessmentData } = await admin
+  const { data: assessmentRaw } = await admin
     .from("student_assessments")
-    .select("preferred_name")
+    .select("*")
     .eq("student_id", user.id)
     .single();
+  const studentAssessment = assessmentRaw as StudentAssessment | null;
 
-  studentPreferredName =
-    (assessmentData as { preferred_name?: string } | null)?.preferred_name ||
+  const studentPreferredName =
+    studentAssessment?.preferred_name ||
     studentProfile?.preferred_name ||
     studentProfile?.display_name?.split(" ")[0] ||
     "Student";
 
-  // Insert student message first
+  // Insert student message
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: studentMsg, error: studentErr } = await (
     admin.from("chat_messages") as any
@@ -125,16 +310,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Fetch recent conversation history for context (last 20 messages)
+  // Fetch recent conversation history (last 30 messages for context)
   const { data: recentMessages } = await admin
     .from("chat_messages")
     .select("content, message_type, created_at")
     .eq("class_id", class_id)
     .or(`sender_id.eq.${user.id},message_type.eq.ai`)
     .order("created_at", { ascending: true })
-    .limit(20);
+    .limit(30);
 
-  // Build conversation history for Claude
+  // Build conversation for Claude
   const conversationHistory: { role: "user" | "assistant"; content: string }[] =
     (recentMessages ?? []).map(
       (msg: { content: string; message_type: string }) => ({
@@ -146,47 +331,19 @@ export async function POST(request: NextRequest) {
       }),
     );
 
-  // Build system prompt
-  const className = classInfo?.name || "this class";
-  const subject = classInfo?.subject || "general studies";
-  const gradeLevel = classInfo?.grade_level || "";
-  const classDesc = classInfo?.description || "";
-
-  const systemPrompt = `You are a friendly, encouraging AI tutor for TeachingLabs, a K-12 education platform.
-
-STUDENT: ${studentPreferredName}
-CLASS: ${className}
-SUBJECT: ${subject}${gradeLevel ? ` (Grade ${gradeLevel})` : ""}
-TEACHER: ${teacherName}
-${classDesc ? `CLASS DESCRIPTION: ${classDesc}` : ""}
-
-YOUR ROLE:
-- You are a patient, encouraging tutor who helps students learn
-- Adapt your language to be age-appropriate for ${gradeLevel || "K-12"} students
-- Be warm and supportive. Celebrate effort and progress
-- When explaining concepts, use simple language and relatable examples
-- Ask guiding questions to help students think through problems rather than just giving answers
-- If a student seems stuck, break things into smaller steps
-- Keep responses concise but helpful. Students have short attention spans
-- Use the student's name occasionally to keep it personal
-- Stay focused on the class subject (${subject}) but be flexible if they need general help
-- Never be condescending. Treat every question as valid
-- If you don't know something, say so honestly
-
-SAFETY:
-- This is a K-12 educational environment. Keep all content age-appropriate
-- Do not discuss anything inappropriate for school settings
-- If asked about non-educational topics, gently redirect to learning
-- Protect student privacy. Never ask for personal information beyond what's needed for learning
-
-FORMAT:
-- Use short paragraphs. Break up long explanations
-- Use bullet points or numbered steps when explaining processes
-- Include encouragement naturally
-- Keep most responses under 150 words unless the student asks for detailed explanation`;
+  // Build the system prompt with all context
+  const systemPrompt = buildSystemPrompt(
+    studentPreferredName,
+    classInfo?.name || "this class",
+    classInfo?.subject || "general studies",
+    classInfo?.grade_level || "",
+    classInfo?.description || "",
+    teacherName,
+    teacherSoul,
+    studentAssessment,
+  );
 
   try {
-    // Call Claude for AI response
     const response = await anthropic.messages.create({
       model: "claude-haiku-4-5-20250414",
       max_tokens: 500,
@@ -197,9 +354,9 @@ FORMAT:
     const aiContent =
       response.content[0].type === "text"
         ? response.content[0].text
-        : "I'm here to help! What would you like to learn about?";
+        : "I'm here to help! What would you like to explore?";
 
-    // Save AI response to DB
+    // Save AI response
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: aiMsg } = await (admin.from("chat_messages") as any)
       .insert({
@@ -218,7 +375,6 @@ FORMAT:
   } catch (err) {
     console.error("[chat] AI error:", err);
 
-    // Fallback if AI fails
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: aiMsg } = await (admin.from("chat_messages") as any)
       .insert({
