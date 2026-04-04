@@ -20,6 +20,7 @@ interface StudentRow {
   classNames: string[];
   classIds: string[];
   enrolledAt: string;
+  baselineDate: string | null;
   color: string;
   studentNumber: string | null;
 }
@@ -78,6 +79,7 @@ function StudentsContent() {
 
         const enrollments = (data.enrollments ?? []) as Array<{ student_id: string; class_id: string; enrolled_at: string; status: string }>;
         const studentProfilesList = (data.students ?? []) as Profile[];
+        const assessmentsList = (data.assessments ?? []) as Array<{ student_id: string; completed_at: string }>;
 
         if (teacherClasses.length === 0 || enrollments.length === 0) {
           setStudents([]);
@@ -90,6 +92,9 @@ function StudentsContent() {
 
         const classNameMap = new Map<string, string>();
         teacherClasses.forEach((c) => classNameMap.set(c.id, c.name));
+
+        const assessmentMap = new Map<string, string>();
+        assessmentsList.forEach((a) => assessmentMap.set(a.student_id, a.completed_at));
 
         // Group enrollments by student (dedup across classes)
         const studentMap = new Map<string, StudentRow>();
@@ -113,6 +118,7 @@ function StudentsContent() {
               classNames: [className],
               classIds: [e.class_id],
               enrolledAt: e.enrolled_at,
+              baselineDate: assessmentMap.get(e.student_id) ?? null,
               color: AVATAR_COLORS[i % AVATAR_COLORS.length],
               studentNumber: null,
             });
@@ -316,6 +322,7 @@ function StudentsContent() {
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Student</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Classes</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Enrolled</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Last Baseline</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border w-10"></th>
                 </tr>
               </thead>
@@ -352,6 +359,12 @@ function StudentsContent() {
                     </td>
                     <td className="px-3 py-3 text-sm text-text-secondary">
                       {new Date(s.enrolledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-text-secondary">
+                      {s.baselineDate
+                        ? new Date(s.baselineDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : <span className="text-text-muted">—</span>
+                      }
                     </td>
                     <td className="px-3 py-3 relative">
                       <button

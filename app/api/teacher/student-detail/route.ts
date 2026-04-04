@@ -31,12 +31,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
-    // 2. Get student assessment data
-    const { data: assessment } = await supabase
-      .from('student_assessments')
-      .select('*')
-      .eq('student_id', studentId)
-      .single();
+    // 2. Get student assessment data (table may not exist yet)
+    let assessment = null;
+    try {
+      const { data: assessmentData } = await supabase
+        .from('student_assessments')
+        .select('*')
+        .eq('student_id', studentId)
+        .single();
+      assessment = assessmentData;
+    } catch {
+      // Table may not exist yet
+    }
 
     // 3. Get enrollments for this student in this teacher's classes
     const { data: classes } = await supabase

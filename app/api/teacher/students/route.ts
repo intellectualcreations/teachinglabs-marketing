@@ -55,10 +55,23 @@ export async function GET(request: NextRequest) {
       .select('*')
       .in('id', studentIds);
 
+    // Fetch baseline assessment completion dates (table may not exist yet)
+    let assessments: { student_id: string; completed_at: string }[] = [];
+    try {
+      const { data: assessmentData } = await supabase
+        .from('student_assessments')
+        .select('student_id, completed_at')
+        .in('student_id', studentIds);
+      assessments = (assessmentData ?? []) as { student_id: string; completed_at: string }[];
+    } catch {
+      // Table may not exist yet — return empty
+    }
+
     return NextResponse.json({
       classes: teacherClasses,
       students: studentProfiles ?? [],
       enrollments,
+      assessments: assessments ?? [],
     });
   } catch (err) {
     console.error('Students API error:', err);
