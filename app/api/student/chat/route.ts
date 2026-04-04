@@ -179,16 +179,37 @@ CORE RULES (NON-NEGOTIABLE):
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
   const admin = createAdminClient();
+  let userId: string | null = null;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Method 1: Cookie-based session
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: cookieErr } = await supabase.auth.getUser();
+    if (user) userId = user.id;
+    if (cookieErr) console.log('[chat] Cookie auth error:', cookieErr.message);
+  } catch (err) {
+    console.log('[chat] Cookie auth exception:', err);
+  }
 
-  if (!user) {
+  // Method 2: Authorization header fallback
+  if (!userId) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.slice(7);
+      const { data: { user }, error } = await admin.auth.getUser(token);
+      if (!error && user) userId = user.id;
+      if (error) console.log('[chat] Token auth error:', error.message);
+    }
+  }
+
+  if (!userId) {
+    console.log('[chat] No auth - returning 401');
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Create a fake user object for compatibility
+  const user = { id: userId };
 
   let body: { class_id?: string; content?: string };
   try {

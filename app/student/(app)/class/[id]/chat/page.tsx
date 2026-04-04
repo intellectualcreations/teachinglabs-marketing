@@ -324,16 +324,10 @@ export default function ClassChatPage() {
     setIsTyping(true);
 
     try {
-      const supabase = createClient();
-      const { data: { session: sess } } = await supabase.auth.getSession();
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (sess?.access_token) {
-        headers['Cookie'] = `sb-access-token=${sess.access_token}`;
-      }
-
       const res = await fetch('/api/student/chat', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ class_id: classId, content: messageContent }),
       });
 
