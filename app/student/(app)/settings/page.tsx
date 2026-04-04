@@ -163,23 +163,25 @@ export default function StudentSettingsPage() {
               </div>
 
               {/* Save button */}
-              {isDirty && (
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-5 py-2 text-sm font-medium bg-teal text-navy rounded-lg hover:bg-teal/90 transition-colors flex items-center gap-2"
-                >
-                  {saved ? (
-                    <>
-                      <span className="text-green-800">✓</span> Saved!
-                    </>
-                  ) : saving ? (
-                    'Saving...'
-                  ) : (
-                    'Save Changes'
-                  )}
-                </button>
-              )}
+              <button
+                onClick={handleSave}
+                disabled={saving || !isDirty}
+                className={`px-5 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
+                  isDirty
+                    ? 'bg-teal text-navy hover:bg-teal/90 cursor-pointer'
+                    : 'bg-border text-text-muted cursor-not-allowed'
+                }`}
+              >
+                {saved ? (
+                  <>
+                    <span className="text-green-600">✓</span> Saved!
+                  </>
+                ) : saving ? (
+                  'Saving...'
+                ) : (
+                  'Save Changes'
+                )}
+              </button>
             </div>
           )}
         </div>

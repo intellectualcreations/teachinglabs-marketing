@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   const { data } = await admin
     .from('profiles')
-    .select('id, display_name, preferred_name, email, role')
+    .select('id, display_name, preferred_name, role')
     .eq('id', user.id)
     .single();
 
