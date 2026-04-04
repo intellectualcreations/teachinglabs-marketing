@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
   const teacherIds = [...new Set((classes ?? []).map((c: { teacher_id: string }) => c.teacher_id))];
   const { data: teachers } = await admin
     .from('profiles')
-    .select('id, display_name, preferred_name, email')
+    .select('id, display_name, preferred_name')
     .in('id', teacherIds);
 
   console.log('[my-classes] teacherIds:', teacherIds, 'teachers:', JSON.stringify(teachers));
