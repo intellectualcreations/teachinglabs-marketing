@@ -38,5 +38,20 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ role, displayName, hasAssessment });
+  // Check onboarding completion for teachers
+  let hasOnboarding = false;
+  if (role === 'teacher') {
+    try {
+      const { data: soul } = await supabase
+        .from('teacher_souls')
+        .select('teacher_id')
+        .eq('teacher_id', userId)
+        .single();
+      hasOnboarding = !!(soul as { teacher_id?: string } | null)?.teacher_id;
+    } catch {
+      // Table may not exist
+    }
+  }
+
+  return NextResponse.json({ role, displayName, hasAssessment, hasOnboarding });
 }
