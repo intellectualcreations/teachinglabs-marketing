@@ -10,7 +10,7 @@ export async function GET(
     const admin = createAdminClient();
 
     const { data, error } = await (admin.from('assignments') as any)
-      .select('id, title, description, type, created_at')
+      .select('id, title, description, created_at')
       .eq('module_id', moduleId)
       .eq('course_id', courseId)
       .order('created_at', { ascending: true });
@@ -32,7 +32,7 @@ export async function POST(
   try {
     const { courseId, moduleId } = await params;
     const body = await request.json();
-    const { title, description, type, teacher_id } = body;
+    const { title, description, teacher_id } = body;
 
     if (!title || !teacher_id) {
       return NextResponse.json(
@@ -43,17 +43,18 @@ export async function POST(
 
     const admin = createAdminClient();
 
+    const insertData: Record<string, unknown> = {
+      title: title.trim(),
+      description: description?.trim() || null,
+      teacher_id,
+      course_id: courseId,
+      module_id: moduleId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
     const { data, error } = await (admin.from('assignments') as any)
-      .insert({
-        title: title.trim(),
-        description: description?.trim() || null,
-        type: type || 'activity',
-        teacher_id,
-        course_id: courseId,
-        module_id: moduleId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .insert(insertData)
       .select()
       .single();
 
