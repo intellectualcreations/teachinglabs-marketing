@@ -294,16 +294,61 @@ export default function CreateActivityPage() {
   }
 
   // ── Save ─────────────────────────────────────────────────────────────────────
+  const [saving, setSaving] = useState(false);
 
-  function saveActivity() {
+  async function saveActivity() {
     if (!activityName.trim()) {
       setNameError(true);
       document.getElementById('activity-name')?.focus();
       return;
     }
     setNameError(false);
-    setSuccessTitle(activityName.trim());
-    setSuccessVisible(true);
+
+    // Need a course + module to save to
+    if (!selectedCourseId || !selectedModuleId) {
+      alert('Please select a course and module to save this activity to.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const teacherId = user?.id || 'c419128e-2868-47b7-8eaf-82c43a52c8bf';
+
+      const res = await fetch(`/api/teacher/courses/${selectedCourseId}/modules/${selectedModuleId}/activities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: activityName.trim(),
+          description: instructions.trim() || null,
+          objective: objective.trim() || null,
+          learning_goal: learningGoal.trim() || null,
+          essential_question: essentialQuestion.trim() || null,
+          materials: activityMaterials.trim() || null,
+          vocabulary: vocabulary.trim() || null,
+          directions: activityDirections.trim() || null,
+          hook: activityHook.trim() || null,
+          assessment: activityAssessment.trim() || null,
+          differentiation: differentiation.trim() || null,
+          teacher_id: teacherId,
+        }),
+      });
+
+      if (res.ok) {
+        setSuccessTitle(activityName.trim());
+        setSuccessVisible(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(`Failed to save activity: ${err.error || res.statusText}`);
+      }
+    } catch (e) {
+      console.error('Save activity error:', e);
+      alert('Something went wrong saving the activity. Check console for details.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   function createAnother() {
@@ -824,12 +869,13 @@ export default function CreateActivityPage() {
       {/* ── Save Button ────────────────────────────────────────────────────────── */}
       <button
         onClick={saveActivity}
+        disabled={saving}
         className="w-full flex items-center justify-center gap-2 py-3.5 px-7 bg-teal text-navy
           rounded-[10px] text-[15px] font-heading font-bold cursor-pointer
-          hover:bg-teal/85 hover:-translate-y-px transition-all"
+          hover:bg-teal/85 hover:-translate-y-px transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Books size={18} weight="fill" />
-        Save to Library
+        {saving ? 'Saving...' : 'Save to Library'}
       </button>
       <p className="text-xs text-text-secondary text-center mt-2">
         You can assign this activity to classes after saving.
@@ -842,7 +888,7 @@ export default function CreateActivityPage() {
           onClick={() => setShowStandardsModal(false)}
         >
           <div
-            className="bg-card-bg border border-border rounded-2xl w-full max-w-xl max-h-[80vh] flex flex-col shadow-2xl"
+            className="bg-[#1a1f2e] border border-border rounded-2xl w-full max-w-xl max-h-[80vh] flex flex-col shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header */}
