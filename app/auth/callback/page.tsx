@@ -4,42 +4,64 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 /**
- * Auth completion page — handles post-authentication routing.
+ * Auth callback page — handles ALL Supabase auth redirects client-side.
  * 
- * The server-side route at /auth/callback exchanges the PKCE code and
- * sets session cookies, then redirects here. This page picks up the
- * session and routes the user to the correct dashboard.
+ * PKCE flow: the verifier is stored in localStorage by @supabase/ssr's
+ * createBrowserClient. The code exchange MUST happen client-side where
+ * localStorage is accessible. Server-side route handlers cannot access it.
  */
-export default function AuthCompletePage() {
+export default function AuthCallbackPage() {
   const [status, setStatus] = useState('Signing you in...');
 
   useEffect(() => {
-    handleCompletion();
+    handleCallback();
   }, []);
 
-  async function handleCompletion() {
+  async function handleCallback() {
     const supabase = createClient();
     const params = new URLSearchParams(window.location.search);
+    const hash = window.location.hash;
 
-    // ---- Error from server or provider ----
-    const error = params.get('error') || params.get('error_description');
-    if (error) {
-      console.error('Auth error:', error);
-      setStatus('Sign-in failed. Redirecting...');
-      setTimeout(() => (window.location.href = '/login'), 2500);
+    // ---- Error check ----
+    const errorDesc =
+      params.get('error_description') || params.get('error') ||
+      (hash ? new URLSearchParams(hash.substring(1)).get('error_description') : null);
+    if (errorDesc) {
+      console.error('Auth error:', errorDesc);
+      setStatus(`Sign-in issue: ${errorDesc}`);
+      setTimeout(() => (window.location.href = '/login'), 3000);
       return;
     }
 
-    // ---- OTP/magic link token_hash (passed through from server) ----
+    // ---- PKCE code exchange (Google, Microsoft, magic links) ----
+    const code = params.get('code');
+    if (code) {
+      console.log('Auth callback: exchanging PKCE code');
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        console.error('Code exchange failed:', error.message);
+        setStatus('Sign-in failed. Redirecting...');
+        setTimeout(() => (window.location.href = '/login'), 2500);
+        return;
+      }
+      if (data?.session?.user) {
+        setStatus('Setting up your account...');
+        await redirectUser(supabase, data.session.user);
+        return;
+      }
+    }
+
+    // ---- OTP / magic link token_hash ----
     const tokenHash = params.get('token_hash');
     const type = params.get('type');
     if (tokenHash && type) {
+      console.log('Auth callback: verifying token_hash, type:', type);
       const otpType = type === 'signup' ? 'email' : 'magiclink';
-      const { data, error: otpError } = await supabase.auth.verifyOtp({
+      const { data, error } = await supabase.auth.verifyOtp({
         token_hash: tokenHash,
         type: otpType,
       });
-      if (otpError) {
+      if (error) {
         const altType = otpType === 'email' ? 'magiclink' : 'email';
         const { data: d2, error: e2 } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
@@ -50,39 +72,39 @@ export default function AuthCompletePage() {
           setTimeout(() => (window.location.href = '/login'), 2500);
           return;
         }
+        setStatus('Setting up your account...');
         await redirectUser(supabase, d2.session.user);
         return;
       }
       if (data?.session?.user) {
+        setStatus('Setting up your account...');
         await redirectUser(supabase, data.session.user);
         return;
       }
     }
 
-    // ---- Session should already exist from server-side code exchange ----
-    // Try a few times in case cookies need a moment to propagate
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setStatus('Setting up your account...');
-        await redirectUser(supabase, session.user);
-        return;
-      }
-      await new Promise((r) => setTimeout(r, 500));
-    }
-
-    // ---- Check for implicit flow hash (#access_token) ----
-    const hash = window.location.hash;
+    // ---- Implicit flow (#access_token) ----
     if (hash?.includes('access_token')) {
-      await new Promise((r) => setTimeout(r, 1000));
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await redirectUser(supabase, session.user);
-        return;
+      console.log('Auth callback: implicit flow');
+      for (let i = 0; i < 5; i++) {
+        await new Promise((r) => setTimeout(r, 600));
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setStatus('Setting up your account...');
+          await redirectUser(supabase, session.user);
+          return;
+        }
       }
     }
 
-    // Nothing worked
+    // ---- Fallback: check for existing session ----
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      setStatus('Setting up your account...');
+      await redirectUser(supabase, session.user);
+      return;
+    }
+
     setStatus('No session found. Redirecting to login...');
     setTimeout(() => (window.location.href = '/login'), 2500);
   }

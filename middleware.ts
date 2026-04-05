@@ -74,6 +74,12 @@ function isProtectedPath(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Auth callback must pass through untouched — client-side handles code exchange
+  if (pathname.startsWith('/auth/')) {
+    const response = NextResponse.next();
+    return applySecurityHeaders(response);
+  }
+
   // Always let public paths and static assets through
   if (isPublicPath(pathname)) {
     const response = NextResponse.next();
