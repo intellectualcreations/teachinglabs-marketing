@@ -57,7 +57,7 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState<Tab>('tl-courses');
+  const [tab, setTab] = useState<Tab>('courses');
   const [tlCourses, setTlCourses] = useState<EnrichedCourse[]>([]);
   const [tlLoading, setTlLoading] = useState(false);
   const [tlGradeFilter, setTlGradeFilter] = useState('');
@@ -266,36 +266,8 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs — My Courses | Activities | TL Content */}
       <div className="flex items-center gap-1 mb-5 border-b border-border">
-        <button
-          onClick={() => {
-            setTab('tl-courses');
-            setSearch('');
-            setSubjectFilter('');
-            if (tlCourses.length === 0 && !tlLoading) {
-              setTlLoading(true);
-              fetch('/api/teacher/tl-courses')
-                .then(r => r.json())
-                .then(d => setTlCourses(d.courses ?? []))
-                .catch(() => {})
-                .finally(() => setTlLoading(false));
-            }
-          }}
-          className={`px-4 py-2.5 text-sm font-heading font-bold transition-colors relative
-            ${tab === 'tl-courses'
-              ? 'text-teal'
-              : 'text-text-secondary hover:text-text-primary'
-            }`}
-        >
-          <span className="flex items-center gap-1.5">
-            <GraduationCap size={16} weight={tab === 'tl-courses' ? 'fill' : 'regular'} />
-            TL Content
-          </span>
-          {tab === 'tl-courses' && (
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal rounded-t" />
-          )}
-        </button>
         <button
           onClick={() => { setTab('courses'); setSearch(''); setSubjectFilter(''); }}
           className={`px-4 py-2.5 text-sm font-heading font-bold transition-colors relative
@@ -335,6 +307,34 @@ export default function LibraryPage() {
             )}
           </span>
           {tab === 'activities' && (
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal rounded-t" />
+          )}
+        </button>
+        <button
+          onClick={() => {
+            setTab('tl-courses');
+            setSearch('');
+            setSubjectFilter('');
+            if (tlCourses.length === 0 && !tlLoading) {
+              setTlLoading(true);
+              fetch('/api/teacher/tl-courses')
+                .then(r => r.json())
+                .then(d => setTlCourses(d.courses ?? []))
+                .catch(() => {})
+                .finally(() => setTlLoading(false));
+            }
+          }}
+          className={`px-4 py-2.5 text-sm font-heading font-bold transition-colors relative
+            ${tab === 'tl-courses'
+              ? 'text-teal'
+              : 'text-text-secondary hover:text-text-primary'
+            }`}
+        >
+          <span className="flex items-center gap-1.5">
+            <GraduationCap size={16} weight={tab === 'tl-courses' ? 'fill' : 'regular'} />
+            TL Content
+          </span>
+          {tab === 'tl-courses' && (
             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal rounded-t" />
           )}
         </button>
