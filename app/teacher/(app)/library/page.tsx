@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Books, Plus, MagnifyingGlass, CalendarBlank,
   PencilSimple, CaretRight, CaretDown, ShareNetwork,
@@ -46,6 +47,7 @@ interface EnrichedCourse {
 }
 
 export default function LibraryPage() {
+  const router = useRouter();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [orphanedActivities, setOrphanedActivities] = useState<Assignment[]>([]);
   const [courses, setCourses] = useState<EnrichedCourse[]>([]);
@@ -409,6 +411,7 @@ export default function LibraryPage() {
                     {/* Actions */}
                     <div className="flex gap-2 mt-3 pt-3 border-t border-border">
                       <button
+                        onClick={() => router.push(`/teacher/edit-course/${course.id}`)}
                         className="px-3.5 py-2 border-[1.5px] border-border rounded-md text-xs font-semibold
                           text-text-primary flex items-center gap-1 hover:border-teal hover:text-teal
                           transition-colors cursor-pointer"
