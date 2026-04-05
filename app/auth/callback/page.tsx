@@ -107,8 +107,22 @@ export default function AuthCallbackPage() {
     // ---- Method 3: implicit flow (#access_token) ----
     if (hash?.includes('access_token')) {
       console.log('Auth callback: implicit flow');
-      // Give Supabase a moment to process the hash
-      await new Promise((r) => setTimeout(r, 800));
+      // Give Supabase time to process the hash and set the session
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise((r) => setTimeout(r, 600));
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setStatus('Setting up your account...');
+          await redirectUser(supabase, session.user);
+          return;
+        }
+      }
+    }
+
+    // ---- Method 3b: implicit flow fallback (hash may have been consumed) ----
+    if (hash) {
+      console.log('Auth callback: checking session after hash');
+      await new Promise((r) => setTimeout(r, 1500));
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setStatus('Setting up your account...');
