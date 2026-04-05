@@ -301,12 +301,12 @@ export default function EditCoursePage() {
                   placeholder="Module title"
                   className="w-full px-2.5 py-1.5 bg-card-bg border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
                 />
-                <input
-                  type="text"
+                <textarea
                   value={mod.description}
                   onChange={(e) => updateModule(mod.id, 'description', e.target.value)}
                   placeholder="Brief description (optional)"
-                  className="w-full px-2.5 py-1.5 bg-card-bg border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30"
+                  rows={2}
+                  className="w-full px-2.5 py-1.5 bg-card-bg border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
                 />
               </div>
               <button
