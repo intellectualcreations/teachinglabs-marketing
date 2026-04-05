@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -32,6 +32,14 @@ import {
   Sparkle,
   CaretDown,
 } from '@phosphor-icons/react';
+
+export default function CreateActivityPage() {
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-text-secondary">Loading...</div>}>
+      <CreateActivityInner />
+    </Suspense>
+  );
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -104,7 +112,7 @@ function uid(): string {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function CreateActivityPage() {
+function CreateActivityInner() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
   const [isEditMode, setIsEditMode] = useState(false);
@@ -316,11 +324,12 @@ export default function CreateActivityPage() {
       try {
         const { createClient } = await import('@/lib/supabase/client');
         const supabase = createClient();
-        const { data } = await supabase
+        const { data: raw } = await supabase
           .from('assignments')
           .select('*')
           .eq('id', editId)
           .single();
+        const data = raw as Record<string, string> | null;
         if (data) {
           setActivityName(data.title || '');
           setInstructions(data.description || '');
@@ -417,8 +426,7 @@ export default function CreateActivityPage() {
         if (selectedCourseId) payload.course_id = selectedCourseId;
         if (selectedModuleId) payload.module_id = selectedModuleId;
         delete payload.teacher_id; // don't overwrite owner
-        const { error } = await supabase
-          .from('assignments')
+        const { error } = await (supabase.from('assignments') as any)
           .update(payload)
           .eq('id', editId);
         if (!error) {

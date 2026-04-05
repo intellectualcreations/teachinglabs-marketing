@@ -813,6 +813,24 @@ export default function LibraryPage() {
                       >
                         <PencilSimple size={14} weight="fill" /> Edit
                       </button>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm('Delete this activity? This cannot be undone.')) return;
+                          try {
+                            const supabase = (await import('@/lib/supabase/client')).createClient();
+                            const { error } = await (supabase.from('assignments') as any).delete().eq('id', a.id);
+                            if (error) { alert('Failed to delete: ' + error.message); return; }
+                            setAssignments(prev => prev.filter(act => act.id !== a.id));
+                            setOrphanedActivities(prev => prev.filter(act => act.id !== a.id));
+                          } catch (err) { alert('Something went wrong.'); }
+                        }}
+                        className="px-3.5 py-2 border-[1.5px] border-border rounded-md text-xs font-semibold
+                          text-text-secondary flex items-center gap-1 hover:border-red-400 hover:text-red-400
+                          transition-colors cursor-pointer"
+                      >
+                        <Trash size={14} weight="fill" /> Delete
+                      </button>
                     </div>
                   </div>
                 );
