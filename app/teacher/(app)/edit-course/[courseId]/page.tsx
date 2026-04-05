@@ -64,6 +64,7 @@ interface ModuleItem {
   newActivityDirections?: string;
   newActivityHook?: string;
   newActivityAssessment?: string;
+  newActivityDifferentiation?: string;
 }
 
 export default function EditCoursePage() {
@@ -171,6 +172,7 @@ export default function EditCoursePage() {
           directions: mod.newActivityDirections?.trim() || null,
           hook: mod.newActivityHook?.trim() || null,
           assessment: mod.newActivityAssessment?.trim() || null,
+          differentiation: mod.newActivityDifferentiation?.trim() || null,
           teacher_id: teacherId,
         }),
       });
@@ -189,6 +191,7 @@ export default function EditCoursePage() {
           newActivityDirections: '',
           newActivityHook: '',
           newActivityAssessment: '',
+          newActivityDifferentiation: '',
           showAddActivity: false,
           showActivities: true,
           loadedActivities: true,
@@ -639,6 +642,16 @@ export default function EditCoursePage() {
                                   onChange={(e) => updateModule(mod.id, { newActivityAssessment: e.target.value })}
                                   placeholder="How will student understanding be assessed?"
                                   rows={2}
+                                  className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Differentiation</label>
+                                <textarea
+                                  value={mod.newActivityDifferentiation || ''}
+                                  onChange={(e) => updateModule(mod.id, { newActivityDifferentiation: e.target.value })}
+                                  placeholder="Support options + extension options for different learners"
+                                  rows={3}
                                   className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
                                 />
                               </div>

@@ -149,6 +149,7 @@ export default function CreateActivityPage() {
   const [activityDirections, setActivityDirections] = useState('');
   const [activityHook, setActivityHook] = useState('');
   const [activityAssessment, setActivityAssessment] = useState('');
+  const [differentiation, setDifferentiation] = useState('');
 
   // Success overlay
   const [successVisible, setSuccessVisible] = useState(false);
@@ -318,6 +319,7 @@ export default function CreateActivityPage() {
     setActivityDirections('');
     setActivityHook('');
     setActivityAssessment('');
+    setDifferentiation('');
     setUploadedFiles([]);
     setSelectedStandards([]);
     setLinkRows([{ id: uid(), url: '', label: '' }]);
@@ -557,6 +559,17 @@ export default function CreateActivityPage() {
               onChange={(e) => setActivityAssessment(e.target.value)}
               rows={2}
               placeholder="How will student understanding be assessed?"
+              className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
+                bg-card-bg text-text-primary outline-none focus:border-teal transition-colors resize-y"
+            />
+          </div>
+          <div>
+            <label className="font-semibold text-[13px] text-text-primary block mb-1.5">Differentiation</label>
+            <textarea
+              value={differentiation}
+              onChange={(e) => setDifferentiation(e.target.value)}
+              rows={3}
+              placeholder="Support options for struggling learners + extension options for advanced learners"
               className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
                 bg-card-bg text-text-primary outline-none focus:border-teal transition-colors resize-y"
             />

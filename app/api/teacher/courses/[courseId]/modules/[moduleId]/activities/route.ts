@@ -10,7 +10,7 @@ export async function GET(
     const admin = createAdminClient();
 
     const { data, error } = await (admin.from('assignments') as any)
-      .select('id, title, description, objective, learning_goal, essential_question, materials, vocabulary, directions, hook, assessment, created_at')
+      .select('id, title, description, objective, learning_goal, essential_question, materials, vocabulary, directions, hook, assessment, differentiation, created_at')
       .eq('module_id', moduleId)
       .eq('course_id', courseId)
       .order('created_at', { ascending: true });
@@ -32,7 +32,7 @@ export async function POST(
   try {
     const { courseId, moduleId } = await params;
     const body = await request.json();
-    const { title, description, teacher_id, objective, learning_goal, essential_question, materials, vocabulary, directions, hook, assessment } = body;
+    const { title, description, teacher_id, objective, learning_goal, essential_question, materials, vocabulary, directions, hook, assessment, differentiation } = body;
 
     if (!title || !teacher_id) {
       return NextResponse.json(
@@ -77,6 +77,7 @@ export async function POST(
     if (directions?.trim()) detailFields.directions = directions.trim();
     if (hook?.trim()) detailFields.hook = hook.trim();
     if (assessment?.trim()) detailFields.assessment = assessment.trim();
+    if (differentiation?.trim()) detailFields.differentiation = differentiation.trim();
 
     // Try with detail fields first, fall back without if columns don't exist yet
     let { data, error } = await (admin.from('assignments') as any)

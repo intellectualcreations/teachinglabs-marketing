@@ -70,7 +70,7 @@ export default function LibraryPage() {
   const [orphanedOnly, setOrphanedOnly] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<EnrichedCourse | null>(null);
-  const [panelModules, setPanelModules] = useState<{ id: string; title: string; activities: { id: string; title: string; objective?: string; learning_goal?: string; essential_question?: string; materials?: string; vocabulary?: string; directions?: string; hook?: string; assessment?: string }[] }[]>([]);
+  const [panelModules, setPanelModules] = useState<{ id: string; title: string; activities: { id: string; title: string; objective?: string; learning_goal?: string; essential_question?: string; materials?: string; vocabulary?: string; directions?: string; hook?: string; assessment?: string; differentiation?: string }[] }[]>([]);
   const [panelLoading, setPanelLoading] = useState(false);
   const [expandedPanelModules, setExpandedPanelModules] = useState<Set<string>>(new Set());
 
@@ -935,6 +935,9 @@ export default function LibraryPage() {
                                       )}
                                       {act.assessment && (
                                         <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Assessment:</span> {act.assessment}</p>
+                                      )}
+                                      {act.differentiation && (
+                                        <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Differentiation:</span> {act.differentiation}</p>
                                       )}
                                     </div>
                                   )}

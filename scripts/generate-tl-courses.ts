@@ -49,6 +49,7 @@ interface Activity {
   directions: string;
   hook: string;
   assessment: string;
+  differentiation: string;
 }
 
 interface Module {
@@ -89,7 +90,8 @@ Return ONLY valid JSON (no markdown, no code fences) in this exact format:
           "vocabulary": "Key terms students need to know, separated by commas.",
           "directions": "Step-by-step instructions for completing the activity.",
           "hook": "An engaging introduction to grab student attention and set up the lesson.",
-          "assessment": "How student understanding will be measured or evaluated."
+          "assessment": "How student understanding will be measured or evaluated.",
+          "differentiation": "Support options for struggling learners AND extension options for advanced learners."
         }
       ]
     }
@@ -113,7 +115,8 @@ Requirements:
 - Vocabulary: 3-7 key terms relevant to the activity, comma-separated
 - Directions: 3-5 clear steps students follow
 - Hook: a question, scenario, or demonstration that grabs attention (1-3 sentences)
-- Assessment: how to check understanding (exit ticket, discussion, rubric, quiz, observation)`;
+- Assessment: how to check understanding (exit ticket, discussion, rubric, quiz, observation)
+- Differentiation: include BOTH support (scaffolds, word banks, partners) AND extension (deeper questions, writing, comparisons)`;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -209,6 +212,7 @@ async function writeToDB(course: Course): Promise<void> {
           directions: act.directions || null,
           hook: act.hook || null,
           assessment: act.assessment || null,
+          differentiation: act.differentiation || null,
           teacher_id: TEACHER_ID,
         }),
       });
