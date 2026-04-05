@@ -42,8 +42,12 @@ interface Activity {
   title: string;
   description: string;
   objective: string;
+  learning_goal: string;
+  essential_question: string;
   materials: string;
+  vocabulary: string;
   directions: string;
+  hook: string;
   assessment: string;
 }
 
@@ -79,8 +83,12 @@ Return ONLY valid JSON (no markdown, no code fences) in this exact format:
           "title": "Activity Title",
           "description": "Brief description of what students do.",
           "objective": "What students will learn or accomplish by completing this activity.",
+          "learning_goal": "The big idea — the deeper understanding students will gain.",
+          "essential_question": "A driving question that frames the lesson.",
           "materials": "List of materials, resources, or tools needed.",
+          "vocabulary": "Key terms students need to know, separated by commas.",
           "directions": "Step-by-step instructions for completing the activity.",
+          "hook": "An engaging introduction to grab student attention and set up the lesson.",
           "assessment": "How student understanding will be measured or evaluated."
         }
       ]
@@ -97,10 +105,14 @@ Requirements:
 - Activity types: hands-on exploration, discussion, practice, creative project, assessment
 - Module titles should be clear and descriptive
 - Descriptions should be 1-2 sentences max
-- Each activity MUST include objective, materials, directions, and assessment
+- Each activity MUST include ALL fields: objective, learning_goal, essential_question, materials, vocabulary, directions, hook, assessment
 - Objectives: clear, measurable learning goals (1-2 sentences)
+- Learning goals: the big-picture understanding, not just skills
+- Essential questions: open-ended, thought-provoking questions that drive inquiry
 - Materials: specific items needed (textbook pages, manipulatives, worksheets, technology)
+- Vocabulary: 3-7 key terms relevant to the activity, comma-separated
 - Directions: 3-5 clear steps students follow
+- Hook: a question, scenario, or demonstration that grabs attention (1-3 sentences)
 - Assessment: how to check understanding (exit ticket, discussion, rubric, quiz, observation)`;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -190,8 +202,12 @@ async function writeToDB(course: Course): Promise<void> {
           title: act.title,
           description: act.description,
           objective: act.objective || null,
+          learning_goal: act.learning_goal || null,
+          essential_question: act.essential_question || null,
           materials: act.materials || null,
+          vocabulary: act.vocabulary || null,
           directions: act.directions || null,
+          hook: act.hook || null,
           assessment: act.assessment || null,
           teacher_id: TEACHER_ID,
         }),

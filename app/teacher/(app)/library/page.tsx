@@ -70,7 +70,7 @@ export default function LibraryPage() {
   const [orphanedOnly, setOrphanedOnly] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<EnrichedCourse | null>(null);
-  const [panelModules, setPanelModules] = useState<{ id: string; title: string; activities: { id: string; title: string; objective?: string; materials?: string; directions?: string; assessment?: string }[] }[]>([]);
+  const [panelModules, setPanelModules] = useState<{ id: string; title: string; activities: { id: string; title: string; objective?: string; learning_goal?: string; essential_question?: string; materials?: string; vocabulary?: string; directions?: string; hook?: string; assessment?: string }[] }[]>([]);
   const [panelLoading, setPanelLoading] = useState(false);
   const [expandedPanelModules, setExpandedPanelModules] = useState<Set<string>>(new Set());
 
@@ -910,13 +910,25 @@ export default function LibraryPage() {
                                     <Lightning size={12} weight="fill" className="text-teal shrink-0" />
                                     <span className="text-text-primary font-medium">{act.title}</span>
                                   </div>
-                                  {(act.objective || act.materials || act.directions || act.assessment) && (
+                                  {(act.objective || act.learning_goal || act.essential_question || act.materials || act.vocabulary || act.directions || act.hook || act.assessment) && (
                                     <div className="ml-5 mt-1 space-y-1">
                                       {act.objective && (
                                         <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Objective:</span> {act.objective}</p>
                                       )}
+                                      {act.learning_goal && (
+                                        <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Learning Goal:</span> {act.learning_goal}</p>
+                                      )}
+                                      {act.essential_question && (
+                                        <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Essential Question:</span> {act.essential_question}</p>
+                                      )}
                                       {act.materials && (
                                         <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Materials:</span> {act.materials}</p>
+                                      )}
+                                      {act.vocabulary && (
+                                        <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Vocabulary:</span> {act.vocabulary}</p>
+                                      )}
+                                      {act.hook && (
+                                        <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Hook:</span> {act.hook}</p>
                                       )}
                                       {act.directions && (
                                         <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Directions:</span> {act.directions}</p>

@@ -10,7 +10,7 @@ export async function GET(
     const admin = createAdminClient();
 
     const { data, error } = await (admin.from('assignments') as any)
-      .select('id, title, description, objective, materials, directions, assessment, created_at')
+      .select('id, title, description, objective, learning_goal, essential_question, materials, vocabulary, directions, hook, assessment, created_at')
       .eq('module_id', moduleId)
       .eq('course_id', courseId)
       .order('created_at', { ascending: true });
@@ -32,7 +32,7 @@ export async function POST(
   try {
     const { courseId, moduleId } = await params;
     const body = await request.json();
-    const { title, description, teacher_id, objective, materials, directions, assessment } = body;
+    const { title, description, teacher_id, objective, learning_goal, essential_question, materials, vocabulary, directions, hook, assessment } = body;
 
     if (!title || !teacher_id) {
       return NextResponse.json(
@@ -70,8 +70,12 @@ export async function POST(
     // Add detail fields if provided
     const detailFields: Record<string, unknown> = {};
     if (objective?.trim()) detailFields.objective = objective.trim();
+    if (learning_goal?.trim()) detailFields.learning_goal = learning_goal.trim();
+    if (essential_question?.trim()) detailFields.essential_question = essential_question.trim();
     if (materials?.trim()) detailFields.materials = materials.trim();
+    if (vocabulary?.trim()) detailFields.vocabulary = vocabulary.trim();
     if (directions?.trim()) detailFields.directions = directions.trim();
+    if (hook?.trim()) detailFields.hook = hook.trim();
     if (assessment?.trim()) detailFields.assessment = assessment.trim();
 
     // Try with detail fields first, fall back without if columns don't exist yet

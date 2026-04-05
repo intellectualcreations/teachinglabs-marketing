@@ -57,8 +57,12 @@ interface ModuleItem {
   newActivityTitle?: string;
   newActivityDesc?: string;
   newActivityObjective?: string;
+  newActivityLearningGoal?: string;
+  newActivityEssentialQuestion?: string;
   newActivityMaterials?: string;
+  newActivityVocabulary?: string;
   newActivityDirections?: string;
+  newActivityHook?: string;
   newActivityAssessment?: string;
 }
 
@@ -160,8 +164,12 @@ export default function EditCoursePage() {
           title: mod.newActivityTitle.trim(),
           description: mod.newActivityDesc?.trim() || null,
           objective: mod.newActivityObjective?.trim() || null,
+          learning_goal: mod.newActivityLearningGoal?.trim() || null,
+          essential_question: mod.newActivityEssentialQuestion?.trim() || null,
           materials: mod.newActivityMaterials?.trim() || null,
+          vocabulary: mod.newActivityVocabulary?.trim() || null,
           directions: mod.newActivityDirections?.trim() || null,
+          hook: mod.newActivityHook?.trim() || null,
           assessment: mod.newActivityAssessment?.trim() || null,
           teacher_id: teacherId,
         }),
@@ -174,8 +182,12 @@ export default function EditCoursePage() {
           newActivityTitle: '',
           newActivityDesc: '',
           newActivityObjective: '',
+          newActivityLearningGoal: '',
+          newActivityEssentialQuestion: '',
           newActivityMaterials: '',
+          newActivityVocabulary: '',
           newActivityDirections: '',
+          newActivityHook: '',
           newActivityAssessment: '',
           showAddActivity: false,
           showActivities: true,
@@ -547,7 +559,7 @@ export default function EditCoursePage() {
                           {/* Detail fields — collapsible */}
                           <details className="group">
                             <summary className="text-[11px] font-medium text-teal cursor-pointer hover:text-teal/80 transition-colors select-none">
-                              + Activity Details (objective, materials, directions, assessment)
+                              + Activity Details (objective, materials, directions, assessment &amp; more)
                             </summary>
                             <div className="mt-2 space-y-2 pl-1">
                               <div>
@@ -561,11 +573,51 @@ export default function EditCoursePage() {
                                 />
                               </div>
                               <div>
+                                <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Learning Goal</label>
+                                <textarea
+                                  value={mod.newActivityLearningGoal || ''}
+                                  onChange={(e) => updateModule(mod.id, { newActivityLearningGoal: e.target.value })}
+                                  placeholder="The big idea — what students will understand"
+                                  rows={2}
+                                  className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Essential Question</label>
+                                <textarea
+                                  value={mod.newActivityEssentialQuestion || ''}
+                                  onChange={(e) => updateModule(mod.id, { newActivityEssentialQuestion: e.target.value })}
+                                  placeholder="The driving question for the lesson"
+                                  rows={1}
+                                  className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                                />
+                              </div>
+                              <div>
                                 <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Materials</label>
                                 <textarea
                                   value={mod.newActivityMaterials || ''}
                                   onChange={(e) => updateModule(mod.id, { newActivityMaterials: e.target.value })}
                                   placeholder="What materials or resources are needed?"
+                                  rows={2}
+                                  className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Vocabulary</label>
+                                <textarea
+                                  value={mod.newActivityVocabulary || ''}
+                                  onChange={(e) => updateModule(mod.id, { newActivityVocabulary: e.target.value })}
+                                  placeholder="Key terms students need to know (one per line)"
+                                  rows={2}
+                                  className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Introduction / Hook</label>
+                                <textarea
+                                  value={mod.newActivityHook || ''}
+                                  onChange={(e) => updateModule(mod.id, { newActivityHook: e.target.value })}
+                                  placeholder="How to grab attention and set up the lesson"
                                   rows={2}
                                   className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
                                 />
