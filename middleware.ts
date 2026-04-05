@@ -43,7 +43,7 @@ const PUBLIC_PATHS = [
   '/waitlist',
 '/waitlist/confirmed',
   '/auth/callback',
-  '/auth/confirm',
+  '/auth/complete',
   '/api/auth',       // NextAuth routes (keep working during migration)
 ];
 
