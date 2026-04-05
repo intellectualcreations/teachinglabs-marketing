@@ -370,7 +370,7 @@ export default function TeacherSignupPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/confirm`,
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
@@ -384,7 +384,7 @@ export default function TeacherSignupPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'azure',
       options: {
-        redirectTo: `${window.location.origin}/auth/confirm`,
+        redirectTo: `${window.location.origin}/auth/callback`,
         scopes: 'email profile openid',
         queryParams: { prompt: 'select_account' },
       },
