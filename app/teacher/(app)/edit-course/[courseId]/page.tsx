@@ -115,15 +115,15 @@ export default function EditCoursePage() {
     setModules(modules.filter((m) => m.id !== id));
   }
 
-  function updateModule(id: string, field: string, value: unknown) {
-    setModules(modules.map((m) => (m.id === id ? { ...m, [field]: value } : m)));
+  function updateModule(id: string, updates: Record<string, unknown>) {
+    setModules(prev => prev.map((m) => (m.id === id ? { ...m, ...updates } : m)));
   }
 
   async function loadActivities(moduleId: string): Promise<void> {
     const mod = modules.find(m => m.id === moduleId);
     if (!mod) return;
     if (mod.loadedActivities) {
-      updateModule(moduleId, 'showActivities', !mod.showActivities);
+      updateModule(moduleId, { showActivities: !mod.showActivities });
       return;
     }
     try {
@@ -367,13 +367,13 @@ export default function EditCoursePage() {
                   <input
                     type="text"
                     value={mod.title}
-                    onChange={(e) => updateModule(mod.id, 'title', e.target.value)}
+                    onChange={(e) => updateModule(mod.id, { title: e.target.value })}
                     placeholder="Module title"
                     className="w-full px-2.5 py-1.5 bg-card-bg border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
                   />
                   <textarea
                     value={mod.description}
-                    onChange={(e) => updateModule(mod.id, 'description', e.target.value)}
+                    onChange={(e) => updateModule(mod.id, { description: e.target.value })}
                     placeholder="Brief description (optional)"
                     rows={2}
                     className="w-full px-2.5 py-1.5 bg-card-bg border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
@@ -401,11 +401,8 @@ export default function EditCoursePage() {
                     </button>
                     <button
                       onClick={async () => {
-                        // Just toggle the form immediately
                         const newShowAdd = !(mod.showAddActivity ?? false);
-                        updateModule(mod.id, 'showAddActivity', newShowAdd);
-                        updateModule(mod.id, 'showActivities', true);
-                        // Load activities in background if not loaded
+                        updateModule(mod.id, { showAddActivity: newShowAdd, showActivities: true });
                         if (!mod.loadedActivities) {
                           await loadActivities(mod.id);
                         }
@@ -443,13 +440,13 @@ export default function EditCoursePage() {
                           <input
                             type="text"
                             value={mod.newActivityTitle || ''}
-                            onChange={(e) => updateModule(mod.id, 'newActivityTitle', e.target.value)}
+                            onChange={(e) => updateModule(mod.id, { newActivityTitle: e.target.value })}
                             placeholder="Activity title"
                             className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
                           />
                           <textarea
                             value={mod.newActivityDesc || ''}
-                            onChange={(e) => updateModule(mod.id, 'newActivityDesc', e.target.value)}
+                            onChange={(e) => updateModule(mod.id, { newActivityDesc: e.target.value })}
                             placeholder="Description (optional)"
                             rows={2}
                             className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
@@ -463,7 +460,7 @@ export default function EditCoursePage() {
                               Create Activity
                             </button>
                             <button
-                              onClick={() => updateModule(mod.id, 'showAddActivity', false)}
+                              onClick={() => updateModule(mod.id, { showAddActivity: false })}
                               className="px-3 py-1.5 border border-border text-text-secondary text-xs rounded hover:text-text-primary transition-colors"
                             >
                               Cancel
