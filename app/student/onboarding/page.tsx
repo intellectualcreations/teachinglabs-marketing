@@ -137,7 +137,7 @@ const THEMES: Record<ThemeName, ThemeContent> = {
       upper: { question: 'A game developer earns $75 per hour. She works 38 hours this week and 42 hours next week. How much does she earn in total over both weeks?', answer: 6000 },
     },
     mathQ2: {
-      lower: { question: 'You have 24 health points. A monster takes away 9. How many health points do you have left?', answer: 15 },
+      lower: { question: 'You have 24 stickers in your collection. You give 9 to your friend. How many stickers do you have left?', answer: 15 },
       middle: { question: 'A game has 3 maps. Map A has 45 enemies, Map B has 60 enemies, and Map C has 38 enemies. What is the average number of enemies per map?', answer: 47 },
       upper: { question: 'A mobile game had 8,000 downloads in January. By March, downloads grew by 35%. How many total downloads were there by March?', answer: 10800 },
     },
