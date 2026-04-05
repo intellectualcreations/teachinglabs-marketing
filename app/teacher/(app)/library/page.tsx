@@ -7,7 +7,8 @@ import {
   Books, Plus, MagnifyingGlass, CalendarBlank,
   PencilSimple, CaretRight, CaretDown, ShareNetwork,
   FunnelSimple, BookOpen, Notebook, SquaresFour, List,
-  GraduationCap, ArrowSquareIn, SpinnerGap,
+  GraduationCap, ArrowSquareIn, SpinnerGap, X, Lightning,
+  Trash,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { Assignment, Class } from '@/lib/supabase/types';
@@ -68,6 +69,10 @@ export default function LibraryPage() {
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [orphanedOnly, setOrphanedOnly] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<EnrichedCourse | null>(null);
+  const [panelModules, setPanelModules] = useState<{ id: string; title: string; activities: { id: string; title: string }[] }[]>([]);
+  const [panelLoading, setPanelLoading] = useState(false);
+  const [expandedPanelModules, setExpandedPanelModules] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     async function fetchData() {
@@ -217,6 +222,33 @@ export default function LibraryPage() {
         {isPublished ? 'Published' : 'Draft'}
       </span>
     );
+  }
+
+  async function openCoursePanel(course: EnrichedCourse) {
+    setSelectedCourse(course);
+    setPanelModules([]);
+    setPanelLoading(true);
+    setExpandedPanelModules(new Set());
+    try {
+      // Fetch modules with activities for this course
+      const modsWithActivities = await Promise.all(
+        (course.modules || []).map(async (mod) => {
+          try {
+            const res = await fetch(`/api/teacher/courses/${course.id}/modules/${mod.id}/activities`);
+            if (res.ok) {
+              const data = await res.json();
+              return { id: mod.id, title: mod.title, activities: data.activities || [] };
+            }
+          } catch (e) { /* ignore */ }
+          return { id: mod.id, title: mod.title, activities: [] };
+        })
+      );
+      setPanelModules(modsWithActivities);
+    } catch (e) {
+      console.error('Panel load error:', e);
+    } finally {
+      setPanelLoading(false);
+    }
   }
 
   if (loading) {
@@ -583,7 +615,7 @@ export default function LibraryPage() {
                 </thead>
                 <tbody>
                   {filteredCourses.map((course) => (
-                    <tr key={course.id} className="border-b border-border last:border-0 hover:bg-white/[0.02] transition-colors">
+                    <tr key={course.id} onClick={() => openCoursePanel(course)} className="border-b border-border last:border-0 hover:bg-white/[0.02] transition-colors cursor-pointer">
                       <td className="px-4 py-3 font-medium text-text-primary">{course.title}</td>
                       <td className="px-4 py-3">{subjectBadge(course.subject)}</td>
                       <td className="px-4 py-3 text-text-secondary text-xs">{course.grade_level || '—'}</td>
@@ -615,100 +647,56 @@ export default function LibraryPage() {
               </table>
             </div>
           ) : (
-            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))' }}>
-              {filteredCourses.map((course) => {
-                const isExpanded = expandedCourses.has(course.id);
-                return (
-                  <div
-                    key={course.id}
-                    className="bg-card-bg border border-border rounded-[14px] p-5 relative overflow-hidden
-                      hover:border-teal/50 transition-all"
-                  >
-                    {/* Top row: subject + status */}
-                    <div className="flex items-center justify-between mb-2">
-                      {subjectBadge(course.subject)}
-                      {statusBadge(course)}
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="font-heading font-bold text-[15px] text-text-primary mb-1">
-                      {course.title}
-                    </h3>
-
-                    {/* Meta */}
-                    <p className="text-[11px] text-text-secondary mb-3">
-                      {course.grade_level && <>{course.grade_level} &bull; </>}
-                      {course.module_count} {course.module_count === 1 ? 'Module' : 'Modules'} &bull;{' '}
-                      {course.activity_count} {course.activity_count === 1 ? 'Activity' : 'Activities'}
-                    </p>
-
-                    {/* Expandable modules */}
-                    {course.modules.length > 0 && (
-                      <div className="mb-3">
-                        <button
-                          onClick={() => toggleCourse(course.id)}
-                          className="flex items-center gap-1 text-xs text-text-secondary hover:text-teal
-                            transition-colors font-medium"
-                        >
-                          {isExpanded ? (
-                            <CaretDown size={12} weight="bold" />
-                          ) : (
-                            <CaretRight size={12} weight="bold" />
-                          )}
-                          {isExpanded ? 'Hide' : 'Show'} Modules
-                        </button>
-
-                        {isExpanded && (
-                          <div className="mt-2 space-y-1 pl-3 border-l-2 border-border">
-                            {course.modules.map((mod) => (
-                              <div key={mod.id} className="text-xs text-text-secondary py-1">
-                                <button
-                                  onClick={() => toggleModule(mod.id)}
-                                  className="flex items-center gap-1.5 hover:text-teal transition-colors w-full text-left"
-                                >
-                                  {expandedModules.has(mod.id) ? (
-                                    <CaretDown size={10} weight="bold" className="shrink-0" />
-                                  ) : (
-                                    <CaretRight size={10} weight="bold" className="shrink-0" />
-                                  )}
-                                  <span className="font-medium text-text-primary">{mod.title}</span>
-                                  <span className="text-text-muted ml-auto">
-                                    ({mod.activity_count} {mod.activity_count === 1 ? 'act' : 'acts'})
-                                  </span>
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-                      <button
-                        onClick={() => router.push(`/teacher/edit-course/${course.id}`)}
-                        className="px-3.5 py-2 border-[1.5px] border-border rounded-md text-xs font-semibold
-                          text-text-primary flex items-center gap-1 hover:border-teal hover:text-teal
-                          transition-colors cursor-pointer"
-                      >
-                        <PencilSimple size={14} weight="fill" /> Edit
-                      </button>
-                      <button
-                onClick={() => togglePublish(course.id, !!course.is_published)}
-                        className={`px-3.5 py-2 border-[1.5px] rounded-md text-xs font-semibold
-                          flex items-center gap-1 transition-colors cursor-pointer ${
-                            course.is_published
-                              ? 'border-yellow-500/30 text-yellow-400 hover:border-yellow-500 hover:text-yellow-300'
-                              : 'border-border text-text-primary hover:border-teal hover:text-teal'
-                          }`}
-                      >
-                        <ShareNetwork size={14} weight="fill" />
-                        {course.is_published ? 'Unpublish' : 'Share to Library'}
-                      </button>
-                    </div>
+            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+              {filteredCourses.map((course) => (
+                <div
+                  key={course.id}
+                  onClick={() => openCoursePanel(course)}
+                  className="bg-card-bg border border-border rounded-[14px] p-5 cursor-pointer
+                    hover:border-teal/50 transition-all group"
+                >
+                  {/* Top row: subject + status */}
+                  <div className="flex items-center justify-between mb-2">
+                    {subjectBadge(course.subject)}
+                    {statusBadge(course)}
                   </div>
-                );
-              })}
+
+                  {/* Title */}
+                  <h3 className="font-heading font-bold text-[15px] text-text-primary mb-1 group-hover:text-teal transition-colors">
+                    {course.title}
+                  </h3>
+
+                  {/* Meta summary */}
+                  <p className="text-[11px] text-text-secondary">
+                    {course.grade_level && <>{course.grade_level} &bull; </>}
+                    {course.module_count} {course.module_count === 1 ? 'Module' : 'Modules'} &bull;{' '}
+                    {course.activity_count} {course.activity_count === 1 ? 'Activity' : 'Activities'}
+                  </p>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); router.push(`/teacher/edit-course/${course.id}`); }}
+                      className="px-3 py-1.5 border border-border rounded-md text-xs font-semibold
+                        text-text-primary flex items-center gap-1 hover:border-teal hover:text-teal transition-colors"
+                    >
+                      <PencilSimple size={14} weight="fill" /> Edit
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); togglePublish(course.id, !!course.is_published); }}
+                      className={`px-3 py-1.5 border rounded-md text-xs font-semibold
+                        flex items-center gap-1 transition-colors ${
+                          course.is_published
+                            ? 'border-yellow-500/30 text-yellow-400 hover:border-yellow-500'
+                            : 'border-border text-text-primary hover:border-teal hover:text-teal'
+                        }`}
+                    >
+                      <ShareNetwork size={14} weight="fill" />
+                      {course.is_published ? 'Unpublish' : 'Publish'}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </>
@@ -831,6 +819,133 @@ export default function LibraryPage() {
               })}
             </div>
           )}
+        </>
+      )}
+      {/* Slide-over Panel */}
+      {selectedCourse && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 z-40 transition-opacity"
+            onClick={() => setSelectedCourse(null)}
+          />
+          {/* Panel */}
+          <div className="fixed top-0 right-0 h-full w-full max-w-[480px] bg-surface border-l border-border z-50 shadow-2xl overflow-y-auto animate-slide-in">
+            <style jsx>{`
+              @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+              .animate-slide-in { animation: slideIn 0.2s ease-out; }
+            `}</style>
+
+            {/* Header */}
+            <div className="sticky top-0 bg-surface border-b border-border px-6 py-4 flex items-start justify-between z-10">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  {subjectBadge(selectedCourse.subject)}
+                  {statusBadge(selectedCourse)}
+                </div>
+                <h2 className="font-heading font-bold text-lg text-text-primary truncate">
+                  {selectedCourse.title}
+                </h2>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  {selectedCourse.grade_level && <>{selectedCourse.grade_level} &bull; </>}
+                  {selectedCourse.module_count} {selectedCourse.module_count === 1 ? 'Module' : 'Modules'} &bull;{' '}
+                  {selectedCourse.activity_count} {selectedCourse.activity_count === 1 ? 'Activity' : 'Activities'}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedCourse(null)}
+                className="p-1.5 text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <X size={20} weight="bold" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-5 space-y-5">
+              {/* Description */}
+              {selectedCourse.description && (
+                <div>
+                  <h4 className="text-xs font-heading font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Description</h4>
+                  <p className="text-sm text-text-primary leading-relaxed">{selectedCourse.description}</p>
+                </div>
+              )}
+
+              {/* Modules */}
+              <div>
+                <h4 className="text-xs font-heading font-semibold text-text-secondary uppercase tracking-wider mb-3">Modules</h4>
+                {panelLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <SpinnerGap size={24} className="animate-spin text-teal" />
+                  </div>
+                ) : panelModules.length === 0 ? (
+                  <p className="text-sm text-text-muted py-4 text-center">No modules yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {panelModules.map((mod, i) => {
+                      const isExpanded = expandedPanelModules.has(mod.id);
+                      return (
+                        <div key={mod.id} className="bg-card-bg border border-border rounded-lg overflow-hidden">
+                          <button
+                            onClick={() => {
+                              setExpandedPanelModules(prev => {
+                                const next = new Set(prev);
+                                if (next.has(mod.id)) next.delete(mod.id);
+                                else next.add(mod.id);
+                                return next;
+                              });
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-white/[0.02] transition-colors"
+                          >
+                            {isExpanded ? <CaretDown size={12} weight="bold" className="text-teal" /> : <CaretRight size={12} weight="bold" className="text-text-secondary" />}
+                            <span className="text-sm font-medium text-text-primary flex-1">{mod.title}</span>
+                            <span className="text-[11px] text-text-muted">
+                              {mod.activities.length} {mod.activities.length === 1 ? 'activity' : 'activities'}
+                            </span>
+                          </button>
+                          {isExpanded && mod.activities.length > 0 && (
+                            <div className="border-t border-border px-3 py-2 space-y-1">
+                              {mod.activities.map((act) => (
+                                <div key={act.id} className="flex items-center gap-2 py-1.5 text-xs">
+                                  <Lightning size={12} weight="fill" className="text-teal shrink-0" />
+                                  <span className="text-text-primary">{act.title}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {isExpanded && mod.activities.length === 0 && (
+                            <div className="border-t border-border px-3 py-2">
+                              <p className="text-xs text-text-muted text-center">No activities</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-3 border-t border-border">
+                <button
+                  onClick={() => { router.push(`/teacher/edit-course/${selectedCourse.id}`); setSelectedCourse(null); }}
+                  className="px-4 py-2 bg-navy text-white text-xs font-semibold rounded-lg hover:bg-navy/90 transition-colors flex items-center gap-1.5"
+                >
+                  <PencilSimple size={14} weight="fill" /> Edit Course
+                </button>
+                <button
+                  onClick={() => { togglePublish(selectedCourse.id, !!selectedCourse.is_published); setSelectedCourse(prev => prev ? { ...prev, is_published: !prev.is_published } : null); }}
+                  className={`px-4 py-2 border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                    selectedCourse.is_published
+                      ? 'border-yellow-500/30 text-yellow-400 hover:border-yellow-500'
+                      : 'border-border text-text-primary hover:border-teal hover:text-teal'
+                  }`}
+                >
+                  <ShareNetwork size={14} weight="fill" />
+                  {selectedCourse.is_published ? 'Unpublish' : 'Publish'}
+                </button>
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>
