@@ -177,7 +177,7 @@ export default function WelcomePage() {
                 <div className="mt-auto">
                   <Link
                     href="/student/signup"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal px-6 py-3.5 font-heading text-base font-semibold text-white shadow-md transition-all hover:bg-teal/90 hover:shadow-lg active:scale-[0.98]"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal px-6 py-3.5 font-heading text-base font-semibold text-navy shadow-md transition-all hover:bg-teal/90 hover:shadow-lg active:scale-[0.98]"
                   >
                     Join a Class
                     <ArrowRight weight="bold" size={18} />

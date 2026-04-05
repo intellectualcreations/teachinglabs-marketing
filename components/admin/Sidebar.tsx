@@ -6,10 +6,13 @@ import { useState } from 'react';
 import NotificationBell from '@/components/shared/NotificationBell';
 
 const NAV_ITEMS = [
+  { label: 'CEO Dashboard', href: '/admin/ceo', icon: 'trending-up' },
   { label: 'Dashboard', href: '/admin', icon: 'grid' },
   { label: 'Users', href: '/admin/users', icon: 'users' },
   { label: 'Courses', href: '/admin/courses', icon: 'book' },
+  { label: 'Standards', href: '/admin/standards', icon: 'book-open' },
   { label: 'Analytics', href: '/admin/analytics', icon: 'chart' },
+  { label: 'Waitlist', href: '/admin/waitlist', icon: 'clipboard' },
   { label: 'Back to App', href: '/app-index', icon: 'arrow-left' },
 ];
 
@@ -46,6 +49,27 @@ function NavIcon({ icon, size = 20 }: { icon: string; size?: number }) {
           <line x1="18" y1="20" x2="18" y2="10" />
           <line x1="12" y1="20" x2="12" y2="4" />
           <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+      );
+    case 'book-open':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </svg>
+      );
+    case 'clipboard':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+        </svg>
+      );
+    case 'trending-up':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+          <polyline points="17 6 23 6 23 12" />
         </svg>
       );
     case 'arrow-left':
@@ -130,7 +154,9 @@ export default function AdminSidebar() {
             const isActive =
               item.label === 'Dashboard'
                 ? pathname === '/admin'
-                : item.label !== 'Back to App' && pathname.startsWith(item.href);
+                : item.label === 'CEO Dashboard'
+                  ? pathname === '/admin/ceo'
+                  : item.label !== 'Back to App' && pathname.startsWith(item.href);
             return (
               <Link
                 key={item.label}

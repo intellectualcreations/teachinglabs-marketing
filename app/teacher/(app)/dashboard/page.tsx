@@ -32,6 +32,10 @@ export default function DashboardPage() {
   const [students, setStudents] = useState<EnrolledStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalInteractions, setTotalInteractions] = useState(0);
+  const [chatSessions, setChatSessions] = useState(0);
+  const [activityByHour, setActivityByHour] = useState<number[]>(Array(8).fill(0));
+  const [activeThisWeek, setActiveThisWeek] = useState(0);
 
   const [classFilter, setClassFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -42,57 +46,40 @@ export default function DashboardPage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+        if (!user) {
+          window.location.href = '/login';
+          return;
+        }
 
-        // Fetch profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setProfile(profileData as Profile | null);
+        // Fetch all dashboard data via admin API route (bypasses RLS)
+        const res = await fetch(`/api/teacher/dashboard?teacherId=${user.id}`);
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Failed to load dashboard');
+        }
+        const data = await res.json();
 
-        // Fetch teacher's classes
-        const { data: classData } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('teacher_id', user.id)
-          .order('created_at', { ascending: false });
-        const teacherClasses = (classData ?? []) as Class[];
+        setProfile(data.profile as Profile | null);
+        const teacherClasses = (data.classes ?? []) as Class[];
         setClasses(teacherClasses);
 
-        if (teacherClasses.length === 0) {
+        // Wire up activity stats
+        if (data.totalInteractions !== undefined) setTotalInteractions(data.totalInteractions);
+        if (data.chatSessions !== undefined) setChatSessions(data.chatSessions);
+        if (data.activityByHour) setActivityByHour(data.activityByHour);
+        if (data.activeThisWeek !== undefined) setActiveThisWeek(data.activeThisWeek);
+
+        const enrollments = (data.enrollments ?? []) as Array<{ student_id: string; class_id: string; enrolled_at: string; status: string }>;
+        const studentProfiles = (data.students ?? []) as Profile[];
+
+        if (teacherClasses.length === 0 || enrollments.length === 0) {
           setStudents([]);
           setLoading(false);
           return;
         }
-
-        // Fetch enrollments with student profiles for all teacher classes
-        const classIds = teacherClasses.map((c) => c.id);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: enrollmentData } = await (supabase
-          .from('enrollments')
-          .select('student_id, class_id, enrolled_at, status') as any)
-          .in('class_id', classIds)
-          .eq('status', 'active');
-
-        const enrollments = (enrollmentData ?? []) as Array<{ student_id: string; class_id: string; enrolled_at: string; status: string }>;
-        if (enrollments.length === 0) {
-          setStudents([]);
-          setLoading(false);
-          return;
-        }
-
-        // Get unique student IDs and fetch their profiles
-        const studentIds = [...new Set(enrollments.map((e) => e.student_id))];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: studentProfiles } = await (supabase
-          .from('profiles')
-          .select('*') as any)
-          .in('id', studentIds);
 
         const profileMap = new Map<string, Profile>();
-        ((studentProfiles ?? []) as Profile[]).forEach((p) => profileMap.set(p.id, p));
+        studentProfiles.forEach((p) => profileMap.set(p.id, p));
 
         // Build class name lookup
         const classNameMap = new Map<string, string>();
@@ -147,7 +134,7 @@ export default function DashboardPage() {
   const showing = filtered.slice(0, showCount);
 
   // Derive teacher display name
-  const teacherFirstName = profile?.display_name?.split(' ')[0] ?? 'Teacher';
+  const teacherFirstName = profile?.display_name?.split(' ')[0] || (profile as any)?.first_name || 'Teacher';
   const initials = profile?.display_name
     ? profile.display_name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
     : 'T';
@@ -197,7 +184,7 @@ export default function DashboardPage() {
           </h2>
           <div className="grid grid-cols-2 gap-3">
             <StatBox value={students.length} label="Students Enrolled" />
-            <StatBox value={students.length} label="Active This Week">
+            <StatBox value={activeThisWeek || students.length} label="Active This Week">
               <span className="text-xs font-semibold text-success">
                 {students.length > 0 ? '100%' : '0%'}
               </span>
@@ -214,12 +201,12 @@ export default function DashboardPage() {
             Activity
           </h2>
           <div className="grid grid-cols-2 gap-3 mb-[18px]">
-            <StatBox value={0} label="Total Interactions" />
-            <StatBox value={0} label="Chat Sessions" />
+            <StatBox value={totalInteractions} label="Total Interactions" />
+            <StatBox value={chatSessions} label="Chat Sessions" />
           </div>
           <div className="py-1">
             <div className="text-xs text-text-secondary mb-[10px]">Activity by hour (today)</div>
-            <BarChart labels={ACTIVITY_HOURS} values={[0, 0, 0, 0, 0, 0, 0, 0]} />
+            <BarChart labels={ACTIVITY_HOURS} values={activityByHour} />
           </div>
         </div>
       </div>

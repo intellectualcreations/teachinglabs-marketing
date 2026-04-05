@@ -26,7 +26,7 @@ function AddActivityModal({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const [view, setView] = useState<'choose' | 'library'>('choose');
+  const [view, setView] = useState<'choose' | 'library'>('library');
   const [search, setSearch] = useState('');
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loadingLib, setLoadingLib] = useState(false);
@@ -44,15 +44,14 @@ function AddActivityModal({
       const supabase = createClient();
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (!user) { setLoadingLib(false); return; }
-        supabase
-          .from('assignments')
-          .select('*')
-          .eq('teacher_id', user.id)
-          .order('created_at', { ascending: false })
-          .then(({ data }) => {
-            setAssignments((data ?? []) as Assignment[]);
+        // Use server API to bypass RLS
+        fetch(`/api/teacher/activities?teacherId=${user.id}`)
+          .then(r => r.json())
+          .then(d => {
+            setAssignments((d.activities ?? []) as Assignment[]);
             setLoadingLib(false);
-          });
+          })
+          .catch(() => setLoadingLib(false));
       });
     }
   }, [view]);
@@ -88,56 +87,9 @@ function AddActivityModal({
           <X size={20} weight="bold" />
         </button>
 
-        {view === 'choose' ? (
-          <div className="p-7">
+        <div className="p-7">
             <h2 className="font-heading font-bold text-xl text-text-primary">Add Activity</h2>
-            <p className="text-sm text-text-secondary mt-1 mb-6">{clsName}</p>
-
-            <div className="grid gap-3">
-              <button
-                onClick={() => router.push(`/teacher/create-activity?class=${classId}`)}
-                className="flex items-center gap-4 p-5 rounded-xl border-2 border-border bg-card-bg
-                  hover:border-teal hover:shadow-[0_2px_12px_rgba(31,58,95,0.06)] transition-all text-left group"
-              >
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-teal/10 flex items-center justify-center
-                  group-hover:bg-teal/20 transition-colors">
-                  <Plus size={24} weight="bold" className="text-teal" />
-                </div>
-                <div>
-                  <div className="font-heading font-bold text-[15px] text-text-primary">Create New Activity</div>
-                  <div className="text-[13px] text-text-secondary mt-0.5">Build an activity from scratch</div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setView('library')}
-                className="flex items-center gap-4 p-5 rounded-xl border-2 border-border bg-card-bg
-                  hover:border-navy hover:shadow-[0_2px_12px_rgba(31,58,95,0.06)] transition-all text-left group"
-              >
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-navy/10 flex items-center justify-center
-                  group-hover:bg-navy/20 transition-colors">
-                  <Books size={24} weight="bold" className="text-navy" />
-                </div>
-                <div>
-                  <div className="font-heading font-bold text-[15px] text-text-primary">Choose from Library</div>
-                  <div className="text-[13px] text-text-secondary mt-0.5">Browse your existing activities</div>
-                </div>
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="p-7">
-            <div className="flex items-center gap-2 mb-1">
-              <button
-                onClick={() => { setView('choose'); setSearch(''); }}
-                className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-border/40
-                  transition-colors -ml-1"
-              >
-                <ArrowLeft size={18} weight="bold" />
-              </button>
-              <h2 className="font-heading font-bold text-xl text-text-primary">Choose Activity from Library</h2>
-            </div>
-            <p className="text-sm text-text-secondary mt-1 mb-4 ml-7">{clsName}</p>
+            <p className="text-sm text-text-secondary mt-1 mb-4">{clsName}</p>
 
             <div className="relative mb-4">
               <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
@@ -156,9 +108,20 @@ function AddActivityModal({
               {loadingLib ? (
                 <p className="text-center text-sm text-text-secondary py-8">Loading...</p>
               ) : filtered.length === 0 ? (
-                <p className="text-center text-sm text-text-secondary py-8">
-                  {assignments.length === 0 ? 'No activities in your library yet.' : 'No activities match your search.'}
-                </p>
+                <div className="text-center py-8">
+                  <p className="text-sm text-text-secondary mb-3">
+                    {assignments.length === 0 ? 'No activities in your library yet.' : 'No activities match your search.'}
+                  </p>
+                  {assignments.length === 0 && (
+                    <button
+                      onClick={() => router.push('/teacher/library')}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-navy text-white text-sm font-medium rounded-lg hover:bg-navy/90 transition-colors"
+                    >
+                      <Books size={16} weight="fill" />
+                      Manage Content in Your Library
+                    </button>
+                  )}
+                </div>
               ) : (
                 filtered.map((a) => (
                   <div
@@ -176,11 +139,25 @@ function AddActivityModal({
                       )}
                     </div>
                     <button
-                      onClick={() => {
-                        setSuccessMsg(`Added to ${clsName}!`);
-                        setTimeout(() => onClose(), 1500);
+                      onClick={async () => {
+                        try {
+                          // Fetch current class assignments for this activity
+                          const getRes = await fetch(`/api/teacher/activities/${a.id}/classes`);
+                          const { classIds: existing } = getRes.ok ? await getRes.json() : { classIds: [] };
+                          // Add this class if not already assigned
+                          const updated = existing.includes(classId) ? existing : [...existing, classId];
+                          await fetch(`/api/teacher/activities/${a.id}/classes`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ classIds: updated }),
+                          });
+                          setSuccessMsg(`Added to ${clsName}!`);
+                          setTimeout(() => onClose(), 1500);
+                        } catch (err) {
+                          console.error('Failed to add activity to class:', err);
+                        }
                       }}
-                      className="flex-shrink-0 ml-3 px-3.5 py-1.5 rounded-lg bg-teal text-white text-xs
+                      className="flex-shrink-0 ml-3 px-3.5 py-1.5 rounded-lg bg-teal text-navy text-xs
                         font-semibold hover:bg-teal/90 transition-colors"
                     >
                       Add to Class
@@ -189,8 +166,7 @@ function AddActivityModal({
                 ))
               )}
             </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -210,55 +186,17 @@ export default function MyClassesPage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+        if (!user) { window.location.href = '/login'; return; setLoading(false); return; }
 
-        // Fetch teacher's classes
-        const { data: classData } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('teacher_id', user.id)
-          .order('created_at', { ascending: false });
-        const teacherClasses = (classData ?? []) as Class[];
-
-        if (teacherClasses.length === 0) {
-          setClasses([]);
+        // Fetch teacher's classes with counts via API route (bypasses RLS)
+        const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}`);
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setError(body.error ?? `Failed to load classes (${res.status})`);
           setLoading(false);
           return;
         }
-
-        const classIds = teacherClasses.map((c) => c.id);
-
-        // Fetch enrollment counts
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: enrollmentData } = await (supabase
-          .from('enrollments')
-          .select('class_id, status') as any)
-          .in('class_id', classIds)
-          .eq('status', 'active');
-
-        const enrollCounts = new Map<string, number>();
-        ((enrollmentData ?? []) as Array<{ class_id: string; status: string }>).forEach((e) => {
-          enrollCounts.set(e.class_id, (enrollCounts.get(e.class_id) ?? 0) + 1);
-        });
-
-        // Fetch assignment counts
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: assignmentData } = await (supabase
-          .from('assignments')
-          .select('class_id') as any)
-          .in('class_id', classIds);
-
-        const assignCounts = new Map<string, number>();
-        ((assignmentData ?? []) as Array<{ class_id: string }>).forEach((a) => {
-          assignCounts.set(a.class_id, (assignCounts.get(a.class_id) ?? 0) + 1);
-        });
-
-        const classesWithCounts: ClassWithCounts[] = teacherClasses.map((c) => ({
-          ...c,
-          studentCount: enrollCounts.get(c.id) ?? 0,
-          assignmentCount: assignCounts.get(c.id) ?? 0,
-        }));
-
+        const classesWithCounts = (await res.json()) as ClassWithCounts[];
         setClasses(classesWithCounts);
       } catch (err) {
         console.error('My classes fetch error:', err);
@@ -340,7 +278,7 @@ export default function MyClassesPage() {
 
               {/* Header */}
               <div className="flex items-center gap-3.5 mb-4">
-                <ClassIcon name={c.name} size={36} />
+                <ClassIcon name={c.name} icon={c.icon} size={36} />
                 <div>
                   <div className="font-heading font-bold text-[17px] text-text-primary">{c.name}</div>
                   <div className="text-[13px] text-text-secondary mt-0.5">
@@ -368,37 +306,37 @@ export default function MyClassesPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 <button
                   onClick={() => setModal({ name: c.name, id: c.id })}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 bg-teal text-white
-                    rounded-lg text-xs font-semibold hover:bg-teal/90 transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-teal text-navy
+                    rounded-lg text-[11px] font-semibold hover:bg-teal/90 transition-colors"
                 >
-                  <Plus size={13} weight="bold" /> Add Activity
+                  <Plus size={12} weight="bold" /> Add Activity
                 </button>
                 <Link
                   href={`/teacher/class-details?class=${c.id}`}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
-                    rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[1.5px] border-border
+                    rounded-lg text-[11px] font-medium text-text-secondary hover:border-navy hover:text-navy
                     transition-colors"
                 >
-                  <Info size={13} /> Class Details
-                </Link>
-                <Link
-                  href={`/teacher/edit-class?class=${c.id}`}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
-                    rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
-                    transition-colors"
-                >
-                  <PencilSimple size={13} /> Edit
+                  <Info size={12} /> Class Details
                 </Link>
                 <Link
                   href={`/teacher/students?class=${c.id}`}
-                  className="inline-flex items-center gap-[5px] px-3.5 py-1.5 border-[1.5px] border-border
-                    rounded-lg text-xs font-medium text-text-secondary hover:border-navy hover:text-navy
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[1.5px] border-border
+                    rounded-lg text-[11px] font-medium text-text-secondary hover:border-navy hover:text-navy
                     transition-colors"
                 >
-                  <Users size={13} /> Manage Students
+                  <Users size={12} /> Students
+                </Link>
+                <Link
+                  href={`/teacher/edit-class?class=${c.id}`}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 border-[1.5px] border-border
+                    rounded-lg text-[11px] font-medium text-text-secondary hover:border-navy hover:text-navy
+                    transition-colors"
+                >
+                  <PencilSimple size={12} /> Edit
                 </Link>
               </div>
             </div>

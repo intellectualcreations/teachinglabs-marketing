@@ -10,7 +10,8 @@ import { createClient } from '@/lib/supabase/client';
 import type { Profile, Class } from '@/lib/supabase/types';
 
 /* ─── Types ─── */
-type SortOption = 'name-az' | 'name-za' | 'enrollment';
+type SortOption = 'first-az' | 'first-za' | 'last-az' | 'last-za' | 'enrollment';
+type NameFormat = 'first-last' | 'last-first';
 
 interface StudentRow {
   id: string;
@@ -18,7 +19,10 @@ interface StudentRow {
   first: string;
   last: string;
   classNames: string[];
+  classIds: string[];
   enrolledAt: string;
+  baselineDate: string | null;
+  preferredName: string | null;
   color: string;
   studentNumber: string | null;
 }
@@ -29,8 +33,10 @@ const AVATAR_COLORS = [
 ];
 
 const SORT_LABELS: Record<SortOption, string> = {
-  'name-az': 'Name A-Z',
-  'name-za': 'Name Z-A',
+  'first-az': 'First Name A–Z',
+  'first-za': 'First Name Z–A',
+  'last-az': 'Last Name A–Z',
+  'last-za': 'Last Name Z–A',
   enrollment: 'Enrollment Date',
 };
 
@@ -52,7 +58,8 @@ function StudentsContent() {
   // State
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState<string>(classParam ?? 'all');
-  const [sort, setSort] = useState<SortOption>('name-az');
+  const [sort, setSort] = useState<SortOption>('first-az');
+  const [nameFormat, setNameFormat] = useState<NameFormat>('first-last');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -62,50 +69,41 @@ function StudentsContent() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+        if (!user) { window.location.href = '/login'; return; setLoading(false); return; }
 
-        // Fetch teacher's classes
-        const { data: classData } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('teacher_id', user.id)
-          .order('created_at', { ascending: false });
-        const teacherClasses = (classData ?? []) as Class[];
+        // Fetch all student data via admin API route (bypasses RLS)
+        const res = await fetch(`/api/teacher/students?teacherId=${user.id}`);
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Failed to load students');
+        }
+        const data = await res.json();
+
+        const teacherClasses = (data.classes ?? []) as Class[];
         setClasses(teacherClasses);
 
-        if (teacherClasses.length === 0) {
+        const enrollments = (data.enrollments ?? []) as Array<{ student_id: string; class_id: string; enrolled_at: string; status: string }>;
+        const studentProfilesList = (data.students ?? []) as Profile[];
+        const assessmentsList = (data.assessments ?? []) as Array<{ student_id: string; completed_at: string }>;
+
+        if (teacherClasses.length === 0 || enrollments.length === 0) {
           setStudents([]);
           setLoading(false);
           return;
         }
-
-        const classIds = teacherClasses.map((c) => c.id);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: enrollmentData } = await (supabase
-          .from('enrollments')
-          .select('student_id, class_id, enrolled_at, status') as any)
-          .in('class_id', classIds)
-          .eq('status', 'active');
-
-        const enrollments = (enrollmentData ?? []) as Array<{ student_id: string; class_id: string; enrolled_at: string; status: string }>;
-        if (enrollments.length === 0) {
-          setStudents([]);
-          setLoading(false);
-          return;
-        }
-
-        const studentIds = [...new Set(enrollments.map((e) => e.student_id))];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: studentProfiles } = await (supabase
-          .from('profiles')
-          .select('*') as any)
-          .in('id', studentIds);
 
         const profileMap = new Map<string, Profile>();
-        ((studentProfiles ?? []) as Profile[]).forEach((p) => profileMap.set(p.id, p));
+        studentProfilesList.forEach((p) => profileMap.set(p.id, p));
 
         const classNameMap = new Map<string, string>();
         teacherClasses.forEach((c) => classNameMap.set(c.id, c.name));
+
+        const assessmentMap = new Map<string, string>();
+        const preferredNameMap = new Map<string, string>();
+        assessmentsList.forEach((a: { student_id: string; completed_at: string; preferred_name?: string }) => {
+          assessmentMap.set(a.student_id, a.completed_at);
+          if (a.preferred_name) preferredNameMap.set(a.student_id, a.preferred_name);
+        });
 
         // Group enrollments by student (dedup across classes)
         const studentMap = new Map<string, StudentRow>();
@@ -113,7 +111,8 @@ function StudentsContent() {
           const existing = studentMap.get(e.student_id);
           const className = classNameMap.get(e.class_id) ?? 'Unknown';
           if (existing) {
-            if (!existing.classNames.includes(className)) {
+            if (!existing.classIds.includes(e.class_id)) {
+              existing.classIds.push(e.class_id);
               existing.classNames.push(className);
             }
           } else {
@@ -126,9 +125,12 @@ function StudentsContent() {
               first: parts[0] ?? '',
               last: parts.slice(1).join(' ') || '',
               classNames: [className],
+              classIds: [e.class_id],
               enrolledAt: e.enrolled_at,
+              baselineDate: assessmentMap.get(e.student_id) ?? null,
+              preferredName: preferredNameMap.get(e.student_id) ?? null,
               color: AVATAR_COLORS[i % AVATAR_COLORS.length],
-              studentNumber: null, // No student_number column yet
+              studentNumber: null,
             });
           }
         });
@@ -152,15 +154,10 @@ function StudentsContent() {
     }
   }, [classParam, classes]);
 
-  const filterClassName = useMemo(() => {
-    if (classFilter === 'all') return null;
-    return classes.find((c) => c.id === classFilter)?.name ?? null;
-  }, [classFilter, classes]);
-
   // Filtered + sorted students
   const filtered = useMemo(() => {
     let list = students.filter((s) => {
-      if (filterClassName && !s.classNames.includes(filterClassName)) return false;
+      if (classFilter !== 'all' && !s.classIds.includes(classFilter)) return false;
       if (search) {
         const q = search.toLowerCase();
         const name = `${s.first} ${s.last}`.toLowerCase();
@@ -171,18 +168,24 @@ function StudentsContent() {
 
     list = [...list];
     switch (sort) {
-      case 'name-az':
-        list.sort((a, b) => `${a.last} ${a.first}`.localeCompare(`${b.last} ${b.first}`));
+      case 'first-az':
+        list.sort((a, b) => a.first.localeCompare(b.first) || a.last.localeCompare(b.last));
         break;
-      case 'name-za':
-        list.sort((a, b) => `${b.last} ${b.first}`.localeCompare(`${a.last} ${a.first}`));
+      case 'first-za':
+        list.sort((a, b) => b.first.localeCompare(a.first) || b.last.localeCompare(a.last));
+        break;
+      case 'last-az':
+        list.sort((a, b) => a.last.localeCompare(b.last) || a.first.localeCompare(b.first));
+        break;
+      case 'last-za':
+        list.sort((a, b) => b.last.localeCompare(a.last) || b.first.localeCompare(a.first));
         break;
       case 'enrollment':
         list.sort((a, b) => new Date(b.enrolledAt).getTime() - new Date(a.enrolledAt).getTime());
         break;
     }
     return list;
-  }, [students, filterClassName, search, sort]);
+  }, [students, classFilter, search, sort]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -217,6 +220,7 @@ function StudentsContent() {
     );
   }
 
+  const filterClassName = classFilter !== 'all' ? (classes.find((c) => c.id === classFilter)?.name ?? null) : null;
   const title = filterClassName ? `Manage Students — ${filterClassName}` : 'Manage Students';
 
   return (
@@ -257,6 +261,15 @@ function StudentsContent() {
               className="w-full pl-[38px] pr-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm bg-card-bg text-text-primary outline-none focus:border-navy"
             />
           </div>
+
+          {/* Name format toggle */}
+          <button
+            onClick={() => setNameFormat(nameFormat === 'first-last' ? 'last-first' : 'first-last')}
+            className="flex items-center gap-2 px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm text-text-secondary hover:border-navy cursor-pointer"
+            title={nameFormat === 'first-last' ? 'Switch to Last, First' : 'Switch to First Last'}
+          >
+            {nameFormat === 'first-last' ? 'First Last' : 'Last, First'}
+          </button>
 
           {/* Sort dropdown */}
           <div className="relative">
@@ -332,8 +345,10 @@ function StudentsContent() {
                     />
                   </th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Student</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Preferred Name</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Classes</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Enrolled</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Last Baseline</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border w-10"></th>
                 </tr>
               </thead>
@@ -349,15 +364,23 @@ function StudentsContent() {
                       />
                     </td>
                     <td className="px-3 py-3">
-                      <div className="flex items-center gap-3">
+                      <a href={`/teacher/student-detail?student=${s.id}`} className="flex items-center gap-3 no-underline cursor-pointer hover:opacity-80">
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                           style={{ backgroundColor: s.color }}
                         >
                           {getInitials(s.first, s.last)}
                         </div>
-                        <span className="font-semibold text-sm text-text-primary">{s.first} {s.last}</span>
-                      </div>
+                        <span className="font-semibold text-sm text-text-primary">
+                          {nameFormat === 'last-first' ? `${s.last}, ${s.first}` : `${s.first} ${s.last}`}
+                        </span>
+                      </a>
+                    </td>
+                    <td className="px-3 py-3 text-sm text-text-secondary">
+                      {s.preferredName
+                        ? <span className={s.preferredName.toLowerCase() !== s.first.toLowerCase() ? 'text-amber-600 font-medium' : ''}>{s.preferredName}</span>
+                        : <span className="text-text-muted">—</span>
+                      }
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-1">
@@ -370,6 +393,12 @@ function StudentsContent() {
                     </td>
                     <td className="px-3 py-3 text-sm text-text-secondary">
                       {new Date(s.enrolledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-text-secondary">
+                      {s.baselineDate
+                        ? new Date(s.baselineDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : <span className="text-text-muted">—</span>
+                      }
                     </td>
                     <td className="px-3 py-3 relative">
                       <button

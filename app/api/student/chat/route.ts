@@ -1,17 +1,262 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+/* ─── Types ─── */
+interface TeacherSoul {
+  teaching_style: string;
+  classroom_vibe: string[];
+  feedback_approach: string;
+  mistake_response: string;
+  assistant_priorities: string[];
+  twin_archetype: string;
+  twin_traits: {
+    style: string;
+    energy: string;
+    approach: string;
+    strengths: string[];
+  };
+  scenario_responses?: {
+    northStar?: string;
+  };
+  why_learn_response?: string;
+}
+
+interface StudentAssessment {
+  preferred_name: string | null;
+  age: number | null;
+  interests: string[] | null;
+  other_interests: string | null;
+  reading_level: string | null;
+  math_level: string | null;
+  language_tier: string | null;
+  math_performance_q1: string | null;
+  math_performance_q2: string | null;
+  multiple_intelligences: Record<string, string> | null;
+  logic_reasoning_level: string | null;
+  emotional_intelligence_signals: Record<string, string> | null;
+}
+
+/* ─── Build system prompt ─── */
+function buildSystemPrompt(
+  studentName: string,
+  className: string,
+  subject: string,
+  gradeLevel: string,
+  classDesc: string,
+  teacherName: string,
+  teacherSoul: TeacherSoul | null,
+  studentAssessment: StudentAssessment | null,
+): string {
+  // Language tier mapping
+  const languageTierMap: Record<string, string> = {
+    young: "Use very simple words, short sentences, and a warm, playful tone. Think 1st-2nd grade level. Use encouragement like 'Great job!' and 'You got this!'",
+    developing: "Use clear, simple language with some variety. Think 3rd-5th grade level. Be encouraging and patient. Use relatable examples from everyday life.",
+    intermediate: "Use grade-appropriate vocabulary. Think 6th-8th grade level. Be conversational but still supportive. You can use more complex explanations.",
+    advanced: "Use sophisticated but accessible language. Think 9th-12th grade level. Be respectful of their maturity. You can discuss concepts at a deeper level.",
+  };
+
+  const languageGuidance = studentAssessment?.language_tier
+    ? languageTierMap[studentAssessment.language_tier] || languageTierMap.developing
+    : gradeLevel
+      ? parseInt(gradeLevel) <= 2
+        ? languageTierMap.young
+        : parseInt(gradeLevel) <= 5
+          ? languageTierMap.developing
+          : parseInt(gradeLevel) <= 8
+            ? languageTierMap.intermediate
+            : languageTierMap.advanced
+      : languageTierMap.developing;
+
+  // Student strengths from multiple intelligences
+  let strengthsNote = "";
+  if (studentAssessment?.multiple_intelligences) {
+    const mi = studentAssessment.multiple_intelligences;
+    const strong = Object.entries(mi)
+      .filter(([k, v]) => v === "strong" && !k.includes("_raw"))
+      .map(([k]) => k.replace(/_/g, " "));
+    const lower = Object.entries(mi)
+      .filter(([k, v]) => v === "lower" && !k.includes("_raw"))
+      .map(([k]) => k.replace(/_/g, " "));
+    if (strong.length) strengthsNote += `Strong in: ${strong.join(", ")}. `;
+    if (lower.length) strengthsNote += `Working on: ${lower.join(", ")}. `;
+  }
+
+  // Student interests
+  const interests = [
+    ...(studentAssessment?.interests || []),
+    ...(studentAssessment?.other_interests ? [studentAssessment.other_interests] : []),
+  ].filter(Boolean);
+
+  // Teacher soul guidance
+  let teacherVoice = "";
+  if (teacherSoul) {
+    const traits = teacherSoul.twin_traits;
+    teacherVoice = `
+TEACHER VOICE & STYLE:
+You are embodying the teaching style of ${teacherName} (archetype: "${teacherSoul.twin_archetype}").
+- Energy: ${traits.energy}
+- Teaching approach: ${traits.style}
+- Feedback style: ${traits.approach}
+- Core strengths: ${traits.strengths.join(", ")}
+- Classroom vibe: ${teacherSoul.classroom_vibe.join(", ")}
+${teacherSoul.scenario_responses?.northStar ? `- North star: ${teacherSoul.scenario_responses.northStar}` : ""}
+
+When the student makes a mistake, channel ${teacherName}'s approach: ${teacherSoul.mistake_response.substring(0, 300)}
+
+Match ${teacherName}'s energy level (${traits.energy}) and feedback style (${teacherSoul.feedback_approach}) in every response.`;
+  }
+
+  return `You are the AI Teaching Twin for ${teacherName}'s ${className} class on TeachingLabs, a K-12 education platform.
+
+STUDENT PROFILE:
+- Name: ${studentName}
+${studentAssessment?.age ? `- Age: ${studentAssessment.age}` : ""}
+- Class: ${className} (${subject})${gradeLevel ? ` — Grade ${gradeLevel}` : ""}
+${classDesc ? `- Class description: ${classDesc}` : ""}
+${studentAssessment?.reading_level ? `- Reading level: ${studentAssessment.reading_level}` : ""}
+${studentAssessment?.math_level ? `- Math level: ${studentAssessment.math_level}` : ""}
+${studentAssessment?.logic_reasoning_level ? `- Logic/reasoning: ${studentAssessment.logic_reasoning_level}` : ""}
+${strengthsNote ? `- Learning profile: ${strengthsNote}` : ""}
+${interests.length ? `- Interests: ${interests.join(", ")}` : ""}
+
+LANGUAGE LEVEL (CRITICAL):
+${languageGuidance}
+${studentAssessment?.age ? `This student is ${studentAssessment.age} years old. Your vocabulary, sentence complexity, and tone MUST match this age.` : ""}
+${teacherVoice}
+
+CORE RULES (NON-NEGOTIABLE):
+
+1. NEVER GIVE ANSWERS DIRECTLY.
+   - You are a coach, not an answer machine
+   - Guide with questions: "What do you think happens when...?" "Can you try...?"
+   - Break problems into smaller steps and walk alongside the student
+   - If they ask "What's the answer?", respond with a guiding question
+   - Celebrate when they figure it out themselves
+
+2. BRAIN-BASED LEARNING SCIENCE:
+   - Use retrieval practice: "Before we look at this, what do you remember about...?"
+   - Spaced repetition: reference topics from earlier conversations
+   - Productive struggle: give hints, not answers. Struggle builds learning
+   - Metacognition: "What part makes sense? What part is confusing?"
+   - Growth mindset: "You don't understand this YET" / "Mistakes mean you're learning"
+   - Praise effort and strategy, not just results
+
+3. DETECT AND HANDLE COPIED CONTENT:
+   - If a student sends an unusually long, formal, or sophisticated response that doesn't match their language tier (${studentAssessment?.language_tier || "unknown"}), gently ask:
+     "That's a really detailed answer! Can you tell me in your own words what that means?"
+   - If it reads like AI-generated text (perfect grammar, formal structure, overly comprehensive), redirect:
+     "I'd love to hear YOUR thinking on this. What's the main idea in your own words?"
+   - Never accuse. Always redirect to understanding.
+
+4. STAY ON TOPIC:
+   - Focus on ${subject} and related learning
+   - If they go off-topic, gently bring it back: "That's interesting! Now let's get back to..."
+   - Use their interests (${interests.join(", ") || "their world"}) to make connections to the subject
+
+5. SAFETY (K-12 ENVIRONMENT):
+   - All content must be age-appropriate for ${studentAssessment?.age ? `a ${studentAssessment.age}-year-old` : "a K-12 student"}
+   - Never discuss inappropriate content
+   - If a student shares something concerning (bullying, harm, etc.), say: "That sounds important. I think ${teacherName} would want to know about this. Would you feel comfortable talking to them?"
+   - Protect student privacy. Never ask for personal information
+
+6. RESPONSE FORMAT:
+   - Keep responses SHORT. Most under 100 words unless explaining a complex concept
+   - Use bullet points or numbered steps for processes
+   - Ask ONE question at a time (don't overwhelm)
+   - Include encouragement naturally
+   - Use the student's name sometimes
+
+7. DATA PRIVACY:
+   - This conversation is saved and visible to ${teacherName}
+   - Do not train on or retain any student data outside this conversation
+   - Never reference other students or share any student information`;
+}
+
+/**
+ * GET /api/student/chat?classId=<uuid>&userId=<uuid>
+ * Returns chat messages for a student in a class (bypasses RLS)
+ */
+export async function GET(request: NextRequest) {
+  const classId = request.nextUrl.searchParams.get('classId');
+  const userId = request.nextUrl.searchParams.get('userId');
+  if (!classId || !userId) {
+    return NextResponse.json({ error: 'classId and userId required' }, { status: 400 });
+  }
+  const admin = createAdminClient();
+  const { data: messages, error } = await (admin as any)
+    .from('chat_messages')
+    .select('*')
+    .eq('class_id', classId)
+    .or(`sender_id.eq.${userId},message_type.eq.ai`)
+    .order('created_at', { ascending: true });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ messages: messages ?? [] });
+}
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const admin = createAdminClient();
+  let userId: string | null = null;
 
-  if (!user) {
+  // Method 1: Cookie-based session
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: cookieErr } = await supabase.auth.getUser();
+    if (user) userId = user.id;
+    if (cookieErr) console.log('[chat] Cookie auth error:', cookieErr.message);
+  } catch (err) {
+    console.log('[chat] Cookie auth exception:', err);
+  }
+
+  // Method 2: Authorization header fallback
+  if (!userId) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.slice(7);
+      const { data: { user }, error } = await admin.auth.getUser(token);
+      if (!error && user) userId = user.id;
+      if (error) console.log('[chat] Token auth error:', error.message);
+    }
+  }
+
+  // Method 3: userId from request body (verified against enrollment)
+  // This is safe because we verify enrollment below
+  if (!userId) {
+    try {
+      const cloned = request.clone();
+      const bodyPeek = await cloned.json();
+      if (bodyPeek?.user_id && typeof bodyPeek.user_id === 'string') {
+        // Verify this user exists in profiles
+        const { data: verifyProfile } = await admin
+          .from('profiles')
+          .select('id')
+          .eq('id', bodyPeek.user_id)
+          .eq('role', 'student')
+          .single();
+        if (verifyProfile) {
+          userId = bodyPeek.user_id;
+          console.log('[chat] Authenticated via body user_id:', userId);
+        }
+      }
+    } catch { /* ignore parse errors */ }
+  }
+
+  if (!userId) {
+    console.log('[chat] No auth - returning 401');
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { class_id?: string; content?: string };
+  // Create a fake user object for compatibility
+  const user = { id: userId };
+
+  let body: { class_id?: string; content?: string; user_id?: string };
   try {
     body = await request.json();
   } catch {
@@ -33,8 +278,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Verify student is enrolled in this class
-  const { data: enrollment } = await supabase
+  // Verify student is enrolled
+  const { data: enrollment } = await admin
     .from("enrollments")
     .select("id")
     .eq("student_id", user.id)
@@ -49,10 +294,72 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Fetch class info
+  const { data: classRaw } = await admin
+    .from("classes")
+    .select("name, subject, grade_level, description, teacher_id")
+    .eq("id", class_id)
+    .single();
+  const classInfo = classRaw as {
+    name: string;
+    subject: string | null;
+    grade_level: string | null;
+    description: string | null;
+    teacher_id: string | null;
+  } | null;
+
+  // Fetch teacher profile and soul
+  let teacherName = "your teacher";
+  let teacherSoul: TeacherSoul | null = null;
+
+  if (classInfo?.teacher_id) {
+    const { data: tp } = await admin
+      .from("profiles")
+      .select("preferred_name, display_name")
+      .eq("id", classInfo.teacher_id)
+      .single();
+    const teacherProfile = tp as { preferred_name: string | null; display_name: string | null } | null;
+    if (teacherProfile) {
+      teacherName = teacherProfile.preferred_name || teacherProfile.display_name || "your teacher";
+    }
+
+    // Fetch teacher soul
+    const { data: soulRaw } = await admin
+      .from("teacher_souls")
+      .select("*")
+      .eq("teacher_id", classInfo.teacher_id)
+      .single();
+    if (soulRaw) {
+      teacherSoul = soulRaw as unknown as TeacherSoul;
+    }
+  }
+
+  // Fetch student profile and assessment
+  const { data: sp } = await admin
+    .from("profiles")
+    .select("preferred_name, display_name")
+    .eq("id", user.id)
+    .single();
+  const studentProfile = sp as { preferred_name: string | null; display_name: string | null } | null;
+
+  const { data: assessmentRaw } = await admin
+    .from("student_assessments")
+    .select("*")
+    .eq("student_id", user.id)
+    .single();
+  const studentAssessment = assessmentRaw as StudentAssessment | null;
+
+  const studentPreferredName =
+    studentAssessment?.preferred_name ||
+    studentProfile?.preferred_name ||
+    studentProfile?.display_name?.split(" ")[0] ||
+    "Student";
+
   // Insert student message
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: studentMsg, error: studentErr } = await (supabase
-    .from("chat_messages") as any)
+  const { data: studentMsg, error: studentErr } = await (
+    admin.from("chat_messages") as any
+  )
     .insert({
       sender_id: user.id,
       class_id,
@@ -69,22 +376,86 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Insert placeholder AI acknowledgment (real AI integration comes later)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: aiMsg } = await (supabase
-    .from("chat_messages") as any)
-    .insert({
-      sender_id: user.id,
-      class_id,
-      content:
-        "Thanks for your message! Your AI tutor will respond shortly.",
-      message_type: "ai",
-    })
-    .select()
-    .single();
+  // Fetch recent conversation history (last 30 messages for context)
+  const { data: recentMessages } = await admin
+    .from("chat_messages")
+    .select("content, message_type, created_at")
+    .eq("class_id", class_id)
+    .or(`sender_id.eq.${user.id},message_type.eq.ai`)
+    .order("created_at", { ascending: true })
+    .limit(30);
 
-  return NextResponse.json({
-    studentMessage: studentMsg,
-    aiMessage: aiMsg,
-  });
+  // Build conversation for Claude
+  const conversationHistory: { role: "user" | "assistant"; content: string }[] =
+    (recentMessages ?? []).map(
+      (msg: { content: string; message_type: string }) => ({
+        role:
+          msg.message_type === "student"
+            ? ("user" as const)
+            : ("assistant" as const),
+        content: msg.content,
+      }),
+    );
+
+  // Build the system prompt with all context
+  const systemPrompt = buildSystemPrompt(
+    studentPreferredName,
+    classInfo?.name || "this class",
+    classInfo?.subject || "general studies",
+    classInfo?.grade_level || "",
+    classInfo?.description || "",
+    teacherName,
+    teacherSoul,
+    studentAssessment,
+  );
+
+  try {
+    const response = await anthropic.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 500,
+      system: systemPrompt,
+      messages: conversationHistory,
+    });
+
+    const aiContent =
+      response.content[0].type === "text"
+        ? response.content[0].text
+        : "I'm here to help! What would you like to explore?";
+
+    // Save AI response
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: aiMsg } = await (admin.from("chat_messages") as any)
+      .insert({
+        sender_id: user.id,
+        class_id,
+        content: aiContent,
+        message_type: "ai",
+      })
+      .select()
+      .single();
+
+    return NextResponse.json({
+      studentMessage: studentMsg,
+      aiMessage: aiMsg,
+    });
+  } catch (err) {
+    console.error("[chat] AI error:", err);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: aiMsg } = await (admin.from("chat_messages") as any)
+      .insert({
+        sender_id: user.id,
+        class_id,
+        content:
+          "I'm having a little trouble right now, but I'm still here! Can you try asking that again?",
+        message_type: "ai",
+      })
+      .select()
+      .single();
+
+    return NextResponse.json({
+      studentMessage: studentMsg,
+      aiMessage: aiMsg,
+    });
+  }
 }

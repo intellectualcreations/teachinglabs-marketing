@@ -10,69 +10,16 @@ import {
   PaperPlaneRight, UsersThree,
 } from '@phosphor-icons/react';
 import ClassIcon from '@/components/shared/ClassIcon';
-import { DEMO_CLASSES } from '@/lib/demo-data';
+import { createClient } from '@/lib/supabase/client';
 import AddActivityModal from '@/components/teacher/AddActivityModal';
 
-/* ─── Demo Data ─── */
+/* ─── Demo Data (kept for features we don't track yet) ─── */
 
-interface DemoActivity {
-  name: string;
-  defaultOpen: boolean;
-  progress: number;
-  total: number;
-  progressLabel: string;
-  chats: number;
-}
+const DEMO_GROUPS: Record<string, { name: string; students: string[]; color: string }[]> = {};
 
-const ACTIVITIES_BY_CLASS: Record<string, DemoActivity[]> = {
-  'cls-1': [
-    { name: 'Fraction Basics', defaultOpen: true, progress: 38, total: 52, progressLabel: 'started', chats: 12 },
-    { name: 'Multiplication Practice', defaultOpen: true, progress: 45, total: 52, progressLabel: 'started', chats: 8 },
-    { name: 'Geometry Shapes', defaultOpen: false, progress: 52, total: 52, progressLabel: 'completed', chats: 15 },
-    { name: 'Word Problems Challenge', defaultOpen: true, progress: 20, total: 52, progressLabel: 'started', chats: 5 },
-  ],
-  'cls-2': [
-    { name: 'Multiplication Tables', defaultOpen: true, progress: 30, total: 48, progressLabel: 'started', chats: 9 },
-    { name: 'Division Intro', defaultOpen: true, progress: 22, total: 48, progressLabel: 'started', chats: 6 },
-  ],
-  'cls-3': [
-    { name: 'Photosynthesis Lab', defaultOpen: true, progress: 18, total: 28, progressLabel: 'started', chats: 7 },
-    { name: 'States of Matter', defaultOpen: false, progress: 28, total: 28, progressLabel: 'completed', chats: 11 },
-  ],
-  'cls-4': [
-    { name: 'Vocabulary Builder', defaultOpen: true, progress: 15, total: 20, progressLabel: 'started', chats: 4 },
-    { name: 'Book Report Template', defaultOpen: true, progress: 8, total: 20, progressLabel: 'started', chats: 3 },
-  ],
-  'cls-5': [
-    { name: 'Phonics Foundations', defaultOpen: true, progress: 5, total: 7, progressLabel: 'started', chats: 6 },
-    { name: 'Sight Words Practice', defaultOpen: true, progress: 7, total: 7, progressLabel: 'started', chats: 2 },
-  ],
-};
-
-const DEMO_GROUPS: Record<string, { name: string; students: string[]; color: string }[]> = {
-  'cls-1': [
-    { name: 'Fractions Intervention', students: ['Emma S.', 'Marcus W.', 'Ethan J.'], color: '#E8836B' },
-    { name: 'Advanced Math', students: ['Liam T.', 'Sophia R.', 'Ruby C.', 'Kai S.', 'Olivia K.'], color: '#4FA3A5' },
-  ],
-  'cls-2': [
-    { name: 'Division Help', students: ['Wren F.', 'Hazel C.', 'Silas C.'], color: '#F59E0B' },
-  ],
-  'cls-3': [
-    { name: 'Lab Partners A', students: ['Ivy N.', 'Theo P.', 'Oscar R.'], color: '#3B82F6' },
-  ],
-};
-
-const DEMO_STUDENTS = [
-  { name: 'Emma S.', color: '#1F3A5F', lastActive: '25m ago', status: 'active' as const },
-  { name: 'Liam T.', color: '#4FA3A5', lastActive: '1h ago', status: 'active' as const },
-  { name: 'Sophia R.', color: '#E8836B', lastActive: '2h ago', status: 'active' as const },
-  { name: 'Marcus W.', color: '#F59E0B', lastActive: '3h ago', status: 'active' as const },
-  { name: 'Olivia K.', color: '#8B5CF6', lastActive: 'Yesterday', status: 'week' as const },
-  { name: 'Noah P.', color: '#059669', lastActive: 'Yesterday', status: 'week' as const },
-  { name: 'Ava M.', color: '#3B82F6', lastActive: '2 days ago', status: 'week' as const },
-  { name: 'Ethan J.', color: '#DC2626', lastActive: '3 days ago', status: 'inactive' as const },
-  { name: 'Isabella L.', color: '#6366F1', lastActive: '5 days ago', status: 'inactive' as const },
-  { name: 'Mason H.', color: '#0891B2', lastActive: '1 week ago', status: 'inactive' as const },
+const AVATAR_COLORS = [
+  '#1F3A5F', '#4FA3A5', '#E8836B', '#F59E0B', '#8B5CF6',
+  '#059669', '#3B82F6', '#DC2626', '#6366F1', '#0891B2',
 ];
 
 interface FeedEvent {
@@ -82,15 +29,41 @@ interface FeedEvent {
 }
 
 const RECENT_FEED: FeedEvent[] = [
-  { icon: 'start', text: 'Emma S. started Fraction Basics', time: '25m ago' },
-  { icon: 'complete', text: 'Liam T. completed Multiplication Practice', time: '1h ago' },
-  { icon: 'ai', text: 'AI flagged: Marcus W. may need help with fractions', time: '2h ago' },
-  { icon: 'question', text: 'Sophia R. asked 8 questions in Word Problems', time: '3h ago' },
-  { icon: 'start', text: 'Olivia K. started Geometry Shapes', time: '4h ago' },
-  { icon: 'complete', text: 'Noah P. completed Fraction Basics', time: '5h ago' },
-  { icon: 'ai', text: 'AI flagged: Ethan J. may be struggling with multiplication', time: '6h ago' },
-  { icon: 'start', text: 'Ava M. started Word Problems Challenge', time: 'Yesterday' },
+  { icon: 'start', text: 'Student started an activity', time: 'Recently' },
+  { icon: 'complete', text: 'Student completed an activity', time: 'Recently' },
+  { icon: 'ai', text: 'AI insights coming soon', time: '' },
 ];
+
+/* ─── Types for API response ─── */
+
+interface ClassDetailsResponse {
+  class: {
+    id: string;
+    name: string;
+    subject: string | null;
+    grade_level: string | null;
+    join_code: string;
+    teacher_id: string;
+    description: string | null;
+    icon: string | null;
+    created_at: string;
+  };
+  students: {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    enrolled_at: string;
+  }[];
+  assignments: {
+    id: string;
+    title: string;
+    description: string | null;
+    due_date: string | null;
+    created_at: string;
+  }[];
+  studentCount: number;
+  assignmentCount: number;
+}
 
 /* ─── Sub-components ─── */
 
@@ -221,7 +194,7 @@ function MessageModal({
             <button
               onClick={handleSend}
               disabled={!message.trim()}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal text-white rounded-lg text-sm
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal text-navy rounded-lg text-sm
                 font-semibold hover:bg-teal/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <PaperPlaneRight size={15} weight="fill" /> Send Message
@@ -349,16 +322,81 @@ function GroupBreakdown({
 function ClassDetailsContent() {
   const searchParams = useSearchParams();
   const classId = searchParams.get('class');
-  const classData = DEMO_CLASSES.find((c) => c.id === classId);
-  const classIndex = DEMO_CLASSES.findIndex((c) => c.id === classId);
 
-  const rawActivities = classId ? ACTIVITIES_BY_CLASS[classId] ?? [] : [];
+  // Real data state
+  const [classData, setClassData] = useState<ClassDetailsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [activityStates, setActivityStates] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    rawActivities.forEach((a) => { initial[a.name] = a.defaultOpen; });
-    return initial;
-  });
+  // Fetch real data from Supabase via API route
+  useEffect(() => {
+    if (!classId) {
+      setLoading(false);
+      return;
+    }
+
+    async function fetchClassDetails() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          window.location.href = '/login'; return;
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(`/api/teacher/class-details?classId=${classId}`);
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setError(body.error || 'Failed to load class');
+          setLoading(false);
+          return;
+        }
+
+        const data: ClassDetailsResponse = await res.json();
+        setClassData(data);
+      } catch (err) {
+        console.error('Failed to fetch class details:', err);
+        setError('Failed to load class details');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchClassDetails();
+  }, [classId]);
+
+  // Map assignments to activity format
+  const rawActivities = useMemo(() => {
+    if (!classData) return [];
+    return classData.assignments.map((a: any) => ({
+      id: a.id,
+      name: a.title,
+      defaultOpen: a.is_open ?? true,
+      due_date: a.due_date ?? null,
+      progress: 0,
+      total: classData.studentCount,
+      progressLabel: 'started',
+      chats: 0,
+    }));
+  }, [classData]);
+
+  const [activityStates, setActivityStates] = useState<Record<string, boolean>>({});
+
+  // Initialize activity states when rawActivities change
+  useEffect(() => {
+    if (rawActivities.length > 0) {
+      setActivityStates((prev) => {
+        const initial: Record<string, boolean> = { ...prev };
+        rawActivities.forEach((a) => {
+          if (!(a.name in initial)) {
+            initial[a.name] = a.defaultOpen;
+          }
+        });
+        return initial;
+      });
+    }
+  }, [rawActivities]);
 
   // Feature 1: Activity filter
   const [activityFilter, setActivityFilter] = useState<'all' | 'open' | 'closed'>('all');
@@ -376,6 +414,7 @@ function ClassDetailsContent() {
     rawActivities.map((a) => ({
       ...a,
       isOpen: activityStates[a.name] ?? a.defaultOpen,
+      due_date: (a as any).due_date ?? null,
     })),
     [rawActivities, activityStates]
   );
@@ -386,8 +425,27 @@ function ClassDetailsContent() {
     return activities.filter((a) => !a.isOpen);
   }, [activities, activityFilter]);
 
-  const toggleActivity = (name: string) => {
-    setActivityStates((prev) => ({ ...prev, [name]: !prev[name] }));
+  const toggleActivity = async (name: string) => {
+    const activity = rawActivities.find(a => a.name === name);
+    const currentState = activityStates[name] ?? activity?.defaultOpen ?? true;
+    const newState = !currentState;
+    setActivityStates((prev) => ({ ...prev, [name]: newState }));
+    // Persist to database
+    if (activity && classData) {
+      try {
+        await fetch('/api/teacher/class-activities', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            classId: classData.class.id,
+            activityId: (activity as any).id,
+            is_open: newState,
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to persist activity state:', err);
+      }
+    }
   };
 
   const togglePeerChat = (name: string) => {
@@ -397,13 +455,23 @@ function ClassDetailsContent() {
   const closeMessageModal = useCallback(() => setShowMessageModal(false), []);
   const closeAddModal = useCallback(() => setShowAddModal(false), []);
 
-  if (!classData) {
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-pulse text-text-secondary">Loading class details...</div>
+      </div>
+    );
+  }
+
+  // Not found / error state
+  if (!classData || error) {
     return (
       <div className="text-center py-20">
         <div className="text-4xl mb-3 opacity-40">📚</div>
         <h2 className="font-heading font-bold text-lg text-text-primary mb-1">Class not found</h2>
         <p className="text-sm text-text-secondary mb-5">
-          The class you&apos;re looking for doesn&apos;t exist or the URL is incorrect.
+          {error || "The class you're looking for doesn't exist or the URL is incorrect."}
         </p>
         <Link
           href="/teacher/my-classes"
@@ -415,9 +483,17 @@ function ClassDetailsContent() {
     );
   }
 
+  const cls = classData.class;
   const activeCount = activities.filter((a) => a.isOpen).length;
   const totalChats = activities.reduce((sum, a) => sum + a.chats, 0);
-  const studentsToShow = DEMO_STUDENTS.slice(0, Math.min(10, classData.studentCount));
+
+  // Map real students to display format
+  const studentsToShow = classData.students.slice(0, 10).map((s, i) => ({
+    name: s.display_name || 'Unknown Student',
+    color: AVATAR_COLORS[i % AVATAR_COLORS.length],
+    lastActive: s.enrolled_at ? `Joined ${new Date(s.enrolled_at).toLocaleDateString()}` : 'Active',
+    status: 'active' as const,
+  }));
 
   const FILTER_OPTIONS: { label: string; value: 'all' | 'open' | 'closed' }[] = [
     { label: 'All', value: 'all' },
@@ -430,19 +506,19 @@ function ClassDetailsContent() {
       {/* ─── 1. Top Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
-          <ClassIcon name={classData.name} size={48} iconSize={24} />
+          <ClassIcon name={cls.name} icon={cls.icon} size={48} iconSize={24} />
           <div>
-            <h1 className="font-heading text-[26px] font-bold text-text-primary">{classData.name}</h1>
+            <h1 className="font-heading text-[26px] font-bold text-text-primary">{cls.name}</h1>
             <p className="text-[14px] text-text-secondary mt-0.5">
-              Grade {classData.grade} · {classData.subject}
+              {cls.grade_level ? `Grade ${cls.grade_level} · ` : ''}{cls.subject || 'General'}
             </p>
           </div>
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal/8 border border-teal/20 rounded-lg font-heading font-bold text-base tracking-[2px] text-teal ml-2">
-            {classData.code}
+            {cls.join_code}
           </div>
         </div>
         <Link
-          href={`/teacher/edit-class?class=${classIndex}`}
+          href={`/teacher/edit-class?class=${classId}`}
           className="inline-flex items-center gap-1.5 px-4 py-2 border-[1.5px] border-border rounded-lg text-sm font-medium text-text-secondary hover:border-navy hover:text-navy transition-colors self-start"
         >
           <PencilSimple size={15} /> Edit Class
@@ -453,9 +529,9 @@ function ClassDetailsContent() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
           { label: 'Students', value: classData.studentCount, icon: Users },
-          { label: 'Active Activities', value: activeCount, icon: Lightning },
+          { label: 'Active Activities', value: classData.assignmentCount, icon: Lightning },
           { label: 'Total Chats', value: totalChats, icon: ChatText },
-          { label: 'Avg Engagement', value: '78%', icon: ChartBar },
+          { label: 'Avg Engagement', value: '—', icon: ChartBar },
         ].map((stat) => (
           <div key={stat.label} className="bg-card-bg border border-border rounded-[16px] p-5 text-center">
             <div className="flex justify-center mb-2">
@@ -476,7 +552,7 @@ function ClassDetailsContent() {
           </h2>
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal text-white rounded-lg text-xs font-semibold hover:bg-teal/90 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal text-navy rounded-lg text-xs font-semibold hover:bg-teal/90 transition-colors"
           >
             <Plus size={13} weight="bold" /> Add Activity
           </button>
@@ -499,81 +575,113 @@ function ClassDetailsContent() {
           ))}
         </div>
 
-        <div className="space-y-3">
-          {filteredActivities.map((activity, idx) => {
-            const pct = Math.round((activity.progress / activity.total) * 100);
-            const peerChatOn = peerChatStates[activity.name] ?? false;
-            return (
-              <div key={activity.name}>
-                <div
-                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border border-border hover:bg-border/10 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5 mb-1.5">
-                      <span className="font-heading font-semibold text-[15px] text-text-primary truncate">
-                        {activity.name}
-                      </span>
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wide ${
-                          activity.isOpen
-                            ? 'bg-green-500/10 text-green-600'
-                            : 'bg-gray-400/10 text-gray-500'
-                        }`}
-                      >
-                        {activity.isOpen ? 'Open' : 'Closed'}
-                      </span>
-                    </div>
-                    {/* Progress bar */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-border rounded-full overflow-hidden max-w-[200px]">
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            activity.isOpen ? 'bg-teal' : 'bg-gray-400'
+        {filteredActivities.length === 0 ? (
+          <div className="text-center py-8 text-text-secondary text-sm">
+            {activities.length === 0 ? 'No activities yet. Add one to get started!' : 'No activities match this filter.'}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredActivities.map((activity, idx) => {
+              const pct = activity.total > 0 ? Math.round((activity.progress / activity.total) * 100) : 0;
+              const peerChatOn = peerChatStates[activity.name] ?? false;
+              return (
+                <div key={activity.name}>
+                  <div
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 rounded-xl border border-border hover:bg-border/10 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2.5 mb-1.5">
+                        <span className="font-heading font-semibold text-[15px] text-text-primary truncate">
+                          {activity.name}
+                        </span>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wide ${
+                            activity.isOpen
+                              ? 'bg-green-500/10 text-green-600'
+                              : 'bg-gray-400/10 text-gray-500'
                           }`}
-                          style={{ width: `${pct}%` }}
+                        >
+                          {activity.isOpen ? 'Open' : 'Closed'}
+                        </span>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-2 bg-border rounded-full overflow-hidden max-w-[200px]">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              activity.isOpen ? 'bg-teal' : 'bg-gray-400'
+                            }`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-[12px] text-text-secondary whitespace-nowrap">
+                          {activity.progress}/{activity.total} {activity.progressLabel}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0">
+                      <span className="text-[12px] text-text-secondary flex items-center gap-1">
+                        <ChatText size={13} className="text-navy" /> {activity.chats} chats
+                      </span>
+
+                      {/* Due Date Picker */}
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-[11px] text-text-secondary whitespace-nowrap">Due:</label>
+                        <input
+                          type="date"
+                          defaultValue={(activity as any).due_date ? (activity as any).due_date.slice(0, 10) : ''}
+                          onChange={async (e) => {
+                            const due_date = e.target.value || null;
+                            if (classData) {
+                              await fetch('/api/teacher/class-activities', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  classId: classData.class.id,
+                                  activityId: (activity as any).id,
+                                  due_date,
+                                }),
+                              });
+                            }
+                          }}
+                          className="text-[11px] bg-transparent border border-border rounded-md px-2 py-1
+                            text-text-secondary focus:outline-none focus:border-teal cursor-pointer
+                            [color-scheme:dark]"
                         />
                       </div>
-                      <span className="text-[12px] text-text-secondary whitespace-nowrap">
-                        {activity.progress}/{activity.total} {activity.progressLabel}
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-4 shrink-0">
-                    <span className="text-[12px] text-text-secondary flex items-center gap-1">
-                      <ChatText size={13} className="text-navy" /> {activity.chats} chats
-                    </span>
+                      {/* Feature 3: Peer Chat Toggle */}
+                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors ${peerChatOn ? 'bg-teal/10' : ''}`}>
+                        <span className="text-[11px] text-text-secondary whitespace-nowrap">💬 Peer Chat</span>
+                        <ToggleSwitch
+                          checked={peerChatOn}
+                          onChange={() => togglePeerChat(activity.name)}
+                        />
+                      </div>
 
-                    {/* Feature 3: Peer Chat Toggle */}
-                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors ${peerChatOn ? 'bg-teal/10' : ''}`}>
-                      <span className="text-[11px] text-text-secondary whitespace-nowrap">💬 Peer Chat</span>
                       <ToggleSwitch
-                        checked={peerChatOn}
-                        onChange={() => togglePeerChat(activity.name)}
+                        checked={activity.isOpen}
+                        onChange={() => toggleActivity(activity.name)}
                       />
                     </div>
-
-                    <ToggleSwitch
-                      checked={activity.isOpen}
-                      onChange={() => toggleActivity(activity.name)}
-                    />
                   </div>
+
+                  {/* Feature 4: Group Breakdown */}
+                  {classId && (
+                    <div className="px-4 pb-1">
+                      <GroupBreakdown
+                        classId={classId}
+                        activity={activity}
+                        defaultExpanded={idx === 0}
+                      />
+                    </div>
+                  )}
                 </div>
-
-                {/* Feature 4: Group Breakdown */}
-                {classId && (
-                  <div className="px-4 pb-1">
-                    <GroupBreakdown
-                      classId={classId}
-                      activity={activity}
-                      defaultExpanded={idx === 0}
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ─── 4. Student Roster + 5. Recent Activity (side by side on desktop) ─── */}
@@ -586,35 +694,41 @@ function ClassDetailsContent() {
             <span className="text-sm font-normal text-text-secondary ml-1">({classData.studentCount})</span>
           </h2>
 
-          <div className="space-y-2.5">
-            {studentsToShow.map((student) => (
-              <div
-                key={student.name}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-border/10 transition-colors"
-              >
-                {/* Avatar */}
+          {studentsToShow.length === 0 ? (
+            <div className="text-center py-8 text-text-secondary text-sm">
+              No students enrolled yet. Share the join code to get started!
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {studentsToShow.map((student) => (
                 <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white font-heading font-bold text-[13px] shrink-0"
-                  style={{ backgroundColor: student.color }}
+                  key={student.name}
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-border/10 transition-colors"
                 >
-                  {student.name.split(' ').map((n) => n[0]).join('')}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-heading font-semibold text-[14px] text-text-primary truncate">
-                    {student.name}
+                  {/* Avatar */}
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-heading font-bold text-[13px] shrink-0"
+                    style={{ backgroundColor: student.color }}
+                  >
+                    {student.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                   </div>
-                  <div className="text-[12px] text-text-secondary flex items-center gap-1.5">
-                    <Clock size={11} /> {student.lastActive}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-heading font-semibold text-[14px] text-text-primary truncate">
+                      {student.name}
+                    </div>
+                    <div className="text-[12px] text-text-secondary flex items-center gap-1.5">
+                      <Clock size={11} /> {student.lastActive}
+                    </div>
                   </div>
+                  <StatusDot status={student.status} />
                 </div>
-                <StatusDot status={student.status} />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {classData.studentCount > 10 && (
             <Link
-              href={`/teacher/students?class=${classIndex}`}
+              href={`/teacher/students?class=${classId}`}
               className="flex items-center justify-center gap-1.5 mt-4 pt-3 border-t border-border text-sm font-medium text-teal hover:text-teal/80 transition-colors"
             >
               View All Students <ArrowRight size={14} />
@@ -642,7 +756,7 @@ function ClassDetailsContent() {
                   }`}>
                     {event.text}
                   </p>
-                  <span className="text-[11px] text-text-secondary">{event.time}</span>
+                  {event.time && <span className="text-[11px] text-text-secondary">{event.time}</span>}
                 </div>
               </div>
             ))}
@@ -652,12 +766,6 @@ function ClassDetailsContent() {
 
       {/* ─── 6. Quick Actions ─── */}
       <div className="flex flex-wrap gap-3">
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-teal text-white rounded-xl font-heading font-bold text-sm hover:bg-teal/90 transition-colors"
-        >
-          <Plus size={16} weight="bold" /> Add Activity
-        </button>
         <button
           onClick={() => setShowMessageModal(true)}
           className="inline-flex items-center gap-2 px-6 py-3 border-[1.5px] border-border rounded-xl font-heading font-bold text-sm text-text-secondary hover:border-navy hover:text-navy transition-colors"
@@ -670,14 +778,19 @@ function ClassDetailsContent() {
       <MessageModal
         isOpen={showMessageModal}
         onClose={closeMessageModal}
-        className={classData.name}
+        className={cls.name}
         studentCount={classData.studentCount}
       />
       <AddActivityModal
         isOpen={showAddModal}
         onClose={closeAddModal}
-        className={classData.name}
-        classIndex={classIndex}
+        className={cls.name}
+        classId={cls.id}
+        classIndex={0}
+        onActivityAdded={() => {
+          // Refresh class data
+          window.location.reload();
+        }}
       />
     </div>
   );

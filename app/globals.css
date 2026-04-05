@@ -8,6 +8,7 @@
   --color-deep-navy: #0a1128;
   --color-navy-mid: #1a5276;
   --color-teal: #00F6ED;
+  --color-indigo: #4056F4;
   --color-gold: #4056F4;
   --color-gold-light: #edeeff;
   --color-warm-white: #F7F7F8;
@@ -97,6 +98,14 @@ body {
 /* Headings use Inter — must reference --font-inter directly (set on body by Next.js) */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-inter, 'Inter'), sans-serif;
+}
+
+/* App shell light mode background — darker gray so cards stand out */
+.app-shell {
+  background-color: #E8ECF1;
+}
+.dark .app-shell {
+  background-color: transparent;
 }
 
 /* Smooth transitions for theme switching */

@@ -151,7 +151,7 @@ export default function InstructorLiveSessionsPage() {
         </h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center gap-1.5 font-heading text-sm font-bold bg-teal text-white px-4 py-2 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+          className="inline-flex items-center gap-1.5 font-heading text-sm font-bold bg-teal text-navy px-4 py-2 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
         >
           {showForm ? 'Cancel' : '+ Schedule Session'}
         </button>
@@ -219,7 +219,7 @@ export default function InstructorLiveSessionsPage() {
           <button
             onClick={handleCreate}
             disabled={!title.trim() || !url.trim() || !date || !time || submitting}
-            className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-5 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-navy px-5 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Scheduling...' : 'Schedule Session'}
           </button>

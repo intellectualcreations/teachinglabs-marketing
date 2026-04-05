@@ -3,8 +3,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
   User, Lock, Palette, GearSix, Plugs, Info, Trash,
-  Eye, EyeSlash, Bell, Sun, Moon, Desktop,
+  Eye, EyeSlash, Bell, Sun, Moon, Desktop, BookOpen, Check,
 } from '@phosphor-icons/react';
+import { useTheme } from 'next-themes';
+import { createClient } from '@/lib/supabase/client';
 
 /* ─── Toggle Switch ─── */
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
@@ -92,10 +94,48 @@ function DeleteModal({ onClose, onConfirm }: { onClose: () => void; onConfirm: (
 /* ─── Main Settings Page ─── */
 export default function SettingsPage() {
   // Profile
-  const [name, setName] = useState('Ms. Harper');
-  const [email, setEmail] = useState('m.harper@lincolnacademy.edu');
-  const [role, setRole] = useState('5th Grade Teacher');
+  const [name, setName] = useState('');
+  const [preferredName, setPreferredName] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('');
+  const [school, setSchool] = useState('');
   const [profileDirty, setProfileDirty] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [userId, setUserId] = useState('');
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Set email from auth
+        setEmail(user.email || '');
+
+        // Fetch profile via admin API route (bypasses RLS)
+        const res = await fetch(`/api/teacher/profile?teacherId=${user.id}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const p = data.profile as { display_name?: string; first_name?: string; last_name?: string; role?: string; school_id?: string } | null;
+        const displayName = p?.display_name
+          || (p?.first_name && p?.last_name ? `${p.first_name} ${p.last_name}` : null)
+          || user.user_metadata?.full_name as string
+          || user.user_metadata?.name as string
+          || '';
+        setName(displayName);
+        setPreferredName((p as { preferred_name?: string })?.preferred_name || '');
+        setRole(p?.role || 'Teacher');
+        setUserId(user.id);
+
+        const schoolData = data.school as { name?: string } | null;
+        setSchool(schoolData?.name || '');
+      } catch { /* ignore */ }
+    }
+    loadProfile();
+  }, []);
 
   const handleProfileChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setter(e.target.value);
@@ -118,8 +158,8 @@ export default function SettingsPage() {
     special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(newPw),
   };
 
-  // Appearance
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
+  // Appearance — use global next-themes
+  const { theme, setTheme } = useTheme();
   const [peerChat, setPeerChat] = useState(false);
   const [emailNotif, setEmailNotif] = useState(true);
   const [notifSound, setNotifSound] = useState(true);
@@ -129,6 +169,34 @@ export default function SettingsPage() {
   const [archiveAfter, setArchiveAfter] = useState('30 days');
   const [submissionNotif, setSubmissionNotif] = useState<'immediately' | 'daily' | 'weekly'>('immediately');
   const [aiSensitivity, setAiSensitivity] = useState<'low' | 'medium' | 'high'>('medium');
+
+  // Standards & Frameworks
+  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([]);
+  const [stateInput, setStateInput] = useState('');
+  const [customFrameworkInput, setCustomFrameworkInput] = useState('');
+  const [frameworkSaved, setFrameworkSaved] = useState(false);
+
+  const frameworkOptions = [
+    'Common Core State Standards (CCSS)',
+    'Next Generation Science Standards (NGSS)',
+    'C3 Framework (Social Studies)',
+    'National Core Arts Standards',
+    'ISTE Standards for Students',
+    'State-Specific Standards',
+    'Custom Standards',
+  ];
+
+  function toggleFramework(fw: string) {
+    setSelectedFrameworks((prev) =>
+      prev.includes(fw) ? prev.filter((f) => f !== fw) : [...prev, fw]
+    );
+    setFrameworkSaved(false);
+  }
+
+  function saveFrameworkPreferences() {
+    setFrameworkSaved(true);
+    setTimeout(() => setFrameworkSaved(false), 2500);
+  }
 
   // Delete modal
   const [showDelete, setShowDelete] = useState(false);
@@ -162,7 +230,7 @@ export default function SettingsPage() {
             {/* Avatar */}
             <div className="group relative shrink-0 self-start">
               <div className="w-20 h-20 rounded-full bg-navy text-white flex items-center justify-center font-heading font-bold text-2xl cursor-pointer">
-                MH
+                {name ? name.split(' ').filter(Boolean).map((w: string) => w[0]).slice(0,2).join('').toUpperCase() : '?'}
               </div>
               <div className="absolute inset-0 w-20 h-20 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                 <span className="text-white text-xs font-medium">Edit</span>
@@ -191,7 +259,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1">School</label>
-                <p className="px-3 py-2 text-sm text-text-secondary">Lincoln Academy</p>
+                <p className="px-3 py-2 text-sm text-text-secondary">{school || 'Not set'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1">Role</label>
@@ -203,19 +271,132 @@ export default function SettingsPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">
+                  Preferred Name
+                  <span className="font-normal text-text-muted ml-1">(what students see)</span>
+                </label>
+                <input
+                  type="text"
+                  value={preferredName}
+                  onChange={(e) => { setPreferredName(e.target.value); setProfileDirty(true); }}
+                  placeholder="e.g. Mrs. Stewart, Mr. D, Coach K"
+                  className="w-full px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
+                />
+                <p className="text-xs text-text-muted mt-1">Students will see this name instead of your full name.</p>
+              </div>
+
               {profileDirty && (
                 <button
-                  onClick={() => setProfileDirty(false)}
-                  className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-white rounded-lg hover:bg-teal/90 transition-colors"
+                  onClick={async () => {
+                    if (!userId) return;
+                    setProfileSaving(true);
+                    try {
+                      const res = await fetch('/api/teacher/profile', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          teacherId: userId,
+                          display_name: name,
+                          preferred_name: preferredName,
+                        }),
+                      });
+                      if (res.ok) {
+                        setProfileDirty(false);
+                        setProfileSaved(true);
+                        setTimeout(() => setProfileSaved(false), 2500);
+                      }
+                    } catch { /* ignore */ }
+                    setProfileSaving(false);
+                  }}
+                  disabled={profileSaving}
+                  className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-navy rounded-lg hover:bg-teal/90 transition-colors flex items-center gap-2"
                 >
-                  Save Changes
+                  {profileSaved ? <><Check size={14} weight="bold" /> Saved!</> : profileSaving ? 'Saving...' : 'Save Changes'}
                 </button>
               )}
             </div>
           </div>
         </Section>
 
-        {/* ─── 2. Security ─── */}
+        {/* ─── 2. Standards & Frameworks ─── */}
+        <Section icon={BookOpen} title="Standards & Frameworks">
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-text-primary mb-1">Select the standards frameworks you use</p>
+              <p className="text-sm text-text-secondary mb-3">
+                Your Teaching Twin will suggest standards from these frameworks when you create activities.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              {frameworkOptions.map((fw) => {
+                const checked = selectedFrameworks.includes(fw);
+                return (
+                  <div key={fw}>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div
+                        className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors shrink-0 ${
+                          checked
+                            ? 'bg-teal border-teal'
+                            : 'border-border group-hover:border-teal/50'
+                        }`}
+                        onClick={(e) => { e.preventDefault(); toggleFramework(fw); }}
+                      >
+                        {checked && <Check size={14} weight="bold" className="text-navy" />}
+                      </div>
+                      <span
+                        className="text-sm text-text-primary"
+                        onClick={(e) => { e.preventDefault(); toggleFramework(fw); }}
+                      >
+                        {fw}
+                      </span>
+                    </label>
+
+                    {fw === 'State-Specific Standards' && checked && (
+                      <div className="ml-8 mt-2">
+                        <label className="block text-sm text-text-secondary mb-1">Which state?</label>
+                        <input
+                          type="text"
+                          value={stateInput}
+                          onChange={(e) => setStateInput(e.target.value)}
+                          placeholder="e.g., Texas, California"
+                          className="w-64 px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
+                        />
+                      </div>
+                    )}
+
+                    {fw === 'Custom Standards' && checked && (
+                      <div className="ml-8 mt-2">
+                        <label className="block text-sm text-text-secondary mb-1">Name your custom framework</label>
+                        <input
+                          type="text"
+                          value={customFrameworkInput}
+                          onChange={(e) => setCustomFrameworkInput(e.target.value)}
+                          placeholder="e.g., Our District Math Standards"
+                          className="w-64 px-3 py-2 rounded-lg bg-card-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={saveFrameworkPreferences}
+              className={`mt-2 px-5 py-2 text-sm font-medium rounded-lg transition-colors ${
+                frameworkSaved
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-teal text-navy hover:bg-teal/90'
+              }`}
+            >
+              {frameworkSaved ? '✓ Preferences Saved' : 'Save Preferences'}
+            </button>
+          </div>
+        </Section>
+
+        {/* ─── 3. Security ─── */}
         <Section icon={Lock} title="Security">
           <div className="space-y-4 max-w-md">
             {/* Password fields */}
@@ -265,7 +446,7 @@ export default function SettingsPage() {
               </div>
             )}
 
-            <button className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-white rounded-lg hover:bg-teal/90 transition-colors">
+            <button className="mt-2 px-5 py-2 text-sm font-medium bg-teal text-navy rounded-lg hover:bg-teal/90 transition-colors">
               Update Password
             </button>
           </div>
@@ -296,7 +477,7 @@ export default function SettingsPage() {
                     onClick={() => setTheme(value)}
                     className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors ${
                       theme === value
-                        ? 'bg-teal text-white'
+                        ? 'bg-teal text-navy'
                         : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >
@@ -399,7 +580,7 @@ export default function SettingsPage() {
                     onClick={() => setAiSensitivity(level)}
                     className={`px-4 py-2 text-sm font-medium capitalize transition-colors ${
                       aiSensitivity === level
-                        ? 'bg-teal text-white'
+                        ? 'bg-teal text-navy'
                         : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >

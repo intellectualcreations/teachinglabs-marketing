@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="st" cx="38%" cy="32%" r="55%">
+      <stop offset="0%" stop-color="#7DD4D4"/>
+      <stop offset="100%" stop-color="#4AADAD"/>
+    </radialGradient>
+  </defs>
+
+  <g transform="rotate(-12 100 100)">
+    <!-- Swoosh A: starts upper-left, curves down-right past center, exits lower-right -->
+    <path
+      d="M 58,42 C 28,68 30,115 58,148 C 72,164 92,170 110,165"
+      fill="none" stroke="#1E3A5F" stroke-width="5" stroke-linecap="round"
+    />
+
+    <!-- Swoosh B: starts upper-right, curves down-left past center, exits lower-left -->
+    <path
+      d="M 142,42 C 172,68 170,115 142,148 C 128,164 108,170 90,165"
+      fill="none" stroke="#1E3A5F" stroke-width="5" stroke-linecap="round"
+    />
+
+    <!-- Swoosh C: bottom connector - creates the swirl by linking bottom-left back up to center-right -->
+    <path
+      d="M 90,165 C 65,158 48,138 48,110 C 48,88 60,68 80,56"
+      fill="none" stroke="#1E3A5F" stroke-width="5" stroke-linecap="round"
+    />
+
+    <!-- Swoosh D: bottom connector right - swirl from bottom-right up to center-left -->
+    <path
+      d="M 110,165 C 135,158 152,138 152,110 C 152,88 140,68 120,56"
+      fill="none" stroke="#1E3A5F" stroke-width="5" stroke-linecap="round"
+    />
+
+    <!-- Central sphere -->
+    <circle cx="100" cy="108" r="13" fill="url(#st)"/>
+
+    <!-- Person 1: top-left at start of Swoosh A -->
+    <g>
+      <circle cx="58" cy="42" r="6" fill="url(#st)"/>
+      <line x1="49" y1="47" x2="55" y2="44" stroke="#1E3A5F" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="53" y1="52" x2="56" y2="46" stroke="#1E3A5F" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Person 2: top-right at start of Swoosh B -->
+    <g>
+      <circle cx="142" cy="42" r="6" fill="url(#st)"/>
+      <line x1="151" y1="47" x2="145" y2="44" stroke="#1E3A5F" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="147" y1="52" x2="144" y2="46" stroke="#1E3A5F" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Person 3: bottom-center -->
+    <g>
+      <circle cx="100" cy="172" r="6" fill="url(#st)"/>
+      <line x1="92" y1="176" x2="96" y2="174" stroke="#1E3A5F" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="108" y1="176" x2="104" y2="174" stroke="#1E3A5F" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

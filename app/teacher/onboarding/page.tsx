@@ -36,6 +36,7 @@ import ThemeToggle from '@/components/shared/ThemeToggle';
    ──────────────────────────────────────── */
 
 interface Answers {
+  preferredName: string;
   teachingStyle: string;
   classroomVibe: string[];
   feedbackApproach: string;
@@ -47,6 +48,7 @@ interface Answers {
 }
 
 const INITIAL_ANSWERS: Answers = {
+  preferredName: '',
   teachingStyle: '',
   classroomVibe: [],
   feedbackApproach: '',
@@ -188,8 +190,8 @@ function getPriorityLabel(key: string): string {
    Screen definitions
    ──────────────────────────────────────── */
 
-const TOTAL_SCREENS = 10; // 1 hook + 3 DNA + 1 assistant + 3 voice + 1 loading + 1 reveal
-const ACT_MAP = [1, 2, 2, 2, 3, 4, 4, 4, 5, 5]; // which act each screen belongs to
+const TOTAL_SCREENS = 11; // 1 hook + 1 name + 3 DNA + 1 assistant + 3 voice + 1 loading + 1 reveal
+const ACT_MAP = [1, 1, 2, 2, 2, 3, 4, 4, 4, 5, 5]; // which act each screen belongs to
 
 /* ────────────────────────────────────────
    Main Component
@@ -229,7 +231,7 @@ export default function TeacherOnboardingPage() {
 
   // Save to Supabase on reveal screen
   useEffect(() => {
-    if (screen === 8) {
+    if (screen === 9) {
       // Loading screen — compute archetype, save, then advance
       const result = computeArchetype(answers);
       setArchetype(result);
@@ -258,6 +260,14 @@ export default function TeacherOnboardingPage() {
           if (user) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (supabase.from as any)('teacher_souls').upsert(payload, { onConflict: 'teacher_id' });
+
+            // Save preferred name to profiles
+            if (answers.preferredName.trim()) {
+              await supabase
+                .from('profiles')
+                .update({ preferred_name: answers.preferredName.trim() } as never)
+                .eq('id', user.id);
+            }
           } else {
             // Demo mode fallback
             localStorage.setItem('teacher_soul', JSON.stringify(payload));
@@ -277,7 +287,7 @@ export default function TeacherOnboardingPage() {
         setDirection('forward');
         setAnimating(true);
         setTimeout(() => {
-          setScreen(9);
+          setScreen(10);
           setAnimating(false);
           setTimeout(() => setRevealed(true), 100);
         }, 300);
@@ -294,13 +304,14 @@ export default function TeacherOnboardingPage() {
   const canAdvance = (): boolean => {
     switch (screen) {
       case 0: return true;
-      case 1: return answers.teachingStyle.length > 10;
-      case 2: return answers.classroomVibe.length >= 4;
-      case 3: return !!answers.feedbackApproach;
-      case 4: return answers.assistantPriorities.length === 3;
-      case 5: return !!answers.mistakeResponse;
-      case 6: return answers.strugglingStudentNote.length > 10 && answers.whyLearnResponse.length > 10;
-      case 7: return answers.northStar.length > 3;
+      case 1: return !!answers.preferredName.trim();
+      case 2: return answers.teachingStyle.length > 10;
+      case 3: return answers.classroomVibe.length >= 4;
+      case 4: return !!answers.feedbackApproach;
+      case 5: return answers.assistantPriorities.length === 3;
+      case 6: return !!answers.mistakeResponse;
+      case 7: return answers.strugglingStudentNote.length > 10 && answers.whyLearnResponse.length > 10;
+      case 8: return answers.northStar.length > 3;
       default: return false;
     }
   };
@@ -315,13 +326,13 @@ export default function TeacherOnboardingPage() {
     <div className="min-h-screen bg-surface relative overflow-hidden">
       {/* Animated background blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-teal/5 blob-teal" />
-        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-gold/5 blob-gold" />
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#00F6ED]/20 dark:bg-teal/5 blob-teal" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-[#00F6ED]/15 dark:bg-gold/5 blob-gold" />
       </div>
 
       {/* Top bar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4">
-        {screen > 0 && screen < 8 ? (
+        {screen > 0 && screen < 9 ? (
           <button
             onClick={goBack}
             className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary transition-colors text-sm font-medium cursor-pointer"
@@ -332,20 +343,20 @@ export default function TeacherOnboardingPage() {
         ) : (
           <div />
         )}
-        <ThemeToggle />
+        <ThemeToggle className="w-10 h-10 rounded-full bg-card-bg border border-border shadow-sm z-50" />
       </div>
 
       {/* Progress indicator */}
-      {screen < 8 && (
+      {screen < 9 && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
           {[1, 2, 3, 4, 5].map(act => (
             <div key={act} className="flex items-center gap-2">
               <div
                 className={`h-2 rounded-full transition-all duration-500 ${
                   act < currentAct
-                    ? 'w-8 bg-teal'
+                    ? 'w-8 bg-navy dark:bg-teal'
                     : act === currentAct
-                    ? 'w-8 bg-teal/70'
+                    ? 'w-8 bg-navy/70 dark:bg-teal/70'
                     : 'w-8 bg-border'
                 }`}
               />
@@ -359,18 +370,55 @@ export default function TeacherOnboardingPage() {
         {/* Act 1: The Hook */}
         {screen === 0 && <HookScreen onBegin={goNext} />}
 
-        {/* Act 2a: Teaching Style — Free Text */}
+        {/* Act 1b: Preferred Name */}
         {screen === 1 && (
+          <div className="max-w-2xl mx-auto w-full">
+            <p className="text-indigo dark:text-indigo dark:text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Getting to Know You</p>
+            <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-4 onb-fade-up" style={{ animationDelay: '0.05s' }}>
+              What do your students call you?
+            </h2>
+            <p className="text-text-secondary text-sm mb-8 onb-fade-up" style={{ animationDelay: '0.1s' }}>
+              This is how students will see your name in TeachingLabs. For example: Mrs. Stewart, Mr. D, Coach K, or just your first name.
+            </p>
+            <div className="onb-card-in" style={{ animationDelay: '0.15s' }}>
+              <input
+                type="text"
+                value={answers.preferredName}
+                onChange={(e) => setAnswers(a => ({ ...a, preferredName: e.target.value }))}
+                placeholder="e.g. Mrs. Stewart, Mr. D, Coach K"
+                className="w-full p-5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-indigo dark:focus:border-teal focus:outline-none transition-colors font-body text-lg"
+                maxLength={100}
+                autoFocus
+              />
+            </div>
+            <div className="mt-8 flex justify-end onb-fade-up" style={{ animationDelay: '0.3s' }}>
+              <button
+                onClick={goNext}
+                disabled={!answers.preferredName.trim()}
+                className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
+                  answers.preferredName.trim()
+                    ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:scale-[1.02] active:scale-[0.98] shadow-lg'
+                    : 'bg-border text-text-muted cursor-not-allowed'
+                }`}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Act 2a: Teaching Style — Free Text */}
+        {screen === 2 && (
           <FreeTextScreen
             value={answers.teachingStyle}
             onChange={(v) => setAnswers(a => ({ ...a, teachingStyle: v }))}
             onNext={goNext}
-            canAdvance={answers.teachingStyle.length > 10}
+            canAdvance={answers.teachingStyle.length >= 100}
           />
         )}
 
         {/* Act 2b: Classroom Vibe */}
-        {screen === 2 && (
+        {screen === 3 && (
           <VibeScreen
             selected={answers.classroomVibe}
             onToggle={(vibe) => {
@@ -389,15 +437,15 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 2c: Feedback Style */}
-        {screen === 3 && (
+        {screen === 4 && (
           <SelectionScreen
             title="A student just turned in solid (not spectacular) work. You'd most likely:"
             actLabel="Your Teaching DNA"
             options={[
-              { key: 'growth', icon: <Plant size={28} weight="fill" className="text-teal" />, label: 'Focus on what they did well and where to grow next' },
-              { key: 'direct', icon: <Target size={28} weight="fill" className="text-teal" />, label: 'Give clear, direct feedback on what to fix' },
-              { key: 'detailed', icon: <NotePencil size={28} weight="fill" className="text-teal" />, label: 'Write detailed comments on every section' },
-              { key: 'encouraging', icon: <Sparkle size={28} weight="fill" className="text-teal" />, label: 'Celebrate the effort and encourage them to keep going' },
+              { key: 'growth', icon: <Plant size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, label: 'Focus on what they did well and where to grow next' },
+              { key: 'direct', icon: <Target size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, label: 'Give clear, direct feedback on what to fix' },
+              { key: 'detailed', icon: <NotePencil size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, label: 'Write detailed comments on every section' },
+              { key: 'encouraging', icon: <Sparkle size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, label: 'Celebrate the effort and encourage them to keep going' },
             ]}
             selected={answers.feedbackApproach}
             onSelect={(key) => setAnswers(a => ({ ...a, feedbackApproach: key }))}
@@ -407,7 +455,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 3: Dream Assistant */}
-        {screen === 4 && (
+        {screen === 5 && (
           <PrioritiesScreen
             selected={answers.assistantPriorities}
             onToggle={(key) => {
@@ -426,7 +474,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 4a: Scenario */}
-        {screen === 5 && (
+        {screen === 6 && (
           <ScenarioWithOtherScreen
             answers={answers}
             onSelect={(key) => setAnswers(a => ({ ...a, mistakeResponse: key }))}
@@ -436,7 +484,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 4b: In Your Own Words */}
-        {screen === 6 && (
+        {screen === 7 && (
           <WritingScreen
             answers={answers}
             onUpdate={(field, value) => setAnswers(a => ({ ...a, [field]: value }))}
@@ -446,7 +494,7 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Act 4c: North Star */}
-        {screen === 7 && (
+        {screen === 8 && (
           <NorthStarScreen
             value={answers.northStar}
             onChange={(v) => setAnswers(a => ({ ...a, northStar: v }))}
@@ -456,10 +504,10 @@ export default function TeacherOnboardingPage() {
         )}
 
         {/* Loading screen */}
-        {screen === 8 && <LoadingScreen />}
+        {screen === 9 && <LoadingScreen />}
 
         {/* Act 5: The Reveal */}
-        {screen === 9 && archetype && (
+        {screen === 10 && archetype && (
           <RevealScreen
             archetype={archetype}
             answers={answers}
@@ -539,36 +587,46 @@ function HookScreen({ onBegin }: { onBegin: () => void }) {
   return (
     <div className="max-w-2xl mx-auto text-center">
       <div className="onb-fade-up">
-        <h1 className="font-heading text-4xl md:text-5xl font-bold text-text-primary mb-4 leading-tight">
+        <img
+          src="/images/logo-stacked-light.png"
+          alt="Teaching Labs"
+          className="h-24 mx-auto mb-8 block dark:hidden"
+        />
+        <img
+          src="/images/logo-stacked-dark.png"
+          alt="Teaching Labs"
+          className="h-24 mx-auto mb-8 hidden dark:block"
+        />
+        <h1 className="font-heading text-3xl md:text-4xl font-bold text-text-primary mb-4 leading-tight">
           Meet Your Teaching Twin
         </h1>
-        <p className="text-text-secondary text-lg md:text-xl mb-12 leading-relaxed max-w-xl mx-auto">
-          Let&apos;s start building your teaching twin. This short conversation helps us understand how you teach, think, and connect with students so your AI assistant can match your style. The more you share, the better it learns.
+        <p className="text-text-secondary text-base md:text-lg mb-12 leading-relaxed max-w-xl mx-auto">
+          <em>Let&apos;s start learning about you.</em><br /><br />This is the first step in building your Teaching Twin, an AI assistant that reflects how you teach, think, and connect with students.<br /><br />As you use TeachingLabs, it will continue learning from you over time so it can better support your instruction and help you connect more effectively with students.
         </p>
       </div>
 
-      <div className="grid gap-6 mb-12 max-w-md mx-auto">
+      <div className="grid gap-6 mb-12 max-w-xl mx-auto">
         {[
-          { icon: <Brain size={28} weight="fill" className="text-teal" />, text: 'A few questions capture your unique teaching DNA' },
-          { icon: <UsersFour size={28} weight="fill" className="text-teal" />, text: 'We build a digital twin that teaches like you' },
-          { icon: <RocketLaunch size={28} weight="fill" className="text-teal" />, text: 'Your twin helps every student, exactly the way you would' },
+          { icon: <Brain size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, text: 'A few questions capture your unique teaching DNA' },
+          { icon: <UsersFour size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, text: 'We build a digital twin that teaches like you' },
+          { icon: <RocketLaunch size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, text: 'Your twin helps every student, exactly the way you would' },
         ].map((item, i) => (
           <div
             key={i}
-            className="flex items-start gap-4 text-left p-4 rounded-xl bg-card-bg/50 border border-border/50 onb-card-in"
+            className="flex items-center gap-4 text-left p-4 rounded-xl bg-card-bg/50 border border-border/50 onb-card-in"
             style={{ animationDelay: `${0.3 + i * 0.15}s` }}
           >
-            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-teal/10 flex items-center justify-center">
+            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-indigo/10 dark:bg-teal/10 flex items-center justify-center">
               {item.icon}
             </div>
-            <p className="text-text-primary font-medium text-base pt-2">{item.text}</p>
+            <p className="text-text-primary font-medium text-base">{item.text}</p>
           </div>
         ))}
       </div>
 
       <button
         onClick={onBegin}
-        className="inline-flex items-center gap-2 px-8 py-4 bg-teal text-white font-heading font-semibold text-lg rounded-full hover:bg-teal/90 transition-all cursor-pointer shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] onb-fade-up"
+        className="inline-flex items-center gap-2 px-8 py-4 bg-navy text-white dark:bg-teal dark:text-navy font-heading font-semibold text-base rounded-full hover:bg-navy/90 dark:hover:bg-teal/90 transition-all cursor-pointer shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] onb-fade-up"
         style={{ animationDelay: '0.75s' }}
       >
         Let&apos;s Begin
@@ -591,19 +649,35 @@ function FreeTextScreen({
 }) {
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Teaching DNA</p>
+      <p className="text-indigo dark:text-indigo dark:text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Teaching DNA</p>
       <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-8 onb-fade-up" style={{ animationDelay: '0.05s' }}>
         Tell us about yourself &mdash; what do you teach, what grade level, and how would you describe your teaching approach?
       </h2>
+      <p className="text-text-secondary text-sm italic mb-6 onb-fade-up" style={{ animationDelay: '0.1s' }}>
+        The more you share, the better your Teaching Twin will understand your teaching style.
+      </p>
 
       <div className="onb-card-in" style={{ animationDelay: '0.15s' }}>
         <textarea
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => { if (e.target.value.length <= 5000) onChange(e.target.value); }}
           placeholder="e.g., I teach 7th grade math. I like to use real-world examples and hands-on activities to help students discover concepts on their own..."
-          className="w-full p-5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none font-body text-base leading-relaxed"
+          className="w-full p-5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-indigo dark:border-teal focus:outline-none transition-colors resize-none font-body text-base leading-relaxed"
           rows={6}
+          maxLength={5000}
         />
+        <div className="flex justify-between items-center mt-2 text-xs text-text-muted">
+          <span className="italic">
+            {value.length < 100
+              ? 'The more you share, the better your Teaching Twin will understand your teaching style.'
+              : value.length < 300
+              ? 'Good start! More detail helps build a better twin.'
+              : value.length < 1000
+              ? 'Nice! Your twin is starting to take shape.'
+              : 'Great detail! Your twin will use all of this.'}
+          </span>
+          <span className={value.length > 4500 ? 'text-warning' : ''}>{value.length.toLocaleString()} / 5,000</span>
+        </div>
       </div>
 
       <div className="mt-8 flex justify-end onb-fade-up" style={{ animationDelay: '0.3s' }}>
@@ -612,7 +686,7 @@ function FreeTextScreen({
           disabled={!canAdvance}
           className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
             canAdvance
-              ? 'bg-teal text-white hover:bg-teal/90 shadow-md hover:shadow-lg'
+              ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:bg-navy/90 dark:hover:bg-teal/90 shadow-md hover:shadow-lg'
               : 'bg-border text-text-muted cursor-not-allowed'
           }`}
         >
@@ -639,10 +713,10 @@ function ScenarioWithOtherScreen({
   const [otherText, setOtherText] = useState('');
 
   const options = [
-    { key: 'different-approach', icon: <ArrowsClockwise size={28} weight="fill" className="text-teal" />, label: 'Try a completely different approach: visual, hands-on, real-world' },
-    { key: 'peer-help', icon: <Handshake size={28} weight="fill" className="text-teal" />, label: 'Pair them with a classmate who gets it' },
-    { key: 'break-down', icon: <Scissors size={28} weight="fill" className="text-teal" />, label: 'Break it into the smallest possible pieces and go one step at a time' },
-    { key: 'build-up', icon: <Lightbulb size={28} weight="fill" className="text-teal" />, label: 'Ask THEM to explain what they DO understand, then build from there' },
+    { key: 'different-approach', icon: <ArrowsClockwise size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, label: 'Try a completely different approach: visual, hands-on, real-world' },
+    { key: 'peer-help', icon: <Handshake size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, label: 'Pair them with a classmate who gets it' },
+    { key: 'break-down', icon: <Scissors size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, label: 'Break it into the smallest possible pieces and go one step at a time' },
+    { key: 'build-up', icon: <Lightbulb size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />, label: 'Ask THEM to explain what they DO understand, then build from there' },
   ];
 
   const selected = answers.mistakeResponse;
@@ -651,7 +725,7 @@ function ScenarioWithOtherScreen({
 
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Voice & Values</p>
+      <p className="text-indigo dark:text-indigo dark:text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Voice & Values</p>
       <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-8 onb-fade-up" style={{ animationDelay: '0.05s' }}>
         A student has asked the same question three different ways and still doesn&apos;t get it. Of these options, what would you most likely do first?
       </h2>
@@ -661,34 +735,34 @@ function ScenarioWithOtherScreen({
           <button
             key={opt.key}
             onClick={() => { setShowOther(false); setOtherText(''); onSelect(opt.key); }}
-            className={`flex items-start gap-4 p-5 rounded-xl border-2 text-left transition-all cursor-pointer onb-card-in ${
+            className={`flex items-center gap-4 p-5 rounded-xl border-2 text-left transition-all cursor-pointer onb-card-in ${
               selected === opt.key
-                ? 'border-teal bg-teal/5 shadow-md'
-                : 'border-border bg-card-bg/30 hover:border-teal/40 hover:bg-card-bg/60'
+                ? 'border-navy dark:border-teal bg-navy dark:bg-teal/5 text-white dark:text-text-primary shadow-md'
+                : 'border-border bg-card-bg/30 hover:border-indigo dark:border-teal/40 hover:bg-card-bg/60'
             }`}
             style={{ animationDelay: `${0.1 + i * 0.08}s` }}
           >
-            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-teal/10 flex items-center justify-center mt-0.5">
+            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-indigo/10 dark:bg-teal/10 flex items-center justify-center">
               {opt.icon}
             </div>
-            <span className="text-text-primary font-medium text-base leading-relaxed">{opt.label}</span>
+            <span className="font-medium text-base leading-relaxed">{opt.label}</span>
           </button>
         ))}
 
         {/* Other option */}
         <button
           onClick={() => { setShowOther(true); onOtherChange(''); }}
-          className={`flex items-start gap-4 p-5 rounded-xl border-2 text-left transition-all cursor-pointer onb-card-in ${
+          className={`flex items-center gap-4 p-5 rounded-xl border-2 text-left transition-all cursor-pointer onb-card-in ${
             isOtherSelected
-              ? 'border-teal bg-teal/5 shadow-md'
-              : 'border-border bg-card-bg/30 hover:border-teal/40 hover:bg-card-bg/60'
+              ? 'border-navy dark:border-teal bg-navy dark:bg-teal/5 text-white dark:text-text-primary shadow-md'
+              : 'border-border bg-card-bg/30 hover:border-indigo dark:border-teal/40 hover:bg-card-bg/60'
           }`}
           style={{ animationDelay: `${0.1 + options.length * 0.08}s` }}
         >
-          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-teal/10 flex items-center justify-center mt-0.5">
-            <NotePencil size={28} weight="fill" className="text-teal" />
+          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-indigo/10 dark:bg-teal/10 flex items-center justify-center">
+            <NotePencil size={28} weight="fill" className="text-indigo dark:text-indigo dark:text-teal" />
           </div>
-          <span className="text-text-primary font-medium text-base leading-relaxed">Something else entirely</span>
+          <span className="font-medium text-base leading-relaxed">Something else entirely</span>
         </button>
 
         {/* Other text input */}
@@ -697,12 +771,25 @@ function ScenarioWithOtherScreen({
             <textarea
               autoFocus
               value={otherText}
-              onChange={(e) => { setOtherText(e.target.value); onOtherChange(e.target.value); }}
+              onChange={(e) => { if (e.target.value.length <= 5000) { setOtherText(e.target.value); onOtherChange(e.target.value); } }}
               placeholder="Tell us what you'd actually do..."
               rows={3}
-              className="w-full px-4 py-3 border-2 border-teal/30 rounded-xl text-base bg-card-bg/30 text-text-primary
-                outline-none focus:border-teal transition-colors resize-none placeholder:text-text-muted"
+              maxLength={5000}
+              className="w-full px-4 py-3 border-2 border-indigo dark:border-teal/30 rounded-xl text-base bg-card-bg/30 text-text-primary
+                outline-none focus:border-indigo dark:border-teal transition-colors resize-none placeholder:text-text-muted"
             />
+            <div className="flex justify-between items-center mt-2 text-xs text-text-muted">
+              <span className="italic">
+                {otherText.length < 100
+                  ? 'The more you share, the better your Teaching Twin will understand your teaching style.'
+                  : otherText.length < 300
+                  ? 'Good start! More detail helps build a better twin.'
+                  : otherText.length < 1000
+                  ? 'Nice! Your twin is starting to take shape.'
+                  : 'Great detail! Your twin will use all of this.'}
+              </span>
+              <span className={otherText.length > 4500 ? 'text-warning' : ''}>{otherText.length.toLocaleString()} / 5,000</span>
+            </div>
           </div>
         )}
       </div>
@@ -713,7 +800,7 @@ function ScenarioWithOtherScreen({
           disabled={!canAdvance}
           className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
             canAdvance
-              ? 'bg-teal text-white hover:bg-teal/90 shadow-md hover:shadow-lg'
+              ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:bg-navy/90 dark:hover:bg-teal/90 shadow-md hover:shadow-lg'
               : 'bg-border text-text-muted cursor-not-allowed'
           }`}
         >
@@ -744,7 +831,7 @@ function SelectionScreen({
 }) {
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">{actLabel}</p>
+      <p className="text-indigo dark:text-indigo dark:text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">{actLabel}</p>
       <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-8 onb-fade-up" style={{ animationDelay: '0.05s' }}>
         {title}
       </h2>
@@ -754,17 +841,17 @@ function SelectionScreen({
           <button
             key={opt.key}
             onClick={() => onSelect(opt.key)}
-            className={`flex items-start gap-4 p-5 rounded-xl border-2 text-left transition-all cursor-pointer onb-card-in ${
+            className={`flex items-center gap-4 p-5 rounded-xl border-2 text-left transition-all cursor-pointer onb-card-in ${
               selected === opt.key
-                ? 'border-teal bg-teal/5 shadow-md'
-                : 'border-border bg-card-bg/30 hover:border-teal/40 hover:bg-card-bg/60'
+                ? 'border-navy dark:border-teal bg-navy dark:bg-teal/5 text-white dark:text-text-primary shadow-md'
+                : 'border-border bg-card-bg/30 hover:border-indigo dark:border-teal/40 hover:bg-card-bg/60'
             }`}
             style={{ animationDelay: `${0.1 + i * 0.08}s` }}
           >
-            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-teal/10 flex items-center justify-center mt-0.5">
+            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-indigo/10 dark:bg-teal/10 flex items-center justify-center">
               {opt.icon}
             </div>
-            <span className="text-text-primary font-medium text-base leading-relaxed">{opt.label}</span>
+            <span className="font-medium text-base leading-relaxed">{opt.label}</span>
           </button>
         ))}
       </div>
@@ -775,7 +862,7 @@ function SelectionScreen({
           disabled={!canAdvance}
           className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
             canAdvance
-              ? 'bg-teal text-white hover:bg-teal/90 shadow-md hover:shadow-lg'
+              ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:bg-navy/90 dark:hover:bg-teal/90 shadow-md hover:shadow-lg'
               : 'bg-border text-text-muted cursor-not-allowed'
           }`}
         >
@@ -815,7 +902,7 @@ function VibeScreen({
 }) {
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Teaching DNA</p>
+      <p className="text-indigo dark:text-indigo dark:text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Teaching DNA</p>
       <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-2 onb-fade-up" style={{ animationDelay: '0.05s' }}>
         Pick the words that best describe your classroom:
       </h2>
@@ -832,10 +919,10 @@ function VibeScreen({
               onClick={() => onToggle(vibe)}
               className={`px-5 py-3 rounded-full font-medium text-sm transition-all cursor-pointer border-2 onb-card-in ${
                 isSelected
-                  ? 'border-teal bg-teal/10 text-teal shadow-sm'
+                  ? 'border-navy dark:border-teal bg-navy dark:bg-teal/10 text-white dark:text-teal shadow-md scale-105'
                   : selected.length >= 6
                   ? 'border-border bg-card-bg/20 text-text-muted cursor-not-allowed opacity-50'
-                  : 'border-border bg-card-bg/30 text-text-primary hover:border-teal/40'
+                  : 'border-border bg-card-bg/30 text-text-primary hover:border-indigo dark:border-teal/40'
               }`}
               style={{ animationDelay: `${0.1 + i * 0.06}s` }}
             >
@@ -851,7 +938,7 @@ function VibeScreen({
           disabled={!canAdvance}
           className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
             canAdvance
-              ? 'bg-teal text-white hover:bg-teal/90 shadow-md hover:shadow-lg'
+              ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:bg-navy/90 dark:hover:bg-teal/90 shadow-md hover:shadow-lg'
               : 'bg-border text-text-muted cursor-not-allowed'
           }`}
         >
@@ -887,7 +974,7 @@ function PrioritiesScreen({
 }) {
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Dream Assistant</p>
+      <p className="text-indigo dark:text-indigo dark:text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Dream Assistant</p>
       <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-2 onb-fade-up" style={{ animationDelay: '0.05s' }}>
         What would you want them to do first?
       </h2>
@@ -908,22 +995,22 @@ function PrioritiesScreen({
               onClick={() => onToggle(opt.key)}
               className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all cursor-pointer onb-card-in ${
                 isSelected
-                  ? 'border-teal bg-teal/5'
+                  ? 'border-navy dark:border-teal bg-navy dark:bg-teal/5 text-white dark:text-text-primary shadow-md'
                   : selected.length >= 3
                   ? 'border-border bg-card-bg/20 opacity-40 cursor-not-allowed'
-                  : 'border-border bg-card-bg/30 hover:border-teal/40'
+                  : 'border-border bg-card-bg/30 hover:border-indigo dark:border-teal/40'
               }`}
               style={{ animationDelay: `${0.1 + i * 0.05}s` }}
             >
               <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                isSelected ? 'bg-teal text-white' : 'bg-border text-text-muted'
+                isSelected ? 'bg-white/20 text-white dark:bg-teal dark:text-navy' : 'bg-border text-text-muted'
               }`}>
                 {isSelected ? idx + 1 : ''}
               </div>
-              <div className="flex items-center gap-3 text-text-secondary">
+              <div className={`flex items-center gap-3 ${isSelected ? 'text-white/80 dark:text-text-secondary' : 'text-text-secondary'}`}>
                 {opt.icon}
               </div>
-              <span className="text-text-primary font-medium text-sm flex-1">{opt.label}</span>
+              <span className={`font-medium text-sm flex-1 ${isSelected ? '' : 'text-text-primary'}`}>{opt.label}</span>
             </button>
           );
         })}
@@ -939,7 +1026,7 @@ function PrioritiesScreen({
           disabled={!canAdvance}
           className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
             canAdvance
-              ? 'bg-teal text-white hover:bg-teal/90 shadow-md hover:shadow-lg'
+              ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:bg-navy/90 dark:hover:bg-teal/90 shadow-md hover:shadow-lg'
               : 'bg-border text-text-muted cursor-not-allowed'
           }`}
         >
@@ -964,7 +1051,7 @@ function WritingScreen({
 }) {
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Voice & Values</p>
+      <p className="text-indigo dark:text-indigo dark:text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Voice & Values</p>
       <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-8 onb-fade-up" style={{ animationDelay: '0.05s' }}>
         In Your Own Words
       </h2>
@@ -976,11 +1063,22 @@ function WritingScreen({
           </label>
           <textarea
             value={answers.strugglingStudentNote}
-            onChange={(e) => onUpdate('strugglingStudentNote', e.target.value)}
+            onChange={(e) => { if (e.target.value.length <= 5000) onUpdate('strugglingStudentNote', e.target.value); }}
             placeholder="Start typing — there's no wrong answer here..."
-            className="w-full p-4 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none font-body text-base leading-relaxed"
+            className="w-full p-4 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-indigo dark:border-teal focus:outline-none transition-colors resize-none font-body text-base leading-relaxed"
             rows={4}
+            maxLength={5000}
           />
+          <div className="flex justify-between items-center mt-2 text-xs text-text-muted">
+            <span className="italic">
+              {answers.strugglingStudentNote.length === 0 ? '' : answers.strugglingStudentNote.length < 300
+                ? 'The more you share, the better your Teaching Twin will understand your teaching style.'
+                : answers.strugglingStudentNote.length < 1000
+                ? 'Nice! Your twin is starting to take shape.'
+                : 'Great detail! Your twin will use all of this.'}
+            </span>
+            <span className={answers.strugglingStudentNote.length > 4500 ? 'text-warning' : ''}>{answers.strugglingStudentNote.length.toLocaleString()} / 5,000</span>
+          </div>
         </div>
 
         <div className="onb-card-in" style={{ animationDelay: '0.2s' }}>
@@ -989,15 +1087,26 @@ function WritingScreen({
           </label>
           <textarea
             value={answers.whyLearnResponse}
-            onChange={(e) => onUpdate('whyLearnResponse', e.target.value)}
+            onChange={(e) => { if (e.target.value.length <= 5000) onUpdate('whyLearnResponse', e.target.value); }}
             placeholder="What would you actually say?"
-            className="w-full p-4 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none font-body text-base leading-relaxed"
+            className="w-full p-4 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-indigo dark:border-teal focus:outline-none transition-colors resize-none font-body text-base leading-relaxed"
             rows={4}
+            maxLength={5000}
           />
+          <div className="flex justify-between items-center mt-2 text-xs text-text-muted">
+            <span className="italic">
+              {answers.whyLearnResponse.length === 0 ? '' : answers.whyLearnResponse.length < 300
+                ? 'The more you share, the better your Teaching Twin will understand your teaching style.'
+                : answers.whyLearnResponse.length < 1000
+                ? 'Nice! Your twin is starting to take shape.'
+                : 'Great detail! Your twin will use all of this.'}
+            </span>
+            <span className={answers.whyLearnResponse.length > 4500 ? 'text-warning' : ''}>{answers.whyLearnResponse.length.toLocaleString()} / 5,000</span>
+          </div>
         </div>
       </div>
 
-      <div className="mt-6 p-3 rounded-lg bg-teal/5 border border-teal/20 onb-fade-up" style={{ animationDelay: '0.35s' }}>
+      <div className="mt-6 p-3 rounded-lg bg-indigo/5 dark:bg-teal/5 border border-indigo dark:border-teal/20 onb-fade-up" style={{ animationDelay: '0.35s' }}>
         <p className="text-text-secondary text-sm text-center">The more detail you share here, the better your twin will understand how you respond and interact with students and parents.</p>
       </div>
 
@@ -1007,7 +1116,7 @@ function WritingScreen({
           disabled={!canAdvance}
           className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-heading font-semibold transition-all cursor-pointer ${
             canAdvance
-              ? 'bg-teal text-white hover:bg-teal/90 shadow-md hover:shadow-lg'
+              ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:bg-navy/90 dark:hover:bg-teal/90 shadow-md hover:shadow-lg'
               : 'bg-border text-text-muted cursor-not-allowed'
           }`}
         >
@@ -1032,7 +1141,7 @@ function NorthStarScreen({
 }) {
   return (
     <div className="max-w-xl mx-auto w-full text-center">
-      <p className="text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Voice & Values</p>
+      <p className="text-indigo dark:text-indigo dark:text-teal font-heading font-semibold text-sm uppercase tracking-wider mb-3 onb-fade-up">Your Voice & Values</p>
       <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-3 onb-fade-up" style={{ animationDelay: '0.05s' }}>
         Your North Star
       </h2>
@@ -1041,13 +1150,22 @@ function NorthStarScreen({
       </p>
 
       <div className="onb-card-in" style={{ animationDelay: '0.2s' }}>
-        <input
-          type="text"
+        <textarea
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => { if (e.target.value.length <= 500) onChange(e.target.value); }}
           placeholder="e.g., Every kid deserves to feel seen"
-          className="w-full p-5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary text-center text-lg font-medium placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors font-body"
+          maxLength={500}
+          rows={8}
+          className="w-full p-5 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-indigo dark:border-teal focus:outline-none transition-colors resize-none font-body text-base leading-relaxed"
         />
+        <div className="flex justify-between items-center mt-2 text-xs text-text-muted">
+          <span className="italic">
+            {value.length === 0 ? '' : value.length < 200
+              ? 'The more you share, the better your Teaching Twin will understand your teaching style.'
+              : 'This becomes your twin\'s guiding principle.'}
+          </span>
+          <span className={value.length > 450 ? 'text-warning' : ''}>{value.length} / 500</span>
+        </div>
       </div>
 
       <p className="text-text-muted text-sm mt-4 onb-fade-up" style={{ animationDelay: '0.3s' }}>
@@ -1060,7 +1178,7 @@ function NorthStarScreen({
           disabled={!canAdvance}
           className={`inline-flex items-center gap-2 px-8 py-4 rounded-full font-heading font-semibold text-lg transition-all cursor-pointer ${
             canAdvance
-              ? 'bg-teal text-white hover:bg-teal/90 shadow-lg hover:shadow-xl'
+              ? 'bg-navy text-white dark:bg-teal dark:text-navy hover:bg-navy/90 dark:hover:bg-teal/90 shadow-lg hover:shadow-xl'
               : 'bg-border text-text-muted cursor-not-allowed'
           }`}
         >
@@ -1082,9 +1200,9 @@ function LoadingScreen() {
         Building your Teaching Twin...
       </h2>
       <div className="flex items-center justify-center gap-2 mb-6">
-        <div className="w-3 h-3 rounded-full bg-teal onb-dot-bounce onb-dot-bounce-1" />
-        <div className="w-3 h-3 rounded-full bg-teal onb-dot-bounce onb-dot-bounce-2" />
-        <div className="w-3 h-3 rounded-full bg-teal onb-dot-bounce onb-dot-bounce-3" />
+        <div className="w-3 h-3 rounded-full bg-indigo dark:bg-teal onb-dot-bounce onb-dot-bounce-1" />
+        <div className="w-3 h-3 rounded-full bg-indigo dark:bg-teal onb-dot-bounce onb-dot-bounce-2" />
+        <div className="w-3 h-3 rounded-full bg-indigo dark:bg-teal onb-dot-bounce onb-dot-bounce-3" />
       </div>
       <p className="text-text-muted text-sm">Analyzing your teaching DNA...</p>
     </div>
@@ -1120,17 +1238,16 @@ function RevealScreen({
         <h2 className="font-heading text-3xl md:text-4xl font-bold text-text-primary mb-2">
           {archetype.name}
         </h2>
-        <p className="text-teal font-medium text-base">{subtitle}</p>
+        <p className="text-indigo dark:text-teal font-medium text-base">{subtitle}</p>
       </div>
 
       {/* Profile grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         {[
           { label: 'Teaching Style', value: getStyleLabel(parsedStyle) },
           { label: 'Classroom Vibe', value: answers.classroomVibe.join(', ') },
           { label: 'Feedback Approach', value: getFeedbackLabel(answers.feedbackApproach) },
           { label: 'Top Priority', value: getPriorityLabel(answers.assistantPriorities[0]) },
-          { label: 'Guiding Principle', value: `"${answers.northStar}"` },
         ].map((item, i) => (
           <div
             key={item.label}
@@ -1142,40 +1259,27 @@ function RevealScreen({
           </div>
         ))}
       </div>
+      <div className="p-4 rounded-xl bg-card-bg/50 border border-border/50 mb-8 onb-card-in" style={{ animationDelay: '0.6s' }}>
+        <p className="text-text-muted text-xs uppercase tracking-wider mb-1 font-heading">Guiding Principle</p>
+        <p className="text-text-primary font-medium text-sm">&quot;{answers.northStar}&quot;</p>
+      </div>
 
       {/* Strength tags */}
       {traits.strengths && (
         <div className="flex flex-wrap gap-2 justify-center mb-10 onb-fade-up" style={{ animationDelay: '0.7s' }}>
           {traits.strengths.map(s => (
-            <span key={s} className="px-3 py-1 rounded-full bg-teal/10 text-teal text-xs font-semibold capitalize">
+            <span key={s} className="px-4 py-2 rounded-full bg-navy dark:bg-teal/10 text-white dark:text-teal text-lg font-bold capitalize">
               {s}
             </span>
           ))}
         </div>
       )}
 
-      {/* Sample interaction */}
-      <div className="rounded-xl bg-card-bg/50 border border-border/50 p-6 mb-10 onb-fade-up" style={{ animationDelay: '0.8s' }}>
-        <p className="text-text-muted text-xs uppercase tracking-wider mb-4 font-heading">How your twin responds</p>
-        <div className="space-y-3">
-          <div className="flex justify-end">
-            <div className="max-w-xs px-4 py-3 rounded-2xl rounded-br-md bg-navy text-white text-sm">
-              I don&apos;t understand fractions
-            </div>
-          </div>
-          <div className="flex justify-start">
-            <div className="max-w-sm px-4 py-3 rounded-2xl rounded-bl-md bg-teal/10 text-text-primary text-sm border border-teal/20">
-              {getSampleResponse(parsedStyle)}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* CTA */}
       <div className="text-center onb-fade-up" style={{ animationDelay: '1s' }}>
         <button
           onClick={onContinue}
-          className="inline-flex items-center gap-2 px-8 py-4 bg-teal text-white font-heading font-semibold text-lg rounded-full hover:bg-teal/90 transition-all cursor-pointer shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+          className="inline-flex items-center gap-2 px-8 py-4 bg-navy text-white dark:bg-teal dark:text-navy font-heading font-semibold text-base rounded-full hover:bg-navy/90 dark:hover:bg-teal/90 transition-all cursor-pointer shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
         >
           Continue
           <ArrowRight size={20} weight="bold" />

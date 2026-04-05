@@ -1,51 +1,27 @@
-// TeachingLabs Service Worker
-// Handles app shell caching and push notifications
+// TeachingLabs Service Worker v2
+// Push notifications only — NO page/asset caching during development
 
-const CACHE_NAME = 'teachinglabs-v1';
-const APP_SHELL = [
-  '/',
-  '/manifest.json',
-];
+const CACHE_NAME = 'teachinglabs-v2';
 
-// Install — cache app shell
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
-  );
+// Install — skip waiting immediately
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-// Activate — clean old caches
+// Activate — delete ALL old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      )
+      Promise.all(keys.map((key) => caches.delete(key)))
     )
   );
   self.clients.claim();
 });
 
-// Fetch — network first, fall back to cache
-self.addEventListener('fetch', (event) => {
-  // Skip non-GET and API requests
-  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
-    return;
-  }
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Clone and cache successful responses
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request))
-  );
+// Fetch — always go to network, never cache pages or JS
+self.addEventListener('fetch', () => {
+  // Do nothing — let the browser handle all requests normally
+  return;
 });
 
 // Push — show notification
@@ -74,13 +50,11 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      // Focus existing window if one is open
       for (const client of clients) {
         if (client.url.includes(url) && 'focus' in client) {
           return client.focus();
         }
       }
-      // Otherwise open a new window
       return self.clients.openWindow(url);
     })
   );

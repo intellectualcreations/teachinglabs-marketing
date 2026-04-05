@@ -8,6 +8,9 @@ export function createClient() {
     {
       auth: {
         flowType: 'implicit',
+        storageKey: 'sb-auth-token',
+        persistSession: true,
+        detectSessionInUrl: true,
       },
     }
   );

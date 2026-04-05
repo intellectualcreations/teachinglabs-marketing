@@ -17,9 +17,9 @@ interface EnrolledCourse {
 }
 
 const SUBJECT_COLORS: Record<string, string> = {
-  Math: 'bg-teal text-white',
-  Mathematics: 'bg-teal text-white',
-  Algebra: 'bg-teal text-white',
+  Math: 'bg-teal text-navy',
+  Mathematics: 'bg-teal text-navy',
+  Algebra: 'bg-teal text-navy',
   Science: 'bg-[#059669] text-white',
   Biology: 'bg-[#059669] text-white',
   Chemistry: 'bg-[#059669] text-white',
@@ -193,7 +193,7 @@ export default function MyCoursesPage() {
               </p>
               <Link
                 href="/student/signup"
-                className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                className="inline-flex items-center font-heading text-sm font-bold bg-teal text-navy px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
               >
                 Join a Class
               </Link>
@@ -246,7 +246,7 @@ export default function MyCoursesPage() {
                     {/* CTA */}
                     <Link
                       href={`/student/main?class=${course.classId}`}
-                      className="inline-flex items-center font-heading text-sm font-bold bg-teal text-white px-6 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                      className="inline-flex items-center font-heading text-sm font-bold bg-teal text-navy px-6 py-2.5 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
                     >
                       Go to Class
                     </Link>

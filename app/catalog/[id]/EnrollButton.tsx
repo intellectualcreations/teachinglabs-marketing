@@ -51,7 +51,7 @@ export default function EnrollButton({ courseId, courseTitle, price }: EnrollBut
         </p>
         <Link
           href="/student/my-courses"
-          className="inline-flex items-center font-heading text-[15px] font-bold bg-teal text-white px-8 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+          className="inline-flex items-center font-heading text-[15px] font-bold bg-teal text-navy px-8 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
         >
           Go to My Courses
         </Link>
@@ -70,7 +70,7 @@ export default function EnrollButton({ courseId, courseTitle, price }: EnrollBut
         </p>
         <Link
           href="/student/my-courses"
-          className="inline-flex items-center font-heading text-[15px] font-bold bg-teal text-white px-8 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+          className="inline-flex items-center font-heading text-[15px] font-bold bg-teal text-navy px-8 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
         >
           Go to My Courses
         </Link>

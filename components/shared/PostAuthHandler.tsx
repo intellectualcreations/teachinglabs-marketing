@@ -14,14 +14,15 @@ import { createBrowserClient } from '@supabase/ssr';
 export default function PostAuthHandler() {
   useEffect(() => {
     async function handlePendingActions() {
-      // Create an untyped browser client
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      try {
+        // Create an untyped browser client
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) return;
 
       // Handle pending school assignment (teacher signup)
       const pendingSchoolId = localStorage.getItem('pending_school_id');
@@ -64,9 +65,14 @@ export default function PostAuthHandler() {
         }
         localStorage.removeItem('pending_class_id');
       }
+      } catch {
+        // Silently handle auth lock race conditions
+      }
     }
 
-    handlePendingActions();
+    // Small delay to let the primary auth call (dashboard/sidebar) go first
+    const timer = setTimeout(handlePendingActions, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   return null;

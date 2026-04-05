@@ -36,7 +36,7 @@ export default function WaitlistConfirmedPage() {
 
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-teal text-white font-heading font-semibold text-lg rounded-full hover:bg-teal/90 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-teal text-navy font-heading font-semibold text-lg rounded-full hover:bg-teal/90 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             Back to Homepage
             <ArrowRight size={20} weight="bold" />

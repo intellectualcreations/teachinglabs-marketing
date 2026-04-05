@@ -6,6 +6,7 @@ import {
   CheckCircle, CaretLeft, ArrowRight, CircleNotch, EnvelopeSimple,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import { createClient } from '@/lib/supabase/client';
 
@@ -77,6 +78,7 @@ export default function StudentSignupPage() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [sentAt, setSentAt] = useState('');
 
   // Validate class code against Supabase
   useEffect(() => {
@@ -166,12 +168,37 @@ export default function StudentSignupPage() {
       localStorage.setItem('pending_birth_year', birthYear);
       localStorage.setItem('pending_student_name', `${firstName.trim()} ${lastName.trim()}`);
 
+      setSentAt(new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }));
       setScreen(3);
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleGoogleSignup() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+  }
+
+  async function handleMicrosoftSignup() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        scopes: 'email profile openid',
+        queryParams: { prompt: 'select_account' },
+      },
+    });
   }
 
   const stepDots = [1, 2, 3] as const;
@@ -205,18 +232,24 @@ export default function StudentSignupPage() {
       </div>
 
       {/* Logo */}
-      <div className="flex items-center gap-2 mb-6">
-        <div className="w-8 h-8 bg-navy rounded-lg flex items-center justify-center">
-          <svg viewBox="0 0 512 512" fill="none" className="w-5 h-5">
-            <g transform="translate(156,106)">
-              <rect x="60" y="0" width="80" height="300" fill="#FFF" />
-              <rect x="40" y="0" width="160" height="80" fill="#FFF" />
-              <circle cx="160" cy="200" r="40" fill="#4FA3A5" />
-            </g>
-          </svg>
-        </div>
-        <span className="font-heading font-bold text-navy dark:text-text-primary text-lg">TeachingLabs</span>
-      </div>
+      <Link href="/" className="mb-6">
+        <Image
+          src="/images/logo-stacked-light.png"
+          alt="TeachingLabs"
+          width={220}
+          height={220}
+          className="w-[160px] sm:w-[200px] h-auto dark:hidden"
+          priority
+        />
+        <Image
+          src="/images/logo-stacked-dark.png"
+          alt="TeachingLabs"
+          width={220}
+          height={220}
+          className="w-[160px] sm:w-[200px] h-auto hidden dark:block"
+          priority
+        />
+      </Link>
 
       {/* Stepper */}
       <div className="flex gap-2 mb-6">
@@ -231,8 +264,8 @@ export default function StudentSignupPage() {
       <div className="w-full max-w-[460px]">
         {/* Role badge */}
         <div className="text-center mb-6">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-teal/10 text-teal rounded-full font-heading text-xs font-semibold">
-            <GraduationCap size={14} weight="fill" />
+          <span className="inline-flex items-center gap-2.5 px-6 py-3 bg-teal/10 text-teal rounded-full font-heading text-xl font-bold tracking-wide">
+            <GraduationCap size={24} weight="fill" />
             Student Account
           </span>
         </div>
@@ -252,8 +285,8 @@ export default function StudentSignupPage() {
               <input
                 type="text"
                 value={classCode}
-                onChange={e => setClassCode(e.target.value.toUpperCase().slice(0, 14))}
-                placeholder="TL-XXXX-XXXX"
+                onChange={e => setClassCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
+                placeholder="Example: ABC123"
                 maxLength={14}
                 autoComplete="off"
                 spellCheck={false}
@@ -372,7 +405,7 @@ export default function StudentSignupPage() {
             <button
               onClick={goToScreen2}
               disabled={!canProceed}
-              className="flex items-center justify-center gap-2 w-full py-3.5 bg-teal text-white font-heading font-semibold rounded-xl text-base hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-teal text-navy font-heading font-semibold rounded-xl text-base hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
               <ArrowRight size={18} weight="fill" />
@@ -395,19 +428,30 @@ export default function StudentSignupPage() {
               Enter your email to create your account
             </p>
 
-            {/* SSO buttons — Coming Soon */}
+            {/* SSO buttons */}
             <div className="flex flex-col gap-2.5 mb-5">
-              {SSO_PROVIDERS.map(({ key, icon }) => (
-                <button
-                  key={key}
-                  disabled
-                  className="relative flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-xl border border-border bg-surface dark:bg-card-bg font-heading text-sm font-medium text-text-primary opacity-60 cursor-not-allowed"
-                >
-                  {icon}
-                  Continue with {key}
-                  <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
-                </button>
-              ))}
+              <button
+                onClick={handleGoogleSignup}
+                className="flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
+              >
+                <GoogleIcon />
+                Continue with Google
+              </button>
+              <button
+                onClick={handleMicrosoftSignup}
+                className="flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
+              >
+                <MicrosoftIcon />
+                Continue with Microsoft
+              </button>
+              <button
+                disabled
+                className="relative flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-xl border border-border bg-surface dark:bg-card-bg font-heading text-sm font-medium text-text-primary opacity-60 cursor-not-allowed"
+              >
+                <ClassLinkIcon />
+                Continue with ClassLink
+                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
+              </button>
             </div>
 
             {/* Divider */}
@@ -440,7 +484,7 @@ export default function StudentSignupPage() {
             <button
               onClick={handleSignup}
               disabled={submitting}
-              className="flex items-center justify-center gap-2 w-full py-3.5 bg-teal text-white font-heading font-semibold rounded-xl text-base hover:bg-teal/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-teal text-navy font-heading font-semibold rounded-xl text-base hover:bg-teal/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>
@@ -475,6 +519,11 @@ export default function StudentSignupPage() {
               We sent a magic link to <strong className="text-text-primary">{email}</strong>.
               Click the link to sign in and join your class.
             </p>
+            {sentAt && (
+              <p className="text-xs text-text-muted mb-4">
+                Sent at {sentAt}
+              </p>
+            )}
             <div className="flex items-start gap-3 bg-card-bg dark:bg-[#1A2332] rounded-xl p-4 text-left mb-6">
               <CheckCircle size={20} weight="fill" className="text-teal flex-shrink-0 mt-0.5" />
               <div className="text-sm text-text-secondary">

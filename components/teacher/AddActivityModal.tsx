@@ -4,31 +4,24 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Books, X, MagnifyingGlass, ArrowLeft, CheckCircle } from '@phosphor-icons/react';
 
-const LIBRARY_ACTIVITIES = [
-  { name: 'Fraction Basics', subject: 'Math' },
-  { name: 'Photosynthesis Lab', subject: 'Science' },
-  { name: 'Vocabulary Builder', subject: 'ELA' },
-  { name: 'Book Report Template', subject: 'ELA' },
-  { name: 'Multiplication Practice', subject: 'Math' },
-  { name: 'States of Matter', subject: 'Science' },
-  { name: 'Creative Writing Prompt', subject: 'ELA' },
-  { name: 'Map Skills', subject: 'Social Studies' },
-  { name: 'Geometry Shapes', subject: 'Math' },
-  { name: 'Weather Patterns', subject: 'Science' },
-];
-
 interface AddActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
   className: string;
+  classId: string;
   classIndex: number;
+  onActivityAdded?: () => void;
 }
 
-export default function AddActivityModal({ isOpen, onClose, className: clsName, classIndex }: AddActivityModalProps) {
+export default function AddActivityModal({ isOpen, onClose, className: clsName, classId, classIndex, onActivityAdded }: AddActivityModalProps) {
   const router = useRouter();
   const [view, setView] = useState<'choose' | 'library'>('choose');
   const [search, setSearch] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [activities, setActivities] = useState<any[]>([]);
+  const [assignedIds, setAssignedIds] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -38,6 +31,38 @@ export default function AddActivityModal({ isOpen, onClose, className: clsName, 
       setSuccessMsg('');
     }
   }, [isOpen]);
+
+  // Fetch activities when switching to library view
+  useEffect(() => {
+    if (!isOpen || view !== 'library') return;
+    async function fetchLibrary() {
+      setLoading(true);
+      try {
+        // Get current user for teacherId
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const res = await fetch(`/api/teacher/library?teacherId=${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setActivities(data.activities ?? []);
+          // Build set of already-assigned activity IDs
+          const assigned = new Set<string>();
+          for (const ca of (data.classActivities ?? [])) {
+            if (ca.class_id === classId) assigned.add(ca.activity_id);
+          }
+          setAssignedIds(assigned);
+        }
+      } catch (err) {
+        console.error('Failed to load library:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchLibrary();
+  }, [isOpen, view, classId]);
 
   // Close on Escape
   useEffect(() => {
@@ -49,14 +74,37 @@ export default function AddActivityModal({ isOpen, onClose, className: clsName, 
 
   if (!isOpen) return null;
 
-  const filtered = LIBRARY_ACTIVITIES.filter((a) =>
-    a.name.toLowerCase().includes(search.toLowerCase()) ||
-    a.subject.toLowerCase().includes(search.toLowerCase())
+  const filtered = activities.filter((a) =>
+    a.title.toLowerCase().includes(search.toLowerCase()) ||
+    (a.subject || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAdd = (activityName: string) => {
-    setSuccessMsg(`Added to ${clsName}!`);
-    setTimeout(() => onClose(), 1500);
+  const handleAdd = async (activity: any) => {
+    setSaving(activity.id);
+    try {
+      // Fetch current class assignments for this activity
+      const getRes = await fetch(`/api/teacher/activities/${activity.id}/classes`);
+      const { classIds: existing } = getRes.ok ? await getRes.json() : { classIds: [] };
+      // Add this class if not already assigned
+      if (!existing.includes(classId)) {
+        const updated = [...existing, classId];
+        await fetch(`/api/teacher/activities/${activity.id}/classes`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ classIds: updated }),
+        });
+      }
+      setAssignedIds(prev => new Set([...prev, activity.id]));
+      setSuccessMsg(`Added "${activity.title}" to ${clsName}!`);
+      setTimeout(() => {
+        setSuccessMsg('');
+        onActivityAdded?.();
+      }, 1500);
+    } catch (err) {
+      console.error('Failed to add activity:', err);
+    } finally {
+      setSaving(null);
+    }
   };
 
   return (
@@ -120,7 +168,7 @@ export default function AddActivityModal({ isOpen, onClose, className: clsName, 
                 </div>
                 <div>
                   <div className="font-heading font-bold text-[15px] text-text-primary">Choose from Library</div>
-                  <div className="text-[13px] text-text-secondary mt-0.5">Browse ready-made activities</div>
+                  <div className="text-[13px] text-text-secondary mt-0.5">Browse your saved activities</div>
                 </div>
               </button>
             </div>
@@ -153,31 +201,45 @@ export default function AddActivityModal({ isOpen, onClose, className: clsName, 
             </div>
 
             <div className="max-h-[320px] overflow-y-auto -mx-2 px-2 space-y-2">
-              {filtered.length === 0 ? (
+              {loading ? (
+                <p className="text-center text-sm text-text-secondary py-8">Loading activities...</p>
+              ) : filtered.length === 0 ? (
                 <p className="text-center text-sm text-text-secondary py-8">No activities match your search.</p>
               ) : (
-                filtered.map((a) => (
-                  <div
-                    key={a.name}
-                    className="flex items-center justify-between p-3.5 rounded-xl border border-border
-                      hover:border-border hover:bg-border/20 transition-colors"
-                  >
-                    <div>
-                      <div className="font-heading font-semibold text-[14px] text-text-primary">{a.name}</div>
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-navy/8 text-[11px]
-                        font-medium text-navy uppercase tracking-wide">
-                        {a.subject}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => handleAdd(a.name)}
-                      className="flex-shrink-0 ml-3 px-3.5 py-1.5 rounded-lg bg-teal text-white text-xs
-                        font-semibold hover:bg-teal/90 transition-colors"
+                filtered.map((a) => {
+                  const alreadyAdded = assignedIds.has(a.id);
+                  return (
+                    <div
+                      key={a.id}
+                      className="flex items-center justify-between p-3.5 rounded-xl border border-border
+                        hover:border-border hover:bg-border/20 transition-colors"
                     >
-                      Add to Class
-                    </button>
-                  </div>
-                ))
+                      <div>
+                        <div className="font-heading font-semibold text-[14px] text-text-primary">{a.title}</div>
+                        {a.subject && (
+                          <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-navy/10 text-[11px]
+                            font-medium text-navy uppercase tracking-wide">
+                            {a.subject}
+                          </span>
+                        )}
+                      </div>
+                      {alreadyAdded ? (
+                        <span className="flex-shrink-0 ml-3 px-3.5 py-1.5 rounded-lg bg-green-500/10 text-green-400 text-xs font-semibold flex items-center gap-1">
+                          <CheckCircle size={14} weight="fill" /> Added
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleAdd(a)}
+                          disabled={saving === a.id}
+                          className="flex-shrink-0 ml-3 px-3.5 py-1.5 rounded-lg bg-teal text-navy text-xs
+                            font-semibold hover:bg-teal/90 transition-colors disabled:opacity-50"
+                        >
+                          {saving === a.id ? 'Adding...' : 'Add to Class'}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

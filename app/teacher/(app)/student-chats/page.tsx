@@ -1,31 +1,37 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
-  ChatsCircle, MagnifyingGlass, X, Eye,
+  ChatsCircle, MagnifyingGlass, X, Eye, Sparkle, CaretRight,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { ChatMessage, Profile, Class } from '@/lib/supabase/types';
 
-interface ChatGroup {
+interface ChatTopic {
+  id: string;
   studentId: string;
   studentName: string;
   initials: string;
   className: string;
-  messages: ChatMessage[];
+  topicLabel: string;           // Activity name or "General Chat"
+  topicType: 'activity' | 'general';
+  messages: any[];
   lastMessageAt: string;
-  lastMessagePreview: string;
+  messageCount: number;
 }
 
 export default function StudentChatsPage() {
-  const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
+  const [topics, setTopics] = useState<ChatTopic[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [studentFilter, setStudentFilter] = useState<string | null>(null);
   const [classTab, setClassTab] = useState('All Classes');
-  const [selectedGroup, setSelectedGroup] = useState<ChatGroup | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<ChatTopic | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [slideOutOpen, setSlideOutOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -34,91 +40,76 @@ export default function StudentChatsPage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setError('Not authenticated'); setLoading(false); return; }
+        if (!user) { window.location.href = '/login'; return; }
 
-        // Fetch teacher's classes
-        const { data: classData } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('teacher_id', user.id);
-        const teacherClasses = (classData ?? []) as Class[];
+        const res = await fetch(`/api/teacher/student-data?teacherId=${user.id}`);
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Failed to load chats');
+        }
+        const data = await res.json();
+
+        const teacherClasses = (data.classes ?? []) as Class[];
         setClasses(teacherClasses);
 
-        if (teacherClasses.length === 0) {
-          setChatGroups([]);
+        const messages = (data.chatMessages ?? []) as any[];
+        const studentProfilesList = (data.studentProfiles ?? []) as Profile[];
+
+        if (teacherClasses.length === 0 || messages.length === 0) {
+          setTopics([]);
           setLoading(false);
           return;
         }
-
-        const classIds = teacherClasses.map((c) => c.id);
-
-        // Fetch chat messages for teacher's classes
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: messageData } = await (supabase
-          .from('chat_messages')
-          .select('*') as any)
-          .in('class_id', classIds)
-          .order('created_at', { ascending: false })
-          .limit(500);
-
-        const messages = (messageData ?? []) as ChatMessage[];
-        if (messages.length === 0) {
-          setChatGroups([]);
-          setLoading(false);
-          return;
-        }
-
-        // Get unique sender IDs (exclude the teacher)
-        const senderIds = [...new Set(messages.filter((m) => m.sender_id !== user.id).map((m) => m.sender_id))];
-        if (senderIds.length === 0) {
-          setChatGroups([]);
-          setLoading(false);
-          return;
-        }
-
-        // Fetch sender profiles
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: profileData } = await (supabase
-          .from('profiles')
-          .select('*') as any)
-          .in('id', senderIds);
 
         const profileMap = new Map<string, Profile>();
-        ((profileData ?? []) as Profile[]).forEach((p) => profileMap.set(p.id, p));
+        studentProfilesList.forEach((p) => profileMap.set(p.id, p));
 
         const classNameMap = new Map<string, string>();
         teacherClasses.forEach((c) => classNameMap.set(c.id, c.name));
 
-        // Group messages by student + class
-        const groupMap = new Map<string, ChatGroup>();
-        messages.forEach((m) => {
-          if (m.sender_id === user.id) return; // Skip teacher's own messages from grouping key
-          const key = `${m.sender_id}:${m.class_id}`;
-          const existing = groupMap.get(key);
+        // Group by student + topic (activity or general chat)
+        const topicMap = new Map<string, ChatTopic>();
+        messages.forEach((m: any) => {
+          const studentId = m.student_id || m.sender_id;
+          if (!studentId || studentId === user.id || studentId === 'spark-ai') return;
+
+          const isActivity = m.message_type === 'activity_chat';
+          const topicKey = isActivity
+            ? `${studentId}:activity:${m.activity_id}`
+            : `${studentId}:general:${m.class_id}`;
+
+          const existing = topicMap.get(topicKey);
           if (existing) {
             existing.messages.push(m);
+            existing.messageCount++;
+            if (m.created_at > existing.lastMessageAt) {
+              existing.lastMessageAt = m.created_at;
+            }
           } else {
-            const profile = profileMap.get(m.sender_id);
+            const profile = profileMap.get(studentId);
             const name = profile?.display_name ?? 'Unknown Student';
             const parts = name.split(' ');
-            const initials = parts.map((p) => p[0]).join('').toUpperCase().slice(0, 2);
-            groupMap.set(key, {
-              studentId: m.sender_id,
+            const initials = parts.map((p: string) => p[0]).join('').toUpperCase().slice(0, 2);
+            topicMap.set(topicKey, {
+              id: topicKey,
+              studentId,
               studentName: name,
               initials,
-              className: classNameMap.get(m.class_id) ?? 'Unknown',
+              className: classNameMap.get(m.class_id) || 'Unknown',
+              topicLabel: isActivity ? (m.activity_name || 'Activity Chat') : 'General Chat',
+              topicType: isActivity ? 'activity' : 'general',
               messages: [m],
               lastMessageAt: m.created_at,
-              lastMessagePreview: m.content.slice(0, 80),
+              messageCount: 1,
             });
           }
         });
 
-        const groups = Array.from(groupMap.values()).sort(
+        const sorted = Array.from(topicMap.values()).sort(
           (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
         );
 
-        setChatGroups(groups);
+        setTopics(sorted);
       } catch (err) {
         console.error('Student chats fetch error:', err);
         setError('Failed to load chats');
@@ -129,102 +120,95 @@ export default function StudentChatsPage() {
     fetchData();
   }, []);
 
-  // Unique student names for search
+  // Generate AI summary when topic is selected
+  const loadSummary = useCallback(async (topic: ChatTopic) => {
+    setSummaryLoading(true);
+    setSummary(null);
+    try {
+      const res = await fetch('/api/teacher/chat-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: topic.messages.map((m: any) => ({
+            role: m.role || (m.message_type === 'student' || m.message_type === 'activity_chat' && m.role === 'user' ? 'user' : 'assistant'),
+            content: m.content,
+          })),
+        }),
+      });
+      const data = await res.json();
+      setSummary(data.summary);
+    } catch {
+      setSummary('Unable to generate summary.');
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, []);
+
+  // Unique students for filter
   const uniqueStudents = useMemo(() => {
     const seen = new Set<string>();
-    return chatGroups
-      .filter((g) => {
-        if (seen.has(g.studentId)) return false;
-        seen.add(g.studentId);
-        return true;
-      })
-      .map((g) => ({ name: g.studentName, initials: g.initials, id: g.studentId }));
-  }, [chatGroups]);
+    return topics
+      .filter((t) => { if (seen.has(t.studentId)) return false; seen.add(t.studentId); return true; })
+      .map((t) => ({ name: t.studentName, initials: t.initials, id: t.studentId }));
+  }, [topics]);
 
   const visibleClasses = useMemo(() => {
     const classNames = new Set<string>();
-    chatGroups.forEach((g) => {
-      if (!studentFilter || g.studentId === studentFilter) {
-        classNames.add(g.className);
-      }
+    topics.forEach((t) => {
+      if (!studentFilter || t.studentId === studentFilter) classNames.add(t.className);
     });
     return ['All Classes', ...Array.from(classNames)];
-  }, [chatGroups, studentFilter]);
+  }, [topics, studentFilter]);
 
   const filtered = useMemo(() => {
-    return chatGroups.filter((g) => {
-      if (studentFilter && g.studentId !== studentFilter) return false;
-      if (classTab !== 'All Classes' && g.className !== classTab) return false;
+    return topics.filter((t) => {
+      if (studentFilter && t.studentId !== studentFilter) return false;
+      if (classTab !== 'All Classes' && t.className !== classTab) return false;
       return true;
     });
-  }, [chatGroups, studentFilter, classTab]);
+  }, [topics, studentFilter, classTab]);
 
   const classCounts = useMemo(() => {
-    const base = studentFilter
-      ? chatGroups.filter((g) => g.studentId === studentFilter)
-      : chatGroups;
+    const base = studentFilter ? topics.filter((t) => t.studentId === studentFilter) : topics;
     const counts: Record<string, number> = { 'All Classes': base.length };
-    base.forEach((g) => {
-      counts[g.className] = (counts[g.className] ?? 0) + 1;
-    });
+    base.forEach((t) => { counts[t.className] = (counts[t.className] ?? 0) + 1; });
     return counts;
-  }, [chatGroups, studentFilter]);
+  }, [topics, studentFilter]);
 
   const filteredSearchStudents = searchQuery
     ? uniqueStudents.filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : uniqueStudents;
 
-  function clearStudent() {
-    setStudentFilter(null);
-    setClassTab('All Classes');
-    setSelectedGroup(null);
+  function clearStudent() { setStudentFilter(null); setClassTab('All Classes'); setSelectedTopic(null); setSummary(null); }
+  function selectStudent(id: string) { setStudentFilter(id); setClassTab('All Classes'); setSelectedTopic(null); setSummary(null); setSearchOpen(false); setSearchQuery(''); }
+
+  function handleTopicClick(topic: ChatTopic) {
+    setSelectedTopic(topic);
+    setSlideOutOpen(false);
+    loadSummary(topic);
   }
 
-  function selectStudent(id: string) {
-    setStudentFilter(id);
-    setClassTab('All Classes');
-    setSelectedGroup(null);
-    setSearchOpen(false);
-    setSearchQuery('');
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-text-secondary text-sm">Loading chats...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-red-400 text-sm">{error}</div>
-      </div>
-    );
-  }
+  if (loading) return <div className="flex items-center justify-center py-20"><div className="text-text-secondary text-sm">Loading chats...</div></div>;
+  if (error) return <div className="flex items-center justify-center py-20"><div className="text-red-400 text-sm">{error}</div></div>;
 
   return (
-    <div>
+    <div className="relative">
       {/* Header */}
       <div className="mb-5">
         <h1 className="font-heading text-2xl font-extrabold text-text-primary flex items-center gap-2.5">
           <ChatsCircle size={24} weight="fill" className="text-teal" /> Student Chats
         </h1>
         <p className="text-sm text-text-secondary mt-1">
-          Monitor conversations, track engagement, and get insights from your Teaching Twin
+          Monitor conversations, track engagement, and get AI-powered insights
         </p>
       </div>
 
-      {/* Empty state */}
-      {chatGroups.length === 0 ? (
+      {topics.length === 0 ? (
         <div className="text-center py-16 px-5 bg-card-bg border-2 border-dashed border-border rounded-[20px]">
           <ChatsCircle size={48} className="mx-auto text-text-secondary opacity-40 mb-3" />
-          <h3 className="font-heading font-bold text-base text-text-primary mb-1.5">
-            No student conversations yet
-          </h3>
+          <h3 className="font-heading font-bold text-base text-text-primary mb-1.5">No student conversations yet</h3>
           <p className="text-sm text-text-secondary max-w-md mx-auto">
-            Once students start chatting with their AI tutor, their conversations will appear here.
+            Once students start chatting with Spark, their conversations will appear here.
           </p>
         </div>
       ) : (
@@ -236,39 +220,25 @@ export default function StudentChatsPage() {
             </span>
             <div className="w-px h-5 bg-border" />
             {studentFilter ? (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-teal/8 border-[1.5px] border-teal rounded-full
-                text-sm font-semibold text-teal">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-teal/8 border-[1.5px] border-teal rounded-full text-sm font-semibold text-teal">
                 {uniqueStudents.find((s) => s.id === studentFilter)?.name ?? 'Unknown'}
-                <button onClick={clearStudent} className="text-teal hover:text-teal/70 cursor-pointer">
-                  <X size={14} weight="bold" />
-                </button>
+                <button onClick={clearStudent} className="text-teal hover:text-teal/70 cursor-pointer"><X size={14} weight="bold" /></button>
               </div>
             ) : (
               <div className="relative flex-1">
                 <MagnifyingGlass size={16} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary" />
                 <input
-                  type="text"
-                  placeholder="Search students..."
-                  value={searchQuery}
+                  type="text" placeholder="Search students..." value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
                   onFocus={() => setSearchOpen(true)}
-                  className="w-full pl-8 pr-3 py-1.5 border-[1.5px] border-border rounded-lg text-sm
-                    bg-surface text-text-primary outline-none focus:border-teal"
+                  className="w-full pl-8 pr-3 py-1.5 border-[1.5px] border-border rounded-lg text-sm bg-surface text-text-primary outline-none focus:border-teal"
                 />
                 {searchOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-card-bg border border-border
-                    rounded-lg max-h-56 overflow-y-auto z-20 shadow-lg">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card-bg border border-border rounded-lg max-h-56 overflow-y-auto z-20 shadow-lg">
                     {filteredSearchStudents.map((s) => (
-                      <div
-                        key={s.id}
-                        onClick={() => selectStudent(s.id)}
-                        className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer hover:bg-teal/5
-                          border-b border-border last:border-b-0 text-sm text-text-primary"
-                      >
-                        <div className="w-7 h-7 rounded-full bg-navy text-white flex items-center justify-center
-                          text-[10px] font-bold shrink-0">
-                          {s.initials}
-                        </div>
+                      <div key={s.id} onClick={() => selectStudent(s.id)}
+                        className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer hover:bg-teal/5 border-b border-border last:border-b-0 text-sm text-text-primary">
+                        <div className="w-7 h-7 rounded-full bg-navy text-white flex items-center justify-center text-[10px] font-bold shrink-0">{s.initials}</div>
                         {s.name}
                       </div>
                     ))}
@@ -279,113 +249,191 @@ export default function StudentChatsPage() {
           </div>
 
           {/* Class Tabs */}
-          <div className="flex gap-1 border-b-2 border-border mb-0">
+          <div className="flex gap-1 border-b-2 border-border mb-4">
             {visibleClasses.map((cls) => (
-              <button
-                key={cls}
-                onClick={() => { setClassTab(cls); setSelectedGroup(null); }}
-                className={`px-4 py-2.5 font-heading font-semibold text-sm border-b-2 -mb-[2px]
-                  transition-all cursor-pointer flex items-center gap-1.5 bg-transparent border-t-0 border-l-0 border-r-0
-                  ${classTab === cls
-                    ? 'text-navy border-navy'
-                    : 'text-text-secondary border-transparent hover:text-text-primary'
-                  }`}
-              >
+              <button key={cls} onClick={() => { setClassTab(cls); setSelectedTopic(null); setSummary(null); }}
+                className={`px-4 py-2.5 font-heading font-semibold text-sm border-b-2 -mb-[2px] transition-all cursor-pointer flex items-center gap-1.5 bg-transparent border-t-0 border-l-0 border-r-0
+                  ${classTab === cls ? 'text-navy border-navy' : 'text-text-secondary border-transparent hover:text-text-primary'}`}>
                 {cls}
                 {classCounts[cls] != null && (
-                  <span className="text-[10px] font-bold bg-teal/10 text-teal px-1.5 py-0.5 rounded-full">
-                    {classCounts[cls]}
-                  </span>
+                  <span className="text-[10px] font-bold bg-teal/10 text-teal px-1.5 py-0.5 rounded-full">{classCounts[cls]}</span>
                 )}
               </button>
             ))}
           </div>
 
-          {/* Main Content: Chat List | Conversation Detail */}
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-0 mt-5 border border-border rounded-[14px] overflow-hidden">
-            {/* Chat List */}
+          {/* 3-Column Layout: Topic List | AI Summary | (Slide-out Full Chat) */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-0 border border-border rounded-[14px] overflow-hidden" style={{ minHeight: 460 }}>
+
+            {/* Column 1: Chat Topics */}
             <div className="border-r border-border">
-              <div className="max-h-[460px] overflow-y-auto">
+              <div className="px-4 py-3 border-b border-border bg-card-bg/50">
+                <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Chat Topics</span>
+              </div>
+              <div className="max-h-[420px] overflow-y-auto">
                 {filtered.length === 0 ? (
                   <div className="text-center py-10 text-text-secondary text-sm">No conversations match your filters.</div>
                 ) : (
-                  filtered.map((g) => (
+                  filtered.map((t) => (
                     <div
-                      key={`${g.studentId}:${g.className}`}
-                      onClick={() => setSelectedGroup(g)}
-                      className={`flex items-start gap-3 px-4 py-3.5 border-b border-border last:border-b-0
-                        cursor-pointer transition-colors
-                        ${selectedGroup?.studentId === g.studentId && selectedGroup?.className === g.className ? 'bg-teal/5' : 'hover:bg-card-bg'}`}
+                      key={t.id}
+                      onClick={() => handleTopicClick(t)}
+                      className={`flex items-start gap-3 px-4 py-3 border-b border-border last:border-b-0 cursor-pointer transition-colors
+                        ${selectedTopic?.id === t.id ? 'bg-teal/5 border-l-2 border-l-teal' : 'hover:bg-card-bg'}`}
                     >
-                      <div className="w-9 h-9 rounded-full bg-navy text-white flex items-center justify-center
-                        text-xs font-bold shrink-0 mt-0.5">
-                        {g.initials}
+                      <div className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                        {t.initials}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="font-heading font-bold text-sm text-text-primary truncate">{g.studentName}</span>
+                        <div className="font-heading font-bold text-sm text-text-primary truncate">{t.studentName}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {t.topicType === 'activity' ? (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 truncate max-w-[180px]">
+                              ✨ {t.topicLabel}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-teal/10 text-teal">
+                              💬 General Chat
+                            </span>
+                          )}
                         </div>
-                        <div className="text-xs text-text-secondary truncate mb-1.5">{g.lastMessagePreview}</div>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal/10 text-teal">
-                          {g.className}
-                        </span>
+                        <div className="text-[10px] text-text-muted mt-1">
+                          {t.messageCount} message{t.messageCount !== 1 ? 's' : ''} · {new Date(t.lastMessageAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-[10px] text-text-secondary whitespace-nowrap">
-                          {new Date(g.lastMessageAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </div>
-                        <div className="text-[10px] text-text-secondary mt-1">
-                          {g.messages.length} message{g.messages.length !== 1 ? 's' : ''}
-                        </div>
-                      </div>
+                      <CaretRight size={14} className="text-text-muted mt-2 shrink-0" />
                     </div>
                   ))
                 )}
               </div>
             </div>
 
-            {/* Conversation Detail / Empty State */}
-            <div className="flex flex-col bg-card-bg min-h-[200px]">
-              {selectedGroup ? (
-                <div className="p-6 flex-1 overflow-y-auto max-h-[460px]">
-                  <h3 className="font-heading font-bold text-sm text-text-primary mb-1">
-                    {selectedGroup.studentName}
-                  </h3>
-                  <p className="text-xs text-text-secondary mb-4">{selectedGroup.className}</p>
-                  <div className="space-y-3">
-                    {[...selectedGroup.messages].reverse().map((m) => (
-                      <div
-                        key={m.id}
-                        className={`max-w-[80%] px-3.5 py-2.5 rounded-xl text-sm leading-relaxed ${
-                          m.message_type === 'student'
-                            ? 'bg-navy/10 text-text-primary'
-                            : m.message_type === 'ai'
-                            ? 'bg-teal/10 text-text-primary ml-auto'
-                            : 'bg-warning/10 text-text-primary ml-auto'
-                        }`}
-                      >
-                        <div className="text-[10px] font-bold text-text-secondary mb-1 uppercase">
-                          {m.message_type === 'student' ? 'Student' : m.message_type === 'ai' ? 'AI Tutor' : 'Teacher'}
-                        </div>
-                        {m.content}
-                        <div className="text-[10px] text-text-secondary mt-1">
-                          {new Date(m.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center flex-1 text-center py-10 px-6">
+            {/* Column 2: AI Summary */}
+            <div className="flex flex-col bg-card-bg">
+              <div className="px-4 py-3 border-b border-border bg-card-bg/50 flex items-center justify-between">
+                <span className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkle size={12} weight="fill" className="text-teal" /> AI Summary
+                </span>
+                {selectedTopic && (
+                  <button
+                    onClick={() => setSlideOutOpen(true)}
+                    className="text-xs font-semibold text-teal hover:text-teal/80 cursor-pointer transition-colors"
+                  >
+                    View Full Chat →
+                  </button>
+                )}
+              </div>
+              <div className="flex-1 p-5 overflow-y-auto max-h-[420px]">
+                {selectedTopic ? (
                   <div>
-                    <div className="w-14 h-14 rounded-full bg-border/50 flex items-center justify-center mx-auto mb-3">
-                      <ChatsCircle size={28} className="text-text-muted" />
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center text-[10px] font-bold">
+                        {selectedTopic.initials}
+                      </div>
+                      <div>
+                        <div className="font-heading font-bold text-sm text-text-primary">{selectedTopic.studentName}</div>
+                        <div className="text-[10px] text-text-secondary">{selectedTopic.className} · {selectedTopic.topicLabel}</div>
+                      </div>
                     </div>
-                    <p className="font-heading font-semibold text-sm text-text-primary mb-1">Select a conversation</p>
-                    <p className="text-xs text-text-secondary">Click on a chat to see the conversation</p>
+
+                    {/* Summary card */}
+                    <div className="bg-[var(--color-bg)] border border-border rounded-xl p-4 mb-4">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Sparkle size={14} weight="fill" className="text-teal" />
+                        <span className="text-xs font-bold text-teal uppercase">Conversation Summary</span>
+                      </div>
+                      {summaryLoading ? (
+                        <div className="flex items-center gap-2 text-sm text-text-secondary">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-teal" />
+                          Analyzing conversation...
+                        </div>
+                      ) : (
+                        <p className="text-sm text-text-primary leading-relaxed">{summary}</p>
+                      )}
+                    </div>
+
+                    {/* Quick stats */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-[var(--color-bg)] border border-border rounded-lg p-3 text-center">
+                        <div className="text-lg font-bold text-text-primary">{selectedTopic.messageCount}</div>
+                        <div className="text-[10px] text-text-secondary">Messages</div>
+                      </div>
+                      <div className="bg-[var(--color-bg)] border border-border rounded-lg p-3 text-center">
+                        <div className="text-lg font-bold text-text-primary">
+                          {selectedTopic.messages.filter((m: any) => m.role === 'user' || m.message_type === 'student').length}
+                        </div>
+                        <div className="text-[10px] text-text-secondary">Student Msgs</div>
+                      </div>
+                      <div className="bg-[var(--color-bg)] border border-border rounded-lg p-3 text-center">
+                        <div className="text-lg font-bold text-teal">
+                          {new Date(selectedTopic.lastMessageAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </div>
+                        <div className="text-[10px] text-text-secondary">Last Active</div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-center justify-center h-full text-center">
+                    <div>
+                      <div className="w-14 h-14 rounded-full bg-border/50 flex items-center justify-center mx-auto mb-3">
+                        <Sparkle size={28} className="text-text-muted" />
+                      </div>
+                      <p className="font-heading font-semibold text-sm text-text-primary mb-1">Select a conversation</p>
+                      <p className="text-xs text-text-secondary">Click on a chat topic to see the AI summary</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Slide-out Panel: Full Chat (Column 3) */}
+      {slideOutOpen && selectedTopic && (
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSlideOutOpen(false)} />
+
+          {/* Panel */}
+          <div className="fixed top-0 right-0 w-full max-w-lg h-full border-l border-border z-50 flex flex-col shadow-2xl" style={{ backgroundColor: 'var(--color-bg, #0F172A)' }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div>
+                <h3 className="font-heading font-bold text-base text-text-primary">{selectedTopic.studentName}</h3>
+                <p className="text-xs text-text-secondary">{selectedTopic.className} · {selectedTopic.topicLabel}</p>
+              </div>
+              <button onClick={() => setSlideOutOpen(false)}
+                className="p-2 rounded-lg hover:bg-border/30 text-text-secondary hover:text-text-primary transition-colors cursor-pointer">
+                <X size={20} weight="bold" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5 space-y-3">
+              {[...selectedTopic.messages]
+                .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                .map((m: any) => {
+                  const isStudent = m.role === 'user' || m.message_type === 'student';
+                  const isAi = m.role === 'assistant' || m.message_type === 'ai';
+                  return (
+                    <div key={m.id} className={`max-w-[85%] px-3.5 py-2.5 rounded-xl text-sm leading-relaxed ${
+                      isStudent ? 'bg-navy/10 text-text-primary' : isAi ? 'bg-teal/10 text-text-primary ml-auto' : 'bg-warning/10 text-text-primary ml-auto'
+                    }`}>
+                      <div className="text-[10px] font-bold text-text-secondary mb-1 uppercase">
+                        {isStudent ? 'Student' : isAi ? '✨ Spark' : 'Teacher'}
+                      </div>
+                      {m.content.split('\n\n').map((para: string, i: number) => (
+                        <p key={i} className={i > 0 ? 'mt-2' : ''}>
+                          {para.split('\n').map((line: string, j: number) => (
+                            <span key={j}>{j > 0 && <br />}{line}</span>
+                          ))}
+                        </p>
+                      ))}
+                      <div className="text-[10px] text-text-secondary mt-1">
+                        {new Date(m.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         </>

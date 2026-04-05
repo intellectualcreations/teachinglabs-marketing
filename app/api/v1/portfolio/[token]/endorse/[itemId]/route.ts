@@ -1,49 +1,44 @@
-import { NextResponse } from "next/server";
-import { getByToken, addEndorsement } from "@/lib/portfolio-store";
+import { NextRequest, NextResponse } from 'next/server';
+import { getByToken, addEndorsement } from '@/lib/portfolio-store';
 
-interface RouteParams {
-  params: Promise<{ token: string; itemId: string }>;
-}
-
-/**
- * POST /api/v1/portfolio/:token/endorse/:itemId
- * Adds an endorsement to a portfolio item via share token.
- */
-export async function POST(request: Request, { params }: RouteParams) {
+/** POST /api/v1/portfolio/:token/endorse/:itemId — add endorsement */
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ token: string; itemId: string }> },
+) {
   const { token, itemId } = await params;
 
+  // Verify token is valid
   const items = getByToken(token);
   if (!items) {
-    return NextResponse.json(
-      { error: "Invalid or expired share token" },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: 'invalid or expired token' }, { status: 404 });
   }
 
-  const item = items.find((i) => i.id === itemId);
-  if (!item) {
-    return NextResponse.json(
-      { error: "Portfolio item not found" },
-      { status: 404 },
-    );
-  }
-
-  const body = await request.json();
-  const { instructorId, comment } = body;
+  const body = await req.json();
+  const { instructorId, comment } = body ?? {};
 
   if (!instructorId || !comment) {
     return NextResponse.json(
-      { error: "instructorId and comment are required" },
+      { error: 'instructorId and comment are required' },
       { status: 400 },
     );
   }
 
-  const endorsement = addEndorsement(item.studentId, itemId, instructorId, comment);
+  // Find the item's studentId from the token's items
+  const targetItem = items.find((i) => i.id === itemId);
+  if (!targetItem) {
+    return NextResponse.json({ error: 'item not found' }, { status: 404 });
+  }
+
+  const endorsement = addEndorsement(
+    targetItem.studentId,
+    itemId,
+    instructorId,
+    comment,
+  );
+
   if (!endorsement) {
-    return NextResponse.json(
-      { error: "Failed to add endorsement" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'item not found' }, { status: 404 });
   }
 
   return NextResponse.json(endorsement, { status: 201 });

@@ -21,17 +21,18 @@ export const metadata: Metadata = {
   title: 'TeachingLabs',
   description: 'AI-powered teaching platform for K-12 education',
   manifest: '/manifest.json',
-  themeColor: '#1F3A5F',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Teaching Labs',
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#1F3A5F',
 };
 
 export default function RootLayout({

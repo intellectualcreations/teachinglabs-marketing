@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ChalkboardTeacher, ArrowLeft, MagnifyingGlass, CircleNotch, CheckCircle, EnvelopeSimple } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
@@ -191,6 +192,12 @@ export default function TeacherSignupPage() {
   const [otherSchoolType, setOtherSchoolType] = useState('');
   const [otherSchoolName, setOtherSchoolName] = useState('');
 
+  // Invite code
+  const [inviteCode, setInviteCode] = useState('');
+  const [inviteValid, setInviteValid] = useState<boolean | null>(null);
+  const [inviteChecking, setInviteChecking] = useState(false);
+  const [inviteError, setInviteError] = useState('');
+
   // Screen 2: email + auth
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -275,6 +282,28 @@ export default function TeacherSignupPage() {
       return;
     }
 
+    // Validate invite code first
+    if (!inviteValid) {
+      if (!inviteCode.trim()) {
+        setInviteError('An invite code is required to join Teaching Labs.');
+        return;
+      }
+      setInviteChecking(true);
+      const res = await fetch('/api/invite/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: inviteCode.trim() }),
+      });
+      const data = await res.json();
+      setInviteChecking(false);
+      if (!data.valid) {
+        setInviteError(data.message || 'Invalid invite code');
+        return;
+      }
+      setInviteValid(true);
+      setInviteError('');
+    }
+
     setSubmitting(true);
     setError('');
 
@@ -336,13 +365,39 @@ export default function TeacherSignupPage() {
     }
   }
 
+  async function handleGoogleSignup() {
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+  }
+
+  async function handleMicrosoftSignup() {
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        scopes: 'email profile openid',
+        queryParams: { prompt: 'select_account' },
+      },
+    });
+  }
+
   const stepDots = [1, 2, 3];
   const schoolNames = schools.map((s) => s.name);
 
   return (
     <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12 relative">
       {/* Theme toggle */}
-      <ThemeToggle className="absolute top-6 right-6" />
+      <ThemeToggle className="absolute top-6 right-6 z-50" />
 
       {/* Back link */}
       <div className="w-full max-w-[460px] mb-4">
@@ -360,17 +415,23 @@ export default function TeacherSignupPage() {
       </div>
 
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center flex-shrink-0">
-          <svg viewBox="0 0 512 512" fill="none" className="w-6 h-6">
-            <g transform="translate(156,106)">
-              <rect x="60" y="0" width="80" height="300" fill="#FFF" />
-              <rect x="40" y="0" width="160" height="80" fill="#FFF" />
-              <circle cx="160" cy="200" r="40" fill="#4FA3A5" />
-            </g>
-          </svg>
-        </div>
-        <span className="font-heading font-bold text-xl text-text-primary">TeachingLabs</span>
+      <Link href="/" className="mb-6">
+        <Image
+          src="/images/logo-stacked-light.png"
+          alt="TeachingLabs"
+          width={220}
+          height={220}
+          className="w-[160px] sm:w-[200px] h-auto dark:hidden"
+          priority
+        />
+        <Image
+          src="/images/logo-stacked-dark.png"
+          alt="TeachingLabs"
+          width={220}
+          height={220}
+          className="w-[160px] sm:w-[200px] h-auto hidden dark:block"
+          priority
+        />
       </Link>
 
       {/* Step dots */}
@@ -622,9 +683,9 @@ export default function TeacherSignupPage() {
               Next
             </button>
 
-            <p className="text-center text-sm text-text-secondary mt-5">
+            <p className="text-center text-base text-text-secondary mt-5">
               Already have an account?{' '}
-              <Link href="/login" className="text-teal font-medium hover:underline">Log in</Link>
+              <Link href="/login" className="text-[#4FA3A5] font-bold hover:underline">Log in</Link>
             </p>
           </div>
         )}
@@ -639,23 +700,30 @@ export default function TeacherSignupPage() {
               Connect your account to finish setup.
             </p>
 
-            {/* SSO buttons — Coming Soon */}
+            {/* SSO buttons */}
             <div className="flex flex-col gap-3 mb-6">
-              {[
-                { icon: <GoogleIcon />, label: 'Continue with Google' },
-                { icon: <MicrosoftIcon />, label: 'Continue with Microsoft' },
-                { icon: <ClassLinkIcon />, label: 'Continue with ClassLink' },
-              ].map(({ icon, label }) => (
-                <button
-                  key={label}
-                  className="relative flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg font-heading text-sm font-medium text-text-primary opacity-60 cursor-not-allowed"
-                  disabled
-                >
-                  {icon}
-                  {label}
-                  <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
-                </button>
-              ))}
+              <button
+                onClick={handleGoogleSignup}
+                className="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
+              >
+                <GoogleIcon />
+                Continue with Google
+              </button>
+              <button
+                onClick={handleMicrosoftSignup}
+                className="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
+              >
+                <MicrosoftIcon />
+                Continue with Microsoft
+              </button>
+              <button
+                disabled
+                className="relative flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg font-heading text-sm font-medium text-text-primary opacity-60 cursor-not-allowed"
+              >
+                <ClassLinkIcon />
+                Continue with ClassLink
+                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
+              </button>
             </div>
 
             {/* Divider */}
@@ -663,6 +731,47 @@ export default function TeacherSignupPage() {
               <div className="flex-1 h-px bg-border" />
               <span className="text-xs text-text-secondary font-medium">or continue with email</span>
               <div className="flex-1 h-px bg-border" />
+            </div>
+
+            {/* Invite code field */}
+            <div className="mb-5">
+              <label className="block font-heading text-sm font-medium text-text-primary mb-1.5">
+                Invite Code
+                <span className="ml-1.5 text-xs font-normal text-text-muted">(required)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={(e) => { setInviteCode(e.target.value.toUpperCase()); setInviteError(''); setInviteValid(null); }}
+                  placeholder="Enter your invite code"
+                  className={`flex-1 px-4 py-3 rounded-xl border bg-surface dark:bg-card-bg text-text-primary placeholder:text-text-muted text-sm outline-none focus:ring-2 transition-all uppercase tracking-wider ${
+                    inviteValid === true ? 'border-green-500 focus:ring-green-500/30' :
+                    inviteError ? 'border-danger focus:ring-danger/30' :
+                    'border-border focus:ring-teal/30 focus:border-teal'
+                  }`}
+                  maxLength={20}
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!inviteCode.trim()) { setInviteError('Enter a code first'); return; }
+                    setInviteChecking(true); setInviteError(''); setInviteValid(null);
+                    const res = await fetch('/api/invite/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: inviteCode.trim() }) });
+                    const data = await res.json();
+                    setInviteChecking(false);
+                    if (data.valid) { setInviteValid(true); setInviteError(''); }
+                    else { setInviteValid(false); setInviteError(data.message || 'Invalid code'); }
+                  }}
+                  disabled={inviteChecking || inviteValid === true}
+                  className="px-4 py-3 rounded-xl bg-teal text-navy font-heading font-semibold text-sm disabled:opacity-50 transition-colors hover:bg-teal/90"
+                >
+                  {inviteChecking ? '...' : inviteValid === true ? '✓' : 'Check'}
+                </button>
+              </div>
+              {inviteError && <p className="text-xs text-danger mt-1.5">{inviteError}</p>}
+              {inviteValid === true && <p className="text-xs text-green-500 mt-1.5">✓ Valid invite code</p>}
+              <p className="text-xs text-text-muted mt-1.5">Don&apos;t have an invite code? <a href="/waitlist" className="text-teal hover:underline">Join the waitlist</a>.</p>
             </div>
 
             <div className="mb-4">
@@ -700,9 +809,9 @@ export default function TeacherSignupPage() {
               )}
             </button>
 
-            <p className="text-center text-sm text-text-secondary mt-5">
+            <p className="text-center text-base text-text-secondary mt-5">
               Already have an account?{' '}
-              <Link href="/login" className="text-teal font-medium hover:underline">Log in</Link>
+              <Link href="/login" className="text-[#4FA3A5] font-bold hover:underline">Log in</Link>
             </p>
           </div>
         )}
@@ -738,11 +847,11 @@ export default function TeacherSignupPage() {
       </div>
 
       {/* Legal */}
-      <p className="text-xs text-text-muted text-center max-w-sm mt-10 leading-relaxed">
+      <p className="text-sm text-text-muted text-center max-w-sm mt-10 leading-relaxed">
         By creating an account, you agree to our{' '}
-        <Link href="#" className="text-teal hover:underline">Terms of Service</Link>,{' '}
-        <Link href="#" className="text-teal hover:underline">Privacy Policy</Link>, and{' '}
-        <Link href="#" className="text-teal hover:underline">Data Protection Addendum</Link>.
+        <Link href="#" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">Terms of Service</Link>,{' '}
+        <Link href="#" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">Privacy Policy</Link>,<br />
+        and <Link href="#" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">Data Protection Addendum</Link>.
       </p>
 
       <style jsx global>{`

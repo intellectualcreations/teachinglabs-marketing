@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * GET /api/classes/lookup?code=TL-XXXX-XXXX
+ * GET /api/classes/lookup?code=BJB644
  * Public endpoint — validates a class join code and returns class info.
  * Uses service role to bypass RLS (classes table has recursive policy issues).
  */

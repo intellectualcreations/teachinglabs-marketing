@@ -2,23 +2,28 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 
 function TeachingLabsLogo() {
   return (
-    <Link href="/" className="flex items-center gap-3 mb-8">
-      <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center flex-shrink-0">
-        <svg viewBox="0 0 512 512" fill="none" className="w-6 h-6">
-          <g transform="translate(156,106)">
-            <rect x="60" y="0" width="80" height="300" fill="#FFF" />
-            <rect x="40" y="0" width="160" height="80" fill="#FFF" />
-            <circle cx="160" cy="200" r="40" fill="#4FA3A5" />
-          </g>
-        </svg>
-      </div>
-      <span className="font-heading font-bold text-xl text-text-primary">TeachingLabs</span>
+    <Link href="/" className="flex items-center justify-center mb-8">
+      <Image
+        src="/images/logo-horizontal-dark.png"
+        alt="TeachingLabs"
+        width={440}
+        height={100}
+        className="h-20 w-auto dark:hidden"
+      />
+      <Image
+        src="/images/logo-horizontal-light.png"
+        alt="TeachingLabs"
+        width={440}
+        height={100}
+        className="h-20 w-auto hidden dark:block"
+      />
     </Link>
   );
 }
@@ -79,6 +84,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sentAt, setSentAt] = useState('');
   const [error, setError] = useState('');
 
   async function handleMagicLink(e: React.FormEvent) {
@@ -105,6 +111,7 @@ export default function LoginPage() {
         return;
       }
 
+      setSentAt(new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }));
       setSent(true);
     } catch {
       setError('Something went wrong. Please try again.');
@@ -113,32 +120,32 @@ export default function LoginPage() {
     }
   }
 
-  function handleGoogleSignIn() {
-    // Keep next-auth Google for now; will migrate later
-    const { signIn } = require('next-auth/react');
-    signIn('google', { callbackUrl: '/dashboard' });
+  async function handleGoogleSignIn() {
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
   }
 
-  function handleSSOLogin() {
-    // Placeholder for Microsoft/ClassLink SSO
-    window.location.href = '/teacher/dashboard';
+  async function handleMicrosoftSignIn() {
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        scopes: 'email profile openid',
+        queryParams: { prompt: 'select_account' },
+      },
+    });
   }
 
   return (
     <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-12 relative">
       {/* Theme toggle */}
       <ThemeToggle className="absolute top-6 right-6" />
-
-      {/* Back link */}
-      <div className="w-full max-w-[420px] mb-4">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
-        >
-          <ArrowLeft weight="bold" size={16} />
-          Back to home
-        </Link>
-      </div>
 
       {/* Card */}
       <div className="w-full max-w-[420px] animate-[fadeUp_0.4s_ease-out]">
@@ -153,23 +160,21 @@ export default function LoginPage() {
 
         {mode === 'options' && !sent && (
           <>
-            {/* SSO Buttons — Coming Soon */}
+            {/* SSO Buttons */}
             <div className="flex flex-col gap-3 mb-6">
               <button
-                disabled
-                className="relative flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg opacity-60 cursor-not-allowed font-heading text-sm font-medium text-text-primary"
+                onClick={handleGoogleSignIn}
+                className="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
               >
                 <GoogleIcon />
                 Sign in with Google
-                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
               </button>
               <button
-                disabled
-                className="relative flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg opacity-60 cursor-not-allowed font-heading text-sm font-medium text-text-primary"
+                onClick={handleMicrosoftSignIn}
+                className="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-border bg-surface dark:bg-card-bg hover:bg-card-bg dark:hover:bg-surface/10 font-heading text-sm font-medium text-text-primary transition-colors"
               >
                 <MicrosoftIcon />
                 Sign in with Microsoft
-                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
               </button>
               <button
                 disabled
@@ -177,7 +182,7 @@ export default function LoginPage() {
               >
                 <ClassLinkIcon />
                 Sign in with ClassLink
-                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-teal bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
+                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-navy dark:text-teal bg-navy/10 dark:bg-teal/10 px-2 py-0.5 rounded-full">Coming Soon</span>
               </button>
             </div>
 
@@ -191,7 +196,7 @@ export default function LoginPage() {
             {/* Magic Link CTA */}
             <button
               onClick={() => setMode('magic-link')}
-              className="w-full py-3.5 rounded-xl bg-teal hover:bg-teal/90 text-white font-heading font-semibold text-[15px] transition-colors"
+              className="w-full py-3.5 rounded-xl bg-navy dark:bg-navy hover:bg-navy/90 dark:hover:bg-navy/90 text-white font-heading font-semibold text-[15px] transition-colors"
             >
               Sign in with email link
             </button>
@@ -222,7 +227,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-teal hover:bg-teal/90 disabled:opacity-60 disabled:cursor-not-allowed text-white font-heading font-semibold text-[15px] transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl bg-teal hover:bg-teal/90 disabled:opacity-60 disabled:cursor-not-allowed text-navy font-heading font-semibold text-[15px] transition-colors flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -261,6 +266,11 @@ export default function LoginPage() {
               We sent a magic link to <span className="font-medium text-text-primary">{email}</span>.
               Click the link in your email to sign in.
             </p>
+            {sentAt && (
+              <p className="text-xs text-text-muted mb-4">
+                Sent at {sentAt}
+              </p>
+            )}
             <button
               onClick={() => { setSent(false); setEmail(''); setMode('options'); }}
               className="text-sm text-teal font-medium hover:underline"
@@ -274,7 +284,7 @@ export default function LoginPage() {
         {!sent && (
           <p className="text-center text-sm text-text-secondary mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-teal font-medium hover:underline">
+            <Link href="/signup" className="text-navy dark:text-teal font-bold hover:underline">
               Create one
             </Link>
           </p>

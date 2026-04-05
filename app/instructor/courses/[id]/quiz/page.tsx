@@ -207,7 +207,7 @@ export default function InstructorQuizCreatePage() {
         <div className="text-center">
           <Link
             href={`/instructor/courses/${courseId}`}
-            className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+            className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-navy px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
           >
             <ArrowLeft size={16} weight="bold" />
             Back to Course
@@ -472,7 +472,7 @@ export default function InstructorQuizCreatePage() {
             <button
               type="submit"
               disabled={submitting || !selectedLessonId || !title || questions.length === 0}
-              className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-white px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              className="inline-flex items-center gap-2 font-heading text-sm font-bold bg-teal text-navy px-6 py-3 rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
             >
               {submitting ? (
                 <>

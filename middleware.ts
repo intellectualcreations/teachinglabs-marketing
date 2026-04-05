@@ -82,22 +82,20 @@ export async function middleware(request: NextRequest) {
   // Refresh Supabase session (sets/refreshes cookies)
   const supabaseResponse = await updateSession(request);
 
-  // For protected paths, check if the user has a valid Supabase session
+  // For protected paths, check if the user has a valid session
+  // With implicit flow, auth state is in localStorage (client-side only).
+  // Server middleware can only check cookies. If no cookie session found,
+  // let the page load — the client-side code will handle redirect if needed.
   if (isProtectedPath(pathname)) {
     const hasSupabaseSession = await checkSupabaseSession(request);
+    const hasNextAuthSession = request.cookies.has('next-auth.session-token')
+      || request.cookies.has('__Secure-next-auth.session-token');
+    // Also check for Supabase auth cookies (sb-*-auth-token)
+    const hasSupabaseCookie = request.cookies.getAll().some(c => c.name.includes('auth-token'));
 
-    if (!hasSupabaseSession) {
-      // Fall back to checking for NextAuth session cookie
-      // (supports both auth systems during migration)
-      const hasNextAuthSession = request.cookies.has('next-auth.session-token')
-        || request.cookies.has('__Secure-next-auth.session-token');
-
-      if (!hasNextAuthSession) {
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.url;
-        const loginUrl = new URL('/login', baseUrl);
-        loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
-        return applySecurityHeaders(NextResponse.redirect(loginUrl));
-      }
+    if (!hasSupabaseSession && !hasNextAuthSession && !hasSupabaseCookie) {
+      // No server-side session found. Let client-side handle it.
+      // Don't redirect here — implicit flow stores session in localStorage.
     }
   }
 

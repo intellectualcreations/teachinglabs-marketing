@@ -570,7 +570,7 @@ function StudentMainInner() {
           <div className="text-4xl mb-4">😕</div>
           <h2 className="font-heading font-bold text-lg text-text-primary mb-2">Oops!</h2>
           <p className="text-sm text-text-secondary mb-4">{error}</p>
-          <button onClick={() => window.location.reload()} className="px-5 py-2 bg-teal text-white rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors">
+          <button onClick={() => window.location.reload()} className="px-5 py-2 bg-teal text-navy rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors">
             Try Again
           </button>
         </div>
@@ -586,7 +586,7 @@ function StudentMainInner() {
           <div className="text-5xl mb-4 opacity-60">📚</div>
           <h2 className="font-heading font-bold text-xl text-text-primary mb-2">Join a class to start chatting with your AI tutor!</h2>
           <p className="text-sm text-text-secondary mb-4">Ask your teacher for a class code to get started.</p>
-          <Link href="/student/dashboard" className="inline-flex items-center gap-2 px-5 py-2 bg-teal text-white rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors">
+          <Link href="/student/dashboard" className="inline-flex items-center gap-2 px-5 py-2 bg-teal text-navy rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors">
             <SquaresFour size={16} weight="fill" />
             Go to Dashboard
           </Link>
@@ -988,7 +988,7 @@ function StudentMainInner() {
                     />
                     <button
                       onClick={beginNamedChat}
-                      className="px-4 py-2 bg-teal text-white rounded-lg font-heading font-semibold text-sm hover:bg-teal/90 transition-colors whitespace-nowrap"
+                      className="px-4 py-2 bg-teal text-navy rounded-lg font-heading font-semibold text-sm hover:bg-teal/90 transition-colors whitespace-nowrap"
                     >
                       Start chat
                     </button>
@@ -1168,7 +1168,7 @@ function StudentMainInner() {
                   {/* Send button */}
                   <button
                     onClick={sendMessage}
-                    className="w-[42px] h-[42px] rounded-[10px] bg-teal text-white flex items-center justify-center hover:bg-teal/90 active:scale-95 transition-all flex-shrink-0"
+                    className="w-[42px] h-[42px] rounded-[10px] bg-teal text-navy flex items-center justify-center hover:bg-teal/90 active:scale-95 transition-all flex-shrink-0"
                   >
                     <PaperPlaneRight size={18} weight="fill" />
                   </button>
@@ -1205,7 +1205,7 @@ function StudentMainInner() {
             <div className="text-sm text-text-muted mb-5 leading-relaxed">You can still find it in the Archive section if you need it later.</div>
             <div className="flex gap-2 justify-center">
               <button onClick={() => setShowArchiveConfirm(false)} className="px-5 py-2 border border-border rounded-lg text-sm font-semibold text-text-primary hover:bg-warm-white transition-colors">Cancel</button>
-              <button onClick={confirmArchive} className="px-5 py-2 bg-teal text-white rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors">Archive</button>
+              <button onClick={confirmArchive} className="px-5 py-2 bg-teal text-navy rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors">Archive</button>
             </div>
           </div>
         </div>

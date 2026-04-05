@@ -229,7 +229,7 @@ export default function InstructorAnalyticsPage() {
           </div>
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-teal text-white rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-teal text-navy rounded-lg text-sm font-semibold hover:bg-teal/90 transition-colors"
           >
             <DownloadSimple size={18} weight="bold" />
             Export Earnings CSV

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   GraduationCap,
   ChalkboardTeacher,
@@ -79,22 +80,28 @@ const ROLES: RoleCard[] = [
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen bg-warm-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-16 relative">
+    <div className="min-h-screen bg-white dark:bg-[#0B1426] flex flex-col items-center justify-center px-4 py-16 relative">
       {/* Theme toggle */}
-      <ThemeToggle className="absolute top-6 right-6" />
+      <ThemeToggle className="absolute top-6 right-6 z-50" />
 
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-3 mb-10">
-        <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center flex-shrink-0">
-          <svg viewBox="0 0 512 512" fill="none" className="w-6 h-6">
-            <g transform="translate(156,106)">
-              <rect x="60" y="0" width="80" height="300" fill="#FFF" />
-              <rect x="40" y="0" width="160" height="80" fill="#FFF" />
-              <circle cx="160" cy="200" r="40" fill="#4FA3A5" />
-            </g>
-          </svg>
-        </div>
-        <span className="font-heading font-bold text-xl text-text-primary">TeachingLabs</span>
+      <Link href="/" className="mb-10">
+        <Image
+          src="/images/logo-stacked-light.png"
+          alt="TeachingLabs"
+          width={280}
+          height={280}
+          className="w-[200px] sm:w-[260px] h-auto dark:hidden"
+          priority
+        />
+        <Image
+          src="/images/logo-stacked-dark.png"
+          alt="TeachingLabs"
+          width={280}
+          height={280}
+          className="w-[200px] sm:w-[260px] h-auto hidden dark:block"
+          priority
+        />
       </Link>
 
       {/* Heading */}
@@ -185,19 +192,19 @@ export default function SignupPage() {
       </div>
 
       {/* Already have account */}
-      <p className="text-sm text-text-secondary mb-4">
+      <p className="text-base text-text-secondary mb-4">
         Already have an account?{' '}
-        <Link href="/login" className="text-teal font-medium hover:underline">
+        <Link href="/login" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">
           Log in
         </Link>
       </p>
 
       {/* Legal */}
-      <p className="text-xs text-text-muted text-center max-w-md leading-relaxed">
+      <p className="text-sm text-text-muted text-center max-w-md leading-relaxed">
         By continuing, you agree to our{' '}
-        <Link href="#" className="text-teal hover:underline">Terms of Service</Link>,{' '}
-        <Link href="#" className="text-teal hover:underline">Privacy Policy</Link>, and{' '}
-        <Link href="#" className="text-teal hover:underline">Data Protection Addendum</Link>.
+        <Link href="#" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">Terms of Service</Link>,{' '}
+        <Link href="#" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">Privacy Policy</Link>,<br />
+        and <Link href="#" className="text-navy dark:text-[#4FA3A5] font-bold hover:underline">Data Protection Addendum</Link>.
       </p>
     </div>
   );
