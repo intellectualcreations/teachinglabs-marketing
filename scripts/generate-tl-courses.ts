@@ -41,6 +41,10 @@ const gradeArg = args.find(a => a.startsWith('--grade='))?.split('=')[1];
 interface Activity {
   title: string;
   description: string;
+  objective: string;
+  materials: string;
+  directions: string;
+  assessment: string;
 }
 
 interface Module {
@@ -73,7 +77,11 @@ Return ONLY valid JSON (no markdown, no code fences) in this exact format:
       "activities": [
         {
           "title": "Activity Title",
-          "description": "Brief description of what students do."
+          "description": "Brief description of what students do.",
+          "objective": "What students will learn or accomplish by completing this activity.",
+          "materials": "List of materials, resources, or tools needed.",
+          "directions": "Step-by-step instructions for completing the activity.",
+          "assessment": "How student understanding will be measured or evaluated."
         }
       ]
     }
@@ -88,7 +96,12 @@ Requirements:
 - Activities should be interactive and engaging (not just worksheets)
 - Activity types: hands-on exploration, discussion, practice, creative project, assessment
 - Module titles should be clear and descriptive
-- Descriptions should be 1-2 sentences max`;
+- Descriptions should be 1-2 sentences max
+- Each activity MUST include objective, materials, directions, and assessment
+- Objectives: clear, measurable learning goals (1-2 sentences)
+- Materials: specific items needed (textbook pages, manipulatives, worksheets, technology)
+- Directions: 3-5 clear steps students follow
+- Assessment: how to check understanding (exit ticket, discussion, rubric, quiz, observation)`;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -99,7 +112,7 @@ Requirements:
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20250414',
-      max_tokens: 4096,
+      max_tokens: 8192,
       messages: [{ role: 'user', content: prompt }],
     }),
   });
@@ -176,7 +189,10 @@ async function writeToDB(course: Course): Promise<void> {
         body: JSON.stringify({
           title: act.title,
           description: act.description,
-          type: 'activity',
+          objective: act.objective || null,
+          materials: act.materials || null,
+          directions: act.directions || null,
+          assessment: act.assessment || null,
           teacher_id: TEACHER_ID,
         }),
       });
