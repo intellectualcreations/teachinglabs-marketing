@@ -341,71 +341,91 @@ export default function LibraryPage() {
       </div>
 
       {/* TL Content Tab */}
-      {tab === 'tl-courses' && (
-        <>
-          {tlLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <SpinnerGap size={32} className="animate-spin text-teal" />
+      {tab === 'tl-courses' && (() => {
+        const tlSubjects = [...new Set(tlCourses.map(c => c.subject).filter(Boolean))];
+        const tlGrades = [...new Set(tlCourses.map(c => c.grade_level).filter(Boolean))];
+        const filtered = tlCourses.filter(c => {
+          if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !c.description?.toLowerCase().includes(search.toLowerCase())) return false;
+          if (subjectFilter && c.subject !== subjectFilter) return false;
+          if (tlGradeFilter && c.grade_level !== tlGradeFilter) return false;
+          return true;
+        });
+        return (
+          <>
+            {/* Search */}
+            <div className="flex items-center gap-2.5 mb-3 flex-wrap">
+              <div className="relative flex-1 min-w-[200px]">
+                <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+                <input
+                  type="text"
+                  placeholder="Search TL courses..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-[9px] border-[1.5px] border-border rounded-lg text-[13px]
+                    bg-card-bg text-text-primary font-heading outline-none focus:border-teal"
+                />
+              </div>
             </div>
-          ) : tlCourses.length === 0 ? (
-            <div className="text-center py-16 bg-card-bg border border-border rounded-[14px]">
-              <GraduationCap size={48} className="mx-auto text-text-secondary opacity-40" />
-              <h3 className="font-heading font-bold text-lg text-text-primary mt-4 mb-2">
-                Coming Soon!
-              </h3>
-              <p className="text-sm text-text-secondary max-w-md mx-auto">
-                AI-generated courses for every grade and subject are on the way. Check back soon!
-              </p>
+            {/* Filters */}
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <select
+                value={subjectFilter}
+                onChange={(e) => setSubjectFilter(e.target.value)}
+                className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
+                style={{ colorScheme: 'dark' }}
+              >
+                <option value="">All Subjects</option>
+                {tlSubjects.sort().map(s => (
+                  <option key={s} value={s}>{s!.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+                ))}
+              </select>
+              <select
+                value={tlGradeFilter}
+                onChange={(e) => setTlGradeFilter(e.target.value)}
+                className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
+                style={{ colorScheme: 'dark' }}
+              >
+                <option value="">All Grades</option>
+                {['K','1','2','3','4','5','6','7','8','9','10','11','12'].map(g => (
+                  <option key={g} value={g}>{g === 'K' ? 'Kindergarten' : `Grade ${g}`}</option>
+                ))}
+              </select>
+              <div className="ml-auto flex items-center border border-border rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setViewMode('card')}
+                  className={`p-1.5 ${viewMode === 'card' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
+                  title="Card view"
+                >
+                  <SquaresFour size={16} weight={viewMode === 'card' ? 'fill' : 'regular'} />
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`p-1.5 ${viewMode === 'table' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
+                  title="Table view"
+                >
+                  <List size={16} weight={viewMode === 'table' ? 'fill' : 'regular'} />
+                </button>
+              </div>
             </div>
-          ) : (() => {
-            const tlSubjects = [...new Set(tlCourses.map(c => c.subject).filter(Boolean))];
-            const tlGrades = [...new Set(tlCourses.map(c => c.grade_level).filter(Boolean))];
-            const filtered = tlCourses.filter(c => {
-              if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !c.description?.toLowerCase().includes(search.toLowerCase())) return false;
-              if (subjectFilter && c.subject !== subjectFilter) return false;
-              if (tlGradeFilter && c.grade_level !== tlGradeFilter) return false;
-              return true;
-            });
-            return (
+
+            {tlLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <SpinnerGap size={32} className="animate-spin text-teal" />
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-16 bg-card-bg border border-border rounded-[14px]">
+                <GraduationCap size={48} className="mx-auto text-text-secondary opacity-40" />
+                <h3 className="font-heading font-bold text-lg text-text-primary mt-4 mb-2">
+                  {tlCourses.length === 0 ? 'Coming Soon!' : 'No matches'}
+                </h3>
+                <p className="text-sm text-text-secondary max-w-md mx-auto">
+                  {tlCourses.length === 0
+                    ? 'AI-generated courses for every grade and subject are on the way. Check back soon!'
+                    : 'Try adjusting your filters to find courses.'}
+                </p>
+              </div>
+            ) : (
               <>
-                {/* Filters */}
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <div className="relative flex-1 min-w-[200px]">
-                    <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
-                    <input
-                      type="text"
-                      placeholder="Search TL courses..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 bg-card-bg border border-border rounded-lg text-text-primary text-sm placeholder:text-text-secondary focus:outline-none focus:ring-1 focus:ring-teal/30"
-                    />
-                  </div>
-                  <select
-                    value={subjectFilter}
-                    onChange={(e) => setSubjectFilter(e.target.value)}
-                    className="px-3 py-2 bg-card-bg text-text-primary border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
-                    style={{ colorScheme: 'dark' }}
-                  >
-                    <option value="">All Subjects</option>
-                    {tlSubjects.sort().map(s => (
-                      <option key={s} value={s}>{s!.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={tlGradeFilter}
-                    onChange={(e) => setTlGradeFilter(e.target.value)}
-                    className="px-3 py-2 bg-card-bg text-text-primary border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
-                    style={{ colorScheme: 'dark' }}
-                  >
-                    <option value="">All Grades</option>
-                    {tlGrades.sort((a, b) => {
-                      const order = ['K','1','2','3','4','5','6','7','8','9','10','11','12'];
-                      return order.indexOf(a!) - order.indexOf(b!);
-                    }).map(g => (
-                      <option key={g} value={g}>{g === 'K' ? 'Kindergarten' : `Grade ${g}`}</option>
-                    ))}
-                  </select>
-                </div>
                 <p className="text-xs text-text-secondary mb-3">{filtered.length} course{filtered.length !== 1 ? 's' : ''}</p>
                 <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))' }}>
                   {filtered.map((course) => (
@@ -455,10 +475,10 @@ export default function LibraryPage() {
                   ))}
                 </div>
               </>
-            );
-          })()}
-        </>
-      )}
+            )}
+          </>
+        );
+      })()}
 
       {/* My Courses Tab */}
       {tab === 'courses' && (
