@@ -141,6 +141,10 @@ export default function CreateActivityPage() {
 
   // TODO: wire to real profile data
   const [hasFrameworksSelected] = useState(false);
+  const [objective, setObjective] = useState('');
+  const [activityMaterials, setActivityMaterials] = useState('');
+  const [activityDirections, setActivityDirections] = useState('');
+  const [activityAssessment, setActivityAssessment] = useState('');
 
   // Success overlay
   const [successVisible, setSuccessVisible] = useState(false);
@@ -302,6 +306,10 @@ export default function CreateActivityPage() {
     setActivityName('');
     setInstructions('');
     setGuidance('');
+    setObjective('');
+    setActivityMaterials('');
+    setActivityDirections('');
+    setActivityAssessment('');
     setUploadedFiles([]);
     setSelectedStandards([]);
     setLinkRows([{ id: uid(), url: '', label: '' }]);
@@ -442,6 +450,65 @@ export default function CreateActivityPage() {
               : <><MagicWand size={14} weight="fill" /> Enhance with Teaching Twin</>
             }
           </button>
+        </div>
+      </div>
+
+      {/* ── Activity Details (Objective, Materials, Directions, Assessment) ── */}
+      <div className="bg-card-bg border border-border rounded-[14px] p-6 mb-5 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-teal" />
+
+        <h2 className="font-heading font-bold text-base text-text-primary flex items-center gap-2 mb-1.5">
+          📋 Activity Planning
+        </h2>
+        <p className="text-[13px] text-text-secondary mb-4 leading-relaxed">
+          These details help your Teaching Twin guide students more effectively. All fields are optional.
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="font-semibold text-[13px] text-text-primary block mb-1.5">Objective</label>
+            <textarea
+              value={objective}
+              onChange={(e) => setObjective(e.target.value)}
+              rows={2}
+              placeholder="What should students learn or accomplish?"
+              className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
+                bg-card-bg text-text-primary outline-none focus:border-teal transition-colors resize-y"
+            />
+          </div>
+          <div>
+            <label className="font-semibold text-[13px] text-text-primary block mb-1.5">Materials</label>
+            <textarea
+              value={activityMaterials}
+              onChange={(e) => setActivityMaterials(e.target.value)}
+              rows={2}
+              placeholder="What materials or resources are needed?"
+              className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
+                bg-card-bg text-text-primary outline-none focus:border-teal transition-colors resize-y"
+            />
+          </div>
+          <div>
+            <label className="font-semibold text-[13px] text-text-primary block mb-1.5">Directions</label>
+            <textarea
+              value={activityDirections}
+              onChange={(e) => setActivityDirections(e.target.value)}
+              rows={3}
+              placeholder="Step-by-step instructions for the activity"
+              className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
+                bg-card-bg text-text-primary outline-none focus:border-teal transition-colors resize-y"
+            />
+          </div>
+          <div>
+            <label className="font-semibold text-[13px] text-text-primary block mb-1.5">Assessment</label>
+            <textarea
+              value={activityAssessment}
+              onChange={(e) => setActivityAssessment(e.target.value)}
+              rows={2}
+              placeholder="How will student understanding be assessed?"
+              className="w-full px-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm
+                bg-card-bg text-text-primary outline-none focus:border-teal transition-colors resize-y"
+            />
+          </div>
         </div>
       </div>
 
