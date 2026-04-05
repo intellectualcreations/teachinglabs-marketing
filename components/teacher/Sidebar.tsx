@@ -42,6 +42,7 @@ export default function Sidebar() {
     '/teacher/create-course': '/teacher/library',
     '/teacher/create-activity': '/teacher/library',
     '/teacher/edit-class': '/teacher/my-classes',
+    '/teacher/edit-course': '/teacher/library',
   };
   const effectivePath = Object.entries(subPageMap).find(([prefix]) => pathname.startsWith(prefix))?.[1] || pathname;
   const activePage = TEACHER_NAV.find(n => effectivePath.startsWith(n.href))?.page || 'dashboard';

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, FloppyDisk, Plus, Trash, SpinnerGap,
-  BookOpen,
+  BookOpen, Warning,
 } from '@phosphor-icons/react';
 
 const SUBJECTS = [
@@ -57,6 +57,9 @@ export default function EditCoursePage() {
   const [subject, setSubject] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
   const [modules, setModules] = useState<ModuleItem[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteInput, setDeleteInput] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -144,6 +147,24 @@ export default function EditCoursePage() {
       setError(e instanceof Error ? e.message : 'Save failed');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (deleteInput !== 'DELETE') return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/teacher/courses/${courseId}`, { method: 'DELETE' });
+      if (res.ok) {
+        router.push('/teacher/library');
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to delete course');
+      }
+    } catch (e) {
+      setError('Failed to delete course');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -297,6 +318,56 @@ export default function EditCoursePage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Danger Zone — Delete Course */}
+      <div className="mt-8 bg-card-bg border border-red-500/20 rounded-[14px] p-5">
+        <h2 className="text-sm font-heading font-semibold text-red-400 mb-2 flex items-center gap-2">
+          <Warning size={18} weight="fill" className="text-red-400" />
+          Danger Zone
+        </h2>
+        <p className="text-xs text-text-secondary mb-3">
+          Deleting a course is permanent and cannot be undone. All modules and related activities will be removed.
+        </p>
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="px-4 py-2 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/10 transition-colors"
+          >
+            Delete This Course
+          </button>
+        ) : (
+          <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4">
+            <p className="text-sm text-red-400 font-medium mb-2">
+              Are you sure? This will permanently delete this course, all its modules, and all related activities.
+            </p>
+            <p className="text-xs text-text-secondary mb-3">
+              Type <span className="font-mono font-bold text-red-400">DELETE</span> to confirm:
+            </p>
+            <input
+              type="text"
+              value={deleteInput}
+              onChange={(e) => setDeleteInput(e.target.value)}
+              placeholder="Type DELETE to confirm"
+              className="w-full max-w-[250px] px-3 py-2 bg-card-bg border border-red-500/30 rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 mb-3"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleDelete}
+                disabled={deleteInput !== 'DELETE' || deleting}
+                className="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {deleting ? 'Deleting...' : 'Permanently Delete Course'}
+              </button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeleteInput(''); }}
+                className="px-4 py-2 border border-border text-text-secondary text-xs font-semibold rounded-lg hover:text-text-primary transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
