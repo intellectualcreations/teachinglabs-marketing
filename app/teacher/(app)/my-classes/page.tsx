@@ -26,7 +26,7 @@ function AddActivityModal({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const [view, setView] = useState<'choose' | 'library'>('choose');
+  const [view, setView] = useState<'choose' | 'library'>('library');
   const [search, setSearch] = useState('');
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loadingLib, setLoadingLib] = useState(false);
@@ -88,56 +88,9 @@ function AddActivityModal({
           <X size={20} weight="bold" />
         </button>
 
-        {view === 'choose' ? (
-          <div className="p-7">
+        <div className="p-7">
             <h2 className="font-heading font-bold text-xl text-text-primary">Add Activity</h2>
-            <p className="text-sm text-text-secondary mt-1 mb-6">{clsName}</p>
-
-            <div className="grid gap-3">
-              <button
-                onClick={() => router.push(`/teacher/create-activity?class=${classId}`)}
-                className="flex items-center gap-4 p-5 rounded-xl border-2 border-border bg-card-bg
-                  hover:border-teal hover:shadow-[0_2px_12px_rgba(31,58,95,0.06)] transition-all text-left group"
-              >
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-teal/10 flex items-center justify-center
-                  group-hover:bg-teal/20 transition-colors">
-                  <Plus size={24} weight="bold" className="text-teal" />
-                </div>
-                <div>
-                  <div className="font-heading font-bold text-[15px] text-text-primary">Create New Activity</div>
-                  <div className="text-[13px] text-text-secondary mt-0.5">Build an activity from scratch</div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setView('library')}
-                className="flex items-center gap-4 p-5 rounded-xl border-2 border-border bg-card-bg
-                  hover:border-navy hover:shadow-[0_2px_12px_rgba(31,58,95,0.06)] transition-all text-left group"
-              >
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-navy/10 flex items-center justify-center
-                  group-hover:bg-navy/20 transition-colors">
-                  <Books size={24} weight="bold" className="text-navy" />
-                </div>
-                <div>
-                  <div className="font-heading font-bold text-[15px] text-text-primary">Choose from Library</div>
-                  <div className="text-[13px] text-text-secondary mt-0.5">Browse your existing activities</div>
-                </div>
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="p-7">
-            <div className="flex items-center gap-2 mb-1">
-              <button
-                onClick={() => { setView('choose'); setSearch(''); }}
-                className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-border/40
-                  transition-colors -ml-1"
-              >
-                <ArrowLeft size={18} weight="bold" />
-              </button>
-              <h2 className="font-heading font-bold text-xl text-text-primary">Choose Activity from Library</h2>
-            </div>
-            <p className="text-sm text-text-secondary mt-1 mb-4 ml-7">{clsName}</p>
+            <p className="text-sm text-text-secondary mt-1 mb-4">{clsName}</p>
 
             <div className="relative mb-4">
               <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
@@ -156,9 +109,20 @@ function AddActivityModal({
               {loadingLib ? (
                 <p className="text-center text-sm text-text-secondary py-8">Loading...</p>
               ) : filtered.length === 0 ? (
-                <p className="text-center text-sm text-text-secondary py-8">
-                  {assignments.length === 0 ? 'No activities in your library yet.' : 'No activities match your search.'}
-                </p>
+                <div className="text-center py-8">
+                  <p className="text-sm text-text-secondary mb-3">
+                    {assignments.length === 0 ? 'No activities in your library yet.' : 'No activities match your search.'}
+                  </p>
+                  {assignments.length === 0 && (
+                    <button
+                      onClick={() => router.push('/teacher/library')}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-navy text-white text-sm font-medium rounded-lg hover:bg-navy/90 transition-colors"
+                    >
+                      <Books size={16} weight="fill" />
+                      Manage Content in Your Library
+                    </button>
+                  )}
+                </div>
               ) : (
                 filtered.map((a) => (
                   <div
@@ -189,8 +153,7 @@ function AddActivityModal({
                 ))
               )}
             </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

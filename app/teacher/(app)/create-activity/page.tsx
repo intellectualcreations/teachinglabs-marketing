@@ -28,6 +28,8 @@ import {
   Check,
   MagnifyingGlass,
   Target,
+  Sparkle,
+  CaretDown,
 } from '@phosphor-icons/react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -295,6 +297,50 @@ export default function CreateActivityPage() {
 
   // ── Save ─────────────────────────────────────────────────────────────────────
   const [saving, setSaving] = useState(false);
+  const [generatingLessonIdea, setGeneratingLessonIdea] = useState('');
+  const [showGenerator, setShowGenerator] = useState(false);
+  const [generatorSubject, setGeneratorSubject] = useState('');
+  const [generatorGrade, setGeneratorGrade] = useState('');
+  const [generating, setGenerating] = useState(false);
+
+  async function generateWithAI() {
+    if (!generatingLessonIdea.trim()) return;
+    setGenerating(true);
+    try {
+      const res = await fetch('/api/teacher/activities/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idea: generatingLessonIdea.trim(),
+          subject: generatorSubject || undefined,
+          gradeLevel: generatorGrade || undefined,
+        }),
+      });
+      if (res.ok) {
+        const { activity } = await res.json();
+        // Fill all fields
+        if (!activityName.trim()) setActivityName(generatingLessonIdea.trim());
+        if (activity.objective) setObjective(activity.objective);
+        if (activity.learning_goal) setLearningGoal(activity.learning_goal);
+        if (activity.essential_question) setEssentialQuestion(activity.essential_question);
+        if (activity.materials) setActivityMaterials(activity.materials);
+        if (activity.vocabulary) setVocabulary(activity.vocabulary);
+        if (activity.hook) setActivityHook(activity.hook);
+        if (activity.directions) setActivityDirections(activity.directions);
+        if (activity.assessment) setActivityAssessment(activity.assessment);
+        if (activity.differentiation) setDifferentiation(activity.differentiation);
+        setShowGenerator(false);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(`Generation failed: ${err.error || res.statusText}`);
+      }
+    } catch (e) {
+      console.error('AI generation error:', e);
+      alert('Something went wrong. Try again.');
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   async function saveActivity() {
     if (!activityName.trim()) {
@@ -400,6 +446,78 @@ export default function CreateActivityPage() {
         <p className="text-sm text-text-secondary">
           Upload what you already use. Your Teaching Twin will learn it and help your students.
         </p>
+      </div>
+
+      {/* ── AI Lesson Generator ───────────────────────────────────────────── */}
+      <div className="bg-gradient-to-r from-indigo-500/10 to-teal/10 border border-indigo-400/30 rounded-[14px] p-5 mb-5">
+        <button
+          onClick={() => setShowGenerator(!showGenerator)}
+          className="w-full flex items-center justify-between text-left"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+              <Sparkle size={20} weight="fill" className="text-indigo-400" />
+            </div>
+            <div>
+              <div className="font-heading font-bold text-[15px] text-text-primary flex items-center gap-2">
+                ✨ AI Lesson Generator
+                <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-semibold uppercase tracking-wider">Premium</span>
+              </div>
+              <p className="text-[12px] text-text-secondary mt-0.5">Describe your lesson idea and AI fills in all the details</p>
+            </div>
+          </div>
+          <CaretDown size={16} className={['text-text-secondary transition-transform', showGenerator ? 'rotate-180' : ''].join(' ')} />
+        </button>
+
+        {showGenerator && (
+          <div className="mt-4 space-y-3">
+            <textarea
+              value={generatingLessonIdea}
+              onChange={(e) => setGeneratingLessonIdea(e.target.value)}
+              placeholder='e.g. "3rd grade science, layers of the Earth, hands-on model building"'
+              rows={2}
+              className="w-full px-3.5 py-2.5 border-[1.5px] border-indigo-400/30 rounded-lg text-sm
+                bg-[#1a1f2e] text-text-primary outline-none focus:border-indigo-400 transition-colors resize-none"
+            />
+            <div className="flex gap-2">
+              <select
+                value={generatorSubject}
+                onChange={(e) => setGeneratorSubject(e.target.value)}
+                className="flex-1 px-3 py-2 border border-border rounded-lg text-sm bg-[#1a1f2e] text-text-primary"
+              >
+                <option value="">Subject (optional)</option>
+                <option value="Math">Math</option>
+                <option value="English Language Arts">ELA</option>
+                <option value="Science">Science</option>
+                <option value="Social Studies">Social Studies</option>
+                <option value="Art">Art</option>
+                <option value="Music">Music</option>
+                <option value="Physical Education">PE</option>
+              </select>
+              <select
+                value={generatorGrade}
+                onChange={(e) => setGeneratorGrade(e.target.value)}
+                className="flex-1 px-3 py-2 border border-border rounded-lg text-sm bg-[#1a1f2e] text-text-primary"
+              >
+                <option value="">Grade (optional)</option>
+                <option value="Kindergarten">Kindergarten</option>
+                {[1,2,3,4,5,6,7,8,9,10,11,12].map(g => (
+                  <option key={g} value={`Grade ${g}`}>Grade {g}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={generateWithAI}
+              disabled={!generatingLessonIdea.trim() || generating}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-500 text-white
+                rounded-lg text-sm font-bold hover:bg-indigo-600 transition-colors
+                disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Sparkle size={16} weight="fill" />
+              {generating ? 'Generating Lesson Plan...' : 'Generate with AI'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Reminder Banner ────────────────────────────────────────────────────── */}
