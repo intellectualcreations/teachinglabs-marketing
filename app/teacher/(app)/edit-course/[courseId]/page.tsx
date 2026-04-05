@@ -183,6 +183,31 @@ export default function EditCoursePage() {
     }
   }
 
+  async function saveModuleToDb(mod: ModuleItem): Promise<string | null> {
+    try {
+      const res = await fetch(`/api/teacher/courses/${courseId}/modules`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: mod.title.trim(),
+          description: mod.description?.trim() || null,
+          position: modules.indexOf(mod) + 1,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const newId = data.module?.id || data.id;
+        if (newId) {
+          setModules(prev => prev.map(m => m.id === mod.id ? { ...m, id: newId, isNew: false, activities: [], loadedActivities: true, showActivities: true } : m));
+          return newId;
+        }
+      }
+    } catch (e) {
+      console.error('Auto-save module error:', e);
+    }
+    return null;
+  }
+
   async function handleSave() {
     if (!title.trim()) {
       setError('Course title is required');
@@ -403,30 +428,45 @@ export default function EditCoursePage() {
               </div>
 
               {/* Activities section */}
-              {!mod.isNew && (
-                <div className="border-t border-border">
-                  <div className="flex items-center justify-between px-3 py-2">
-                    <button
-                      onClick={() => loadActivities(mod.id)}
-                      className="flex items-center gap-1.5 text-xs font-medium text-text-secondary hover:text-teal transition-colors"
-                    >
-                      {mod.showActivities ? <CaretDown size={12} weight="bold" /> : <CaretRight size={12} weight="bold" />}
-                      <Lightning size={12} weight="fill" className="text-teal" />
-                      Activities{mod.activities && mod.activities.length > 0 ? ` (${mod.activities.length})` : ''}
-                    </button>
-                    <button
-                      onClick={async () => {
+              <div className="border-t border-border">
+                <div className="flex items-center justify-between px-3 py-2">
+                  <button
+                    onClick={() => {
+                      if (mod.isNew) return;
+                      loadActivities(mod.id);
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-medium text-text-secondary hover:text-teal transition-colors"
+                  >
+                    {mod.showActivities ? <CaretDown size={12} weight="bold" /> : <CaretRight size={12} weight="bold" />}
+                    <Lightning size={12} weight="fill" className="text-teal" />
+                    Activities{mod.activities && mod.activities.length > 0 ? ` (${mod.activities.length})` : ''}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (mod.isNew) {
+                        if (!mod.title.trim()) {
+                          alert('Enter a module title first, then add activities.');
+                          return;
+                        }
+                        const newId = await saveModuleToDb(mod);
+                        if (!newId) {
+                          alert('Failed to save module. Try again.');
+                          return;
+                        }
+                        updateModule(newId, { showAddActivity: true, showActivities: true });
+                      } else {
                         const newShowAdd = !(mod.showAddActivity ?? false);
                         updateModule(mod.id, { showAddActivity: newShowAdd, showActivities: true });
                         if (!mod.loadedActivities) {
                           await loadActivities(mod.id);
                         }
-                      }}
-                      className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-teal hover:bg-teal/10 rounded transition-colors"
-                    >
-                      <Plus size={12} weight="bold" /> Add Activity
-                    </button>
-                  </div>
+                      }
+                    }}
+                    className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-teal hover:bg-teal/10 rounded transition-colors"
+                  >
+                    <Plus size={12} weight="bold" /> Add Activity
+                  </button>
+                </div>
 
                   {mod.showActivities && (
                     <div className="px-3 pb-3">
@@ -486,7 +526,6 @@ export default function EditCoursePage() {
                     </div>
                   )}
                 </div>
-              )}
             </div>
           ))}
         </div>
