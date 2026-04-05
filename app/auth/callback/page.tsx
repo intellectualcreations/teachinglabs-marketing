@@ -33,10 +33,29 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    // ---- Method 1: PKCE code exchange ----
+    // ---- Method 1: Server already exchanged the code (redirected with ?exchanged=true) ----
+    if (params.get('exchanged') === 'true') {
+      console.log('Auth callback: code already exchanged server-side');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setStatus('Setting up your account...');
+        await redirectUser(supabase, session.user);
+        return;
+      }
+      // Session might need a moment to propagate
+      await new Promise((r) => setTimeout(r, 1000));
+      const { data: { session: s2 } } = await supabase.auth.getSession();
+      if (s2?.user) {
+        setStatus('Setting up your account...');
+        await redirectUser(supabase, s2.user);
+        return;
+      }
+    }
+
+    // ---- Method 1b: PKCE code exchange (fallback if route handler didn't catch it) ----
     const code = params.get('code');
     if (code) {
-      console.log('Auth callback: exchanging PKCE code');
+      console.log('Auth callback: exchanging PKCE code client-side');
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (error) {
         console.error('Code exchange failed:', error.message);
