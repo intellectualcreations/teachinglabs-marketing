@@ -43,10 +43,24 @@ export async function POST(
 
     const admin = createAdminClient();
 
+    // class_id is NOT NULL in assignments table, so find teacher's first class
+    const { data: classes } = await (admin.from('classes') as any)
+      .select('id')
+      .eq('teacher_id', teacher_id)
+      .limit(1);
+
+    if (!classes || classes.length === 0) {
+      return NextResponse.json(
+        { error: 'You need at least one class to create activities. Create a class first.' },
+        { status: 400 }
+      );
+    }
+
     const insertData: Record<string, unknown> = {
       title: title.trim(),
       description: description?.trim() || null,
       teacher_id,
+      class_id: classes[0].id,
       course_id: courseId,
       module_id: moduleId,
       created_at: new Date().toISOString(),
