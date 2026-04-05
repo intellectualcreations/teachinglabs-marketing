@@ -125,9 +125,9 @@ async function redirectUser(
 ) {
   try {
     const res = await fetch(`/api/auth/user-role?userId=${user.id}`);
-    const { role: dbRole, displayName: dbName, hasAssessment } = res.ok
+    const { role: dbRole, displayName: dbName, hasAssessment, hasOnboarding } = res.ok
       ? await res.json()
-      : { role: null, displayName: null, hasAssessment: false };
+      : { role: null, displayName: null, hasAssessment: false, hasOnboarding: false };
 
     const meta = user.user_metadata || {};
     const fullName = (meta.full_name || meta.name || '') as string;
@@ -176,6 +176,11 @@ async function redirectUser(
 
     if (role === 'student' && !hasAssessment) {
       window.location.href = '/student/onboarding';
+      return;
+    }
+
+    if (role === 'teacher' && !hasOnboarding) {
+      window.location.href = '/teacher/onboarding';
       return;
     }
 
