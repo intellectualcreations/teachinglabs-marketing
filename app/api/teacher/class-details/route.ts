@@ -66,18 +66,36 @@ export async function GET(request: NextRequest) {
       }));
     }
 
-    // 4. Fetch assignments for this class
-    const { data: assignments, error: assignError } = await supabase
-      .from('assignments')
-      .select('*')
-      .eq('class_id', classId)
-      .order('created_at', { ascending: false });
+    // 4. Fetch assignments for this class via junction table (include is_open, due_date)
+    const { data: classActivityRows } = await supabase
+      .from('class_activities')
+      .select('activity_id, is_open, due_date')
+      .eq('class_id', classId);
 
-    if (assignError) {
-      console.error('Assignments error:', assignError.message);
+    const activityIds = (classActivityRows ?? []).map((r: any) => r.activity_id);
+    // Build map of activity_id -> { is_open, due_date }
+    const caMap = new Map<string, { is_open: boolean; due_date: string | null }>();
+    for (const r of (classActivityRows ?? []) as any[]) {
+      caMap.set(r.activity_id, { is_open: r.is_open, due_date: r.due_date });
     }
 
-    const assignmentList: Assignment[] = assignments ?? [];
+    let assignmentList: any[] = [];
+    if (activityIds.length > 0) {
+      const { data: acts, error: assignError } = await supabase
+        .from('assignments')
+        .select('*')
+        .in('id', activityIds)
+        .order('created_at', { ascending: false });
+      if (assignError) {
+        console.error('Assignments error:', assignError.message);
+      }
+      // Merge junction table fields
+      assignmentList = (acts ?? []).map((a: any) => ({
+        ...a,
+        is_open: caMap.get(a.id)?.is_open ?? true,
+        due_date: caMap.get(a.id)?.due_date ?? null,
+      }));
+    }
 
     return NextResponse.json({
       class: classRecord,

@@ -78,11 +78,47 @@ export async function GET(request: NextRequest) {
 
   console.log('[my-classes] teacherIds:', teacherIds, 'teachers:', JSON.stringify(teachers));
 
-  // Fetch assignments
-  const { data: assignments } = await admin
-    .from('assignments')
-    .select('*')
+  // Fetch assignments via class_activities junction table
+  const { data: classActivityRows } = await admin
+    .from('class_activities')
+    .select('activity_id, class_id, is_open, due_date')
     .in('class_id', classIds);
+
+  const activityIds = [...new Set((classActivityRows ?? []).map((r: any) => r.activity_id))];
+  // Build maps: activity_id -> class_ids and activity_id+class_id -> { is_open, due_date }
+  const activityClassMap: Record<string, string[]> = {};
+  const caDetailMap: Record<string, { is_open: boolean; due_date: string | null }> = {};
+  for (const row of (classActivityRows ?? []) as any[]) {
+    if (!activityClassMap[row.activity_id]) activityClassMap[row.activity_id] = [];
+    activityClassMap[row.activity_id].push(row.class_id);
+    caDetailMap[`${row.activity_id}:${row.class_id}`] = { is_open: row.is_open, due_date: row.due_date };
+  }
+
+  let assignments: any[] = [];
+  if (activityIds.length > 0) {
+    const { data: acts } = await admin
+      .from('assignments')
+      .select('*')
+      .in('id', activityIds);
+    // Expand: one assignment per class it's assigned to (so due_date/is_open are class-specific)
+    const expanded: any[] = [];
+    for (const a of (acts ?? []) as any[]) {
+      const classIdsForActivity = activityClassMap[a.id] || [];
+      for (const cid of classIdsForActivity) {
+        const detail = caDetailMap[`${a.id}:${cid}`] || { is_open: true, due_date: null };
+        // Only include open activities for students
+        if (!detail.is_open) continue;
+        expanded.push({
+          ...a,
+          class_id: cid,
+          assigned_class_ids: classIdsForActivity,
+          due_date: detail.due_date,
+          is_open: detail.is_open,
+        });
+      }
+    }
+    assignments = expanded;
+  }
 
   // Fetch submissions for this student
   const assignmentIds = (assignments ?? []).map((a: { id: string }) => a.id);

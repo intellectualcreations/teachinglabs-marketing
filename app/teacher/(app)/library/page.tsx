@@ -58,18 +58,45 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState<Tab>('courses');
+  const [tab, setTabRaw] = useState<Tab>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('tl-library-tab') as Tab) || 'courses';
+    }
+    return 'courses';
+  });
+  const setTab = useCallback((t: Tab) => {
+    setTabRaw(t);
+    localStorage.setItem('tl-library-tab', t);
+  }, []);
   const [tlCourses, setTlCourses] = useState<EnrichedCourse[]>([]);
   const [tlLoading, setTlLoading] = useState(false);
+  const [tlActivities, setTlActivities] = useState<any[]>([]);
+  const [tlActivitiesLoaded, setTlActivitiesLoaded] = useState(false);
+  const [tlActivitySearch, setTlActivitySearch] = useState('');
+  const [tlActivitySubject, setTlActivitySubject] = useState('');
+  const [tlActivityGrade, setTlActivityGrade] = useState('');
   const [tlGradeFilter, setTlGradeFilter] = useState('');
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [subjectFilter, setSubjectFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
-  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+  const [viewMode, setViewModeRaw] = useState<'card' | 'table'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('tl-library-view') as 'card' | 'table') || 'card';
+    }
+    return 'card';
+  });
+  const setViewMode = useCallback((mode: 'card' | 'table') => {
+    setViewModeRaw(mode);
+    localStorage.setItem('tl-library-view', mode);
+  }, []);
   const [orphanedOnly, setOrphanedOnly] = useState(false);
+  const [gradeFilter, setGradeFilter] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<EnrichedCourse | null>(null);
+  const [assigningActivity, setAssigningActivity] = useState<string | null>(null); // activity id with open assign popup
+  const [activityClassMap, setActivityClassMap] = useState<Map<string, string[]>>(new Map()); // activity_id -> class_ids
+  const [assignSaving, setAssignSaving] = useState(false);
   const [panelModules, setPanelModules] = useState<{ id: string; title: string; activities: { id: string; title: string; objective?: string; learning_goal?: string; essential_question?: string; materials?: string; vocabulary?: string; directions?: string; hook?: string; assessment?: string; differentiation?: string }[] }[]>([]);
   const [panelLoading, setPanelLoading] = useState(false);
   const [expandedPanelModules, setExpandedPanelModules] = useState<Set<string>>(new Set());
@@ -97,6 +124,14 @@ export default function LibraryPage() {
           const libData = await libRes.json();
           setClasses(libData.classes ?? []);
           setAssignments(libData.assignments ?? []);
+          // Load class assignments map
+          if (libData.classActivities) {
+            const map = new Map<string, string[]>();
+            for (const [actId, classIds] of Object.entries(libData.classActivities)) {
+              map.set(actId, classIds as string[]);
+            }
+            setActivityClassMap(map);
+          }
         }
       } catch (err) {
         console.error('Library fetch error:', err);
@@ -156,8 +191,11 @@ export default function LibraryPage() {
     if (subjectFilter) {
       result = result.filter((a: any) => a.subject === subjectFilter);
     }
+    if (gradeFilter) {
+      result = result.filter((a: any) => a.grade_level === gradeFilter);
+    }
     return result;
-  }, [assignments, orphanedActivities, orphanedOnly, search, subjectFilter]);
+  }, [assignments, orphanedActivities, orphanedOnly, search, subjectFilter, gradeFilter]);
 
   const toggleCourse = useCallback((id: string) => {
     setExpandedCourses((prev) => {
@@ -202,11 +240,62 @@ export default function LibraryPage() {
 
   function subjectBadge(subject?: string) {
     if (!subject) return null;
+    const display = subject.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     return (
       <span className="px-2 py-0.5 rounded-full bg-teal/10 text-teal text-[11px] font-medium">
-        {subject}
+        {display}
       </span>
     );
+  }
+
+  // Load class assignments for a single activity
+  async function loadActivityClasses(activityId: string) {
+    try {
+      const res = await fetch(`/api/teacher/activities/${activityId}/classes`);
+      if (res.ok) {
+        const { classIds } = await res.json();
+        setActivityClassMap(prev => new Map(prev).set(activityId, classIds));
+      }
+    } catch (e) { console.error('Load activity classes error:', e); }
+  }
+
+  // Save class assignments for an activity
+  async function saveActivityClasses(activityId: string, classIds: string[]) {
+    setAssignSaving(true);
+    try {
+      const res = await fetch(`/api/teacher/activities/${activityId}/classes`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classIds }),
+      });
+      if (res.ok) {
+        setActivityClassMap(prev => new Map(prev).set(activityId, classIds));
+      }
+    } catch (e) { console.error('Save activity classes error:', e); }
+    setAssignSaving(false);
+  }
+
+  // Toggle a single class for the currently assigning activity
+  function toggleClassForActivity(classId: string) {
+    if (!assigningActivity) return;
+    const current = activityClassMap.get(assigningActivity) || [];
+    const updated = current.includes(classId)
+      ? current.filter(id => id !== classId)
+      : [...current, classId];
+    saveActivityClasses(assigningActivity, updated);
+  }
+
+  // Open the assign popup for an activity
+  function openAssignPopup(activityId: string) {
+    // Toggle: if already open for this activity, close it
+    if (assigningActivity === activityId) {
+      setAssigningActivity(null);
+      return;
+    }
+    setAssigningActivity(activityId);
+    if (!activityClassMap.has(activityId)) {
+      loadActivityClasses(activityId);
+    }
   }
 
   function statusBadge(course: EnrichedCourse) {
@@ -250,6 +339,21 @@ export default function LibraryPage() {
       setPanelLoading(false);
     }
   }
+
+  // Close assign popup when clicking outside
+  useEffect(() => {
+    if (!assigningActivity) return;
+    function handleClick(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-assign-popup]') || target.closest('[data-assign-btn]')) return;
+      setAssigningActivity(null);
+    }
+    // Delay attaching so the opening click doesn't immediately close it
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClick, true); // capture phase
+    }, 100);
+    return () => { clearTimeout(timer); document.removeEventListener('click', handleClick, true); };
+  }, [assigningActivity]);
 
   if (loading) {
     return (
@@ -354,6 +458,13 @@ export default function LibraryPage() {
                 .then(d => setTlCourses(d.courses ?? []))
                 .catch(() => {})
                 .finally(() => setTlLoading(false));
+            }
+            if (!tlActivitiesLoaded) {
+              setTlActivitiesLoaded(true);
+              fetch('/api/teacher/tl-activities')
+                .then(r => r.json())
+                .then(d => setTlActivities(d.activities ?? []))
+                .catch(() => {});
             }
           }}
           className={`px-4 py-2.5 text-sm font-heading font-bold transition-colors relative
@@ -509,6 +620,95 @@ export default function LibraryPage() {
               </>
             )}
           </>
+        );
+      })()}
+
+      {/* TL Activities Section (shown on TL Content tab) */}
+      {tab === 'tl-courses' && (() => {
+        const tlSubjects = [...new Set(tlActivities.map((a: any) => a.subject).filter(Boolean))];
+        const filtered = tlActivities.filter((a: any) => {
+          if (tlActivitySearch && !a.title.toLowerCase().includes(tlActivitySearch.toLowerCase()) && !a.description?.toLowerCase().includes(tlActivitySearch.toLowerCase())) return false;
+          if (tlActivitySubject && a.subject !== tlActivitySubject) return false;
+          if (tlActivityGrade && a.grade_level !== tlActivityGrade) return false;
+          return true;
+        });
+        return (
+          <div className="mt-8">
+            <h2 className="font-heading text-[13px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-4 flex items-center gap-2">
+              <span>TL Activities</span>
+              <span className="px-2 py-0.5 rounded-full bg-teal/10 text-teal text-xs font-semibold">{tlActivities.length}</span>
+            </h2>
+            {/* Filters */}
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <div className="relative flex-1 min-w-[200px]">
+                <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+                <input type="text" placeholder="Search TL activities..." value={tlActivitySearch} onChange={e => setTlActivitySearch(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-[9px] border-[1.5px] border-border rounded-lg text-[13px] bg-card-bg text-text-primary font-heading outline-none focus:border-teal" />
+              </div>
+              <select value={tlActivitySubject} onChange={e => setTlActivitySubject(e.target.value)}
+                className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal" style={{ colorScheme: 'dark' }}>
+                <option value="">All Subjects</option>
+                {tlSubjects.sort().map(s => <option key={s as string} value={s as string}>{(s as string).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>)}
+              </select>
+              <select value={tlActivityGrade} onChange={e => setTlActivityGrade(e.target.value)}
+                className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal" style={{ colorScheme: 'dark' }}>
+                <option value="">All Grades</option>
+                {['K-2','3-5','6-8','9-12'].map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+            {tlActivities.length === 0 ? (
+              <div className="text-center py-12 text-text-muted text-sm">Loading activities...</div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-12 text-text-muted text-sm">No activities match your filters</div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {filtered.map((act: any) => (
+                  <div key={act.id} className="bg-card-bg border border-border rounded-xl p-4 flex items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        {act.subject && (
+                          <span className="px-2 py-0.5 rounded-full bg-teal/10 text-teal text-[11px] font-semibold">
+                            {act.subject.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                          </span>
+                        )}
+                        {act.grade_level && (
+                          <span className="px-2 py-0.5 rounded-full bg-navy/20 text-text-secondary text-[11px] font-medium">Gr. {act.grade_level}</span>
+                        )}
+                        {act.activity_type && (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-medium">{act.activity_type.replace(/_/g, ' ')}</span>
+                        )}
+                        {act.estimated_minutes && (
+                          <span className="text-[11px] text-text-muted">{act.estimated_minutes} min</span>
+                        )}
+                      </div>
+                      <p className="font-heading font-bold text-[14px] text-text-primary mb-0.5">{act.title}</p>
+                      {act.description && <p className="text-[12px] text-text-secondary line-clamp-2">{act.description}</p>}
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (!userId) return;
+                        // Add to teacher's library by creating a personal copy
+                        const res = await fetch('/api/teacher/activities/copy', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ activityId: act.id, teacherId: userId }),
+                        });
+                        if (res.ok) {
+                          // Refresh assignments
+                          const libRes = await fetch(`/api/teacher/library?teacherId=${userId}`);
+                          if (libRes.ok) { const d = await libRes.json(); setAssignments(d.assignments ?? []); }
+                          alert('Activity added to your library!');
+                        }
+                      }}
+                      className="shrink-0 px-3 py-1.5 rounded-lg bg-teal/10 text-teal text-xs font-heading font-semibold hover:bg-teal/20 transition-colors whitespace-nowrap"
+                    >
+                      + Add to My Library
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         );
       })()}
 
@@ -705,6 +905,21 @@ export default function LibraryPage() {
       {/* Activities Tab */}
       {tab === 'activities' && (
         <>
+          {/* Search bar */}
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
+              <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+              <input
+                type="text"
+                placeholder="Search activities..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-9 pr-3.5 py-[9px] border-[1.5px] border-border rounded-lg text-[13px]
+                  bg-card-bg text-text-primary font-heading outline-none focus:border-teal"
+              />
+            </div>
+          </div>
+
           {/* Filters */}
           <div className="flex items-center gap-3 mb-5 flex-wrap">
             <div className="relative">
@@ -723,6 +938,23 @@ export default function LibraryPage() {
               </select>
             </div>
 
+            {/* Grade level filter */}
+            <div className="relative">
+              <select
+                value={gradeFilter}
+                onChange={(e) => setGradeFilter(e.target.value)}
+                className="pl-3 pr-6 py-[8px] border-[1.5px] border-border rounded-lg text-[12px]
+                  bg-card-bg text-text-primary font-heading outline-none focus:border-teal
+                  appearance-none cursor-pointer"
+              >
+                <option value="">All Grades</option>
+                <option value="K-2">K–2</option>
+                <option value="3-5">3–5</option>
+                <option value="6-8">6–8</option>
+                <option value="9-12">9–12</option>
+              </select>
+            </div>
+
             {coursesAvailable && (
               <button
                 onClick={() => setOrphanedOnly(!orphanedOnly)}
@@ -736,6 +968,23 @@ export default function LibraryPage() {
                 {orphanedOnly ? 'Showing Unattached' : 'Show Unattached Only'}
               </button>
             )}
+
+            <div className="ml-auto flex items-center border border-border rounded-lg overflow-hidden">
+              <button
+                onClick={() => setViewMode('card')}
+                className={`p-1.5 ${viewMode === 'card' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
+                title="Card view"
+              >
+                <SquaresFour size={16} weight={viewMode === 'card' ? 'fill' : 'regular'} />
+              </button>
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-1.5 ${viewMode === 'table' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
+                title="Table view"
+              >
+                <List size={16} weight={viewMode === 'table' ? 'fill' : 'regular'} />
+              </button>
+            </div>
           </div>
 
           {assignments.length === 0 ? (
@@ -763,15 +1012,118 @@ export default function LibraryPage() {
               </h3>
               <p className="text-sm text-text-secondary">Try different search terms or filters.</p>
             </div>
+          ) : viewMode === 'table' ? (
+            <div className="bg-card-bg border border-border rounded-[14px] overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left px-5 py-3 text-[11px] font-heading font-semibold text-text-secondary uppercase tracking-wider">Title</th>
+                    <th className="text-left px-5 py-3 text-[11px] font-heading font-semibold text-text-secondary uppercase tracking-wider">Subject</th>
+                    <th className="text-left px-5 py-3 text-[11px] font-heading font-semibold text-text-secondary uppercase tracking-wider">Grade</th>
+                    <th className="text-left px-5 py-3 text-[11px] font-heading font-semibold text-text-secondary uppercase tracking-wider">Course</th>
+                    <th className="text-left px-5 py-3 text-[11px] font-heading font-semibold text-text-secondary uppercase tracking-wider">Module</th>
+                    <th className="text-right px-5 py-3 text-[11px] font-heading font-semibold text-text-secondary uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredActivities.map((a) => {
+                    const actAny = a as any;
+                    return (
+                      <tr key={a.id} className="border-b border-border last:border-b-0 hover:bg-teal/5 transition-colors">
+                        <td className="px-5 py-3.5">
+                          <span className="font-heading font-semibold text-[13px] text-text-primary">{a.title}</span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          {actAny.subject ? subjectBadge(actAny.subject) : <span className="text-xs text-text-secondary">—</span>}
+                        </td>
+                        <td className="px-5 py-3.5 text-xs text-text-secondary">{actAny.grade_level || '—'}</td>
+                        <td className="px-5 py-3.5 text-xs text-text-secondary">{actAny.course_title || '—'}</td>
+                        <td className="px-5 py-3.5 text-xs text-text-secondary">{actAny.module_title || '—'}</td>
+                        <td className="px-5 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-2 relative">
+                            <button
+                              data-assign-btn
+                              onClick={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); openAssignPopup(a.id); }}
+                              className={`px-3 py-1.5 border-[1.5px] rounded-md text-xs font-semibold
+                                flex items-center gap-1 transition-colors cursor-pointer ${
+                                  (activityClassMap.get(a.id)?.length || 0) > 0
+                                    ? 'border-teal/40 bg-teal/10 text-teal'
+                                    : 'border-border text-text-secondary hover:border-teal hover:text-teal'
+                                }`}
+                            >
+                              <ShareNetwork size={14} weight="fill" />
+                              {(activityClassMap.get(a.id)?.length || 0) > 0
+                                ? `${activityClassMap.get(a.id)!.length} class${activityClassMap.get(a.id)!.length > 1 ? 'es' : ''}`
+                                : 'Assign'}
+                            </button>
+                            {assigningActivity === a.id && (
+                              <div data-assign-popup className="absolute right-0 top-full mt-1 z-50 bg-[#1a1f2e] border border-border rounded-lg shadow-xl p-3 min-w-[220px]"
+                                onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-heading font-semibold text-text-primary">Assign to Classes</span>
+                                  <button onClick={() => setAssigningActivity(null)} className="text-text-secondary hover:text-text-primary">
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                                {classes.length === 0 ? (
+                                  <p className="text-xs text-text-secondary">No classes yet</p>
+                                ) : classes.map(cls => {
+                                  const checked = (activityClassMap.get(a.id) || []).includes(cls.id);
+                                  return (
+                                    <label key={cls.id} className="flex items-center gap-2 py-1.5 px-1 rounded hover:bg-white/5 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => toggleClassForActivity(cls.id)}
+                                        disabled={assignSaving}
+                                        className="accent-teal w-4 h-4 rounded"
+                                      />
+                                      <span className="text-xs text-text-primary">{cls.name}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            <button
+                              onClick={() => router.push(`/teacher/create-activity?edit=${a.id}`)}
+                              className="px-3 py-1.5 border-[1.5px] border-border rounded-md text-xs font-semibold
+                                text-text-primary flex items-center gap-1 hover:border-teal hover:text-teal
+                                transition-colors cursor-pointer"
+                            >
+                              <PencilSimple size={14} weight="fill" /> Edit
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm('Delete this activity? This cannot be undone.')) return;
+                                try {
+                                  const res = await fetch(`/api/teacher/activities?id=${a.id}`, { method: 'DELETE' });
+                                  if (!res.ok) { const err = await res.json().catch(() => ({})); alert('Failed to delete: ' + (err.error || res.statusText)); return; }
+                                  setAssignments(prev => prev.filter(act => act.id !== a.id));
+                                  setOrphanedActivities(prev => prev.filter(act => act.id !== a.id));
+                                } catch (err) { alert('Something went wrong.'); }
+                              }}
+                              className="px-3 py-1.5 border-[1.5px] border-border rounded-md text-xs font-semibold
+                                text-text-secondary flex items-center gap-1 hover:border-red-400 hover:text-red-400
+                                transition-colors cursor-pointer"
+                            >
+                              <Trash size={14} weight="fill" /> Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
               {filteredActivities.map((a) => {
-                const className = classNameMap.get(a.class_id) ?? 'Unknown Class';
                 const actAny = a as any;
                 return (
                   <div
                     key={a.id}
-                    className="bg-card-bg border border-border rounded-[14px] p-5 relative overflow-hidden
+                    className="bg-card-bg border border-border rounded-[14px] p-5 relative
                       cursor-pointer hover:border-teal hover:-translate-y-0.5 hover:shadow-md transition-all"
                   >
                     <div className="flex items-start justify-between mb-2.5 gap-2">
@@ -784,27 +1136,72 @@ export default function LibraryPage() {
 
                     <div className="flex items-center gap-2 text-[11px] text-text-secondary mb-2.5 flex-wrap">
                       {actAny.subject && subjectBadge(actAny.subject)}
-                      <span className="px-2 py-0.5 rounded-full bg-teal/10 text-teal font-medium">
-                        {className}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <CalendarBlank size={14} weight="fill" /> {formatDate(a.created_at)}
-                      </span>
-                      {a.due_date && (
-                        <span className="text-warning font-medium">
-                          Due {formatDate(a.due_date)}
+                      {actAny.grade_level && (
+                        <span className="px-2 py-0.5 rounded-full bg-teal/10 text-teal font-medium">
+                          Gr. {actAny.grade_level}
+                        </span>
+                      )}
+                      {actAny._is_shared_template && (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-medium">
+                          TL Template
+                        </span>
+                      )}
+                      {actAny.course_title && (
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-medium">
+                          {actAny.course_title}
+                        </span>
+                      )}
+                      {actAny.module_title && (
+                        <span className="text-text-muted">
+                          {actAny.module_title}
                         </span>
                       )}
                     </div>
 
-                    {/* Course attachment indicator */}
-                    {coursesAvailable && !actAny.course_id && (
-                      <div className="text-[10px] text-text-muted mb-2">
-                        Not attached to a course
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex gap-2 mt-3 flex-wrap relative">
+                      <button
+                        data-assign-btn
+                        onClick={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); openAssignPopup(a.id); }}
+                        className={`px-3.5 py-2 border-[1.5px] rounded-md text-xs font-semibold
+                          flex items-center gap-1 transition-colors cursor-pointer ${
+                            (activityClassMap.get(a.id)?.length || 0) > 0
+                              ? 'border-teal/40 bg-teal/10 text-teal'
+                              : 'border-border text-text-secondary hover:border-teal hover:text-teal'
+                          }`}
+                      >
+                        <ShareNetwork size={14} weight="fill" />
+                        {(activityClassMap.get(a.id)?.length || 0) > 0
+                          ? `${activityClassMap.get(a.id)!.length} class${activityClassMap.get(a.id)!.length > 1 ? 'es' : ''}`
+                          : 'Assign'}
+                      </button>
+                      {assigningActivity === a.id && (
+                        <div data-assign-popup className="absolute left-0 bottom-full mb-1 z-50 bg-[#1a1f2e] border border-border rounded-lg shadow-xl p-3 min-w-[220px]"
+                          onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-heading font-semibold text-text-primary">Assign to Classes</span>
+                            <button onClick={() => setAssigningActivity(null)} className="text-text-secondary hover:text-text-primary">
+                              <X size={14} />
+                            </button>
+                          </div>
+                          {classes.length === 0 ? (
+                            <p className="text-xs text-text-secondary">No classes yet</p>
+                          ) : classes.map(cls => {
+                            const checked = (activityClassMap.get(a.id) || []).includes(cls.id);
+                            return (
+                              <label key={cls.id} className="flex items-center gap-2 py-1.5 px-1 rounded hover:bg-white/5 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleClassForActivity(cls.id)}
+                                  disabled={assignSaving}
+                                  className="accent-teal w-4 h-4 rounded"
+                                />
+                                <span className="text-xs text-text-primary">{cls.name}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
                       <button
                         onClick={(e) => { e.stopPropagation(); router.push(`/teacher/create-activity?edit=${a.id}`); }}
                         className="px-3.5 py-2 border-[1.5px] border-border rounded-md text-xs font-semibold
@@ -818,9 +1215,8 @@ export default function LibraryPage() {
                           e.stopPropagation();
                           if (!confirm('Delete this activity? This cannot be undone.')) return;
                           try {
-                            const supabase = (await import('@/lib/supabase/client')).createClient();
-                            const { error } = await (supabase.from('assignments') as any).delete().eq('id', a.id);
-                            if (error) { alert('Failed to delete: ' + error.message); return; }
+                            const res = await fetch(`/api/teacher/activities?id=${a.id}`, { method: 'DELETE' });
+                            if (!res.ok) { const err = await res.json().catch(() => ({})); alert('Failed to delete: ' + (err.error || res.statusText)); return; }
                             setAssignments(prev => prev.filter(act => act.id !== a.id));
                             setOrphanedActivities(prev => prev.filter(act => act.id !== a.id));
                           } catch (err) { alert('Something went wrong.'); }

@@ -230,7 +230,7 @@ export default function SettingsPage() {
             {/* Avatar */}
             <div className="group relative shrink-0 self-start">
               <div className="w-20 h-20 rounded-full bg-navy text-white flex items-center justify-center font-heading font-bold text-2xl cursor-pointer">
-                MH
+                {name ? name.split(' ').filter(Boolean).map((w: string) => w[0]).slice(0,2).join('').toUpperCase() : '?'}
               </div>
               <div className="absolute inset-0 w-20 h-20 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                 <span className="text-white text-xs font-medium">Edit</span>

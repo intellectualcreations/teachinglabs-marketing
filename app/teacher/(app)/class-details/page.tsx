@@ -369,9 +369,11 @@ function ClassDetailsContent() {
   // Map assignments to activity format
   const rawActivities = useMemo(() => {
     if (!classData) return [];
-    return classData.assignments.map((a) => ({
+    return classData.assignments.map((a: any) => ({
+      id: a.id,
       name: a.title,
-      defaultOpen: true,
+      defaultOpen: a.is_open ?? true,
+      due_date: a.due_date ?? null,
       progress: 0,
       total: classData.studentCount,
       progressLabel: 'started',
@@ -412,6 +414,7 @@ function ClassDetailsContent() {
     rawActivities.map((a) => ({
       ...a,
       isOpen: activityStates[a.name] ?? a.defaultOpen,
+      due_date: (a as any).due_date ?? null,
     })),
     [rawActivities, activityStates]
   );
@@ -422,8 +425,27 @@ function ClassDetailsContent() {
     return activities.filter((a) => !a.isOpen);
   }, [activities, activityFilter]);
 
-  const toggleActivity = (name: string) => {
-    setActivityStates((prev) => ({ ...prev, [name]: !prev[name] }));
+  const toggleActivity = async (name: string) => {
+    const activity = rawActivities.find(a => a.name === name);
+    const currentState = activityStates[name] ?? activity?.defaultOpen ?? true;
+    const newState = !currentState;
+    setActivityStates((prev) => ({ ...prev, [name]: newState }));
+    // Persist to database
+    if (activity && classData) {
+      try {
+        await fetch('/api/teacher/class-activities', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            classId: classData.class.id,
+            activityId: (activity as any).id,
+            is_open: newState,
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to persist activity state:', err);
+      }
+    }
   };
 
   const togglePeerChat = (name: string) => {
@@ -603,6 +625,32 @@ function ClassDetailsContent() {
                         <ChatText size={13} className="text-navy" /> {activity.chats} chats
                       </span>
 
+                      {/* Due Date Picker */}
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-[11px] text-text-secondary whitespace-nowrap">Due:</label>
+                        <input
+                          type="date"
+                          defaultValue={(activity as any).due_date ? (activity as any).due_date.slice(0, 10) : ''}
+                          onChange={async (e) => {
+                            const due_date = e.target.value || null;
+                            if (classData) {
+                              await fetch('/api/teacher/class-activities', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  classId: classData.class.id,
+                                  activityId: (activity as any).id,
+                                  due_date,
+                                }),
+                              });
+                            }
+                          }}
+                          className="text-[11px] bg-transparent border border-border rounded-md px-2 py-1
+                            text-text-secondary focus:outline-none focus:border-teal cursor-pointer
+                            [color-scheme:dark]"
+                        />
+                      </div>
+
                       {/* Feature 3: Peer Chat Toggle */}
                       <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors ${peerChatOn ? 'bg-teal/10' : ''}`}>
                         <span className="text-[11px] text-text-secondary whitespace-nowrap">💬 Peer Chat</span>
@@ -719,12 +767,6 @@ function ClassDetailsContent() {
       {/* ─── 6. Quick Actions ─── */}
       <div className="flex flex-wrap gap-3">
         <button
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-teal text-navy rounded-xl font-heading font-bold text-sm hover:bg-teal/90 transition-colors"
-        >
-          <Plus size={16} weight="bold" /> Add Activity
-        </button>
-        <button
           onClick={() => setShowMessageModal(true)}
           className="inline-flex items-center gap-2 px-6 py-3 border-[1.5px] border-border rounded-xl font-heading font-bold text-sm text-text-secondary hover:border-navy hover:text-navy transition-colors"
         >
@@ -743,7 +785,12 @@ function ClassDetailsContent() {
         isOpen={showAddModal}
         onClose={closeAddModal}
         className={cls.name}
+        classId={cls.id}
         classIndex={0}
+        onActivityAdded={() => {
+          // Refresh class data
+          window.location.reload();
+        }}
       />
     </div>
   );

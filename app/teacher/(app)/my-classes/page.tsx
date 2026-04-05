@@ -44,15 +44,14 @@ function AddActivityModal({
       const supabase = createClient();
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (!user) { setLoadingLib(false); return; }
-        supabase
-          .from('assignments')
-          .select('*')
-          .eq('teacher_id', user.id)
-          .order('created_at', { ascending: false })
-          .then(({ data }) => {
-            setAssignments((data ?? []) as Assignment[]);
+        // Use server API to bypass RLS
+        fetch(`/api/teacher/activities?teacherId=${user.id}`)
+          .then(r => r.json())
+          .then(d => {
+            setAssignments((d.activities ?? []) as Assignment[]);
             setLoadingLib(false);
-          });
+          })
+          .catch(() => setLoadingLib(false));
       });
     }
   }, [view]);
@@ -140,9 +139,23 @@ function AddActivityModal({
                       )}
                     </div>
                     <button
-                      onClick={() => {
-                        setSuccessMsg(`Added to ${clsName}!`);
-                        setTimeout(() => onClose(), 1500);
+                      onClick={async () => {
+                        try {
+                          // Fetch current class assignments for this activity
+                          const getRes = await fetch(`/api/teacher/activities/${a.id}/classes`);
+                          const { classIds: existing } = getRes.ok ? await getRes.json() : { classIds: [] };
+                          // Add this class if not already assigned
+                          const updated = existing.includes(classId) ? existing : [...existing, classId];
+                          await fetch(`/api/teacher/activities/${a.id}/classes`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ classIds: updated }),
+                          });
+                          setSuccessMsg(`Added to ${clsName}!`);
+                          setTimeout(() => onClose(), 1500);
+                        } catch (err) {
+                          console.error('Failed to add activity to class:', err);
+                        }
                       }}
                       className="flex-shrink-0 ml-3 px-3.5 py-1.5 rounded-lg bg-teal text-navy text-xs
                         font-semibold hover:bg-teal/90 transition-colors"

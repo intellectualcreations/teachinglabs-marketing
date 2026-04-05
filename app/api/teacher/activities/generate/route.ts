@@ -7,6 +7,8 @@ interface GenerateRequest {
 }
 
 interface GeneratedActivity {
+  title: string;
+  description: string;
   objective: string;
   learning_goal: string;
   essential_question: string;
@@ -49,6 +51,8 @@ export async function POST(request: NextRequest) {
 
 Return ONLY valid JSON (no markdown, no code fences) in this exact format:
 {
+  "title": "A short, catchy activity title (3-7 words, teacher-friendly, no quotes)",
+  "description": "A 1-2 sentence summary of the activity for the library card view",
   "objective": "What students will accomplish (measurable, specific, 1-2 sentences)",
   "learning_goal": "The big idea students will understand (1-2 sentences)",
   "essential_question": "A driving question that frames the lesson (1 question)",
@@ -70,7 +74,7 @@ Make the lesson engaging, practical, and appropriate for the grade level. All fi
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20250414',
+        model: 'claude-3-haiku-20240307',
         max_tokens: 2048,
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -93,10 +97,10 @@ Make the lesson engaging, practical, and appropriate for the grade level. All fi
     const activity = JSON.parse(jsonStr) as GeneratedActivity;
 
     return NextResponse.json({ activity });
-  } catch (err) {
-    console.error('Activity generation error:', err);
+  } catch (err: any) {
+    console.error('Activity generation error:', err?.message || err);
     return NextResponse.json(
-      { error: 'Failed to generate lesson plan' },
+      { error: 'Failed to generate lesson plan', detail: err?.message || String(err) },
       { status: 500 }
     );
   }

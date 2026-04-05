@@ -179,15 +179,10 @@ export default function ClassChatPage() {
           if (cls) setClassName(cls.name);
         }
 
-        // Get chat messages for this class
-        const { data: messages } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .eq('class_id', classId)
-          .or(`sender_id.eq.${user.id},message_type.eq.ai`)
-          .order('created_at', { ascending: true });
-
-        const chatMessages = (messages ?? []) as ChatMessage[];
+        // Get chat messages via admin API (bypasses RLS)
+        const chatRes = await fetch(`/api/student/chat?classId=${classId}&userId=${user.id}`);
+        const chatJson = chatRes.ok ? await chatRes.json() : { messages: [] };
+        const chatMessages = (chatJson.messages ?? []) as ChatMessage[];
         const grouped = groupIntoSessions(chatMessages);
         setSessions(grouped);
       } finally {

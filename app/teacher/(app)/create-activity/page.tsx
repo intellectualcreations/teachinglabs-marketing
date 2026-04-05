@@ -322,14 +322,9 @@ function CreateActivityInner() {
     setIsEditMode(true);
     (async () => {
       try {
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        const { data: raw } = await supabase
-          .from('assignments')
-          .select('*')
-          .eq('id', editId)
-          .single();
-        const data = raw as Record<string, string> | null;
+        const res = await fetch(`/api/teacher/activities/${editId}`);
+        if (!res.ok) { console.error('Failed to load activity:', res.statusText); return; }
+        const { activity: data } = await res.json();
         if (data) {
           setActivityName(data.title || '');
           setInstructions(data.description || '');
@@ -366,8 +361,9 @@ function CreateActivityInner() {
       });
       if (res.ok) {
         const { activity } = await res.json();
-        // Fill all fields
-        if (!activityName.trim()) setActivityName(generatingLessonIdea.trim());
+        // Fill all fields with AI-generated content
+        if (activity.title) setActivityName(activity.title);
+        if (activity.description) setInstructions(activity.description);
         if (activity.objective) setObjective(activity.objective);
         if (activity.learning_goal) setLearningGoal(activity.learning_goal);
         if (activity.essential_question) setEssentialQuestion(activity.essential_question);
@@ -421,19 +417,21 @@ function CreateActivityInner() {
       };
 
       if (isEditMode && editId) {
-        // Update existing activity
-        payload.updated_at = new Date().toISOString();
+        // Update existing activity via API (bypasses RLS)
         if (selectedCourseId) payload.course_id = selectedCourseId;
         if (selectedModuleId) payload.module_id = selectedModuleId;
         delete payload.teacher_id; // don't overwrite owner
-        const { error } = await (supabase.from('assignments') as any)
-          .update(payload)
-          .eq('id', editId);
-        if (!error) {
+        const res = await fetch(`/api/teacher/activities/${editId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
           setSuccessTitle(activityName.trim());
           setSuccessVisible(true);
         } else {
-          alert(`Failed to update activity: ${error.message}`);
+          const err = await res.json().catch(() => ({}));
+          alert(`Failed to update activity: ${err.error || res.statusText}`);
         }
       } else {
         // Create new
@@ -513,7 +511,7 @@ function CreateActivityInner() {
         </p>
       </div>
 
-      {/* ── AI Lesson Generator ───────────────────────────────────────────── */}
+      {/* ── AI Activity Generator ──────────────────────────────────────────── */}
       <div className="bg-gradient-to-r from-indigo-500/10 to-teal/10 border border-indigo-400/30 rounded-[14px] p-5 mb-5">
         <button
           onClick={() => setShowGenerator(!showGenerator)}
@@ -525,7 +523,7 @@ function CreateActivityInner() {
             </div>
             <div>
               <div className="font-heading font-bold text-[15px] text-text-primary flex items-center gap-2">
-                ✨ AI Lesson Generator
+                ✨ AI Activity Generator
                 <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-semibold uppercase tracking-wider">Premium</span>
               </div>
               <p className="text-[12px] text-text-secondary mt-0.5">Describe your lesson idea and AI fills in all the details</p>
@@ -579,7 +577,7 @@ function CreateActivityInner() {
                 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Sparkle size={16} weight="fill" />
-              {generating ? 'Generating Lesson Plan...' : 'Generate with AI'}
+              {generating ? 'Generating Activity...' : 'Generate with AI'}
             </button>
           </div>
         )}
@@ -1194,7 +1192,7 @@ function CreateActivityInner() {
       {/* ── Success Overlay ────────────────────────────────────────────────────── */}
       {successVisible && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-          <div className="bg-card-bg rounded-2xl p-10 text-center max-w-md w-[90%] shadow-2xl">
+          <div className="bg-[#1a1f2e] border border-border rounded-2xl p-10 text-center max-w-md w-[90%] shadow-2xl">
             <CheckCircle size={48} weight="fill" className="text-teal mx-auto mb-4" />
             <div className="font-heading font-bold text-xl text-text-primary mb-2">
               Activity Saved to Library!

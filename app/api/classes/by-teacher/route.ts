@@ -44,14 +44,14 @@ export async function GET(request: NextRequest) {
     enrollCounts.set(e.class_id, (enrollCounts.get(e.class_id) ?? 0) + 1);
   });
 
-  // Fetch assignment counts
-  const { data: assignments } = await supabase
-    .from('assignments')
+  // Fetch assignment counts from junction table
+  const { data: classActivities } = await supabase
+    .from('class_activities')
     .select('class_id')
     .in('class_id', classIds);
 
   const assignCounts = new Map<string, number>();
-  (assignments ?? []).forEach((a: { class_id: string }) => {
+  (classActivities ?? []).forEach((a: { class_id: string }) => {
     assignCounts.set(a.class_id, (assignCounts.get(a.class_id) ?? 0) + 1);
   });
 

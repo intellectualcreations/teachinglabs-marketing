@@ -421,9 +421,7 @@ export default function StudentDashboardPage() {
                 <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
                   <div className="h-full bg-teal rounded-full transition-all duration-500" style={{ width: `${cls.progress}%` }} />
                 </div>
-                <div className="mt-3 text-xs font-heading font-bold text-teal group-hover:text-navy transition-colors">
-                  Continue →
-                </div>
+
               </Link>
             );
           })}

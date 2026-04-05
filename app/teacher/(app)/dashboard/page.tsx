@@ -32,6 +32,10 @@ export default function DashboardPage() {
   const [students, setStudents] = useState<EnrolledStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalInteractions, setTotalInteractions] = useState(0);
+  const [chatSessions, setChatSessions] = useState(0);
+  const [activityByHour, setActivityByHour] = useState<number[]>(Array(8).fill(0));
+  const [activeThisWeek, setActiveThisWeek] = useState(0);
 
   const [classFilter, setClassFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -58,6 +62,12 @@ export default function DashboardPage() {
         setProfile(data.profile as Profile | null);
         const teacherClasses = (data.classes ?? []) as Class[];
         setClasses(teacherClasses);
+
+        // Wire up activity stats
+        if (data.totalInteractions !== undefined) setTotalInteractions(data.totalInteractions);
+        if (data.chatSessions !== undefined) setChatSessions(data.chatSessions);
+        if (data.activityByHour) setActivityByHour(data.activityByHour);
+        if (data.activeThisWeek !== undefined) setActiveThisWeek(data.activeThisWeek);
 
         const enrollments = (data.enrollments ?? []) as Array<{ student_id: string; class_id: string; enrolled_at: string; status: string }>;
         const studentProfiles = (data.students ?? []) as Profile[];
@@ -174,7 +184,7 @@ export default function DashboardPage() {
           </h2>
           <div className="grid grid-cols-2 gap-3">
             <StatBox value={students.length} label="Students Enrolled" />
-            <StatBox value={students.length} label="Active This Week">
+            <StatBox value={activeThisWeek || students.length} label="Active This Week">
               <span className="text-xs font-semibold text-success">
                 {students.length > 0 ? '100%' : '0%'}
               </span>
@@ -191,12 +201,12 @@ export default function DashboardPage() {
             Activity
           </h2>
           <div className="grid grid-cols-2 gap-3 mb-[18px]">
-            <StatBox value={0} label="Total Interactions" />
-            <StatBox value={0} label="Chat Sessions" />
+            <StatBox value={totalInteractions} label="Total Interactions" />
+            <StatBox value={chatSessions} label="Chat Sessions" />
           </div>
           <div className="py-1">
             <div className="text-xs text-text-secondary mb-[10px]">Activity by hour (today)</div>
-            <BarChart labels={ACTIVITY_HOURS} values={[0, 0, 0, 0, 0, 0, 0, 0]} />
+            <BarChart labels={ACTIVITY_HOURS} values={activityByHour} />
           </div>
         </div>
       </div>

@@ -4,129 +4,112 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 /**
- * Auth callback page — handles ALL Supabase auth redirects:
- *
- * 1. Hash fragment: #access_token=...  (implicit flow)
- * 2. Query param:   ?code=...          (PKCE flow)
- * 3. Query param:   ?token_hash=...    (custom email template)
- * 4. Error:         ?error=... or #error=...
- *
- * After authentication, routes to onboarding or dashboard.
+ * Auth callback page — handles Supabase auth redirects:
+ * 1. PKCE code exchange (?code=...)
+ * 2. OTP/magic link token (?token_hash=...&type=...)
+ * 3. OAuth implicit (#access_token=...)
+ * 4. Error handling
  */
 export default function AuthCallbackPage() {
   const [status, setStatus] = useState('Signing you in...');
 
   useEffect(() => {
-    async function handleCallback() {
-      const supabase = createClient();
-      const hash = window.location.hash;
-      const params = new URLSearchParams(window.location.search);
+    handleCallback();
+  }, []);
 
-      // Log for debugging
-      console.log('Auth callback - hash:', hash ? 'present' : 'none');
-      console.log('Auth callback - search params:', window.location.search);
+  async function handleCallback() {
+    const supabase = createClient();
+    const params = new URLSearchParams(window.location.search);
+    const hash = window.location.hash;
 
-      // Check for error in hash or query
-      if (hash?.includes('error') || params.get('error')) {
-        const hashParams = hash ? new URLSearchParams(hash.substring(1)) : null;
-        const errorDesc = params.get('error_description')
-          || hashParams?.get('error_description')
-          || 'Unknown error';
-        console.error('Auth error:', errorDesc);
-        setStatus(`Sign-in issue: ${errorDesc}. Redirecting to login...`);
-        setTimeout(() => { window.location.href = '/login'; }, 3000);
+    // ---- Error check ----
+    const errorDesc =
+      params.get('error_description') ||
+      (hash ? new URLSearchParams(hash.substring(1)).get('error_description') : null);
+    if (errorDesc) {
+      console.error('Auth error:', errorDesc);
+      setStatus(`Sign-in issue: ${errorDesc}`);
+      setTimeout(() => (window.location.href = '/login'), 3000);
+      return;
+    }
+
+    // ---- Method 1: PKCE code exchange ----
+    const code = params.get('code');
+    if (code) {
+      console.log('Auth callback: exchanging PKCE code');
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        console.error('Code exchange failed:', error.message);
+        setStatus('Sign-in failed. Redirecting...');
+        setTimeout(() => (window.location.href = '/login'), 2500);
         return;
       }
+      if (data?.session?.user) {
+        setStatus('Setting up your account...');
+        await redirectUser(supabase, data.session.user);
+        return;
+      }
+    }
 
-      // Method 1: token_hash from custom email template
-      const tokenHash = params.get('token_hash');
-      const type = params.get('type');
-      if (tokenHash && type) {
-        console.log('Auth callback - verifying token_hash, type:', type);
-        try {
-          const otpType = type === 'signup' ? 'email' : 'magiclink';
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: otpType,
-          });
-          if (error) {
-            console.error('Token verification failed:', error.message);
-            // Don't give up — Supabase detectSessionInUrl might have handled it
-          }
-        } catch (err) {
-          console.error('verifyOtp exception:', err);
-          // Continue — session might still be set
-        }
-
-        // Check for session after verify attempt
-        await new Promise(r => setTimeout(r, 500));
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setStatus('Setting up your account...');
-          await redirectUser(supabase, session.user);
+    // ---- Method 2: OTP / magic link token_hash ----
+    const tokenHash = params.get('token_hash');
+    const type = params.get('type');
+    if (tokenHash && type) {
+      console.log('Auth callback: verifying token_hash, type:', type);
+      const otpType = type === 'signup' ? 'email' : 'magiclink';
+      const { data, error } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: otpType,
+      });
+      if (error) {
+        console.error('verifyOtp failed:', error.message);
+        // Try as the other type
+        const altType = otpType === 'email' ? 'magiclink' : 'email';
+        const { data: d2, error: e2 } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: altType,
+        });
+        if (e2 || !d2?.session?.user) {
+          setStatus('Link expired or invalid. Redirecting...');
+          setTimeout(() => (window.location.href = '/login'), 2500);
           return;
         }
+        setStatus('Setting up your account...');
+        await redirectUser(supabase, d2.session.user);
+        return;
       }
-
-      // Method 2: code from PKCE flow
-      const code = params.get('code');
-      if (code) {
-        console.log('Auth callback - exchanging code for session');
-        try {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            console.error('Code exchange failed:', error.message);
-          }
-          if (data?.session?.user) {
-            setStatus('Setting up your account...');
-            await redirectUser(supabase, data.session.user);
-            return;
-          }
-        } catch (err) {
-          console.error('Code exchange exception:', err);
-        }
+      if (data?.session?.user) {
+        setStatus('Setting up your account...');
+        await redirectUser(supabase, data.session.user);
+        return;
       }
+    }
 
-      // Method 3: hash fragment with access_token (implicit flow)
-      if (hash?.includes('access_token')) {
-        console.log('Auth callback - hash has access_token, waiting for Supabase to process');
-        await new Promise(r => setTimeout(r, 1500));
-      }
-
-      // Check if we have a session now (covers all flows + detectSessionInUrl)
+    // ---- Method 3: implicit flow (#access_token) ----
+    if (hash?.includes('access_token')) {
+      console.log('Auth callback: implicit flow');
+      // Give Supabase a moment to process the hash
+      await new Promise((r) => setTimeout(r, 800));
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setStatus('Setting up your account...');
         await redirectUser(supabase, session.user);
         return;
       }
-
-      // Last resort: listen for auth state change
-      console.log('Auth callback - waiting for auth state change...');
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (event === 'SIGNED_IN' && session?.user) {
-            subscription.unsubscribe();
-            setStatus('Setting up your account...');
-            await redirectUser(supabase, session.user);
-          }
-        }
-      );
-
-      // Timeout after 15 seconds
-      setTimeout(() => {
-        subscription.unsubscribe();
-        setStatus('Taking longer than expected. Redirecting to login...');
-        setTimeout(() => { window.location.href = '/login'; }, 2500);
-      }, 15000);
     }
 
-    handleCallback().catch(err => {
-      console.error('Auth callback unhandled error:', err);
-      setStatus('Something went wrong. Redirecting to login...');
-      setTimeout(() => { window.location.href = '/login'; }, 2500);
-    });
-  }, []);
+    // ---- Fallback: check for existing session ----
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      setStatus('Setting up your account...');
+      await redirectUser(supabase, session.user);
+      return;
+    }
+
+    // Nothing worked
+    setStatus('No session found. Redirecting to login...');
+    setTimeout(() => (window.location.href = '/login'), 2500);
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-warm-white dark:bg-[#0B1426]">
@@ -143,7 +126,7 @@ async function redirectUser(
   user: { id: string; email?: string; user_metadata?: Record<string, unknown> }
 ) {
   try {
-    // Use admin API route to get role (bypasses RLS)
+    // Get role from admin API (bypasses RLS)
     const res = await fetch(`/api/auth/user-role?userId=${user.id}`);
     const { role: dbRole, displayName: dbName, hasAssessment } = res.ok
       ? await res.json()
@@ -154,7 +137,7 @@ async function redirectUser(
     const pendingRole = localStorage.getItem('pending_role');
     const pendingSchool = localStorage.getItem('pending_school_id');
 
-    // If we have pending signup data, update the profile
+    // Update profile if there's pending signup data
     if (pendingRole || pendingSchool || fullName) {
       const updates: Record<string, string> = {};
       if (pendingRole && dbRole !== pendingRole) updates.role = pendingRole;
@@ -169,14 +152,30 @@ async function redirectUser(
     }
 
     const role: string = dbRole ?? pendingRole ?? 'student';
+    const isNewSignup = !!pendingRole || !!localStorage.getItem('pending_school_id');
 
-    // Check if this is a new signup (came from signup page)
-    const isNewSignup = pendingRole || localStorage.getItem('pending_school_id');
+    // Enroll student in class if pending
+    const pendingClassId = localStorage.getItem('pending_class_id');
+    if (pendingClassId && role === 'student') {
+      try {
+        await fetch('/api/classes/enroll', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId: user.id, classId: pendingClassId }),
+        });
+      } catch (e) {
+        console.error('Auto-enroll failed:', e);
+      }
+    }
 
-    // Clean up localStorage signup flags
+    // Clean up localStorage
     localStorage.removeItem('pending_role');
     localStorage.removeItem('pending_school_id');
+    localStorage.removeItem('pending_class_id');
+    localStorage.removeItem('pending_birth_year');
+    localStorage.removeItem('pending_student_name');
 
+    // Route new signups to onboarding
     if (isNewSignup) {
       if (role === 'student') {
         window.location.href = '/student/onboarding';
@@ -188,20 +187,19 @@ async function redirectUser(
       }
     }
 
-    // For returning students: check baseline assessment
+    // Returning students without assessment go to onboarding
     if (role === 'student' && !hasAssessment) {
       window.location.href = '/student/onboarding';
       return;
     }
 
-    // Route to role-appropriate dashboard
+    // Route to dashboard
     const dashboards: Record<string, string> = {
       admin: '/admin/dashboard',
       teacher: '/teacher/dashboard',
       student: '/student/dashboard',
       parent: '/parent/dashboard',
     };
-
     window.location.href = dashboards[role] || '/student/dashboard';
   } catch (err) {
     console.error('redirectUser error:', err);

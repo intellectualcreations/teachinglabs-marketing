@@ -49,19 +49,65 @@ export async function GET(request: NextRequest) {
 
     const messages = messageData ?? [];
 
-    if (messages.length === 0) {
+    // Also fetch activity chats (Spark conversations)
+    // Get activity IDs assigned to teacher's classes
+    const { data: classActivities } = await (supabase as any)
+      .from('class_activities')
+      .select('activity_id, class_id')
+      .in('class_id', classIds);
+
+    let activityChats: any[] = [];
+    const activityClassMap = new Map<string, string>();
+    if (classActivities && classActivities.length > 0) {
+      const activityIds = [...new Set(classActivities.map((ca: any) => ca.activity_id))];
+      classActivities.forEach((ca: any) => activityClassMap.set(ca.activity_id, ca.class_id));
+
+      const { data: actChatData } = await (supabase as any)
+        .from('activity_chats')
+        .select('*')
+        .in('activity_id', activityIds)
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      // Get activity names for context
+      const { data: activityNames } = await (supabase as any)
+        .from('activities')
+        .select('id, title')
+        .in('id', activityIds);
+      const nameMap = new Map<string, string>();
+      (activityNames ?? []).forEach((a: any) => nameMap.set(a.id, a.title));
+
+      // Normalize activity chats to match chat_messages shape
+      activityChats = (actChatData ?? []).map((ac: any) => ({
+        id: ac.id,
+        sender_id: ac.role === 'user' ? ac.student_id : 'spark-ai',
+        class_id: activityClassMap.get(ac.activity_id) || classIds[0],
+        content: ac.content,
+        message_type: 'activity_chat',
+        created_at: ac.created_at,
+        activity_id: ac.activity_id,
+        activity_name: nameMap.get(ac.activity_id) || 'Activity',
+        student_id: ac.student_id,
+        role: ac.role,
+      }));
+    }
+
+    const allMessages = [...messages, ...activityChats];
+
+    if (allMessages.length === 0) {
       return NextResponse.json({ classes: teacherClasses, chatMessages: [], studentProfiles: [] });
     }
 
-    // Get unique sender IDs (exclude the teacher)
+    // Get unique sender IDs (exclude the teacher and spark-ai)
     const senderIds = [...new Set(
-      messages
-        .filter((m: { sender_id: string }) => m.sender_id !== teacherId)
-        .map((m: { sender_id: string }) => m.sender_id)
+      allMessages
+        .filter((m: any) => m.sender_id !== teacherId && m.sender_id !== 'spark-ai')
+        .map((m: any) => m.sender_id || m.student_id)
+        .filter(Boolean)
     )];
 
     if (senderIds.length === 0) {
-      return NextResponse.json({ classes: teacherClasses, chatMessages: messages, studentProfiles: [] });
+      return NextResponse.json({ classes: teacherClasses, chatMessages: allMessages, studentProfiles: [] });
     }
 
     // Fetch sender profiles
@@ -72,7 +118,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       classes: teacherClasses,
-      chatMessages: messages,
+      chatMessages: allMessages,
       studentProfiles: profileData ?? [],
     });
   } catch (err) {

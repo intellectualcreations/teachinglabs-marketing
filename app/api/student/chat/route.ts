@@ -178,6 +178,29 @@ CORE RULES (NON-NEGOTIABLE):
    - Never reference other students or share any student information`;
 }
 
+/**
+ * GET /api/student/chat?classId=<uuid>&userId=<uuid>
+ * Returns chat messages for a student in a class (bypasses RLS)
+ */
+export async function GET(request: NextRequest) {
+  const classId = request.nextUrl.searchParams.get('classId');
+  const userId = request.nextUrl.searchParams.get('userId');
+  if (!classId || !userId) {
+    return NextResponse.json({ error: 'classId and userId required' }, { status: 400 });
+  }
+  const admin = createAdminClient();
+  const { data: messages, error } = await (admin as any)
+    .from('chat_messages')
+    .select('*')
+    .eq('class_id', classId)
+    .or(`sender_id.eq.${userId},message_type.eq.ai`)
+    .order('created_at', { ascending: true });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ messages: messages ?? [] });
+}
+
 export async function POST(request: NextRequest) {
   const admin = createAdminClient();
   let userId: string | null = null;

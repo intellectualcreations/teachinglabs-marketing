@@ -192,6 +192,12 @@ export default function TeacherSignupPage() {
   const [otherSchoolType, setOtherSchoolType] = useState('');
   const [otherSchoolName, setOtherSchoolName] = useState('');
 
+  // Invite code
+  const [inviteCode, setInviteCode] = useState('');
+  const [inviteValid, setInviteValid] = useState<boolean | null>(null);
+  const [inviteChecking, setInviteChecking] = useState(false);
+  const [inviteError, setInviteError] = useState('');
+
   // Screen 2: email + auth
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -274,6 +280,28 @@ export default function TeacherSignupPage() {
     if (!email.trim()) {
       setError('Please enter your email address.');
       return;
+    }
+
+    // Validate invite code first
+    if (!inviteValid) {
+      if (!inviteCode.trim()) {
+        setInviteError('An invite code is required to join Teaching Labs.');
+        return;
+      }
+      setInviteChecking(true);
+      const res = await fetch('/api/invite/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: inviteCode.trim() }),
+      });
+      const data = await res.json();
+      setInviteChecking(false);
+      if (!data.valid) {
+        setInviteError(data.message || 'Invalid invite code');
+        return;
+      }
+      setInviteValid(true);
+      setInviteError('');
     }
 
     setSubmitting(true);
@@ -703,6 +731,47 @@ export default function TeacherSignupPage() {
               <div className="flex-1 h-px bg-border" />
               <span className="text-xs text-text-secondary font-medium">or continue with email</span>
               <div className="flex-1 h-px bg-border" />
+            </div>
+
+            {/* Invite code field */}
+            <div className="mb-5">
+              <label className="block font-heading text-sm font-medium text-text-primary mb-1.5">
+                Invite Code
+                <span className="ml-1.5 text-xs font-normal text-text-muted">(required)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={(e) => { setInviteCode(e.target.value.toUpperCase()); setInviteError(''); setInviteValid(null); }}
+                  placeholder="Enter your invite code"
+                  className={`flex-1 px-4 py-3 rounded-xl border bg-surface dark:bg-card-bg text-text-primary placeholder:text-text-muted text-sm outline-none focus:ring-2 transition-all uppercase tracking-wider ${
+                    inviteValid === true ? 'border-green-500 focus:ring-green-500/30' :
+                    inviteError ? 'border-danger focus:ring-danger/30' :
+                    'border-border focus:ring-teal/30 focus:border-teal'
+                  }`}
+                  maxLength={20}
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!inviteCode.trim()) { setInviteError('Enter a code first'); return; }
+                    setInviteChecking(true); setInviteError(''); setInviteValid(null);
+                    const res = await fetch('/api/invite/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: inviteCode.trim() }) });
+                    const data = await res.json();
+                    setInviteChecking(false);
+                    if (data.valid) { setInviteValid(true); setInviteError(''); }
+                    else { setInviteValid(false); setInviteError(data.message || 'Invalid code'); }
+                  }}
+                  disabled={inviteChecking || inviteValid === true}
+                  className="px-4 py-3 rounded-xl bg-teal text-navy font-heading font-semibold text-sm disabled:opacity-50 transition-colors hover:bg-teal/90"
+                >
+                  {inviteChecking ? '...' : inviteValid === true ? '✓' : 'Check'}
+                </button>
+              </div>
+              {inviteError && <p className="text-xs text-danger mt-1.5">{inviteError}</p>}
+              {inviteValid === true && <p className="text-xs text-green-500 mt-1.5">✓ Valid invite code</p>}
+              <p className="text-xs text-text-muted mt-1.5">Don&apos;t have an invite code? <a href="/waitlist" className="text-teal hover:underline">Join the waitlist</a>.</p>
             </div>
 
             <div className="mb-4">

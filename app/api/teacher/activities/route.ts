@@ -1,6 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
+// GET — list teacher's own activities (for Add Activity modal)
+export async function GET(request: NextRequest) {
+  try {
+    const teacherId = request.nextUrl.searchParams.get('teacherId');
+    if (!teacherId) {
+      return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
+    }
+    const admin = createAdminClient();
+    const { data, error } = await (admin.from('assignments') as any)
+      .select('id, title, description, subject, grade_level, activity_type, estimated_minutes')
+      .eq('teacher_id', teacherId)
+      .eq('is_tl_content', false)
+      .order('created_at', { ascending: false });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ activities: data ?? [] });
+  } catch (err) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// DELETE — remove an activity by id (uses service role to bypass RLS)
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    const admin = createAdminClient();
+
+    // Delete related enrollments first to avoid FK issues
+    await (admin.from('enrollments') as any).delete().eq('assignment_id', id);
+
+    const { error } = await (admin.from('assignments') as any).delete().eq('id', id);
+    if (error) {
+      console.error('Delete activity error:', error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('Delete activity API error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 // POST — create a standalone (orphaned) activity
 export async function POST(request: NextRequest) {
   try {
