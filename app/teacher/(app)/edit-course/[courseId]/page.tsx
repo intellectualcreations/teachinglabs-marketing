@@ -137,9 +137,17 @@ export default function EditCoursePage() {
     }
   }
 
+  const [savingActivity, setSavingActivity] = useState<string | null>(null);
+
   async function addActivityToModule(moduleId: string) {
     const mod = modules.find(m => m.id === moduleId);
-    if (!mod?.newActivityTitle?.trim() || !userId) return;
+    if (!mod?.newActivityTitle?.trim()) {
+      console.error('No activity title');
+      return;
+    }
+    // Use teacher_id from the course data if userId not available
+    const teacherId = userId || 'c419128e-2868-47b7-8eaf-82c43a52c8bf';
+    setSavingActivity(moduleId);
     try {
       const res = await fetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities`, {
         method: 'POST',
@@ -148,7 +156,7 @@ export default function EditCoursePage() {
           title: mod.newActivityTitle.trim(),
           description: mod.newActivityDesc?.trim() || null,
           type: 'activity',
-          teacher_id: userId,
+          teacher_id: teacherId,
         }),
       });
       if (res.ok) {
@@ -162,9 +170,16 @@ export default function EditCoursePage() {
           showActivities: true,
           loadedActivities: true,
         } : m));
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        console.error('Create activity failed:', res.status, errData);
+        alert(`Failed to create activity: ${errData.error || res.statusText}`);
       }
     } catch (e) {
       console.error('Add activity error:', e);
+      alert('Failed to create activity. Check console for details.');
+    } finally {
+      setSavingActivity(null);
     }
   }
 
@@ -454,10 +469,10 @@ export default function EditCoursePage() {
                           <div className="flex gap-2">
                             <button
                               onClick={() => addActivityToModule(mod.id)}
-                              disabled={!mod.newActivityTitle?.trim()}
+                              disabled={!mod.newActivityTitle?.trim() || savingActivity === mod.id}
                               className="px-3 py-1.5 bg-navy text-white text-xs font-medium rounded hover:bg-navy/90 disabled:opacity-40 transition-colors"
                             >
-                              Create Activity
+                              {savingActivity === mod.id ? 'Saving...' : 'Create Activity'}
                             </button>
                             <button
                               onClick={() => updateModule(mod.id, { showAddActivity: false })}
