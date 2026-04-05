@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   PlusCircle,
@@ -104,6 +105,10 @@ function uid(): string {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CreateActivityPage() {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+  const [isEditMode, setIsEditMode] = useState(false);
+
   // Files
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -303,6 +308,40 @@ export default function CreateActivityPage() {
   const [generatorGrade, setGeneratorGrade] = useState('');
   const [generating, setGenerating] = useState(false);
 
+  // Load existing activity for editing
+  useEffect(() => {
+    if (!editId) return;
+    setIsEditMode(true);
+    (async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('assignments')
+          .select('*')
+          .eq('id', editId)
+          .single();
+        if (data) {
+          setActivityName(data.title || '');
+          setInstructions(data.description || '');
+          if (data.objective) setObjective(data.objective);
+          if (data.learning_goal) setLearningGoal(data.learning_goal);
+          if (data.essential_question) setEssentialQuestion(data.essential_question);
+          if (data.materials) setActivityMaterials(data.materials);
+          if (data.vocabulary) setVocabulary(data.vocabulary);
+          if (data.directions) setActivityDirections(data.directions);
+          if (data.hook) setActivityHook(data.hook);
+          if (data.assessment) setActivityAssessment(data.assessment);
+          if (data.differentiation) setDifferentiation(data.differentiation);
+          if (data.course_id) setSelectedCourseId(data.course_id);
+          if (data.module_id) setSelectedModuleId(data.module_id);
+        }
+      } catch (err) {
+        console.error('Failed to load activity:', err);
+      }
+    })();
+  }, [editId]);
+
   async function generateWithAI() {
     if (!generatingLessonIdea.trim()) return;
     setGenerating(true);
@@ -372,26 +411,44 @@ export default function CreateActivityPage() {
         teacher_id: teacherId,
       };
 
-      // If course + module selected, attach; otherwise create orphaned
-      let url = '/api/teacher/activities';
-      if (selectedCourseId && selectedModuleId) {
-        url = `/api/teacher/courses/${selectedCourseId}/modules/${selectedModuleId}/activities`;
-      } else if (selectedCourseId) {
-        payload.course_id = selectedCourseId;
-      }
-
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        setSuccessTitle(activityName.trim());
-        setSuccessVisible(true);
+      if (isEditMode && editId) {
+        // Update existing activity
+        payload.updated_at = new Date().toISOString();
+        if (selectedCourseId) payload.course_id = selectedCourseId;
+        if (selectedModuleId) payload.module_id = selectedModuleId;
+        delete payload.teacher_id; // don't overwrite owner
+        const { error } = await supabase
+          .from('assignments')
+          .update(payload)
+          .eq('id', editId);
+        if (!error) {
+          setSuccessTitle(activityName.trim());
+          setSuccessVisible(true);
+        } else {
+          alert(`Failed to update activity: ${error.message}`);
+        }
       } else {
-        const err = await res.json().catch(() => ({}));
-        alert(`Failed to save activity: ${err.error || res.statusText}`);
+        // Create new
+        let url = '/api/teacher/activities';
+        if (selectedCourseId && selectedModuleId) {
+          url = `/api/teacher/courses/${selectedCourseId}/modules/${selectedModuleId}/activities`;
+        } else if (selectedCourseId) {
+          payload.course_id = selectedCourseId;
+        }
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.ok) {
+          setSuccessTitle(activityName.trim());
+          setSuccessVisible(true);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert(`Failed to save activity: ${err.error || res.statusText}`);
+        }
       }
     } catch (e) {
       console.error('Save activity error:', e);
@@ -441,7 +498,7 @@ export default function CreateActivityPage() {
       <div className="mb-5">
         <h1 className="font-heading font-extrabold text-2xl text-text-primary flex items-center gap-2.5 mb-1.5">
           <PlusCircle size={24} weight="fill" className="text-teal" />
-          Create Activity
+          {isEditMode ? 'Edit Activity' : 'Create Activity'}
         </h1>
         <p className="text-sm text-text-secondary">
           Upload what you already use. Your Teaching Twin will learn it and help your students.

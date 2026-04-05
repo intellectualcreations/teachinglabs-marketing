@@ -806,7 +806,7 @@ export default function LibraryPage() {
 
                     <div className="flex gap-2 mt-3">
                       <button
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => { e.stopPropagation(); router.push(`/teacher/create-activity?edit=${a.id}`); }}
                         className="px-3.5 py-2 border-[1.5px] border-border rounded-md text-xs font-semibold
                           text-text-primary flex items-center gap-1 hover:border-teal hover:text-teal
                           transition-colors cursor-pointer"
