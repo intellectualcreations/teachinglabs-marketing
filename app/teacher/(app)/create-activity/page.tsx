@@ -303,37 +303,41 @@ export default function CreateActivityPage() {
       return;
     }
     setNameError(false);
-
-    // Need a course + module to save to
-    if (!selectedCourseId || !selectedModuleId) {
-      alert('Please select a course and module to save this activity to.');
-      return;
-    }
-
     setSaving(true);
+
     try {
       const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       const teacherId = user?.id || 'c419128e-2868-47b7-8eaf-82c43a52c8bf';
 
-      const res = await fetch(`/api/teacher/courses/${selectedCourseId}/modules/${selectedModuleId}/activities`, {
+      const payload: Record<string, unknown> = {
+        title: activityName.trim(),
+        description: instructions.trim() || null,
+        objective: objective.trim() || null,
+        learning_goal: learningGoal.trim() || null,
+        essential_question: essentialQuestion.trim() || null,
+        materials: activityMaterials.trim() || null,
+        vocabulary: vocabulary.trim() || null,
+        directions: activityDirections.trim() || null,
+        hook: activityHook.trim() || null,
+        assessment: activityAssessment.trim() || null,
+        differentiation: differentiation.trim() || null,
+        teacher_id: teacherId,
+      };
+
+      // If course + module selected, attach; otherwise create orphaned
+      let url = '/api/teacher/activities';
+      if (selectedCourseId && selectedModuleId) {
+        url = `/api/teacher/courses/${selectedCourseId}/modules/${selectedModuleId}/activities`;
+      } else if (selectedCourseId) {
+        payload.course_id = selectedCourseId;
+      }
+
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: activityName.trim(),
-          description: instructions.trim() || null,
-          objective: objective.trim() || null,
-          learning_goal: learningGoal.trim() || null,
-          essential_question: essentialQuestion.trim() || null,
-          materials: activityMaterials.trim() || null,
-          vocabulary: vocabulary.trim() || null,
-          directions: activityDirections.trim() || null,
-          hook: activityHook.trim() || null,
-          assessment: activityAssessment.trim() || null,
-          differentiation: differentiation.trim() || null,
-          teacher_id: teacherId,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
