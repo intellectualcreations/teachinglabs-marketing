@@ -10,7 +10,7 @@ export async function GET(
     const admin = createAdminClient();
 
     const { data, error } = await (admin.from('assignments') as any)
-      .select('id, title, description, created_at')
+      .select('id, title, description, objective, materials, directions, assessment, created_at')
       .eq('module_id', moduleId)
       .eq('course_id', courseId)
       .order('created_at', { ascending: true });
@@ -32,7 +32,7 @@ export async function POST(
   try {
     const { courseId, moduleId } = await params;
     const body = await request.json();
-    const { title, description, teacher_id } = body;
+    const { title, description, teacher_id, objective, materials, directions, assessment } = body;
 
     if (!title || !teacher_id) {
       return NextResponse.json(
@@ -56,7 +56,7 @@ export async function POST(
       );
     }
 
-    const insertData: Record<string, unknown> = {
+    const insertBase: Record<string, unknown> = {
       title: title.trim(),
       description: description?.trim() || null,
       teacher_id,
@@ -67,10 +67,26 @@ export async function POST(
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await (admin.from('assignments') as any)
-      .insert(insertData)
+    // Add detail fields if provided
+    const detailFields: Record<string, unknown> = {};
+    if (objective?.trim()) detailFields.objective = objective.trim();
+    if (materials?.trim()) detailFields.materials = materials.trim();
+    if (directions?.trim()) detailFields.directions = directions.trim();
+    if (assessment?.trim()) detailFields.assessment = assessment.trim();
+
+    // Try with detail fields first, fall back without if columns don't exist yet
+    let { data, error } = await (admin.from('assignments') as any)
+      .insert({ ...insertBase, ...detailFields })
       .select()
       .single();
+
+    if (error?.message?.includes('column')) {
+      // Columns may not exist yet; retry without detail fields
+      ({ data, error } = await (admin.from('assignments') as any)
+        .insert(insertBase)
+        .select()
+        .single());
+    }
 
     if (error) {
       console.error('Create module activity error:', error.message);

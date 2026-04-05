@@ -70,7 +70,7 @@ export default function LibraryPage() {
   const [orphanedOnly, setOrphanedOnly] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<EnrichedCourse | null>(null);
-  const [panelModules, setPanelModules] = useState<{ id: string; title: string; activities: { id: string; title: string }[] }[]>([]);
+  const [panelModules, setPanelModules] = useState<{ id: string; title: string; activities: { id: string; title: string; objective?: string; materials?: string; directions?: string; assessment?: string }[] }[]>([]);
   const [panelLoading, setPanelLoading] = useState(false);
   const [expandedPanelModules, setExpandedPanelModules] = useState<Set<string>>(new Set());
 
@@ -903,11 +903,29 @@ export default function LibraryPage() {
                             </span>
                           </button>
                           {isExpanded && mod.activities.length > 0 && (
-                            <div className="border-t border-border px-3 py-2 space-y-1">
+                            <div className="border-t border-border px-3 py-2 space-y-2">
                               {mod.activities.map((act) => (
-                                <div key={act.id} className="flex items-center gap-2 py-1.5 text-xs">
-                                  <Lightning size={12} weight="fill" className="text-teal shrink-0" />
-                                  <span className="text-text-primary">{act.title}</span>
+                                <div key={act.id} className="py-1.5">
+                                  <div className="flex items-center gap-2 text-xs">
+                                    <Lightning size={12} weight="fill" className="text-teal shrink-0" />
+                                    <span className="text-text-primary font-medium">{act.title}</span>
+                                  </div>
+                                  {(act.objective || act.materials || act.directions || act.assessment) && (
+                                    <div className="ml-5 mt-1 space-y-1">
+                                      {act.objective && (
+                                        <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Objective:</span> {act.objective}</p>
+                                      )}
+                                      {act.materials && (
+                                        <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Materials:</span> {act.materials}</p>
+                                      )}
+                                      {act.directions && (
+                                        <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Directions:</span> {act.directions}</p>
+                                      )}
+                                      {act.assessment && (
+                                        <p className="text-[11px] text-text-secondary"><span className="font-semibold text-text-primary">Assessment:</span> {act.assessment}</p>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>

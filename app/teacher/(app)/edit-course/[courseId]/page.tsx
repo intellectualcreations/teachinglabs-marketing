@@ -56,6 +56,10 @@ interface ModuleItem {
   showAddActivity?: boolean;
   newActivityTitle?: string;
   newActivityDesc?: string;
+  newActivityObjective?: string;
+  newActivityMaterials?: string;
+  newActivityDirections?: string;
+  newActivityAssessment?: string;
 }
 
 export default function EditCoursePage() {
@@ -155,7 +159,10 @@ export default function EditCoursePage() {
         body: JSON.stringify({
           title: mod.newActivityTitle.trim(),
           description: mod.newActivityDesc?.trim() || null,
-          type: 'activity',
+          objective: mod.newActivityObjective?.trim() || null,
+          materials: mod.newActivityMaterials?.trim() || null,
+          directions: mod.newActivityDirections?.trim() || null,
+          assessment: mod.newActivityAssessment?.trim() || null,
           teacher_id: teacherId,
         }),
       });
@@ -166,6 +173,10 @@ export default function EditCoursePage() {
           activities: [...(m.activities || []), activity],
           newActivityTitle: '',
           newActivityDesc: '',
+          newActivityObjective: '',
+          newActivityMaterials: '',
+          newActivityDirections: '',
+          newActivityAssessment: '',
           showAddActivity: false,
           showActivities: true,
           loadedActivities: true,
@@ -522,7 +533,7 @@ export default function EditCoursePage() {
                             type="text"
                             value={mod.newActivityTitle || ''}
                             onChange={(e) => updateModule(mod.id, { newActivityTitle: e.target.value })}
-                            placeholder="Activity title"
+                            placeholder="Activity title *"
                             className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
                           />
                           <textarea
@@ -532,6 +543,56 @@ export default function EditCoursePage() {
                             rows={2}
                             className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
                           />
+
+                          {/* Detail fields — collapsible */}
+                          <details className="group">
+                            <summary className="text-[11px] font-medium text-teal cursor-pointer hover:text-teal/80 transition-colors select-none">
+                              + Activity Details (objective, materials, directions, assessment)
+                            </summary>
+                            <div className="mt-2 space-y-2 pl-1">
+                              <div>
+                                <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Objective</label>
+                                <textarea
+                                  value={mod.newActivityObjective || ''}
+                                  onChange={(e) => updateModule(mod.id, { newActivityObjective: e.target.value })}
+                                  placeholder="What should students learn or accomplish?"
+                                  rows={2}
+                                  className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Materials</label>
+                                <textarea
+                                  value={mod.newActivityMaterials || ''}
+                                  onChange={(e) => updateModule(mod.id, { newActivityMaterials: e.target.value })}
+                                  placeholder="What materials or resources are needed?"
+                                  rows={2}
+                                  className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Directions</label>
+                                <textarea
+                                  value={mod.newActivityDirections || ''}
+                                  onChange={(e) => updateModule(mod.id, { newActivityDirections: e.target.value })}
+                                  placeholder="Step-by-step instructions for the activity"
+                                  rows={3}
+                                  className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider block mb-0.5">Assessment</label>
+                                <textarea
+                                  value={mod.newActivityAssessment || ''}
+                                  onChange={(e) => updateModule(mod.id, { newActivityAssessment: e.target.value })}
+                                  placeholder="How will student understanding be assessed?"
+                                  rows={2}
+                                  className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                                />
+                              </div>
+                            </div>
+                          </details>
+
                           <div className="flex gap-2">
                             <button
                               onClick={() => addActivityToModule(mod.id)}
