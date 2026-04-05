@@ -60,6 +60,7 @@ export default function LibraryPage() {
   const [tab, setTab] = useState<Tab>('tl-courses');
   const [tlCourses, setTlCourses] = useState<EnrichedCourse[]>([]);
   const [tlLoading, setTlLoading] = useState(false);
+  const [tlGradeFilter, setTlGradeFilter] = useState('');
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [subjectFilter, setSubjectFilter] = useState('');
@@ -349,7 +350,7 @@ export default function LibraryPage() {
         >
           <span className="flex items-center gap-1.5">
             <GraduationCap size={16} weight={tab === 'tl-courses' ? 'fill' : 'regular'} />
-            Teaching Labs
+            TL Content
           </span>
           {tab === 'tl-courses' && (
             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal rounded-t" />
@@ -399,7 +400,7 @@ export default function LibraryPage() {
         </button>
       </div>
 
-      {/* Teaching Labs Courses Tab */}
+      {/* TL Content Tab */}
       {tab === 'tl-courses' && (
         <>
           {tlLoading ? (
@@ -416,55 +417,106 @@ export default function LibraryPage() {
                 AI-generated courses for every grade and subject are on the way. Check back soon!
               </p>
             </div>
-          ) : (
-            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))' }}>
-              {tlCourses.map((course) => (
-                <div
-                  key={course.id}
-                  className="bg-card-bg border border-border rounded-[14px] p-5 hover:border-teal/50 transition-all"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    {subjectBadge(course.subject)}
-                    <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[11px] font-medium">
-                      Teaching Labs
-                    </span>
+          ) : (() => {
+            const tlSubjects = [...new Set(tlCourses.map(c => c.subject).filter(Boolean))];
+            const tlGrades = [...new Set(tlCourses.map(c => c.grade_level).filter(Boolean))];
+            const filtered = tlCourses.filter(c => {
+              if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !c.description?.toLowerCase().includes(search.toLowerCase())) return false;
+              if (subjectFilter && c.subject !== subjectFilter) return false;
+              if (tlGradeFilter && c.grade_level !== tlGradeFilter) return false;
+              return true;
+            });
+            return (
+              <>
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <div className="relative flex-1 min-w-[200px]">
+                    <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+                    <input
+                      type="text"
+                      placeholder="Search TL courses..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 bg-card-bg border border-border rounded-lg text-text-primary text-sm placeholder:text-text-secondary focus:outline-none focus:ring-1 focus:ring-teal/30"
+                    />
                   </div>
-                  <h3 className="font-heading font-bold text-[15px] text-text-primary mb-1">
-                    {course.title}
-                  </h3>
-                  {course.description && (
-                    <p className="text-xs text-text-secondary mb-2 line-clamp-2">{course.description}</p>
-                  )}
-                  <p className="text-[11px] text-text-secondary mb-3">
-                    {course.grade_level && <>{course.grade_level} &bull; </>}
-                    {course.module_count} {course.module_count === 1 ? 'Module' : 'Modules'}
-                  </p>
-                  <button
-                    onClick={async () => {
-                      if (!userId) return;
-                      try {
-                        const res = await fetch('/api/teacher/tl-courses', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ course_id: course.id, teacher_id: userId }),
-                        });
-                        if (res.ok) {
-                          alert('Course added to your library!');
-                        } else {
-                          alert('Failed to import course');
-                        }
-                      } catch (e) {
-                        alert('Failed to import course');
-                      }
-                    }}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-navy text-white text-xs font-semibold rounded-lg hover:bg-navy/90 transition-colors"
+                  <select
+                    value={subjectFilter}
+                    onChange={(e) => setSubjectFilter(e.target.value)}
+                    className="px-3 py-2 bg-card-bg text-text-primary border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
+                    style={{ colorScheme: 'dark' }}
                   >
-                    <ArrowSquareIn size={14} weight="fill" /> Add to My Library
-                  </button>
+                    <option value="">All Subjects</option>
+                    {tlSubjects.sort().map(s => (
+                      <option key={s} value={s}>{s!.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={tlGradeFilter}
+                    onChange={(e) => setTlGradeFilter(e.target.value)}
+                    className="px-3 py-2 bg-card-bg text-text-primary border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
+                    style={{ colorScheme: 'dark' }}
+                  >
+                    <option value="">All Grades</option>
+                    {tlGrades.sort((a, b) => {
+                      const order = ['K','1','2','3','4','5','6','7','8','9','10','11','12'];
+                      return order.indexOf(a!) - order.indexOf(b!);
+                    }).map(g => (
+                      <option key={g} value={g}>{g === 'K' ? 'Kindergarten' : `Grade ${g}`}</option>
+                    ))}
+                  </select>
                 </div>
-              ))}
-            </div>
-          )}
+                <p className="text-xs text-text-secondary mb-3">{filtered.length} course{filtered.length !== 1 ? 's' : ''}</p>
+                <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))' }}>
+                  {filtered.map((course) => (
+                    <div
+                      key={course.id}
+                      className="bg-card-bg border border-border rounded-[14px] p-5 hover:border-teal/50 transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        {subjectBadge(course.subject)}
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[11px] font-medium">
+                          TL Content
+                        </span>
+                      </div>
+                      <h3 className="font-heading font-bold text-[15px] text-text-primary mb-1">
+                        {course.title}
+                      </h3>
+                      {course.description && (
+                        <p className="text-xs text-text-secondary mb-2 line-clamp-2">{course.description}</p>
+                      )}
+                      <p className="text-[11px] text-text-secondary mb-3">
+                        {course.grade_level && <>{course.grade_level === 'K' ? 'Kindergarten' : `Grade ${course.grade_level}`} &bull; </>}
+                        {course.module_count} {course.module_count === 1 ? 'Module' : 'Modules'}
+                      </p>
+                      <button
+                        onClick={async () => {
+                          if (!userId) return;
+                          try {
+                            const res = await fetch('/api/teacher/tl-courses', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ course_id: course.id, teacher_id: userId }),
+                            });
+                            if (res.ok) {
+                              alert('Course added to My Courses!');
+                            } else {
+                              alert('Failed to import course');
+                            }
+                          } catch (e) {
+                            alert('Failed to import course');
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-navy text-white text-xs font-semibold rounded-lg hover:bg-navy/90 transition-colors"
+                      >
+                        <ArrowSquareIn size={14} weight="fill" /> Add to My Library
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </>
       )}
 
