@@ -266,66 +266,6 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-2.5 mb-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
-          <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
-          <input
-            type="text"
-            placeholder={tab === 'courses' ? 'Search courses...' : 'Search activities...'}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3.5 py-[9px] border-[1.5px] border-border rounded-lg text-[13px]
-              bg-card-bg text-text-primary font-heading outline-none focus:border-teal"
-          />
-        </div>
-      </div>
-
-      {/* Filters row */}
-      {tab === 'courses' && courses.length > 0 && (
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'published' | 'draft')}
-            className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
-            style={{ colorScheme: 'dark' }}
-          >
-            <option value="all">All Status</option>
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
-          </select>
-          {uniqueSubjects.length > 0 && (
-            <select
-              value={subjectFilter}
-              onChange={(e) => setSubjectFilter(e.target.value)}
-              className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
-              style={{ colorScheme: 'dark' }}
-            >
-              <option value="">All Subjects</option>
-              {uniqueSubjects.map(s => (
-                <option key={s} value={s}>{s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-              ))}
-            </select>
-          )}
-          <div className="ml-auto flex items-center border border-border rounded-lg overflow-hidden">
-            <button
-              onClick={() => setViewMode('card')}
-              className={`p-1.5 ${viewMode === 'card' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
-              title="Card view"
-            >
-              <SquaresFour size={16} weight={viewMode === 'card' ? 'fill' : 'regular'} />
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-1.5 ${viewMode === 'table' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
-              title="Table view"
-            >
-              <List size={16} weight={viewMode === 'table' ? 'fill' : 'regular'} />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-5 border-b border-border">
         <button
@@ -523,6 +463,65 @@ export default function LibraryPage() {
       {/* My Courses Tab */}
       {tab === 'courses' && (
         <>
+          {/* Search + Filters for My Courses */}
+          {courses.length > 0 && (
+            <>
+              <div className="flex items-center gap-2.5 mb-3 flex-wrap">
+                <div className="relative flex-1 min-w-[200px]">
+                  <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+                  <input
+                    type="text"
+                    placeholder="Search my courses..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-9 pr-3.5 py-[9px] border-[1.5px] border-border rounded-lg text-[13px]
+                      bg-card-bg text-text-primary font-heading outline-none focus:border-teal"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as 'all' | 'published' | 'draft')}
+                  className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
+                  style={{ colorScheme: 'dark' }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
+                </select>
+                {uniqueSubjects.length > 0 && (
+                  <select
+                    value={subjectFilter}
+                    onChange={(e) => setSubjectFilter(e.target.value)}
+                    className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
+                    style={{ colorScheme: 'dark' }}
+                  >
+                    <option value="">All Subjects</option>
+                    {uniqueSubjects.map(s => (
+                      <option key={s} value={s}>{s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+                    ))}
+                  </select>
+                )}
+                <div className="ml-auto flex items-center border border-border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setViewMode('card')}
+                    className={`p-1.5 ${viewMode === 'card' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
+                    title="Card view"
+                  >
+                    <SquaresFour size={16} weight={viewMode === 'card' ? 'fill' : 'regular'} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('table')}
+                    className={`p-1.5 ${viewMode === 'table' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
+                    title="Table view"
+                  >
+                    <List size={16} weight={viewMode === 'table' ? 'fill' : 'regular'} />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
           {courses.length === 0 ? (
             <div className="text-center py-16 bg-card-bg border border-border rounded-[14px]">
               <BookOpen size={48} className="mx-auto text-text-secondary opacity-40" />
