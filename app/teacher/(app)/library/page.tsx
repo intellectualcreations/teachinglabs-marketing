@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   Books, Plus, MagnifyingGlass, CalendarBlank,
   PencilSimple, CaretRight, CaretDown, ShareNetwork,
-  FunnelSimple, BookOpen, Notebook,
+  FunnelSimple, BookOpen, Notebook, SquaresFour, List,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { Assignment, Class } from '@/lib/supabase/types';
@@ -60,6 +60,8 @@ export default function LibraryPage() {
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [subjectFilter, setSubjectFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [orphanedOnly, setOrphanedOnly] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -118,8 +120,18 @@ export default function LibraryPage() {
     if (subjectFilter) {
       result = result.filter((c) => c.subject === subjectFilter);
     }
+    if (statusFilter === 'published') {
+      result = result.filter((c) => c.is_published);
+    } else if (statusFilter === 'draft') {
+      result = result.filter((c) => !c.is_published);
+    }
     return result;
-  }, [courses, search, subjectFilter]);
+  }, [courses, search, subjectFilter, statusFilter]);
+
+  const uniqueSubjects = useMemo(() => {
+    const subs = new Set(courses.map(c => c.subject).filter(Boolean));
+    return Array.from(subs) as string[];
+  }, [courses]);
 
   // Activities search/filter
   const filteredActivities = useMemo(() => {
@@ -188,8 +200,8 @@ export default function LibraryPage() {
     );
   }
 
-  function statusBadge(status?: string) {
-    const isPublished = status === 'published';
+  function statusBadge(course: EnrichedCourse) {
+    const isPublished = !!course.is_published;
     return (
       <span
         className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
@@ -265,6 +277,51 @@ export default function LibraryPage() {
         </div>
       </div>
 
+      {/* Filters row */}
+      {tab === 'courses' && courses.length > 0 && (
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'published' | 'draft')}
+            className="px-3 py-[7px] bg-white text-gray-900 border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
+            style={{ colorScheme: 'light' }}
+          >
+            <option value="all">All Status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+          {uniqueSubjects.length > 0 && (
+            <select
+              value={subjectFilter}
+              onChange={(e) => setSubjectFilter(e.target.value)}
+              className="px-3 py-[7px] bg-white text-gray-900 border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
+              style={{ colorScheme: 'light' }}
+            >
+              <option value="">All Subjects</option>
+              {uniqueSubjects.map(s => (
+                <option key={s} value={s}>{s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+              ))}
+            </select>
+          )}
+          <div className="ml-auto flex items-center border border-border rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('card')}
+              className={`p-1.5 ${viewMode === 'card' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
+              title="Card view"
+            >
+              <SquaresFour size={16} weight={viewMode === 'card' ? 'fill' : 'regular'} />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 ${viewMode === 'table' ? 'bg-teal/10 text-teal' : 'text-text-secondary hover:text-text-primary'} transition-colors`}
+              title="Table view"
+            >
+              <List size={16} weight={viewMode === 'table' ? 'fill' : 'regular'} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-5 border-b border-border">
         <button
@@ -339,6 +396,53 @@ export default function LibraryPage() {
               </h3>
               <p className="text-sm text-text-secondary">Try a different search term.</p>
             </div>
+          ) : viewMode === 'table' ? (
+            /* Table view */
+            <div className="bg-card-bg border border-border rounded-[14px] overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left">
+                    <th className="px-4 py-3 text-xs font-heading font-semibold text-text-secondary">Course</th>
+                    <th className="px-4 py-3 text-xs font-heading font-semibold text-text-secondary">Subject</th>
+                    <th className="px-4 py-3 text-xs font-heading font-semibold text-text-secondary">Grade</th>
+                    <th className="px-4 py-3 text-xs font-heading font-semibold text-text-secondary">Modules</th>
+                    <th className="px-4 py-3 text-xs font-heading font-semibold text-text-secondary">Status</th>
+                    <th className="px-4 py-3 text-xs font-heading font-semibold text-text-secondary">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCourses.map((course) => (
+                    <tr key={course.id} className="border-b border-border last:border-0 hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-3 font-medium text-text-primary">{course.title}</td>
+                      <td className="px-4 py-3">{subjectBadge(course.subject)}</td>
+                      <td className="px-4 py-3 text-text-secondary text-xs">{course.grade_level || '—'}</td>
+                      <td className="px-4 py-3 text-text-secondary text-xs">{course.module_count}</td>
+                      <td className="px-4 py-3">{statusBadge(course)}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => router.push(`/teacher/edit-course/${course.id}`)}
+                            className="px-2.5 py-1 border border-border rounded text-[11px] font-semibold text-text-primary hover:border-teal hover:text-teal transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => togglePublish(course.id, !!course.is_published)}
+                            className={`px-2.5 py-1 border rounded text-[11px] font-semibold transition-colors ${
+                              course.is_published
+                                ? 'border-yellow-500/30 text-yellow-400 hover:border-yellow-500'
+                                : 'border-border text-text-primary hover:border-teal hover:text-teal'
+                            }`}
+                          >
+                            {course.is_published ? 'Unpublish' : 'Publish'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))' }}>
               {filteredCourses.map((course) => {
@@ -352,7 +456,7 @@ export default function LibraryPage() {
                     {/* Top row: subject + status */}
                     <div className="flex items-center justify-between mb-2">
                       {subjectBadge(course.subject)}
-                      {statusBadge(course.status)}
+                      {statusBadge(course)}
                     </div>
 
                     {/* Title */}
