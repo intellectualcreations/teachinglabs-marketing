@@ -283,8 +283,8 @@ export default function LibraryPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as 'all' | 'published' | 'draft')}
-            className="px-3 py-[7px] bg-white text-gray-900 border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
-            style={{ colorScheme: 'light' }}
+            className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
+            style={{ colorScheme: 'dark' }}
           >
             <option value="all">All Status</option>
             <option value="published">Published</option>
@@ -294,8 +294,8 @@ export default function LibraryPage() {
             <select
               value={subjectFilter}
               onChange={(e) => setSubjectFilter(e.target.value)}
-              className="px-3 py-[7px] bg-white text-gray-900 border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
-              style={{ colorScheme: 'light' }}
+              className="px-3 py-[7px] bg-card-bg text-text-primary border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-teal"
+              style={{ colorScheme: 'dark' }}
             >
               <option value="">All Subjects</option>
               {uniqueSubjects.map(s => (
