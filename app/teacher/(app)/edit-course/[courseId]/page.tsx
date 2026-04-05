@@ -208,6 +208,25 @@ export default function EditCoursePage() {
     return null;
   }
 
+  async function deleteActivity(moduleId: string, activityId: string) {
+    if (!confirm('Delete this activity?')) return;
+    try {
+      const res = await fetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities/${activityId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setModules(prev => prev.map(m => m.id === moduleId ? {
+          ...m,
+          activities: (m.activities || []).filter(a => a.id !== activityId),
+        } : m));
+      } else {
+        alert('Failed to delete activity');
+      }
+    } catch (e) {
+      alert('Failed to delete activity');
+    }
+  }
+
   async function handleSave() {
     if (!title.trim()) {
       setError('Course title is required');
@@ -482,6 +501,13 @@ export default function EditCoursePage() {
                                   {act.type}
                                 </span>
                               )}
+                              <button
+                                onClick={() => deleteActivity(mod.id, act.id)}
+                                className="p-1 text-text-muted hover:text-red-400 transition-colors"
+                                title="Delete activity"
+                              >
+                                <Trash size={12} />
+                              </button>
                             </div>
                           ))}
                         </div>
