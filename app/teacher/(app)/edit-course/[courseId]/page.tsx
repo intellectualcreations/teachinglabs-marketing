@@ -119,7 +119,7 @@ export default function EditCoursePage() {
     setModules(modules.map((m) => (m.id === id ? { ...m, [field]: value } : m)));
   }
 
-  async function loadActivities(moduleId: string) {
+  async function loadActivities(moduleId: string): Promise<void> {
     const mod = modules.find(m => m.id === moduleId);
     if (!mod) return;
     if (mod.loadedActivities) {
@@ -130,7 +130,7 @@ export default function EditCoursePage() {
       const res = await fetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities`);
       if (res.ok) {
         const { activities } = await res.json();
-        setModules(prev => prev.map(m => m.id === moduleId ? { ...m, activities, loadedActivities: true, showActivities: true } : m));
+        setModules(prev => prev.map(m => m.id === moduleId ? { ...m, activities: activities || [], loadedActivities: true, showActivities: true } : m));
       }
     } catch (e) {
       console.error('Load activities error:', e);
@@ -400,10 +400,15 @@ export default function EditCoursePage() {
                       Activities{mod.activities && mod.activities.length > 0 ? ` (${mod.activities.length})` : ''}
                     </button>
                     <button
-                      onClick={() => {
-                        if (!mod.loadedActivities) loadActivities(mod.id);
-                        updateModule(mod.id, 'showAddActivity', !mod.showAddActivity);
+                      onClick={async () => {
+                        // Just toggle the form immediately
+                        const newShowAdd = !(mod.showAddActivity ?? false);
+                        updateModule(mod.id, 'showAddActivity', newShowAdd);
                         updateModule(mod.id, 'showActivities', true);
+                        // Load activities in background if not loaded
+                        if (!mod.loadedActivities) {
+                          await loadActivities(mod.id);
+                        }
                       }}
                       className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-teal hover:bg-teal/10 rounded transition-colors"
                     >
