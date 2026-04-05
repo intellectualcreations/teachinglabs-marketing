@@ -7,6 +7,7 @@ import {
   Books, Plus, MagnifyingGlass, CalendarBlank,
   PencilSimple, CaretRight, CaretDown, ShareNetwork,
   FunnelSimple, BookOpen, Notebook, SquaresFour, List,
+  GraduationCap, ArrowSquareIn, SpinnerGap,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { Assignment, Class } from '@/lib/supabase/types';
@@ -21,7 +22,7 @@ const SUBJECTS = [
   'Career and Technical Education', 'Library / Media', 'Other',
 ];
 
-type Tab = 'courses' | 'activities';
+type Tab = 'tl-courses' | 'courses' | 'activities';
 
 interface EnrichedModule {
   id: string;
@@ -56,7 +57,9 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState<Tab>('courses');
+  const [tab, setTab] = useState<Tab>('tl-courses');
+  const [tlCourses, setTlCourses] = useState<EnrichedCourse[]>([]);
+  const [tlLoading, setTlLoading] = useState(false);
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [subjectFilter, setSubjectFilter] = useState('');
@@ -325,6 +328,34 @@ export default function LibraryPage() {
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-5 border-b border-border">
         <button
+          onClick={() => {
+            setTab('tl-courses');
+            setSearch('');
+            setSubjectFilter('');
+            if (tlCourses.length === 0 && !tlLoading) {
+              setTlLoading(true);
+              fetch('/api/teacher/tl-courses')
+                .then(r => r.json())
+                .then(d => setTlCourses(d.courses ?? []))
+                .catch(() => {})
+                .finally(() => setTlLoading(false));
+            }
+          }}
+          className={`px-4 py-2.5 text-sm font-heading font-bold transition-colors relative
+            ${tab === 'tl-courses'
+              ? 'text-teal'
+              : 'text-text-secondary hover:text-text-primary'
+            }`}
+        >
+          <span className="flex items-center gap-1.5">
+            <GraduationCap size={16} weight={tab === 'tl-courses' ? 'fill' : 'regular'} />
+            Teaching Labs
+          </span>
+          {tab === 'tl-courses' && (
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-teal rounded-t" />
+          )}
+        </button>
+        <button
           onClick={() => { setTab('courses'); setSearch(''); setSubjectFilter(''); }}
           className={`px-4 py-2.5 text-sm font-heading font-bold transition-colors relative
             ${tab === 'courses'
@@ -334,7 +365,7 @@ export default function LibraryPage() {
         >
           <span className="flex items-center gap-1.5">
             <BookOpen size={16} weight={tab === 'courses' ? 'fill' : 'regular'} />
-            Courses
+            My Courses
             {courses.length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 rounded-full bg-teal/10 text-teal text-[10px] font-medium">
                 {courses.length}
@@ -368,7 +399,76 @@ export default function LibraryPage() {
         </button>
       </div>
 
-      {/* Courses Tab */}
+      {/* Teaching Labs Courses Tab */}
+      {tab === 'tl-courses' && (
+        <>
+          {tlLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <SpinnerGap size={32} className="animate-spin text-teal" />
+            </div>
+          ) : tlCourses.length === 0 ? (
+            <div className="text-center py-16 bg-card-bg border border-border rounded-[14px]">
+              <GraduationCap size={48} className="mx-auto text-text-secondary opacity-40" />
+              <h3 className="font-heading font-bold text-lg text-text-primary mt-4 mb-2">
+                Coming Soon!
+              </h3>
+              <p className="text-sm text-text-secondary max-w-md mx-auto">
+                AI-generated courses for every grade and subject are on the way. Check back soon!
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))' }}>
+              {tlCourses.map((course) => (
+                <div
+                  key={course.id}
+                  className="bg-card-bg border border-border rounded-[14px] p-5 hover:border-teal/50 transition-all"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    {subjectBadge(course.subject)}
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[11px] font-medium">
+                      Teaching Labs
+                    </span>
+                  </div>
+                  <h3 className="font-heading font-bold text-[15px] text-text-primary mb-1">
+                    {course.title}
+                  </h3>
+                  {course.description && (
+                    <p className="text-xs text-text-secondary mb-2 line-clamp-2">{course.description}</p>
+                  )}
+                  <p className="text-[11px] text-text-secondary mb-3">
+                    {course.grade_level && <>{course.grade_level} &bull; </>}
+                    {course.module_count} {course.module_count === 1 ? 'Module' : 'Modules'}
+                  </p>
+                  <button
+                    onClick={async () => {
+                      if (!userId) return;
+                      try {
+                        const res = await fetch('/api/teacher/tl-courses', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ course_id: course.id, teacher_id: userId }),
+                        });
+                        if (res.ok) {
+                          alert('Course added to your library!');
+                        } else {
+                          alert('Failed to import course');
+                        }
+                      } catch (e) {
+                        alert('Failed to import course');
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-navy text-white text-xs font-semibold rounded-lg hover:bg-navy/90 transition-colors"
+                  >
+                    <ArrowSquareIn size={14} weight="fill" /> Add to My Library
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* My Courses Tab */}
       {tab === 'courses' && (
         <>
           {courses.length === 0 ? (
