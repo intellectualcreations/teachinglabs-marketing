@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, FloppyDisk, Plus, Trash, SpinnerGap,
-  BookOpen, Warning,
+  BookOpen, Warning, CaretDown, CaretRight, Lightning,
 } from '@phosphor-icons/react';
+import { createClient } from '@/lib/supabase/client';
 
 const SUBJECTS = [
   { value: 'english_language_arts', label: 'English Language Arts' },
@@ -36,12 +37,25 @@ const SUBJECTS = [
   { value: 'other', label: 'Other' },
 ];
 
+interface ActivityItem {
+  id: string;
+  title: string;
+  description?: string;
+  type?: string;
+}
+
 interface ModuleItem {
   id: string;
   title: string;
   description: string;
   position: number;
   isNew?: boolean;
+  activities?: ActivityItem[];
+  loadedActivities?: boolean;
+  showActivities?: boolean;
+  showAddActivity?: boolean;
+  newActivityTitle?: string;
+  newActivityDesc?: string;
 }
 
 export default function EditCoursePage() {
@@ -60,10 +74,15 @@ export default function EditCoursePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) setUserId(user.id);
+
         const res = await fetch(`/api/teacher/courses/${courseId}`);
         if (!res.ok) throw new Error('Failed to load course');
         const { course } = await res.json();
@@ -74,7 +93,7 @@ export default function EditCoursePage() {
         setModules(
           (course.modules || [])
             .sort((a: ModuleItem, b: ModuleItem) => (a.position ?? 0) - (b.position ?? 0))
-            .map((m: ModuleItem) => ({ ...m, isNew: false }))
+            .map((m: ModuleItem) => ({ ...m, isNew: false, activities: [], loadedActivities: false, showActivities: false, showAddActivity: false, newActivityTitle: '', newActivityDesc: '' }))
         );
       } catch (e) {
         setError('Could not load course');
@@ -96,8 +115,57 @@ export default function EditCoursePage() {
     setModules(modules.filter((m) => m.id !== id));
   }
 
-  function updateModule(id: string, field: 'title' | 'description', value: string) {
+  function updateModule(id: string, field: string, value: unknown) {
     setModules(modules.map((m) => (m.id === id ? { ...m, [field]: value } : m)));
+  }
+
+  async function loadActivities(moduleId: string) {
+    const mod = modules.find(m => m.id === moduleId);
+    if (!mod) return;
+    if (mod.loadedActivities) {
+      updateModule(moduleId, 'showActivities', !mod.showActivities);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities`);
+      if (res.ok) {
+        const { activities } = await res.json();
+        setModules(prev => prev.map(m => m.id === moduleId ? { ...m, activities, loadedActivities: true, showActivities: true } : m));
+      }
+    } catch (e) {
+      console.error('Load activities error:', e);
+    }
+  }
+
+  async function addActivityToModule(moduleId: string) {
+    const mod = modules.find(m => m.id === moduleId);
+    if (!mod?.newActivityTitle?.trim() || !userId) return;
+    try {
+      const res = await fetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: mod.newActivityTitle.trim(),
+          description: mod.newActivityDesc?.trim() || null,
+          type: 'activity',
+          teacher_id: userId,
+        }),
+      });
+      if (res.ok) {
+        const { activity } = await res.json();
+        setModules(prev => prev.map(m => m.id === moduleId ? {
+          ...m,
+          activities: [...(m.activities || []), activity],
+          newActivityTitle: '',
+          newActivityDesc: '',
+          showAddActivity: false,
+          showActivities: true,
+          loadedActivities: true,
+        } : m));
+      }
+    } catch (e) {
+      console.error('Add activity error:', e);
+    }
   }
 
   async function handleSave() {
@@ -289,32 +357,119 @@ export default function EditCoursePage() {
           <p className="text-text-muted text-sm py-4 text-center">No modules yet. Click Add Module to get started.</p>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {modules.map((mod, i) => (
-            <div key={mod.id} className="flex items-start gap-2 bg-surface border border-border rounded-lg p-3">
-              <span className="text-teal font-medium text-sm min-w-[24px] pt-1">{i + 1}.</span>
-              <div className="flex-1 space-y-2">
-                <input
-                  type="text"
-                  value={mod.title}
-                  onChange={(e) => updateModule(mod.id, 'title', e.target.value)}
-                  placeholder="Module title"
-                  className="w-full px-2.5 py-1.5 bg-card-bg border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
-                />
-                <textarea
-                  value={mod.description}
-                  onChange={(e) => updateModule(mod.id, 'description', e.target.value)}
-                  placeholder="Brief description (optional)"
-                  rows={2}
-                  className="w-full px-2.5 py-1.5 bg-card-bg border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
-                />
+            <div key={mod.id} className="bg-surface border border-border rounded-lg overflow-hidden">
+              {/* Module header */}
+              <div className="flex items-start gap-2 p-3">
+                <span className="text-teal font-medium text-sm min-w-[24px] pt-1">{i + 1}.</span>
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="text"
+                    value={mod.title}
+                    onChange={(e) => updateModule(mod.id, 'title', e.target.value)}
+                    placeholder="Module title"
+                    className="w-full px-2.5 py-1.5 bg-card-bg border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
+                  />
+                  <textarea
+                    value={mod.description}
+                    onChange={(e) => updateModule(mod.id, 'description', e.target.value)}
+                    placeholder="Brief description (optional)"
+                    rows={2}
+                    className="w-full px-2.5 py-1.5 bg-card-bg border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                  />
+                </div>
+                <button
+                  onClick={() => removeModule(mod.id)}
+                  className="p-1.5 text-text-muted hover:text-red-400 transition-colors"
+                >
+                  <Trash size={16} />
+                </button>
               </div>
-              <button
-                onClick={() => removeModule(mod.id)}
-                className="p-1.5 text-text-muted hover:text-red-400 transition-colors"
-              >
-                <Trash size={16} />
-              </button>
+
+              {/* Activities section */}
+              {!mod.isNew && (
+                <div className="border-t border-border">
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <button
+                      onClick={() => loadActivities(mod.id)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-text-secondary hover:text-teal transition-colors"
+                    >
+                      {mod.showActivities ? <CaretDown size={12} weight="bold" /> : <CaretRight size={12} weight="bold" />}
+                      <Lightning size={12} weight="fill" className="text-teal" />
+                      Activities{mod.activities && mod.activities.length > 0 ? ` (${mod.activities.length})` : ''}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!mod.loadedActivities) loadActivities(mod.id);
+                        updateModule(mod.id, 'showAddActivity', !mod.showAddActivity);
+                        updateModule(mod.id, 'showActivities', true);
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-teal hover:bg-teal/10 rounded transition-colors"
+                    >
+                      <Plus size={12} weight="bold" /> Add Activity
+                    </button>
+                  </div>
+
+                  {mod.showActivities && (
+                    <div className="px-3 pb-3">
+                      {/* Activity list */}
+                      {mod.activities && mod.activities.length > 0 ? (
+                        <div className="space-y-1.5 mb-2">
+                          {mod.activities.map((act) => (
+                            <div key={act.id} className="flex items-center gap-2 px-2.5 py-2 bg-card-bg border border-border rounded text-xs">
+                              <Lightning size={12} weight="fill" className="text-teal shrink-0" />
+                              <span className="text-text-primary font-medium flex-1">{act.title}</span>
+                              {act.type && (
+                                <span className="px-1.5 py-0.5 rounded bg-teal/10 text-teal text-[10px] font-medium">
+                                  {act.type}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : !mod.showAddActivity ? (
+                        <p className="text-text-muted text-xs py-2 text-center">No activities yet. Click Add Activity to create one.</p>
+                      ) : null}
+
+                      {/* Add activity form */}
+                      {mod.showAddActivity && (
+                        <div className="bg-card-bg border border-teal/20 rounded-lg p-3 space-y-2">
+                          <input
+                            type="text"
+                            value={mod.newActivityTitle || ''}
+                            onChange={(e) => updateModule(mod.id, 'newActivityTitle', e.target.value)}
+                            placeholder="Activity title"
+                            className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-teal/30"
+                          />
+                          <textarea
+                            value={mod.newActivityDesc || ''}
+                            onChange={(e) => updateModule(mod.id, 'newActivityDesc', e.target.value)}
+                            placeholder="Description (optional)"
+                            rows={2}
+                            className="w-full px-2.5 py-1.5 bg-surface border border-border rounded text-text-muted text-xs focus:outline-none focus:ring-1 focus:ring-teal/30 resize-none"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => addActivityToModule(mod.id)}
+                              disabled={!mod.newActivityTitle?.trim()}
+                              className="px-3 py-1.5 bg-navy text-white text-xs font-medium rounded hover:bg-navy/90 disabled:opacity-40 transition-colors"
+                            >
+                              Create Activity
+                            </button>
+                            <button
+                              onClick={() => updateModule(mod.id, 'showAddActivity', false)}
+                              className="px-3 py-1.5 border border-border text-text-secondary text-xs rounded hover:text-text-primary transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
