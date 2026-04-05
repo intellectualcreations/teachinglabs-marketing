@@ -105,8 +105,14 @@ function JoinClassInline({ onJoined }: { onJoined: () => void }) {
     setError('');
     try {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
+      // Refresh session first to ensure we have a valid token
+      const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+      let accessToken = refreshed?.access_token;
+      // Fallback to getSession if refresh didn't return a token
+      if (!accessToken) {
+        const { data: { session } } = await supabase.auth.getSession();
+        accessToken = session?.access_token;
+      }
 
       const res = await fetch('/api/student/join-class', {
         method: 'POST',
