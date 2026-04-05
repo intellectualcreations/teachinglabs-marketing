@@ -198,7 +198,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-warm-white">
+    <div className="flex h-screen overflow-hidden bg-warm-white app-shell">
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
