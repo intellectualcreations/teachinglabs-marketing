@@ -66,6 +66,7 @@ export const TEACHER_NAV = [
   { label: 'My Classes', href: '/teacher/my-classes', icon: 'BookOpenText', page: 'my-classes' },
   { label: 'Students', href: '/teacher/students', icon: 'UsersThree', page: 'students' },
   { label: 'Library', href: '/teacher/library', icon: 'Books', page: 'library' },
+  { label: 'Assessment Guide', href: '/teacher/assessment-guide', icon: 'Brain', page: 'assessment-guide' },
   { label: 'Student Chats', href: '/teacher/student-chats', icon: 'ChatsCircle', page: 'student-chats' },
   { label: 'Group Chats', href: '/teacher/group-chats', icon: 'UsersThree', page: 'group-chats' },
 ] as const;
