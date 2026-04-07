@@ -449,7 +449,7 @@ export default function ClassChatPage() {
                         <img
                           src={parsed.attachmentUrl}
                           alt={parsed.attachmentName || 'Image'}
-                          className="max-w-full rounded-xl max-h-64 object-cover"
+                          className="max-w-full rounded-xl max-h-64 object-cover bg-white"
                         />
                       ) : parsed.attachmentType === 'video' ? (
                         <video
@@ -519,7 +519,7 @@ export default function ClassChatPage() {
             <div className="flex items-center gap-2 px-2">
               <div className="relative">
                 {pendingAttachment.type === 'image' && pendingAttachment.preview ? (
-                  <img src={pendingAttachment.preview} alt="Preview" className="w-16 h-16 rounded-lg object-cover" />
+                  <img src={pendingAttachment.preview} alt="Preview" className="w-16 h-16 rounded-lg object-cover bg-white" />
                 ) : (
                   <div className="w-16 h-16 rounded-lg bg-card-bg border border-border flex flex-col items-center justify-center">
                     {(() => { const Icon = getFileIcon(pendingAttachment.type); return <Icon size={20} className="text-text-secondary" />; })()}
