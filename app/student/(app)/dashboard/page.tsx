@@ -380,7 +380,7 @@ export default function StudentDashboardPage() {
           <HandWaving size={24} weight="fill" className="text-teal" />
           <h1 className="font-heading font-bold text-xl text-text-primary">Hi {studentName}!</h1>
         </div>
-        {classes.length > 0 ? (
+        {classes.length > 0 && (
           <>
             <p className="text-sm text-text-secondary">
               You&apos;re enrolled in <strong className="text-text-primary">{classes.length} class{classes.length !== 1 ? 'es' : ''}</strong>. Click on a class to get started.
@@ -390,9 +390,8 @@ export default function StudentDashboardPage() {
               Pick a class to start chatting, view lessons, or explore on your own
             </div>
           </>
-        ) : (
-          <JoinClassInline onJoined={() => window.location.reload()} />
         )}
+        <JoinClassInline onJoined={() => window.location.reload()} />
       </div>
 
       {/* Push notification opt-in */}

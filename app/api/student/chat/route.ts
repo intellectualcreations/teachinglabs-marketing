@@ -385,6 +385,19 @@ export async function POST(request: NextRequest) {
     .order("created_at", { ascending: true })
     .limit(30);
 
+  // Strip attachment metadata for Claude — replace [[ATTACHMENT:{...}]] with a plain description
+  function cleanContentForAI(raw: string): string {
+    return raw.replace(/\[\[ATTACHMENT:(.*?)\]\]/g, (_, json) => {
+      try {
+        const meta = JSON.parse(json);
+        const typeLabel = meta.type === 'image' ? 'an image' : meta.type === 'video' ? 'a video' : 'a file';
+        return `[Student shared ${typeLabel}: ${meta.name || 'attachment'}]`;
+      } catch {
+        return '[Student shared an attachment]';
+      }
+    });
+  }
+
   // Build conversation for Claude
   const conversationHistory: { role: "user" | "assistant"; content: string }[] =
     (recentMessages ?? []).map(
@@ -393,7 +406,7 @@ export async function POST(request: NextRequest) {
           msg.message_type === "student"
             ? ("user" as const)
             : ("assistant" as const),
-        content: msg.content,
+        content: cleanContentForAI(msg.content),
       }),
     );
 
