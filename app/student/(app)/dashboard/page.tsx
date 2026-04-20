@@ -191,6 +191,7 @@ export default function StudentDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [studentName, setStudentName] = useState('');
+  const [superpowerTitle, setSuperpowerTitle] = useState('');
   const [classes, setClasses] = useState<EnrichedClass[]>([]);
   const [stats, setStats] = useState({ chatSessions: 0, activitiesComplete: 0, personalChats: 0 });
   const [activityValues, setActivityValues] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
@@ -235,6 +236,7 @@ export default function StudentDashboardPage() {
         }
 
         const displayName = preferredName || profile?.display_name || 'Student';
+        setSuperpowerTitle((profile as unknown as { superpower_title?: string })?.superpower_title || '');
         setStudentName(displayName.split(' ')[0]);
 
         // Fetch classes
@@ -383,7 +385,7 @@ export default function StudentDashboardPage() {
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-navy to-teal" />
         <div className="flex items-center gap-2 mb-1">
           <HandWaving size={24} weight="fill" className="text-teal" />
-          <h1 className="font-heading font-bold text-xl text-text-primary">Hi {studentName}!</h1>
+          <h1 className="font-heading font-bold text-xl text-text-primary">Hi {studentName}{superpowerTitle ? ` ${superpowerTitle}` : ''}!</h1>
         </div>
         {classes.length > 0 && (
           <>

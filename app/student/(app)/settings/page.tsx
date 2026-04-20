@@ -7,6 +7,7 @@ import {
   ArrowLeft, Gear, Sun, Moon, Desktop, SignOut, User,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import { SUPERPOWER_TITLES, INTELLIGENCE_LABELS, INTELLIGENCE_EMOJIS, type Intelligence } from '@/lib/superpower';
 
 /* ─── Helper: get access token from Supabase session ─── */
 async function getAccessToken(): Promise<string | null> {
@@ -33,6 +34,9 @@ export default function StudentSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [nameFlagged, setNameFlagged] = useState(false);
+  const [superpowerTitle, setSuperpowerTitle] = useState('');
+  const [primaryIntelligence, setPrimaryIntelligence] = useState<Intelligence | ''>('');
+  const [initialTitle, setInitialTitle] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
 
   // Load profile on mount
@@ -51,6 +55,9 @@ export default function StudentSettingsPage() {
         setPreferredName(data?.preferred_name || '');
         setInitialPreferredName(data?.preferred_name || '');
         setNameFlagged(!!data?.name_flagged);
+        setSuperpowerTitle(data?.superpower_title || '');
+        setInitialTitle(data?.superpower_title || '');
+        setPrimaryIntelligence(data?.primary_intelligence || '');
       } catch {
         /* ignore */
       }
@@ -59,7 +66,7 @@ export default function StudentSettingsPage() {
     loadProfile();
   }, []);
 
-  const isDirty = preferredName !== initialPreferredName;
+  const isDirty = preferredName !== initialPreferredName || superpowerTitle !== initialTitle;
 
   async function handleSave() {
     const token = await getAccessToken();
@@ -73,7 +80,7 @@ export default function StudentSettingsPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ preferred_name: preferredName }),
+        body: JSON.stringify({ preferred_name: preferredName, superpower_title: superpowerTitle }),
       });
       if (res.ok) {
         setInitialPreferredName(preferredName);
@@ -202,6 +209,39 @@ export default function StudentSettingsPage() {
             </div>
           )}
         </div>
+
+        {/* Divider */}
+        <div className="border-t border-border" />
+
+        {/* ─── Superpower Identity Section ─── */}
+        {primaryIntelligence && (
+          <div>
+            <h2 className="font-heading font-bold text-base text-text-primary flex items-center gap-2 mb-4">
+              ⚡ My Learning Superpower
+            </h2>
+            <div className="bg-gradient-to-r from-purple-500/10 to-teal/10 border border-purple-500/20 rounded-xl p-4 mb-4">
+              <p className="text-sm font-medium text-text-primary">
+                {INTELLIGENCE_EMOJIS[primaryIntelligence as Intelligence]} You are <span className="font-bold text-purple-400">{INTELLIGENCE_LABELS[primaryIntelligence as Intelligence]}</span>
+              </p>
+            </div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">Choose your hero title:</label>
+            <div className="grid grid-cols-2 gap-2">
+              {SUPERPOWER_TITLES[primaryIntelligence as Intelligence]?.map((title) => (
+                <button
+                  key={title}
+                  onClick={() => setSuperpowerTitle(title)}
+                  className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer border ${
+                    superpowerTitle === title
+                      ? 'bg-purple-500/20 border-purple-500 text-purple-300'
+                      : 'bg-white dark:bg-[#1a2332] border-border text-text-secondary hover:border-purple-500/50'
+                  }`}
+                >
+                  {title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Divider */}
         <div className="border-t border-border" />

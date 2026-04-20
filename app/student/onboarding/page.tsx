@@ -964,10 +964,14 @@ export default function StudentOnboardingPage() {
             { onConflict: 'student_id' }
           );
 
-          // Also set preferred_name on the profiles table so dashboard uses it
+          // Also set preferred_name and superpower on the profiles table
           if (answers.name) {
+            // Determine primary intelligence and default title
+            const { determinePrimaryIntelligence, getDefaultTitle } = await import('@/lib/superpower');
+            const primaryIntel = determinePrimaryIntelligence(gardnerSignals);
+            const defaultTitle = getDefaultTitle(primaryIntel);
             await (supabase.from as any)('profiles').update(
-              { preferred_name: answers.name }
+              { preferred_name: answers.name, primary_intelligence: primaryIntel, superpower_title: defaultTitle }
             ).eq('id', user.id);
           }
 

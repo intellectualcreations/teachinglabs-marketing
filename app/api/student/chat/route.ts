@@ -52,6 +52,8 @@ function buildSystemPrompt(
   teacherName: string,
   teacherSoul: TeacherSoul | null,
   studentAssessment: StudentAssessment | null,
+  superpowerTitle?: string | null,
+  primaryIntelligence?: string | null,
 ): string {
   // Language tier mapping
   const languageTierMap: Record<string, string> = {
@@ -116,6 +118,7 @@ Match ${teacherName}'s energy level (${traits.energy}) and feedback style (${tea
 
 STUDENT PROFILE:
 - Name: ${studentName}
+${superpowerTitle ? `- Learning Superpower: "${superpowerTitle}" (${primaryIntelligence || 'unknown'} intelligence). Use this identity naturally — greet them by name and title sometimes, reference their superpower when encouraging them. Example: "Nice work, ${studentName} ${superpowerTitle}!"` : ''}
 ${studentAssessment?.age ? `- Age: ${studentAssessment.age}` : ""}
 - Class: ${className} (${subject})${gradeLevel ? ` — Grade ${gradeLevel}` : ""}
 ${classDesc ? `- Class description: ${classDesc}` : ""}
@@ -397,10 +400,10 @@ export async function POST(request: NextRequest) {
   // Fetch student profile and assessment
   const { data: sp } = await admin
     .from("profiles")
-    .select("preferred_name, display_name")
+    .select("preferred_name, display_name, superpower_title, primary_intelligence")
     .eq("id", user.id)
     .single();
-  const studentProfile = sp as { preferred_name: string | null; display_name: string | null } | null;
+  const studentProfile = sp as { preferred_name: string | null; display_name: string | null; superpower_title: string | null; primary_intelligence: string | null } | null;
 
   const { data: assessmentRaw } = await admin
     .from("student_assessments")
@@ -480,6 +483,8 @@ export async function POST(request: NextRequest) {
     teacherName,
     teacherSoul,
     studentAssessment,
+    studentProfile?.superpower_title,
+    studentProfile?.primary_intelligence,
   );
 
   try {
