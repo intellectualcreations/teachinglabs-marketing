@@ -78,6 +78,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
   const [mobileOpen, setMobileOpen] = useState(false);
   const [studentName, setStudentName] = useState('');
   const [studentInitials, setStudentInitials] = useState('');
+  const [superpowerTitle, setSuperpowerTitle] = useState('');
   const [classes, setClasses] = useState<SidebarClass[]>([]);
   const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -139,6 +140,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
         }
 
         const displayName = preferredName || (profileData as { display_name?: string } | null)?.display_name || 'Student';
+        setSuperpowerTitle((profileData as unknown as { superpower_title?: string })?.superpower_title || '');
         setStudentName(displayName.split(' ')[0]);
         setStudentInitials(getInitials(displayName));
 
@@ -237,7 +239,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
         {/* Logo */}
         <div className="px-4 py-4 border-b border-white/10 flex flex-col items-center">
           <img src="/images/logo-stacked-dark.png" alt="TeachingLabs" className="h-14 mb-1" />
-          <div className="text-xs text-white/50 leading-tight">{studentName ? `${studentName}'s Learning Portal` : 'Learning Portal'}</div>
+          <div className="text-xs text-white/50 leading-tight">{superpowerTitle ? `${studentName} ${superpowerTitle}` : studentName ? `${studentName}'s Learning Portal` : 'Learning Portal'}</div>
         </div>
 
         {/* Nav */}
