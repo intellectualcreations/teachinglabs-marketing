@@ -86,6 +86,7 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
   const [sentAt, setSentAt] = useState('');
   const [error, setError] = useState('');
+  const [notRegistered, setNotRegistered] = useState(false);
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -96,8 +97,23 @@ export default function LoginPage() {
 
     setLoading(true);
     setError('');
+    setNotRegistered(false);
 
     try {
+      // Check if email is registered first
+      const checkRes = await fetch('/api/auth/check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const checkData = await checkRes.json();
+
+      if (!checkData.exists) {
+        setNotRegistered(true);
+        setLoading(false);
+        return;
+      }
+
       const supabase = createClient();
       const { error: authError } = await supabase.auth.signInWithOtp({
         email: email.trim(),
@@ -222,6 +238,17 @@ export default function LoginPage() {
               />
               {error && (
                 <p className="mt-1.5 text-xs text-danger">{error}</p>
+              )}
+              {notRegistered && (
+                <div className="mt-3 p-3 rounded-xl bg-warning/10 border border-warning/20">
+                  <p className="text-sm text-text-primary font-medium mb-1">We don&apos;t have an account with that email.</p>
+                  <p className="text-xs text-text-secondary mb-2">If you have an invite code from your teacher, you can create an account. Otherwise, join our waitlist!</p>
+                  <div className="flex gap-2">
+                    <Link href="/signup" className="text-xs font-semibold text-navy dark:text-teal hover:underline">Create an account</Link>
+                    <span className="text-xs text-text-muted">·</span>
+                    <Link href="/waitlist" className="text-xs font-semibold text-navy dark:text-teal hover:underline">Join the waitlist</Link>
+                  </div>
+                </div>
               )}
             </div>
 

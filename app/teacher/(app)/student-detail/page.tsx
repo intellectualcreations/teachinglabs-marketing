@@ -7,7 +7,7 @@ import {
   CaretLeft, CheckCircle, XCircle, UsersThree, Brain,
   ArrowsClockwise, ChatsCircle, Export, EnvelopeSimple,
   BookOpenText, MusicNotes, PersonArmsSpread, HandHeart,
-  TreeEvergreen, Barbell, Lightbulb, Sparkle, Eye,
+  TreeEvergreen, Barbell, Lightbulb, Sparkle, Eye, PencilSimple, X,
 } from '@phosphor-icons/react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -168,6 +168,11 @@ function StudentDetailContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [teacherNotes, setTeacherNotes] = useState('');
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [nameSaving, setNameSaving] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [nameSuccess, setNameSuccess] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -457,7 +462,75 @@ function StudentDetailContent() {
           hover:border-navy hover:text-text-primary transition-all">
           <EnvelopeSimple size={14} weight="fill" /> Send to Parents
         </button>
+        <button
+          onClick={() => { setNewName(assessment?.preferred_name || ''); setShowNameModal(true); setNameError(''); setNameSuccess(false); }}
+          className="inline-flex items-center gap-1.5 px-[18px] py-2 rounded-lg border-[1.5px] border-orange-400/50
+            bg-transparent text-orange-400 font-heading font-semibold text-[13px] cursor-pointer
+            hover:border-orange-400 hover:text-orange-300 transition-all"
+        >
+          <PencilSimple size={14} weight="fill" /> Change Name
+        </button>
       </div>
+
+      {/* Name Override Modal */}
+      {showNameModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowNameModal(false)}>
+          <div className="bg-card-bg border border-border rounded-xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading font-bold text-base text-text-primary">Change Student&apos;s Preferred Name</h3>
+              <button onClick={() => setShowNameModal(false)} className="text-text-secondary hover:text-text-primary transition-colors bg-transparent border-0 cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-text-secondary mb-4">This will override the student&apos;s preferred name. They can still change it themselves later.</p>
+            <input
+              type="text"
+              value={newName}
+              onChange={e => setNewName(e.target.value.slice(0, 50))}
+              maxLength={50}
+              placeholder="New preferred name"
+              className="w-full px-3 py-2 rounded-lg bg-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40 mb-1"
+            />
+            <p className="text-xs text-text-muted mb-4">{newName.length}/50 characters</p>
+            {nameError && <p className="text-sm text-red-500 mb-3">{nameError}</p>}
+            {nameSuccess && <p className="text-sm text-green-500 mb-3">Name updated!</p>}
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowNameModal(false)}
+                className="px-4 py-2 rounded-lg border border-border text-text-secondary text-sm font-medium hover:text-text-primary transition-colors bg-transparent cursor-pointer"
+              >Cancel</button>
+              <button
+                onClick={async () => {
+                  if (!newName.trim() || !studentId) return;
+                  setNameSaving(true);
+                  setNameError('');
+                  try {
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    const res = await fetch('/api/teacher/student-detail', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ studentId, teacherId: user.id, preferred_name: newName.trim() }),
+                    });
+                    if (res.ok) {
+                      setNameSuccess(true);
+                      if (assessment) assessment.preferred_name = newName.trim();
+                      setTimeout(() => { setShowNameModal(false); setNameSuccess(false); }, 1500);
+                    } else {
+                      const data = await res.json();
+                      setNameError(data.error || 'Failed to update name');
+                    }
+                  } catch { setNameError('Failed to update name'); }
+                  setNameSaving(false);
+                }}
+                disabled={nameSaving || !newName.trim()}
+                className="px-4 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors border-0 cursor-pointer disabled:opacity-50"
+              >{nameSaving ? 'Saving...' : 'Update Name'}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Coming Soon Section */}
       <div className="relative bg-card-bg border border-border rounded-[14px] p-8 mb-5 text-center overflow-hidden">

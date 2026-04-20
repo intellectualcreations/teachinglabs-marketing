@@ -684,7 +684,7 @@ function FollowUpModal({
   const [response, setResponse] = useState('');
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-card-bg border border-border rounded-2xl shadow-2xl p-6 max-w-md mx-4 onb-card-in">
+      <div className="bg-white dark:bg-[#0f1a2e] border border-border rounded-2xl shadow-2xl p-6 max-w-md mx-4 onb-card-in">
         <div className="flex items-start gap-3 mb-4">
           <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-teal to-navy flex items-center justify-center">
             <ChatCircle size={22} weight="fill" className="text-white" />
@@ -697,7 +697,7 @@ function FollowUpModal({
           placeholder="Tell me a bit more..."
           rows={3}
           autoFocus
-          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none text-sm leading-relaxed mb-4"
+          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-white dark:bg-[#1a2332] text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none text-sm leading-relaxed mb-4"
         />
         <div className="flex gap-3 justify-end">
           <button

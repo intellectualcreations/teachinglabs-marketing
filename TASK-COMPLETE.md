@@ -1,45 +1,37 @@
-# Phase 44 — Student Attendance Tracking ✅
+# Task Complete — Phase 47: Course Waitlist System
 
-## Completed: 2026-03-29
+**Commit:** `6561887b2bc3d9f2745d8a0294b38fb673048b97`
+**Branch:** dev
+**Date:** 2026-04-12
 
-### What was built:
-- `lib/attendance-store.ts` — in-memory store for class sessions and attendance records
-- `POST /api/v1/courses/:courseId/sessions` — create a class session (date, topic)
-- `GET /api/v1/courses/:courseId/sessions` — list sessions for a course
-- `POST /api/v1/sessions/:sessionId/attendance` — mark attendance (single or array of {studentId, status})
-- `GET /api/v1/sessions/:sessionId/attendance` — get all attendance for a session
-- `GET /api/v1/courses/:courseId/students/:studentId/attendance` — student history + attendance percentage
-- `POST /api/v1/sessions/:sessionId/attendance/bulk-present` — marks all enrolled students as present
+## What was built
 
-### Key details:
-- Follows existing in-memory store pattern (like discussion-store.ts)
-- Attendance supports upsert (re-marking updates existing record)
-- Status options: present, absent, late
-- Attendance percentage counts both "present" and "late" as attended
-- Bulk-present uses enrollment-store to find enrolled students
-- `npm run build` passes ✅
+### lib/waitlist-store.ts
+- `CourseWaitlist` and `WaitlistEntry` interfaces
+- `addToWaitlist(courseId, studentId)` — adds student to waitlist queue
+- `removeFromWaitlist(entryId)` — removes entry and reindexes positions
+- `getWaitlist(courseId)` — returns waitlist info + sorted entries
+- `enrollFromWaitlist(courseId)` — auto-enrolls next student in queue
+- `updateCapacity(courseId, capacity)` — sets course capacity
+- Validates: course exists, no duplicate entries, student not already enrolled, course must be full to join waitlist
 
----
+### API Routes (follows existing `[courseId]` param pattern)
+- `GET /api/v1/courses/:courseId/waitlist` — list waitlist with positions
+- `POST /api/v1/courses/:courseId/waitlist` — join waitlist (`{ studentId }`)
+- `DELETE /api/v1/courses/:courseId/waitlist/:entryId` — leave waitlist
+- `POST /api/v1/courses/:courseId/waitlist/enroll` — auto-enroll next in queue
 
-# Phase 46 — Student Portfolio Builder ✅
+## Acceptance criteria
+- [x] POST adds student to waitlist
+- [x] GET lists waitlist with positions
+- [x] DELETE removes from waitlist
+- [x] POST enroll auto-enrolls next in queue
+- [x] Waitlist respects course capacity
+- [x] Positions update when someone leaves
+- [x] `npm run build` passes (zero warnings on new files)
+- [x] Committed with correct message format
 
-## Completed: 2026-03-30
-
-### What was built:
-- `lib/portfolio-store.ts` — in-memory store for portfolio items, endorsements, and share tokens
-- `POST /api/v1/students/:id/portfolio` — create a portfolio item
-- `GET /api/v1/students/:id/portfolio` — list all portfolio items for a student
-- `GET /api/v1/students/:id/portfolio/:itemId` — get single item
-- `DELETE /api/v1/students/:id/portfolio/:itemId` — remove item
-- `POST /api/v1/students/:id/portfolio/share` — generate a public share token
-- `GET /api/v1/portfolio/:token` — public view (no auth required)
-- `POST /api/v1/portfolio/:token/endorse/:itemId` — add instructor endorsement
-
-### Key details:
-- PortfolioItem: id, studentId, title, description, type, createdAt, endorsements
-- Endorsement: id, instructorId, comment, createdAt
-- ShareToken: token, studentId, createdAt
-- Public share link works without authentication
-- Follows existing in-memory store pattern
-- `npm run build` passes ✅
-- Commit: 0c5e7ab feat(phase46): student portfolio builder [TeachingLabs-P46]
+## Notes
+- Used `[courseId]` param (not `[id]`) to match existing course route conventions
+- Default capacity is 30 per course; adjustable via `updateCapacity()`
+- In-memory store, consistent with the rest of the demo app
