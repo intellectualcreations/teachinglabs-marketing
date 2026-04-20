@@ -128,7 +128,7 @@ function StudentsContent() {
               classIds: [e.class_id],
               enrolledAt: e.enrolled_at,
               baselineDate: assessmentMap.get(e.student_id) ?? null,
-              preferredName: preferredNameMap.get(e.student_id) ?? null,
+              preferredName: (p as unknown as { preferred_name?: string })?.preferred_name || preferredNameMap.get(e.student_id) || null,
               color: AVATAR_COLORS[i % AVATAR_COLORS.length],
               studentNumber: null,
             });
