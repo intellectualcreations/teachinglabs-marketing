@@ -123,17 +123,20 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
           .eq('id', user.id)
           .single();
 
-        let preferredName = '';
-        try {
-          const { data: assessmentData } = await supabase
-            .from('student_assessments')
-            .select('preferred_name')
-            .eq('student_id', user.id)
-            .single();
-          if (assessmentData && (assessmentData as { preferred_name?: string }).preferred_name) {
-            preferredName = (assessmentData as { preferred_name: string }).preferred_name;
-          }
-        } catch { /* table may not exist */ }
+        // Check profiles.preferred_name first (Settings page), then assessment, then display_name
+        let preferredName = (profileData as { preferred_name?: string } | null)?.preferred_name || '';
+        if (!preferredName) {
+          try {
+            const { data: assessmentData } = await supabase
+              .from('student_assessments')
+              .select('preferred_name')
+              .eq('student_id', user.id)
+              .single();
+            if (assessmentData && (assessmentData as { preferred_name?: string }).preferred_name) {
+              preferredName = (assessmentData as { preferred_name: string }).preferred_name;
+            }
+          } catch { /* table may not exist */ }
+        }
 
         const displayName = preferredName || (profileData as { display_name?: string } | null)?.display_name || 'Student';
         setStudentName(displayName.split(' ')[0]);
