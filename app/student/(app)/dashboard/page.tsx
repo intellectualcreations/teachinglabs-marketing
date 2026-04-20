@@ -215,19 +215,24 @@ export default function StudentDashboardPage() {
           .eq('id', user.id)
           .single();
 
-        const profile = profileData as unknown as Profile | null;
+        const profile = profileData as unknown as (Profile & { preferred_name?: string }) | null;
 
-        let preferredName = '';
-        try {
-          const { data: assessmentData } = await supabase
-            .from('student_assessments')
-            .select('preferred_name')
-            .eq('student_id', user.id)
-            .single();
-          if (assessmentData && (assessmentData as { preferred_name?: string }).preferred_name) {
-            preferredName = (assessmentData as { preferred_name: string }).preferred_name;
-          }
-        } catch { /* table may not exist */ }
+        // Check profiles.preferred_name first (set from Settings page),
+        // then fall back to student_assessments.preferred_name (set during onboarding),
+        // then display_name, then 'Student'
+        let preferredName = profile?.preferred_name || '';
+        if (!preferredName) {
+          try {
+            const { data: assessmentData } = await supabase
+              .from('student_assessments')
+              .select('preferred_name')
+              .eq('student_id', user.id)
+              .single();
+            if (assessmentData && (assessmentData as { preferred_name?: string }).preferred_name) {
+              preferredName = (assessmentData as { preferred_name: string }).preferred_name;
+            }
+          } catch { /* table may not exist */ }
+        }
 
         const displayName = preferredName || profile?.display_name || 'Student';
         setStudentName(displayName.split(' ')[0]);
