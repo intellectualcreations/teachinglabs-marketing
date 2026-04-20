@@ -33,6 +33,7 @@ export default function StudentSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
 
   // Load profile on mount
@@ -65,6 +66,7 @@ export default function StudentSettingsPage() {
     if (!token) return;
     setSaving(true);
     try {
+      setSaveError('');
       const res = await fetch('/api/student/profile', {
         method: 'PATCH',
         headers: {
@@ -77,6 +79,9 @@ export default function StudentSettingsPage() {
         setInitialPreferredName(preferredName);
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
+      } else {
+        const data = await res.json();
+        setSaveError(data.error || 'Failed to save. Please try again.');
       }
     } catch {
       /* ignore */
@@ -156,10 +161,12 @@ export default function StudentSettingsPage() {
                 <input
                   type="text"
                   value={preferredName}
-                  onChange={(e) => setPreferredName(e.target.value)}
+                  onChange={(e) => setPreferredName(e.target.value.slice(0, 50))}
                   placeholder="What should we call you?"
+                  maxLength={50}
                   className="w-full px-3 py-2 rounded-lg bg-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
+                <p className="text-xs text-text-muted mt-1">{preferredName.length}/50 characters</p>
               </div>
 
               {/* Save button */}
@@ -182,6 +189,9 @@ export default function StudentSettingsPage() {
                   'Save Changes'
                 )}
               </button>
+              {saveError && (
+                <p className="text-sm text-red-500 mt-1">{saveError}</p>
+              )}
             </div>
           )}
         </div>
