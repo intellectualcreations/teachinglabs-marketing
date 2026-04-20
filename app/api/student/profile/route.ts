@@ -1,6 +1,23 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
+// Basic profanity blocklist for K-12 environment
+const BLOCKED_WORDS = [
+  'ass', 'asshole', 'bastard', 'bitch', 'bullshit', 'crap', 'cunt',
+  'damn', 'dick', 'dumbass', 'fag', 'fuck', 'goddamn', 'hell',
+  'jackass', 'nigger', 'nigga', 'piss', 'pussy', 'retard', 'shit',
+  'slut', 'whore', 'cock', 'penis', 'vagina', 'boob', 'tits',
+  'stfu', 'wtf', 'lmfao', 'milf',
+];
+
+function containsProfanity(text: string): boolean {
+  const lower = text.toLowerCase().replace(/[^a-z]/g, ' ');
+  return BLOCKED_WORDS.some(word => {
+    const regex = new RegExp(`\\b${word}\\b`);
+    return regex.test(lower);
+  });
+}
+
 export async function GET(req: Request) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -30,7 +47,16 @@ export async function PATCH(req: Request) {
   const allowedFields = ['preferred_name'];
   const updates: Record<string, string> = {};
   for (const key of allowedFields) {
-    if (key in body) updates[key] = body[key];
+    if (key in body) {
+      const value = String(body[key]).trim().slice(0, 50);
+      if (key === 'preferred_name' && containsProfanity(value)) {
+        return NextResponse.json(
+          { error: 'That name contains inappropriate language. Please choose a different name.' },
+          { status: 400 }
+        );
+      }
+      updates[key] = value;
+    }
   }
 
   const { error } = await admin
