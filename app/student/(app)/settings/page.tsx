@@ -8,14 +8,12 @@ import {
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 
-/* ─── Helper: get access token from localStorage ─── */
-function getAccessToken(): string | null {
-  if (typeof window === 'undefined') return null;
+/* ─── Helper: get access token from Supabase session ─── */
+async function getAccessToken(): Promise<string | null> {
   try {
-    const raw = localStorage.getItem('sb-auth-token');
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return parsed?.access_token ?? null;
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
   } catch {
     return null;
   }
@@ -39,7 +37,7 @@ export default function StudentSettingsPage() {
   // Load profile on mount
   useEffect(() => {
     async function loadProfile() {
-      const token = getAccessToken();
+      const token = await getAccessToken();
       if (!token) { setLoading(false); return; }
 
       try {
@@ -62,7 +60,7 @@ export default function StudentSettingsPage() {
   const isDirty = preferredName !== initialPreferredName;
 
   async function handleSave() {
-    const token = getAccessToken();
+    const token = await getAccessToken();
     if (!token) return;
     setSaving(true);
     try {
