@@ -554,7 +554,7 @@ export default function ClassChatPage() {
               </button>
 
               {showAttachMenu && (
-                <div className="absolute bottom-14 left-0 bg-card-bg border border-border rounded-xl shadow-lg py-1 w-44 z-10">
+                <div className="absolute bottom-14 left-0 bg-white dark:bg-[#1a2332] border border-border rounded-xl shadow-lg py-1 w-44 z-10">
                   <button
                     onClick={() => handleFileSelect('image/*')}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-text-primary hover:bg-border/50 transition-colors"
@@ -588,7 +588,7 @@ export default function ClassChatPage() {
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
               placeholder="Ask a question..."
               disabled={sending}
-              className="flex-1 px-4 py-3 rounded-xl bg-card-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
+              className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-[#1a2332] border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
             />
             <button
               onClick={handleSend}
