@@ -7,7 +7,7 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
     {
       auth: {
-        flowType: 'pkce',
+        flowType: 'implicit',
         storageKey: 'sb-auth-token',
         persistSession: true,
         detectSessionInUrl: true,
