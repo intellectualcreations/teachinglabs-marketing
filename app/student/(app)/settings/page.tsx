@@ -32,6 +32,7 @@ export default function StudentSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [nameFlagged, setNameFlagged] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   // Load profile on mount
@@ -49,6 +50,7 @@ export default function StudentSettingsPage() {
         setDisplayName(data?.display_name || '');
         setPreferredName(data?.preferred_name || '');
         setInitialPreferredName(data?.preferred_name || '');
+        setNameFlagged(!!data?.name_flagged);
       } catch {
         /* ignore */
       }
@@ -153,8 +155,20 @@ export default function StudentSettingsPage() {
 
               {/* Preferred Name (editable) */}
               <div>
+                {nameFlagged && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-3">
+                    <p className="text-sm font-medium text-amber-400 mb-1">Your nickname was flagged by your teacher.</p>
+                    <p className="text-xs text-text-secondary">Please choose a new one that follows these guidelines:</p>
+                    <ul className="text-xs text-text-secondary mt-1 ml-3 list-disc space-y-0.5">
+                      <li>Use your real first name or a friendly nickname</li>
+                      <li>Keep it appropriate and readable</li>
+                      <li>No bad words, symbols, or random characters</li>
+                      <li>Something your teacher and classmates would be comfortable with</li>
+                    </ul>
+                  </div>
+                )}
                 <label className="block text-sm font-medium text-text-secondary mb-1">
-                  Preferred Name
+                  Nickname
                 </label>
                 <input
                   type="text"

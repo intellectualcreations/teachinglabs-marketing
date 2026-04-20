@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { studentId, teacherId, preferred_name } = body;
+    const { studentId, teacherId, preferred_name, flagged } = body;
 
     if (!studentId || !teacherId || typeof preferred_name !== 'string') {
       return NextResponse.json(
@@ -145,9 +145,13 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Student not in your classes' }, { status: 403 });
     }
 
+    const updateData: Record<string, unknown> = { preferred_name: name };
+    if (flagged) {
+      updateData.name_flagged = true;
+    }
     const { error } = await supabase
       .from('profiles')
-      .update({ preferred_name: name } as never)
+      .update(updateData as never)
       .eq('id', studentId);
 
     if (error) {

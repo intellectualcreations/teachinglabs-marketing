@@ -28,7 +28,7 @@ export async function GET(req: Request) {
 
   const { data } = await admin
     .from('profiles')
-    .select('id, display_name, preferred_name, role')
+    .select('id, display_name, preferred_name, role, name_flagged')
     .eq('id', user.id)
     .single();
 
@@ -56,6 +56,10 @@ export async function PATCH(req: Request) {
         );
       }
       updates[key] = value;
+      // Clear the flagged status when student picks a new name
+      if (key === 'preferred_name') {
+        (updates as Record<string, unknown>)['name_flagged'] = false;
+      }
     }
   }
 
