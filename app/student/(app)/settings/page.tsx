@@ -157,8 +157,9 @@ export default function StudentSettingsPage() {
               <div>
                 {nameFlagged && (
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-3">
-                    <p className="text-sm font-medium text-amber-400 mb-1">Your teacher asked you to pick a new nickname.</p>
-                    <p className="text-xs text-text-secondary">Choose your learning superpower name! Make it school-appropriate, easy to read, and something your teacher would give a thumbs up 👍</p>
+                    <p className="text-sm font-medium text-amber-400 mb-1">Every hero needs a name… what&apos;s your learning superpower identity?</p>
+                    <p className="text-xs text-text-secondary mb-2">Choose something creative and fun — just make sure it&apos;s appropriate, easy to read, and classroom-ready.</p>
+                    <p className="text-xs text-text-muted italic">Ideas: &quot;Mind Master&quot; · &quot;Code Wizard&quot; · &quot;Science Explorer&quot; · &quot;History Guardian&quot;</p>
                   </div>
                 )}
                 <label className="block text-sm font-medium text-text-secondary mb-1">
