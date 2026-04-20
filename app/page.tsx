@@ -3,8 +3,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ScrollReveal from '@/components/shared/ScrollReveal';
 import MarketingNav from '@/components/shared/MarketingNav';
-import MarketingFooter from '@/components/shared/MarketingFooter';
-
 
 export const metadata: Metadata = {
   title: 'Teaching Labs — AI-Powered Teaching Platform for K-12',
@@ -12,107 +10,93 @@ export const metadata: Metadata = {
     'Teaching Labs learns how you teach and helps every student get the support they need. AI-powered K-12 teaching platform.',
 };
 
-/* ─── Inline SVG icons (indigo → plum gradient in light, teal in dark) ─── */
+const WAITLIST_URL = 'https://teaching-labs-vps.tail6d84e.ts.net:4001/waitlist';
+
+/* ─────────────────────────────────────────
+   Inline SVG icons (exact paths from v4)
+   ───────────────────────────────────────── */
 
 function IconDiverge() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
-      <defs>
-        <linearGradient id="gd1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#4056F4" />
-          <stop offset="100%" stopColor="#561F37" />
-        </linearGradient>
-      </defs>
-      <path d="M24 8 C16 16, 8 28, 8 36" stroke="url(#gd1)" strokeWidth="2.5" strokeLinecap="round" className="dark:stroke-teal" />
-      <path d="M24 8 C24 18, 24 28, 24 38" stroke="url(#gd1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" className="dark:stroke-teal" />
-      <path d="M24 8 C32 16, 40 28, 40 36" stroke="url(#gd1)" strokeWidth="2.5" strokeLinecap="round" opacity="0.5" className="dark:stroke-teal" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
+      <path d="M24 8 C16 16, 8 28, 8 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+      <path d="M24 8 C24 18, 24 28, 24 38" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+      <path d="M24 8 C32 16, 40 28, 40 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.4" />
     </svg>
   );
 }
 
 function IconConcentric() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
-      <defs>
-        <linearGradient id="gc1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#4056F4" />
-          <stop offset="100%" stopColor="#561F37" />
-        </linearGradient>
-      </defs>
-      <circle cx="24" cy="24" r="8" stroke="url(#gc1)" strokeWidth="2.5" className="dark:stroke-teal" />
-      <circle cx="24" cy="24" r="14" stroke="url(#gc1)" strokeWidth="2" opacity="0.7" className="dark:stroke-teal" />
-      <circle cx="24" cy="24" r="20" stroke="url(#gc1)" strokeWidth="1.5" opacity="0.45" className="dark:stroke-teal" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
+      <circle cx="24" cy="24" r="8" stroke="currentColor" strokeWidth="2.5" opacity="0.9" />
+      <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="2" opacity="0.6" />
+      <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1.5" opacity="0.35" />
     </svg>
   );
 }
 
 function IconNetwork() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
-      <defs>
-        <linearGradient id="gn1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#4056F4" />
-          <stop offset="100%" stopColor="#561F37" />
-        </linearGradient>
-      </defs>
-      <circle cx="14" cy="14" r="4" stroke="url(#gn1)" strokeWidth="2" className="dark:stroke-teal" />
-      <circle cx="34" cy="14" r="4" stroke="url(#gn1)" strokeWidth="2" className="dark:stroke-teal" />
-      <circle cx="24" cy="30" r="4" stroke="url(#gn1)" strokeWidth="2" className="dark:stroke-teal" />
-      <circle cx="10" cy="38" r="3" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.6" className="dark:stroke-teal" />
-      <circle cx="38" cy="38" r="3" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.6" className="dark:stroke-teal" />
-      <line x1="14" y1="18" x2="24" y2="26" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.6" className="dark:stroke-teal" />
-      <line x1="34" y1="18" x2="24" y2="26" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.6" className="dark:stroke-teal" />
-      <line x1="24" y1="34" x2="10" y2="35" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.5" className="dark:stroke-teal" />
-      <line x1="24" y1="34" x2="38" y2="35" stroke="url(#gn1)" strokeWidth="1.5" opacity="0.5" className="dark:stroke-teal" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
+      <circle cx="14" cy="14" r="4" stroke="currentColor" strokeWidth="2" opacity="0.7" />
+      <circle cx="34" cy="14" r="4" stroke="currentColor" strokeWidth="2" opacity="0.7" />
+      <circle cx="24" cy="30" r="4" stroke="currentColor" strokeWidth="2" opacity="0.9" />
+      <circle cx="10" cy="38" r="3" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+      <circle cx="38" cy="38" r="3" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+      <line x1="14" y1="18" x2="24" y2="26" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+      <line x1="34" y1="18" x2="24" y2="26" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+      <line x1="24" y1="34" x2="10" y2="35" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
+      <line x1="24" y1="34" x2="38" y2="35" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
     </svg>
   );
 }
 
 function IconOrbit() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
-      <defs>
-        <linearGradient id="go1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#4056F4" />
-          <stop offset="100%" stopColor="#561F37" />
-        </linearGradient>
-      </defs>
-      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="url(#go1)" strokeWidth="2" opacity="0.5" transform="rotate(-30 24 24)" className="dark:stroke-teal" />
-      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="url(#go1)" strokeWidth="2" opacity="0.7" transform="rotate(30 24 24)" className="dark:stroke-teal" />
-      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="url(#go1)" strokeWidth="2" opacity="0.9" transform="rotate(90 24 24)" className="dark:stroke-teal" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
+      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="currentColor" strokeWidth="2" opacity="0.4" transform="rotate(-30 24 24)" />
+      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="currentColor" strokeWidth="2" opacity="0.6" transform="rotate(30 24 24)" />
+      <ellipse cx="24" cy="24" rx="20" ry="10" stroke="currentColor" strokeWidth="2" opacity="0.8" transform="rotate(90 24 24)" />
+      <circle cx="24" cy="24" r="4" fill="currentColor" opacity="0.9" />
     </svg>
   );
 }
 
 function IconFunnel() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
-      <defs>
-        <linearGradient id="gf1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#4056F4" />
-          <stop offset="100%" stopColor="#561F37" />
-        </linearGradient>
-      </defs>
-      <path d="M6 8 L42 8 L28 24 L28 38 L20 42 L20 24 Z" stroke="url(#gf1)" strokeWidth="2" strokeLinejoin="round" className="dark:stroke-teal" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
+      <path d="M8 12 Q18 24, 24 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+      <path d="M24 12 Q24 24, 24 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
+      <path d="M40 12 Q30 24, 24 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+      <circle cx="24" cy="38" r="3" fill="currentColor" opacity="0.9" />
     </svg>
   );
 }
 
 function IconVenn() {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
-      <defs>
-        <linearGradient id="gv1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#4056F4" />
-          <stop offset="100%" stopColor="#561F37" />
-        </linearGradient>
-      </defs>
-      <circle cx="18" cy="24" r="12" stroke="url(#gv1)" strokeWidth="2" opacity="0.8" className="dark:stroke-teal" />
-      <circle cx="30" cy="24" r="12" stroke="url(#gv1)" strokeWidth="2" opacity="0.8" className="dark:stroke-teal" />
+    <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 text-teal">
+      <circle cx="18" cy="24" r="10" stroke="currentColor" strokeWidth="2" opacity="0.6" />
+      <circle cx="30" cy="24" r="10" stroke="currentColor" strokeWidth="2" opacity="0.6" />
+      <circle cx="24" cy="16" r="10" stroke="currentColor" strokeWidth="2" opacity="0.4" />
     </svg>
   );
 }
-/* ─── Card component ─── */
+
+function IconStar() {
+  return (
+    <svg viewBox="0 0 14 14" fill="currentColor" className="w-3.5 h-3.5">
+      <path d="M7 0l1.5 4.5H13l-3.5 2.7 1.3 4.3L7 8.8 3.2 11.5l1.3-4.3L1 4.5h4.5z" />
+    </svg>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Local components (scoped to homepage)
+   ───────────────────────────────────────── */
+
+/* Card — matches v4 .card (with left teal accent in light, glass in dark) */
 function Card({
   icon,
   title,
@@ -125,72 +109,125 @@ function Card({
   floatClass: string;
 }) {
   return (
-    <div className="card-accent relative bg-card-bg rounded-[20px] p-10 overflow-hidden shadow-[0_2px_20px_rgba(20,33,61,0.05)] hover:shadow-[0_8px_40px_rgba(20,33,61,0.10)] hover:-translate-y-1.5 transition-all duration-300">
-      <div className={`mb-6 ${floatClass}`}>{icon}</div>
+    <div
+      className="relative rounded-[20px] p-10 px-8 overflow-hidden transition-all duration-400 hover:-translate-y-1.5 bg-white dark:bg-white/[0.04] border border-transparent dark:border-[rgba(86,31,55,0.25)] shadow-[0_2px_20px_rgba(10,17,40,0.06)] dark:shadow-[0_2px_20px_rgba(0,0,0,0.25)] hover:shadow-[0_8px_40px_rgba(10,17,40,0.1)] dark:hover:shadow-[0_8px_32px_rgba(0,246,237,0.1),0_4px_20px_rgba(86,31,55,0.12)]"
+    >
+      {/* Left accent bar — light mode only (teal gradient) */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[20px] block dark:hidden"
+        style={{ background: 'linear-gradient(180deg, #00F6ED, rgba(0, 246, 237, 0.3))' }}
+        aria-hidden="true"
+      />
+      <div className={`w-12 h-12 mb-6 ${floatClass}`}>{icon}</div>
       <h3 className="font-heading text-[16.5px] font-semibold text-text-primary mb-3">{title}</h3>
       <p className="text-[15px] leading-[1.78] text-text-secondary">{text}</p>
     </div>
   );
 }
 
-/* ─── Bridge quote ─── */
+/* Bridge quote — matches v4 .bridge */
 function Bridge({ children }: { children: React.ReactNode }) {
   return (
-    <div className="border-l-4 border-underline bg-[rgba(0,246,237,0.04)] dark:bg-[rgba(0,246,237,0.06)] rounded-xl p-8 pl-6 max-w-3xl font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary mt-12 max-md:text-xl max-md:p-6 max-md:pl-5">
+    <div
+      className="font-heading text-[26px] font-medium italic leading-[1.5] text-text-primary border-l-4 p-8 pl-6 rounded-xl max-w-[800px] max-md:text-[20px] max-md:p-6 max-md:pl-5"
+      style={{
+        borderLeftColor: '#561F37',
+        background: 'var(--bridge-bg, rgba(64, 86, 244, 0.04))',
+      }}
+    >
       {children}
     </div>
   );
 }
 
-/* ─── Eyebrow label ─── */
+/* Eyebrow — coral dot + coral text (light) / teal dot + teal text (dark) */
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-eyebrow font-extrabold flex items-center justify-center gap-3 font-heading text-sm font-bold tracking-[4px] uppercase mb-4">
-      <span className="bg-eyebrow w-2 h-2 rounded-full flex-shrink-0" />
+    <div className="font-heading text-xs font-bold tracking-[4px] uppercase mb-4 flex justify-center items-center text-[#561F37] dark:text-teal">
+      <span className="block w-2 h-2 rounded-full mr-3 flex-shrink-0 bg-[#561F37] dark:bg-teal" />
       {children}
     </div>
   );
 }
 
-/* ─── Main page ─── */
+/* Section title with animated underline (v4 .section-title::after, 60px gold bar) */
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <h2
+        className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary block text-center mb-0"
+        style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}
+      >
+        {children}
+      </h2>
+      <div
+        className="h-[3px] mx-auto mt-3 rounded-sm"
+        style={{ width: '60px', background: '#4056F4' }}
+        aria-hidden="true"
+      />
+    </>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Main page
+   ───────────────────────────────────────── */
 export default function HomePage() {
   return (
     <>
       <MarketingNav />
       <ScrollReveal />
 
-      {/* ── HERO ── */}
-      <section className="section-blend relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-deep-navy">
+      {/* Bridge quote background variable for light/dark, scoped to page */}
+      <style>{`
+        :root { --bridge-bg: rgba(64, 86, 244, 0.04); }
+        .dark { --bridge-bg: rgba(86, 31, 55, 0.10); }
+      `}</style>
+
+      {/* ═══════════════ HERO ═══════════════ */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-warm-white dark:bg-deep-navy">
         {/* Decorative blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <div className="blob-teal absolute w-[600px] h-[600px] rounded-full top-[8%] left-[5%] max-md:w-[350px] max-md:h-[350px] opacity-[0.10] dark:opacity-[0.08]"
-            style={{ background: '#00F6ED', filter: 'blur(100px)' }} />
-          <div className="blob-gold absolute w-[550px] h-[550px] rounded-full top-[20%] right-[2%] max-md:w-[320px] max-md:h-[320px] opacity-[0.10] dark:opacity-[0.08]"
-            style={{ background: '#4056F4', filter: 'blur(100px)' }} />
-          <div className="absolute w-[400px] h-[400px] rounded-full top-[55%] left-[15%] opacity-[0.07] dark:opacity-[0.1] max-md:hidden"
-            style={{ background: '#561F37', filter: 'blur(100px)' }} />
+          <div
+            className="blob-teal absolute w-[500px] h-[500px] rounded-full top-[10%] left-[15%] max-md:w-[300px] max-md:h-[300px]"
+            style={{ background: '#00F6ED', filter: 'blur(50px)', opacity: 0.15 }}
+          />
+          <div
+            className="blob-gold absolute w-[450px] h-[450px] rounded-full top-[30%] right-[10%] max-md:w-[280px] max-md:h-[280px]"
+            style={{ background: '#4056F4', filter: 'blur(50px)', opacity: 0.1 }}
+          />
+          <div
+            className="absolute w-[350px] h-[350px] rounded-full top-[40%] left-[40%] max-md:hidden"
+            style={{
+              background: '#561F37',
+              filter: 'blur(50px)',
+              opacity: 0.12,
+              animation: 'blobDrift3 10s ease-in-out infinite',
+            }}
+          />
         </div>
 
         <div className="relative z-10 text-center max-w-[900px] px-12 max-md:px-6">
-          {/* Eyebrow */}
-          <div className="text-eyebrow font-extrabold inline-flex items-center gap-3 font-heading text-sm font-bold tracking-[4px] uppercase mb-6">
-            <span className="bg-eyebrow w-2 h-2 rounded-full flex-shrink-0" />
+          {/* Eyebrow — gold dot + coral(light)/teal(dark) text */}
+          <div className="font-heading text-xs font-bold tracking-[4px] uppercase mb-6 flex justify-center items-center text-[#561F37] dark:text-teal">
+            <span className="block w-2 h-2 rounded-full mr-3 flex-shrink-0 bg-gold" />
             AI-Powered Teaching Platform · K-12
           </div>
 
-          {/* Headline */}
-          <h1 className="font-heading font-extrabold tracking-[-2px] leading-[1.15] mb-6"
-            style={{ fontSize: 'clamp(38px, 6vw, 68px)' }}>
-            <span className="text-text-primary hero-word hero-word-0 mr-2">Your</span>
-            <span className="text-text-primary hero-word hero-word-1 mr-2">Teaching</span>
-            <span className="text-text-primary hero-word hero-word-2 mr-2">Power,</span>
+          {/* Headline — two stacked lines */}
+          <h1
+            className="font-heading font-extrabold tracking-[-2px] leading-[1.15] mb-6 text-text-primary"
+            style={{ fontSize: 'clamp(52px, 8vw, 88px)' }}
+          >
+            <span className="hero-word hero-word-0 block">Your Teaching Power,</span>
             <span
-              className="hero-word hero-word-3"
+              className="hero-word hero-word-1 block"
               style={{
-                background: 'linear-gradient(135deg, #00F6ED 0%, #4056F4 100%)',
+                background: 'linear-gradient(135deg, #00F6ED, #4056F4)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
+                paddingBottom: '4px',
               }}
             >
               Multiplied
@@ -198,28 +235,21 @@ export default function HomePage() {
           </h1>
 
           {/* Subtitle */}
-          <p className="hero-subtitle-anim text-text-primary font-body text-xl leading-[1.7] mb-10 max-w-[620px] mx-auto">
-            Not another edtech tool.<br />
-            A teaching assistant built from your expertise.
+          <p className="hero-subtitle-anim font-body text-xl leading-[1.7] text-text-secondary dark:text-white/70 mb-10 max-w-[620px] mx-auto">
+            Not another edtech tool. A teaching assistant built from your expertise.
           </p>
 
-          {/* Intro line */}
-          <p className="hero-intro-anim text-text-primary font-body text-[19px] leading-[1.7] mb-10 max-w-[700px] mx-auto max-md:text-[17px]">
-            Teaching Labs learns how you teach and helps every student get the support they need,
-            while you focus on the moments that matter most.
-          </p>
-
-          {/* Buttons — matching v4: outline styles with 4px borders */}
-          <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8">
-            <Link
-              href="/waitlist"
-              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300"
+          {/* Buttons — v4 outline style: 4px borders, transparent bg */}
+          <div className="hero-buttons-anim flex gap-4 justify-center flex-wrap mb-8 max-sm:flex-col max-sm:items-center">
+            <a
+              href={WAITLIST_URL}
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold px-10 py-4 rounded-full border-4 transition-all duration-300 bg-transparent border-gold text-deep-navy dark:text-white shadow-none dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:border-gold hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.35)] dark:hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] max-sm:w-full"
             >
               Join the Waitlist
-            </Link>
+            </a>
             <Link
               href="/how-it-works"
-              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold bg-transparent text-deep-navy dark:text-white px-10 py-4 rounded-full border-4 border-gold dark:shadow-[0_0_20px_rgba(64,86,244,0.2)] hover:bg-gold hover:text-white hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(64,86,244,0.4)] transition-all duration-300"
+              className="inline-flex items-center justify-center gap-2 font-heading text-base font-bold px-10 py-4 rounded-full border-4 transition-all duration-300 bg-transparent text-deep-navy dark:text-white border-[#561F37] dark:border-teal shadow-none dark:shadow-[0_0_20px_rgba(0,246,237,0.15)] hover:bg-[#561F37] dark:hover:bg-teal hover:text-white dark:hover:text-deep-navy hover:-translate-y-0.5 hover:shadow-[0_6px_28px_rgba(86,31,55,0.3)] dark:hover:shadow-[0_6px_28px_rgba(0,246,237,0.35)] max-sm:w-full"
             >
               See How It Works
             </Link>
@@ -228,46 +258,47 @@ export default function HomePage() {
       </section>
 
       <main>
+        {/* ═══════════════ INTRO LINE ═══════════════ */}
+        <div className="bg-warm-white dark:bg-deep-navy">
+          <p className="fade-up max-w-[700px] mx-auto px-12 py-14 text-[19px] leading-[1.7] text-text-primary text-center max-md:px-6 max-md:py-10 max-md:text-[17px]">
+            Teaching Labs learns how you teach and helps every student get the support they need,
+            while you focus on the moments that matter most.
+          </p>
+        </div>
 
-
-
-        {/* ── PROBLEM SECTION ── */}
-        <section className="relative overflow-hidden bg-white dark:bg-deep-navy">
-          <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
-            <div className="absolute w-[600px] h-[600px] rounded-full top-[5%] right-[-10%] opacity-[0.06]"
-              style={{ background: '#4056F4', filter: 'blur(120px)' }} />
-            <div className="absolute w-[500px] h-[500px] rounded-full bottom-[10%] left-[-8%] opacity-[0.05]"
-              style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
-          </div>
-          <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+        {/* ═══════════════ PROBLEM SECTION ═══════════════ */}
+        <section className="bg-warm-white dark:bg-deep-navy">
+          <div className="max-w-[1200px] mx-auto px-12 py-[100px] max-md:px-6 max-md:py-16">
+            <div className="fade-up text-center mb-14">
               <Eyebrow>The Challenge</Eyebrow>
-              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
-                style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
-                The Reality of Today&apos;s Classroom
-              </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
+              <SectionTitle>The Reality of Today&apos;s Classroom</SectionTitle>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1 fade-up">
-              <Card
-                floatClass="card-icon-float-1"
-                icon={<IconDiverge />}
-                title="Every student learns differently."
-                text="In every classroom you'll find students ready to move ahead, students struggling to keep up, and students who just need a different explanation. Teachers are asked to meet every learner where they are, often all at the same time."
-              />
-              <Card
-                floatClass="card-icon-float-2"
-                icon={<IconConcentric />}
-                title="Time is the scarcest resource."
-                text="Between planning, grading, communication, and classroom management, teachers are already stretched thin. Finding the time to truly personalize learning for every student can feel impossible."
-              />
-              <Card
-                floatClass="card-icon-float-3"
-                icon={<IconNetwork />}
-                title="Technology hasn't solved the problem."
-                text="Classrooms have more devices than ever. But great learning still depends on explanation, feedback, practice, and connection. Technology should support those moments, not replace them."
-              />
+            <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
+              <div className="fade-up">
+                <Card
+                  floatClass="card-icon-float-1"
+                  icon={<IconDiverge />}
+                  title="Every student learns differently."
+                  text="In every classroom you'll find students ready to move ahead, students struggling to keep up, and students who just need a different explanation. Teachers are asked to meet every learner where they are, often all at the same time."
+                />
+              </div>
+              <div className="fade-up">
+                <Card
+                  floatClass="card-icon-float-2"
+                  icon={<IconConcentric />}
+                  title="Time is the scarcest resource."
+                  text="Between planning, grading, communication, and classroom management, teachers are already stretched thin. Finding the time to truly personalize learning for every student can feel impossible."
+                />
+              </div>
+              <div className="fade-up">
+                <Card
+                  floatClass="card-icon-float-3"
+                  icon={<IconNetwork />}
+                  title="Technology hasn't solved the problem."
+                  text="Classrooms have more devices than ever. But great learning still depends on explanation, feedback, practice, and connection. Technology should support those moments, not replace them."
+                />
+              </div>
             </div>
 
             <div className="fade-up">
@@ -276,43 +307,43 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── SOLUTION SECTION ── */}
-        <section className="relative overflow-hidden bg-white dark:bg-deep-navy">
-          <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
-            <div className="absolute w-[550px] h-[550px] rounded-full top-[10%] left-[-5%] opacity-[0.05]"
-              style={{ background: '#4056F4', filter: 'blur(120px)' }} />
-            <div className="absolute w-[500px] h-[500px] rounded-full bottom-[5%] right-[-8%] opacity-[0.06]"
-              style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
-          </div>
-          <div className="relative z-10 max-w-[1200px] mx-auto px-12 py-24 max-md:px-6 max-md:py-16">
-            <div className="text-center mb-14 fade-up">
+        {/* ═══════════════ SOLUTION SECTION ═══════════════ */}
+        <section className="bg-bg-secondary">
+          <div className="max-w-[1200px] mx-auto px-12 py-[100px] max-md:px-6 max-md:py-16">
+            <div className="fade-up text-center mb-14">
               <Eyebrow>Our Approach</Eyebrow>
-              <h2 className="font-heading font-extrabold tracking-[-1.5px] leading-[1.15] text-text-primary"
-                style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
-                Teaching Labs Works the Way<br />Teachers Work
-              </h2>
-              <div className="w-[576px] max-w-full h-[3px] bg-underline rounded-sm mx-auto mt-3" />
+              <SectionTitle>
+                Teaching Labs Works
+                <br />
+                the Way Teachers Do
+              </SectionTitle>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1 fade-up">
-              <Card
-                floatClass="card-icon-float-1"
-                icon={<IconOrbit />}
-                title="Your Teaching, Scaled"
-                text="Teaching Labs learns how you explain ideas, correct mistakes, and guide students. Students get help in your voice and your style, even when you can't be everywhere at once."
-              />
-              <Card
-                floatClass="card-icon-float-2"
-                icon={<IconFunnel />}
-                title="Every Student Gets Support"
-                text="Students move through learning differently. Teaching Labs adapts in real time, giving struggling students extra help and letting advanced students keep moving. No one waits. No one gets left behind."
-              />
-              <Card
-                floatClass="card-icon-float-3"
-                icon={<IconVenn />}
-                title="Designed for Real Classrooms"
-                text="Built with teachers and grounded in learning science. Every feature is designed to support attention, retrieval, mastery, and confidence."
-              />
+            <div className="grid grid-cols-3 gap-8 mb-12 max-md:grid-cols-1">
+              <div className="fade-up">
+                <Card
+                  floatClass="card-icon-float-1"
+                  icon={<IconOrbit />}
+                  title="Your Teaching, Scaled"
+                  text="Teaching Labs learns how you explain ideas, correct mistakes, and guide students. Students get help in your voice and your style, even when you can't be everywhere at once."
+                />
+              </div>
+              <div className="fade-up">
+                <Card
+                  floatClass="card-icon-float-2"
+                  icon={<IconFunnel />}
+                  title="Every Student Gets Support"
+                  text="Students move through learning differently. Teaching Labs adapts in real time, giving struggling students extra help and letting advanced students keep moving. No one waits. No one gets left behind."
+                />
+              </div>
+              <div className="fade-up">
+                <Card
+                  floatClass="card-icon-float-3"
+                  icon={<IconVenn />}
+                  title="Designed for Real Classrooms"
+                  text="Built with teachers and grounded in learning science. Every feature is designed to support attention, retrieval, mastery, and confidence."
+                />
+              </div>
             </div>
 
             <div className="fade-up">
@@ -321,46 +352,262 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── CTA SECTION ── */}
-        <section className="section-blend relative overflow-hidden bg-white dark:bg-transparent">
-          <div className="absolute inset-0 pointer-events-none dark:hidden" aria-hidden="true">
-            <div className="absolute w-[500px] h-[500px] rounded-full top-[10%] left-[-10%] opacity-[0.15]"
-              style={{ background: '#00F6ED', filter: 'blur(120px)' }} />
-            <div className="absolute w-[450px] h-[450px] rounded-full top-[5%] right-[-8%] opacity-[0.15]"
-              style={{ background: '#4056F4', filter: 'blur(120px)' }} />
-            <div className="absolute w-[350px] h-[350px] rounded-full bottom-[10%] left-[40%] opacity-[0.07]"
-              style={{ background: '#7B2D4A', filter: 'blur(120px)' }} />
-          </div>
-          {/* Dark mode: gradient that fades to footer color at bottom */}
-          <div className="absolute inset-0 pointer-events-none hidden dark:block" aria-hidden="true"
-            style={{ background: 'linear-gradient(180deg, #1a3a4a 0%, #152a3a 40%, #0a1128 100%)' }} />
-          <div className="absolute inset-0 pointer-events-none hidden dark:block" aria-hidden="true"
-            style={{ background: 'radial-gradient(ellipse at center, rgba(64,86,244,0.12) 0%, transparent 70%)' }} />
-
-          <div className="relative z-10 max-w-[800px] mx-auto px-12 py-36 text-center max-md:px-6 max-md:py-20">
-            <div className="text-eyebrow font-extrabold font-heading text-sm font-bold tracking-[4px] uppercase mb-5">
-              Early Access
+        {/* ═══════════════ FEATURE WALKTHROUGH ═══════════════ */}
+        <section className="bg-bg-feature">
+          <div className="max-w-[1200px] mx-auto px-12 py-[100px] max-md:px-6 max-md:py-16">
+            <div className="fade-up mb-14">
+              <div className="text-center">
+                <Eyebrow>How It Works</Eyebrow>
+                <SectionTitle>Meet Your Teacher Twin</SectionTitle>
+              </div>
+              <p className="text-[18px] leading-[1.7] text-text-secondary max-w-[680px] mb-3 mt-12">
+                Teaching Labs combines proven learning science with your teaching style to create an assistant that reflects how you guide students.
+              </p>
+              <p className="font-heading text-xl font-semibold mb-16" style={{ color: '#4056F4' }}>
+                Your expertise. Extended.
+              </p>
             </div>
-            <h2 className="text-text-primary font-heading font-extrabold tracking-[-1.5px] mb-5 leading-[1.15]"
-              style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
-              Join the Waitlist
-            </h2>
-            <p className="text-text-primary text-lg leading-[1.7] mb-10 max-w-[600px] mx-auto dark:!text-white/65">
-              Be among the first to bring Teaching Labs into your classroom. No credit card. No commitment. Just better teaching.
-            </p>
-            <Link
-              href="/waitlist"
-              className="inline-flex justify-center items-center font-heading text-[17px] font-bold bg-transparent text-deep-navy dark:text-white border-4 border-gold hover:bg-gold hover:text-white px-12 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300 shadow-[0_4px_20px_rgba(64,86,244,0.3)]"
-            >
-              Join the Waitlist
-            </Link>
+
+            {/* Step 01 */}
+            <div className="fade-up grid grid-cols-2 gap-16 items-center mb-20 max-md:grid-cols-1 max-md:gap-8 max-md:mb-12">
+              <div>
+                <div className="font-heading text-[13px] font-extrabold tracking-[3px] uppercase mb-3 text-[#561F37] dark:text-teal">
+                  Step 01
+                </div>
+                <h3
+                  className="font-heading font-extrabold tracking-[-1px] text-text-primary mb-4 leading-[1.2]"
+                  style={{ fontSize: 'clamp(28px, 3.5vw, 40px)' }}
+                >
+                  Teach the System
+                </h3>
+                <p className="text-base leading-[1.78] text-text-secondary">
+                  Teaching Labs learns how you explain ideas, guide students, and respond when they struggle.
+                  Your teaching style becomes the foundation for how students receive help and feedback.
+                </p>
+              </div>
+              <div
+                className="feat-photo-hover relative rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]"
+                style={{ aspectRatio: '4/3' }}
+              >
+                <Image
+                  src="/images/teacher-twin-reflection.jpg"
+                  alt="A teacher interacting with the Teaching Labs system, training their digital teaching twin"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 560px"
+                  className="object-cover"
+                />
+              </div>
+            </div>
+
+            {/* Step 02 (reversed) */}
+            <div className="fade-up grid grid-cols-2 gap-16 items-center mb-20 max-md:grid-cols-1 max-md:gap-8 max-md:mb-12">
+              <div
+                className="feat-photo-hover relative rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)] max-md:order-2"
+                style={{ aspectRatio: '4/3' }}
+              >
+                <Image
+                  src="/images/student-getting-help.jpg"
+                  alt="A student receiving personalized help from their teacher's AI teaching twin"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 560px"
+                  className="object-cover"
+                />
+              </div>
+              <div className="max-md:order-1">
+                <div className="font-heading text-[13px] font-extrabold tracking-[3px] uppercase mb-3 text-[#561F37] dark:text-teal">
+                  Step 02
+                </div>
+                <h3
+                  className="font-heading font-extrabold tracking-[-1px] text-text-primary mb-4 leading-[1.2]"
+                  style={{ fontSize: 'clamp(28px, 3.5vw, 40px)' }}
+                >
+                  Support Every Student
+                </h3>
+                <p className="text-base leading-[1.78] text-text-secondary">
+                  When students get stuck, they don&apos;t have to wait. Teaching Labs provides guidance, practice,
+                  and feedback aligned with how you teach, helping every learner keep moving forward.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 03 */}
+            <div className="fade-up grid grid-cols-2 gap-16 items-center mb-12 max-md:grid-cols-1 max-md:gap-8">
+              <div>
+                <div className="font-heading text-[13px] font-extrabold tracking-[3px] uppercase mb-3 text-[#561F37] dark:text-teal">
+                  Step 03
+                </div>
+                <h3
+                  className="font-heading font-extrabold tracking-[-1px] text-text-primary mb-4 leading-[1.2]"
+                  style={{ fontSize: 'clamp(28px, 3.5vw, 40px)' }}
+                >
+                  Focus Your Attention
+                </h3>
+                <p className="text-base leading-[1.78] text-text-secondary">
+                  Teaching Labs connects learning signals across your classroom and highlights where your attention
+                  is needed most. So you can focus on the moments where your teaching has the greatest impact.
+                </p>
+              </div>
+              <div
+                className="feat-photo-hover relative rounded-[20px] overflow-hidden shadow-[0_20px_60px_rgba(20,33,61,0.15)]"
+                style={{ aspectRatio: '4/3' }}
+              >
+                <Image
+                  src="/images/teacher-viewing-data.jpg"
+                  alt="A teacher reviewing classroom insights and data from Teaching Labs dashboard"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 560px"
+                  className="object-cover"
+                />
+              </div>
+            </div>
+
+            <div className="fade-up">
+              <Bridge>Teaching Labs doesn&apos;t replace great teaching. It helps great teaching reach every student.</Bridge>
+            </div>
           </div>
         </section>
 
+        {/* ═══════════════ CTA SECTION ═══════════════ */}
+        <section
+          className="relative overflow-hidden"
+          style={{
+            background:
+              'linear-gradient(145deg, #0a1128 0%, #0e1a4a 40%, #0d4a60 75%, #14706e 100%)',
+          }}
+        >
+          {/* Radial glow overlay */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            aria-hidden="true"
+            style={{
+              background:
+                'radial-gradient(ellipse at center, rgba(64, 86, 244, 0.12) 0%, transparent 70%)',
+            }}
+          />
+
+          <div className="fade-up relative z-10 max-w-[800px] mx-auto px-12 py-[140px] text-center max-md:px-6 max-md:py-20">
+            <div className="font-heading text-xs font-bold tracking-[4px] uppercase text-white/50 mb-5">
+              Early Access
+            </div>
+            <h2
+              className="font-heading font-extrabold tracking-[-1.5px] text-white mb-5 leading-[1.15]"
+              style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}
+            >
+              Join the Waitlist
+            </h2>
+            <p className="text-[18px] leading-[1.7] text-white/65 mb-10 max-w-[600px] mx-auto">
+              Be among the first to bring Teaching Labs into your classroom. No credit card. No commitment. Just better teaching.
+            </p>
+            <a
+              href={WAITLIST_URL}
+              className="cta-button-pulse inline-flex justify-center items-center font-heading text-[17px] font-bold bg-gold text-white px-12 py-4 rounded-full transition-transform duration-300 hover:-translate-y-0.5"
+            >
+              Join the Waitlist
+            </a>
+          </div>
+        </section>
       </main>
 
-      {/* ── FOOTER ── */}
-      <MarketingFooter />
+      {/* ═══════════════ FOOTER ═══════════════ */}
+      <footer
+        style={{
+          background: 'linear-gradient(180deg, #14213D 0%, #1a2a45 100%)',
+          borderTop: '1px solid rgba(64,86,244,0.2)',
+        }}
+      >
+        <div className="max-w-[1200px] mx-auto px-12 py-[72px] max-md:px-6">
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-12 max-md:grid-cols-1 max-md:gap-8">
+            {/* Brand */}
+            <div>
+              <div className="mb-4">
+                <Image
+                  src="/images/logo-horizontal-light.png"
+                  alt="Teaching Labs"
+                  width={200}
+                  height={36}
+                  className="h-9 w-auto"
+                  style={{ height: '36px', width: 'auto' }}
+                />
+              </div>
+              <p className="text-sm leading-[1.7] text-white/55 mb-5 max-w-[280px]">
+                AI-powered teaching platform that learns how you teach and helps every student get the support they need.
+              </p>
+              <div className="inline-flex items-center gap-2 font-heading text-xs font-semibold text-teal bg-[rgba(0,246,237,0.1)] px-4 py-2 rounded-full border border-[rgba(0,246,237,0.2)]">
+                <IconStar />
+                FERPA &amp; COPPA Compliant
+              </div>
+            </div>
+
+            {/* Platform */}
+            <div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-white/35 mb-5">
+                Platform
+              </div>
+              <ul className="space-y-3 list-none">
+                {[
+                  { href: '/for-teachers', label: 'For Teachers' },
+                  { href: '/for-students', label: 'For Students' },
+                  { href: '/for-districts', label: 'For Districts' },
+                  { href: '/for-parents', label: 'For Parents' },
+                ].map(({ href, label }) => (
+                  <li key={href}>
+                    <Link href={href} className="text-sm text-white/55 hover:text-gold transition-colors duration-200">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-white/35 mb-5">
+                Company
+              </div>
+              <ul className="space-y-3 list-none">
+                {[
+                  { href: '/our-story', label: 'Our Story' },
+                  { href: '/how-it-works', label: 'How It Works' },
+                  { href: '/pricing', label: 'Pricing' },
+                  { href: '/contact', label: 'Contact' },
+                ].map(({ href, label }) => (
+                  <li key={href}>
+                    <Link href={href} className="text-sm text-white/55 hover:text-gold transition-colors duration-200">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <div className="font-heading text-[13px] font-bold tracking-[2px] uppercase text-white/35 mb-5">
+                Legal
+              </div>
+              <ul className="space-y-3 list-none">
+                {[
+                  { href: '#', label: 'Privacy Policy' },
+                  { href: '#', label: 'Terms of Service' },
+                  { href: '#', label: 'Cookie Policy' },
+                  { href: '#', label: 'Accessibility' },
+                ].map(({ href, label }) => (
+                  <li key={label}>
+                    <Link href={href} className="text-sm text-white/55 hover:text-gold transition-colors duration-200">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="border-t border-white/[0.08] pt-8 text-center text-[13px] text-white/35">
+            &copy; 2026 Intellectual Creations / Teaching Labs. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </>
   );
 }
