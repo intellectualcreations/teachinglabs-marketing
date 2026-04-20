@@ -964,6 +964,13 @@ export default function StudentOnboardingPage() {
             { onConflict: 'student_id' }
           );
 
+          // Also set preferred_name on the profiles table so dashboard uses it
+          if (answers.name) {
+            await (supabase.from as any)('profiles').update(
+              { preferred_name: answers.name }
+            ).eq('id', user.id);
+          }
+
           // Complete signup: enroll student in their class
           const pendingClassId = localStorage.getItem('pending_class_id');
           const pendingBirthYear = localStorage.getItem('pending_birth_year');
