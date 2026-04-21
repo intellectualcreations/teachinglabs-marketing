@@ -294,29 +294,30 @@ export default function ClassChatPage() {
 
   const uploadFile = useCallback(async (file: File, uid: string): Promise<string | null> => {
     try {
-      const supabase = createClient();
-      const ext = file.name.split('.').pop() || 'bin';
-      const path = `${uid}/${Date.now()}.${ext}`;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', uid);
+      formData.append('classId', classId);
 
-      const { error } = await supabase.storage
-        .from('chat-attachments')
-        .upload(path, file, { contentType: file.type, upsert: false });
+      const res = await fetch('/api/student/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
 
-      if (error) {
+      if (!res.ok) {
+        const error = await res.json();
         console.error('Upload error:', error);
         return null;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-attachments')
-        .getPublicUrl(path);
-
-      return publicUrl;
+      const { url } = await res.json();
+      return url;
     } catch (err) {
       console.error('Upload error:', err);
       return null;
     }
-  }, []);
+  }, [classId]);
 
   const handleSend = useCallback(async () => {
     if ((!input.trim() && !pendingAttachment) || !userId || sending) return;

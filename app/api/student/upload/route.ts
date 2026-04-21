@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createAdminClient();
+    console.log('[upload] Service key present:', !!process.env.SUPABASE_SERVICE_ROLE_KEY, 'URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30));
 
     // Verify student is enrolled in the class (security check)
     const { data: enrollment } = await supabase
