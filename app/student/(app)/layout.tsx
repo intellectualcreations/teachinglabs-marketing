@@ -236,7 +236,11 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
         {/* Student avatar + identity */}
         <div className="px-4 py-5 border-b border-white/10 flex flex-col items-center">
           {superpowerAvatar ? (
-            <img src={superpowerAvatar} alt="Avatar" className="w-20 h-20 rounded-full object-cover border-2 border-teal/40 shadow-lg mb-2" />
+            <img
+              src={superpowerAvatar}
+              alt=""
+              className="w-20 h-20 rounded-full object-cover border-2 border-teal/40 shadow-lg mb-2"
+            />
           ) : (
             <div className="w-20 h-20 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-2xl border-2 border-teal/40 shadow-lg mb-2">{studentInitials}</div>
           )}
