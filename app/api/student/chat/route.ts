@@ -470,7 +470,40 @@ export async function POST(request: NextRequest) {
     recentMessages = sessionMsgs ?? [];
   }
 
-  // Strip attachment metadata for Claude — replace [[ATTACHMENT:{...}]] with a plain description
+  // Build message content for Claude — supports multimodal (images) via vision API
+  function buildMessageContent(raw: string): string | Anthropic.Messages.ContentBlockParam[] {
+    // Check if this message has an attachment
+    const attachMatch = raw.match(/^\[\[ATTACHMENT:(.*?)\]\]([\s\S]*)$/);
+    if (!attachMatch) return raw;
+
+    try {
+      const meta = JSON.parse(attachMatch[1]);
+      const textAfter = (attachMatch[2] || '').trim();
+
+      if (meta.type === 'image' && meta.url) {
+        // Return multimodal content blocks for vision
+        const blocks: Anthropic.Messages.ContentBlockParam[] = [
+          {
+            type: 'image' as const,
+            source: { type: 'url' as const, url: meta.url },
+          } as Anthropic.Messages.ImageBlockParam,
+          {
+            type: 'text' as const,
+            text: textAfter || `Student shared an image: ${meta.name || 'attachment'}. Please look at this image and respond to what you see.`,
+          } as Anthropic.Messages.TextBlockParam,
+        ];
+        return blocks;
+      }
+
+      // Non-image attachment: describe it in text
+      const typeLabel = meta.type === 'video' ? 'a video' : 'a file';
+      return `[Student shared ${typeLabel}: ${meta.name || 'attachment'}]${textAfter ? ' ' + textAfter : ''}`;
+    } catch {
+      return '[Student shared an attachment]';
+    }
+  }
+
+  // Strip attachment metadata for non-vision contexts (AI responses don't have attachments)
   function cleanContentForAI(raw: string): string {
     return raw.replace(/\[\[ATTACHMENT:(.*?)\]\]/g, (_, json) => {
       try {
@@ -483,21 +516,23 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Build conversation for Claude
-  const conversationHistory: { role: "user" | "assistant"; content: string }[] =
+  // Build conversation for Claude (supports multimodal content for images)
+  const conversationHistory: Anthropic.MessageParam[] =
     (recentMessages ?? []).map(
       (msg: { content: string; message_type: string }) => ({
         role:
           msg.message_type === "student"
             ? ("user" as const)
             : ("assistant" as const),
-        content: cleanContentForAI(msg.content),
+        content: msg.message_type === "student"
+          ? buildMessageContent(msg.content)
+          : cleanContentForAI(msg.content),
       }),
-    );
+    ) as Anthropic.MessageParam[];
 
   // For new chats, history is empty — add the current message
   if (conversationHistory.length === 0 || conversationHistory[conversationHistory.length - 1]?.role !== 'user') {
-    conversationHistory.push({ role: 'user', content: cleanContentForAI(content!.trim()) });
+    conversationHistory.push({ role: 'user', content: buildMessageContent(content!.trim()) as any });
   }
 
   // Build the system prompt with all context
