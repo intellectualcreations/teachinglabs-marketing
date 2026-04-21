@@ -640,7 +640,7 @@ export default function ClassChatPage() {
               </button>
 
               {showAttachMenu && (
-                <div className="absolute bottom-14 left-0 bg-white dark:bg-[#1a2332] border border-border rounded-xl shadow-lg py-1 w-44 z-10">
+                <div className="absolute bottom-14 left-0 bg-[#1a2332] border border-border rounded-xl shadow-xl py-1 w-44 z-50">
                   <button
                     onClick={() => handleFileSelect('image/*')}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-text-primary hover:bg-border/50 transition-colors"

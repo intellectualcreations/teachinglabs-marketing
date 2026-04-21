@@ -516,6 +516,33 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Sanitize conversation history: flag adversarial content so Claude ignores it
+  // This prevents old prompt injection attempts from influencing the AI's behavior
+  const INJECTION_PATTERNS = [
+    /ignore\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions|prompts|rules)/i,
+    /ignore\s+everything/i,
+    /you\s+are\s+now\s+(DAN|unrestricted|unfiltered|jailbroken)/i,
+    /act\s+as\s+(DAN|an?\s+unrestricted|an?\s+unfiltered)/i,
+    /pretend\s+(you\s+are|to\s+be)\s+(DAN|unrestricted|a\s+different)/i,
+    /what\s+(is|are)\s+your\s+(system|original)\s+(prompt|instructions|rules)/i,
+    /reveal\s+your\s+(system|original)\s+(prompt|instructions)/i,
+    /show\s+me\s+your\s+(prompt|instructions|rules)/i,
+    /repeat\s+(the|your)\s+(prompt|instructions|system)/i,
+    /developer\s+mode/i,
+    /do\s+anything\s+now/i,
+  ];
+
+  function isAdversarial(text: string): boolean {
+    return INJECTION_PATTERNS.some((p) => p.test(text));
+  }
+
+  function sanitizeHistoryContent(raw: string): string {
+    if (isAdversarial(raw)) {
+      return '[off-topic message]';
+    }
+    return raw;
+  }
+
   // Build conversation for Claude (supports multimodal content for images)
   const conversationHistory: Anthropic.MessageParam[] =
     (recentMessages ?? []).map(
@@ -525,7 +552,7 @@ export async function POST(request: NextRequest) {
             ? ("user" as const)
             : ("assistant" as const),
         content: msg.message_type === "student"
-          ? buildMessageContent(msg.content)
+          ? (isAdversarial(msg.content) ? '[off-topic message]' : buildMessageContent(msg.content))
           : cleanContentForAI(msg.content),
       }),
     ) as Anthropic.MessageParam[];
