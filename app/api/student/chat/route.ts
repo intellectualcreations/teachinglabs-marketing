@@ -495,6 +495,11 @@ export async function POST(request: NextRequest) {
       }),
     );
 
+  // For new chats, history is empty — add the current message
+  if (conversationHistory.length === 0 || conversationHistory[conversationHistory.length - 1]?.role !== 'user') {
+    conversationHistory.push({ role: 'user', content: cleanContentForAI(content!.trim()) });
+  }
+
   // Build the system prompt with all context
   const systemPrompt = buildSystemPrompt(
     studentPreferredName,
@@ -542,7 +547,8 @@ export async function POST(request: NextRequest) {
       aiMessage: aiMsg,
     });
   } catch (err) {
-    console.error("[chat] AI error:", err);
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error("[chat] AI error:", errMsg, err);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: aiMsg } = await (admin.from("chat_messages") as any)
