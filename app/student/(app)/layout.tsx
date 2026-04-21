@@ -79,6 +79,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
   const [studentName, setStudentName] = useState('');
   const [studentInitials, setStudentInitials] = useState('');
   const [superpowerTitle, setSuperpowerTitle] = useState('');
+  const [superpowerAvatar, setSuperpowerAvatar] = useState('');
   const [classes, setClasses] = useState<SidebarClass[]>([]);
   const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -141,6 +142,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
 
         const displayName = preferredName || (profileData as { display_name?: string } | null)?.display_name || 'Student';
         setSuperpowerTitle((profileData as unknown as { superpower_title?: string })?.superpower_title || '');
+        setSuperpowerAvatar((profileData as unknown as { superpower_avatar?: string })?.superpower_avatar || '');
         setStudentName(displayName.split(' ')[0]);
         setStudentInitials(getInitials(displayName));
 
@@ -377,7 +379,11 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
 
         {/* Student footer */}
         <div className="border-t border-white/10 p-3 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-xs flex-shrink-0">{studentInitials}</div>
+          {superpowerAvatar ? (
+            <img src={superpowerAvatar} alt="Avatar" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-xs flex-shrink-0">{studentInitials}</div>
+          )}
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-xs text-white">{studentName}</div>
           </div>

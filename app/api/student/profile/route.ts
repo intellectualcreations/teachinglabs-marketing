@@ -28,7 +28,7 @@ export async function GET(req: Request) {
 
   const { data } = await admin
     .from('profiles')
-    .select('id, display_name, preferred_name, role, name_flagged, superpower_title, primary_intelligence')
+    .select('id, display_name, preferred_name, role, name_flagged, superpower_title, primary_intelligence, superpower_avatar')
     .eq('id', user.id)
     .single();
 
@@ -44,7 +44,7 @@ export async function PATCH(req: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const allowedFields = ['preferred_name', 'superpower_title'];
+  const allowedFields = ['preferred_name', 'superpower_title', 'superpower_avatar'];
   const updates: Record<string, string> = {};
   for (const key of allowedFields) {
     if (key in body) {
