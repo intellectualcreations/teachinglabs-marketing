@@ -958,22 +958,22 @@ export default function StudentOnboardingPage() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (supabase.from as any)('student_assessments').upsert(
-            { student_id: user.id, ...profile },
-            { onConflict: 'student_id' }
-          );
+          // Save assessment + profile via API (bypasses RLS)
+          const { determinePrimaryIntelligence, getDefaultTitle } = await import('@/lib/superpower');
+          const primaryIntel = determinePrimaryIntelligence(gardnerSignals);
+          const defaultTitle = getDefaultTitle(primaryIntel);
 
-          // Also set preferred_name and superpower on the profiles table
-          if (answers.name) {
-            // Determine primary intelligence and default title
-            const { determinePrimaryIntelligence, getDefaultTitle } = await import('@/lib/superpower');
-            const primaryIntel = determinePrimaryIntelligence(gardnerSignals);
-            const defaultTitle = getDefaultTitle(primaryIntel);
-            await (supabase.from as any)('profiles').update(
-              { preferred_name: answers.name, primary_intelligence: primaryIntel, superpower_title: defaultTitle }
-            ).eq('id', user.id);
-          }
+          await fetch('/api/student/save-assessment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: user.id,
+              profile,
+              preferredName: answers.name || null,
+              primaryIntelligence: primaryIntel,
+              superpowerTitle: defaultTitle,
+            }),
+          });
 
           // Complete signup: enroll student in their class
           const pendingClassId = localStorage.getItem('pending_class_id');

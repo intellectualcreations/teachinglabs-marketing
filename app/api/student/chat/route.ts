@@ -252,16 +252,45 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'classId and userId required' }, { status: 400 });
   }
   const admin = createAdminClient();
-  const { data: messages, error } = await (admin as any)
+
+  // Step 1: Get the student's own messages to find conversation windows
+  const { data: studentMsgs } = await (admin as any)
+    .from('chat_messages')
+    .select('created_at')
+    .eq('class_id', classId)
+    .eq('sender_id', userId)
+    .order('created_at', { ascending: true });
+
+  if (!studentMsgs || studentMsgs.length === 0) {
+    return NextResponse.json({ messages: [] });
+  }
+
+  // Step 2: Get ALL messages (student + AI) but filter AI messages to only those
+  // that are within 2 minutes AFTER one of this student's messages
+  const { data: allMsgs, error } = await (admin as any)
     .from('chat_messages')
     .select('*')
     .eq('class_id', classId)
-    .or(`sender_id.eq.${userId},message_type.eq.ai`)
     .order('created_at', { ascending: true });
+
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ messages: messages ?? [] });
+
+  // Filter: keep student's own messages + AI messages that follow one of their messages within 2 min
+  const studentTimes = (studentMsgs as { created_at: string }[]).map(m => new Date(m.created_at).getTime());
+  const filtered = (allMsgs ?? []).filter((m: { sender_id: string; message_type: string; created_at: string }) => {
+    // Always keep the student's own messages
+    if (m.sender_id === userId) return true;
+    // For AI messages, only keep if within 2 min after one of this student's messages
+    if (m.message_type === 'ai') {
+      const msgTime = new Date(m.created_at).getTime();
+      return studentTimes.some(st => msgTime >= st && msgTime - st < 2 * 60 * 1000);
+    }
+    return false;
+  });
+
+  return NextResponse.json({ messages: filtered });
 }
 
 export async function POST(request: NextRequest) {
@@ -439,14 +468,31 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Fetch recent conversation history (last 30 messages for context)
-  const { data: recentMessages } = await admin
+  // Fetch recent conversation history (last 30 messages for this student only)
+  // Get student's messages first, then AI responses within 2 min of each
+  const { data: studentOnlyMsgs } = await admin
     .from("chat_messages")
-    .select("content, message_type, created_at")
+    .select("created_at")
     .eq("class_id", class_id)
-    .or(`sender_id.eq.${user.id},message_type.eq.ai`)
+    .eq("sender_id", user.id)
+    .order("created_at", { ascending: true });
+
+  const { data: allClassMsgs } = await admin
+    .from("chat_messages")
+    .select("content, message_type, created_at, sender_id")
+    .eq("class_id", class_id)
     .order("created_at", { ascending: true })
-    .limit(30);
+    .limit(200);
+
+  const sTimes = (studentOnlyMsgs ?? []).map((m: { created_at: string }) => new Date(m.created_at).getTime());
+  const recentMessages = (allClassMsgs ?? []).filter((m: { sender_id: string; message_type: string; created_at: string }) => {
+    if (m.sender_id === user.id) return true;
+    if (m.message_type === 'ai') {
+      const t = new Date(m.created_at).getTime();
+      return sTimes.some(st => t >= st && t - st < 2 * 60 * 1000);
+    }
+    return false;
+  }).slice(-30);
 
   // Strip attachment metadata for Claude — replace [[ATTACHMENT:{...}]] with a plain description
   function cleanContentForAI(raw: string): string {
