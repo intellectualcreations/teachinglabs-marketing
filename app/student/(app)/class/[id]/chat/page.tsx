@@ -15,10 +15,12 @@ interface ChatMessage {
   content: string;
   message_type: string;
   created_at: string;
+  session_id?: string;
 }
 
 interface ChatSession {
   id: string;
+  session_id: string;
   firstMessage: string;
   lastActivity: string;
   messageCount: number;
@@ -77,39 +79,65 @@ function parseAttachment(content: string): { text: string; attachmentUrl?: strin
   return { text: content };
 }
 
-/** Group messages into sessions by 30-min gaps */
+/** Group messages into sessions by session_id (or 30-min gaps as fallback) */
 function groupIntoSessions(messages: ChatMessage[]): ChatSession[] {
   if (messages.length === 0) return [];
 
   const sorted = [...messages].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-  const sessions: ChatSession[] = [];
-  let currentSession: ChatMessage[] = [sorted[0]];
 
-  for (let i = 1; i < sorted.length; i++) {
-    const gap = new Date(sorted[i].created_at).getTime() - new Date(sorted[i - 1].created_at).getTime();
-    if (gap > 30 * 60 * 1000) {
-      sessions.push({
-        id: currentSession[0].id,
-        firstMessage: currentSession.find(m => m.message_type === 'student')?.content || currentSession[0].content,
-        lastActivity: currentSession[currentSession.length - 1].created_at,
-        messageCount: currentSession.length,
-        messages: currentSession,
-      });
-      currentSession = [sorted[i]];
-    } else {
-      currentSession.push(sorted[i]);
-    }
+  // Group by session_id if available
+  const bySession = new Map<string, ChatMessage[]>();
+  for (const msg of sorted) {
+    const key = msg.session_id || 'legacy';
+    if (!bySession.has(key)) bySession.set(key, []);
+    bySession.get(key)!.push(msg);
   }
 
-  sessions.push({
-    id: currentSession[0].id,
-    firstMessage: currentSession.find(m => m.message_type === 'student')?.content || currentSession[0].content,
-    lastActivity: currentSession[currentSession.length - 1].created_at,
-    messageCount: currentSession.length,
-    messages: currentSession,
-  });
+  // If all messages are 'legacy' (no session_id), fall back to time-gap grouping
+  if (bySession.size === 1 && bySession.has('legacy')) {
+    const sessions: ChatSession[] = [];
+    let currentSession: ChatMessage[] = [sorted[0]];
+    for (let i = 1; i < sorted.length; i++) {
+      const gap = new Date(sorted[i].created_at).getTime() - new Date(sorted[i - 1].created_at).getTime();
+      if (gap > 30 * 60 * 1000) {
+        sessions.push({
+          id: currentSession[0].id,
+          session_id: currentSession[0].session_id || currentSession[0].id,
+          firstMessage: currentSession.find(m => m.message_type === 'student')?.content || currentSession[0].content,
+          lastActivity: currentSession[currentSession.length - 1].created_at,
+          messageCount: currentSession.length,
+          messages: currentSession,
+        });
+        currentSession = [sorted[i]];
+      } else {
+        currentSession.push(sorted[i]);
+      }
+    }
+    sessions.push({
+      id: currentSession[0].id,
+      session_id: currentSession[0].session_id || currentSession[0].id,
+      firstMessage: currentSession.find(m => m.message_type === 'student')?.content || currentSession[0].content,
+      lastActivity: currentSession[currentSession.length - 1].created_at,
+      messageCount: currentSession.length,
+      messages: currentSession,
+    });
+    return sessions.reverse();
+  }
 
-  return sessions.reverse();
+  // Group by actual session_id
+  const sessions: ChatSession[] = [];
+  for (const [sid, msgs] of bySession) {
+    sessions.push({
+      id: msgs[0].id,
+      session_id: sid,
+      firstMessage: msgs.find(m => m.message_type === 'student')?.content || msgs[0].content,
+      lastActivity: msgs[msgs.length - 1].created_at,
+      messageCount: msgs.length,
+      messages: msgs,
+    });
+  }
+
+  return sessions.sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime());
 }
 
 export default function ClassChatPage() {
@@ -118,6 +146,7 @@ export default function ClassChatPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
   const [newChatMode, setNewChatMode] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState('');
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -307,6 +336,7 @@ export default function ClassChatPage() {
     } else if (newChatMode) {
       const newSession: ChatSession = {
         id: tempId,
+        session_id: currentSessionId,
         firstMessage: text || pendingAttachment?.file.name || 'Attachment',
         lastActivity: tempMsg.created_at,
         messageCount: 1,
@@ -323,7 +353,7 @@ export default function ClassChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ class_id: classId, content: messageContent, user_id: userId, new_chat: !activeSession }),
+        body: JSON.stringify({ class_id: classId, content: messageContent, user_id: userId, new_chat: !activeSession, session_id: currentSessionId }),
       });
 
       if (res.ok) {
@@ -612,7 +642,7 @@ export default function ClassChatPage() {
           <p className="text-sm text-text-secondary">{className}</p>
         </div>
         <button
-          onClick={() => setNewChatMode(true)}
+          onClick={() => { setNewChatMode(true); setCurrentSessionId(crypto.randomUUID()); }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal text-navy font-semibold text-sm hover:bg-teal/90 transition-colors"
         >
           <Plus size={16} weight="bold" />
@@ -626,7 +656,7 @@ export default function ClassChatPage() {
           <p className="text-text-secondary font-medium mb-1">No chats yet</p>
           <p className="text-text-muted text-sm mb-4">Start your first conversation about {className}!</p>
           <button
-            onClick={() => setNewChatMode(true)}
+            onClick={() => { setNewChatMode(true); setCurrentSessionId(crypto.randomUUID()); }}
             className="px-5 py-2.5 rounded-xl bg-teal text-navy font-semibold text-sm hover:bg-teal/90 transition-colors"
           >
             Start Chatting
@@ -637,7 +667,7 @@ export default function ClassChatPage() {
           {sessions.map(session => (
             <button
               key={session.id}
-              onClick={() => setActiveSession(session)}
+              onClick={() => { setActiveSession(session); setCurrentSessionId(session.session_id); }}
               className="w-full bg-card-bg rounded-xl border border-border p-4 hover:border-teal/40 transition-colors text-left group"
             >
               <div className="flex items-start gap-3">
