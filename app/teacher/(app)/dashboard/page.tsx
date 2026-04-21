@@ -61,6 +61,7 @@ export default function DashboardPage() {
 
         setProfile(data.profile as Profile | null);
         const teacherClasses = (data.classes ?? []) as Class[];
+        teacherClasses.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         setClasses(teacherClasses);
 
         // Wire up activity stats
