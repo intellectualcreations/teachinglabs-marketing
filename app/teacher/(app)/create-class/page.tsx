@@ -74,6 +74,8 @@ export default function CreateClassPage() {
   const [subject, setSubject] = useState('');
   const [grade, setGrade] = useState('');
   const [desc, setDesc] = useState('');
+  const [maxStudents, setMaxStudents] = useState(30);
+  const [generatingDesc, setGeneratingDesc] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [createdClass, setCreatedClass] = useState<{
@@ -108,6 +110,7 @@ export default function CreateClassPage() {
         description: desc.trim() || null,
         join_code: joinCode,
         icon: ICON_OPTIONS[selectedIcon].val,
+        max_students: maxStudents || 30,
       });
 
       if (insertError) {
@@ -202,7 +205,7 @@ export default function CreateClassPage() {
             </div>
 
             {/* Form fields */}
-            <div className="grid grid-cols-3 gap-3 mb-6 max-sm:grid-cols-1">
+            <div className="grid grid-cols-4 gap-3 mb-6 max-sm:grid-cols-2">
               <div>
                 <label className="block text-[13px] font-semibold text-text-primary mb-1.5">
                   Class name <span className="text-red-500">*</span>
@@ -252,12 +255,48 @@ export default function CreateClassPage() {
                   <option>10th</option><option>11th</option><option>12th</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-[13px] font-semibold text-text-primary mb-1.5">Max students</label>
+                <input
+                  type="number"
+                  value={maxStudents}
+                  onChange={(e) => setMaxStudents(Math.max(1, Math.min(100, parseInt(e.target.value) || 30)))}
+                  min={1}
+                  max={100}
+                  className="w-full px-3 py-2.5 border-[1.5px] border-border rounded-lg text-[14px]
+                    bg-surface text-text-primary outline-none focus:border-navy transition-colors"
+                />
+              </div>
             </div>
 
             <div className="mb-6">
-              <label className="block text-[13px] font-semibold text-text-primary mb-1.5">
-                Description <span className="font-normal text-text-secondary">(optional)</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[13px] font-semibold text-text-primary">
+                  Description <span className="font-normal text-text-secondary">(optional)</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!className.trim()) return;
+                    setGeneratingDesc(true);
+                    try {
+                      const res = await fetch('/api/teacher/generate-description', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ className: className.trim(), subject, grade }),
+                      });
+                      const data = await res.json();
+                      if (data.description) setDesc(data.description);
+                    } catch { /* ignore */ }
+                    setGeneratingDesc(false);
+                  }}
+                  disabled={!className.trim() || generatingDesc}
+                  className="text-xs font-medium text-teal hover:text-teal/80 disabled:text-text-muted
+                    disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 transition-colors"
+                >
+                  {generatingDesc ? '✨ Generating...' : '✨ Generate with AI'}
+                </button>
+              </div>
               <textarea
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
