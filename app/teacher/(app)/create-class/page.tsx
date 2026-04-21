@@ -283,7 +283,7 @@ export default function CreateClassPage() {
                       const res = await fetch('/api/teacher/generate-description', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ className: className.trim(), subject, grade }),
+                        body: JSON.stringify({ className: className.trim(), subject, grade, rawDescription: desc.trim() || undefined }),
                       });
                       const data = await res.json();
                       if (data.description) setDesc(data.description);
@@ -294,7 +294,7 @@ export default function CreateClassPage() {
                   className="text-xs font-medium text-teal hover:text-teal/80 disabled:text-text-muted
                     disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 transition-colors"
                 >
-                  {generatingDesc ? '✨ Generating...' : '✨ Generate with AI'}
+                  {generatingDesc ? '✨ Polishing...' : desc.trim() ? '✨ Polish with AI' : '✨ Generate with AI'}
                 </button>
               </div>
               <textarea
