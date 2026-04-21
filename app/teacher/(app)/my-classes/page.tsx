@@ -197,6 +197,7 @@ export default function MyClassesPage() {
           return;
         }
         const classesWithCounts = (await res.json()) as ClassWithCounts[];
+        classesWithCounts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         setClasses(classesWithCounts);
       } catch (err) {
         console.error('My classes fetch error:', err);
