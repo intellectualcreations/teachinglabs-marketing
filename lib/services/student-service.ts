@@ -149,7 +149,7 @@ export async function enrollStudent(
     .insert({
       student_id: studentId,
       class_id: classId,
-      status: 'active',
+      status: 'pending',
     })
     .select()
     .single();
