@@ -192,6 +192,7 @@ export default function StudentDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [studentName, setStudentName] = useState('');
   const [superpowerTitle, setSuperpowerTitle] = useState('');
+  const [superpowerAvatar, setSuperpowerAvatar] = useState('');
   const [classes, setClasses] = useState<EnrichedClass[]>([]);
   const [stats, setStats] = useState({ chatSessions: 0, activitiesComplete: 0, personalChats: 0 });
   const [activityValues, setActivityValues] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
@@ -237,6 +238,7 @@ export default function StudentDashboardPage() {
 
         const displayName = preferredName || profile?.display_name || 'Student';
         setSuperpowerTitle((profile as unknown as { superpower_title?: string })?.superpower_title || '');
+        setSuperpowerAvatar((profile as unknown as { superpower_avatar?: string })?.superpower_avatar || '');
         setStudentName(displayName.split(' ')[0]);
 
         // Fetch classes
@@ -385,7 +387,12 @@ export default function StudentDashboardPage() {
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-navy to-teal" />
         <div className="flex items-center gap-2 mb-1">
           <HandWaving size={24} weight="fill" className="text-teal" />
-          <h1 className="font-heading font-bold text-xl text-text-primary">Hi {studentName}{superpowerTitle ? ` ${superpowerTitle}` : ''}!</h1>
+          <div className="flex items-center gap-3">
+            {superpowerAvatar && (
+              <img src={superpowerAvatar} alt="Avatar" className="w-12 h-12 rounded-full object-cover ring-2 ring-purple-500/30" />
+            )}
+            <h1 className="font-heading font-bold text-xl text-text-primary">Hi {studentName}{superpowerTitle ? ` ${superpowerTitle}` : ''}!</h1>
+          </div>
         </div>
         {classes.length > 0 && (
           <>

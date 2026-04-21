@@ -8,6 +8,8 @@ import {
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import { SUPERPOWER_TITLES, INTELLIGENCE_LABELS, INTELLIGENCE_EMOJIS, type Intelligence } from '@/lib/superpower';
+import { AVATARS, AVATAR_STYLES } from '@/lib/avatar-manifest';
+import Image from 'next/image';
 
 /* ─── Helper: get access token from Supabase session ─── */
 async function getAccessToken(): Promise<string | null> {
@@ -37,6 +39,9 @@ export default function StudentSettingsPage() {
   const [superpowerTitle, setSuperpowerTitle] = useState('');
   const [primaryIntelligence, setPrimaryIntelligence] = useState<Intelligence | ''>('');
   const [initialTitle, setInitialTitle] = useState('');
+  const [superpowerAvatar, setSuperpowerAvatar] = useState('');
+  const [initialAvatar, setInitialAvatar] = useState('');
+  const [avatarStyleFilter, setAvatarStyleFilter] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
 
   // Load profile on mount
@@ -58,6 +63,8 @@ export default function StudentSettingsPage() {
         setSuperpowerTitle(data?.superpower_title || '');
         setInitialTitle(data?.superpower_title || '');
         setPrimaryIntelligence(data?.primary_intelligence || '');
+        setSuperpowerAvatar(data?.superpower_avatar || '');
+        setInitialAvatar(data?.superpower_avatar || '');
       } catch {
         /* ignore */
       }
@@ -66,7 +73,7 @@ export default function StudentSettingsPage() {
     loadProfile();
   }, []);
 
-  const isDirty = preferredName !== initialPreferredName || superpowerTitle !== initialTitle;
+  const isDirty = preferredName !== initialPreferredName || superpowerTitle !== initialTitle || superpowerAvatar !== initialAvatar;
 
   async function handleSave() {
     const token = await getAccessToken();
@@ -80,7 +87,7 @@ export default function StudentSettingsPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ preferred_name: preferredName, superpower_title: superpowerTitle }),
+        body: JSON.stringify({ preferred_name: preferredName, superpower_title: superpowerTitle, superpower_avatar: superpowerAvatar }),
       });
       if (res.ok) {
         setInitialPreferredName(preferredName);
@@ -239,6 +246,57 @@ export default function StudentSettingsPage() {
                   {title}
                 </button>
               ))}
+            </div>
+
+            {/* Avatar Picker */}
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-text-secondary mb-2">Choose your avatar:</label>
+              {/* Style filter tabs */}
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                <button
+                  onClick={() => setAvatarStyleFilter('')}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer border ${
+                    avatarStyleFilter === '' ? 'bg-purple-500/20 border-purple-500 text-purple-300' : 'border-border text-text-muted hover:border-purple-500/50'
+                  }`}
+                >
+                  All
+                </button>
+                {AVATAR_STYLES.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setAvatarStyleFilter(s.id)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer border ${
+                      avatarStyleFilter === s.id ? 'bg-purple-500/20 border-purple-500 text-purple-300' : 'border-border text-text-muted hover:border-purple-500/50'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              {/* Avatar grid */}
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-64 overflow-y-auto pr-1">
+                {AVATARS
+                  .filter(a => !avatarStyleFilter || a.style === avatarStyleFilter)
+                  .map((avatar) => (
+                  <button
+                    key={avatar.id}
+                    onClick={() => setSuperpowerAvatar(avatar.path)}
+                    className={`relative aspect-square rounded-full overflow-hidden border-2 transition-all cursor-pointer ${
+                      superpowerAvatar === avatar.path
+                        ? 'border-purple-500 ring-2 ring-purple-500/30 scale-105'
+                        : 'border-border hover:border-purple-500/50'
+                    }`}
+                  >
+                    <Image
+                      src={avatar.path}
+                      alt={avatar.label}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
