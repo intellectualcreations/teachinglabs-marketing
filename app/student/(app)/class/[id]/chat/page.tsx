@@ -747,7 +747,7 @@ export default function ClassChatPage() {
       {/* Topic Name Modal */}
       {showTopicModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-card-bg border border-border rounded-2xl shadow-2xl p-6 max-w-sm mx-4 w-full">
+          <div className="bg-white dark:bg-[#0f1a2e] border border-border rounded-2xl shadow-2xl p-6 max-w-sm mx-4 w-full">
             <h3 className="font-heading font-bold text-lg text-text-primary mb-2">What do you want to explore?</h3>
             <p className="text-sm text-text-secondary mb-4">Give your chat a topic so you can find it later.</p>
             <input
@@ -763,7 +763,7 @@ export default function ClassChatPage() {
                 }
               }}
               placeholder={`e.g. Antarctica Trip, Fractions, Stone Fox...`}
-              className="w-full px-4 py-3 rounded-xl bg-navy/10 dark:bg-white/5 border border-border text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:border-teal mb-4"
+              className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/10 border border-border text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:border-teal mb-4"
               autoFocus
               maxLength={60}
             />
