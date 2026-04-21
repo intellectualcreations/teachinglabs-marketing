@@ -348,14 +348,14 @@ export async function POST(request: NextRequest) {
   // Create a fake user object for compatibility
   const user = { id: userId };
 
-  let body: { class_id?: string; content?: string; user_id?: string };
+  let body: { class_id?: string; content?: string; user_id?: string; new_chat?: boolean };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { class_id, content } = body;
+  const { class_id, content, new_chat } = body;
 
   if (!class_id || typeof class_id !== "string") {
     return NextResponse.json(
@@ -469,30 +469,33 @@ export async function POST(request: NextRequest) {
   }
 
   // Fetch recent conversation history (last 30 messages for this student only)
-  // Get student's messages first, then AI responses within 2 min of each
-  const { data: studentOnlyMsgs } = await admin
-    .from("chat_messages")
-    .select("created_at")
-    .eq("class_id", class_id)
-    .eq("sender_id", user.id)
-    .order("created_at", { ascending: true });
+  // Skip history entirely for new chat sessions — fresh start
+  let recentMessages: { content: string; message_type: string }[] = [];
+  if (!new_chat) {
+    const { data: studentOnlyMsgs } = await admin
+      .from("chat_messages")
+      .select("created_at")
+      .eq("class_id", class_id)
+      .eq("sender_id", user.id)
+      .order("created_at", { ascending: true });
 
-  const { data: allClassMsgs } = await admin
-    .from("chat_messages")
-    .select("content, message_type, created_at, sender_id")
-    .eq("class_id", class_id)
-    .order("created_at", { ascending: true })
-    .limit(200);
+    const { data: allClassMsgs } = await admin
+      .from("chat_messages")
+      .select("content, message_type, created_at, sender_id")
+      .eq("class_id", class_id)
+      .order("created_at", { ascending: true })
+      .limit(200);
 
-  const sTimes = (studentOnlyMsgs ?? []).map((m: { created_at: string }) => new Date(m.created_at).getTime());
-  const recentMessages = (allClassMsgs ?? []).filter((m: { sender_id: string; message_type: string; created_at: string }) => {
-    if (m.sender_id === user.id) return true;
-    if (m.message_type === 'ai') {
-      const t = new Date(m.created_at).getTime();
-      return sTimes.some(st => t >= st && t - st < 2 * 60 * 1000);
-    }
-    return false;
-  }).slice(-30);
+    const sTimes = (studentOnlyMsgs ?? []).map((m: { created_at: string }) => new Date(m.created_at).getTime());
+    recentMessages = (allClassMsgs ?? []).filter((m: { sender_id: string; message_type: string; created_at: string }) => {
+      if (m.sender_id === user.id) return true;
+      if (m.message_type === 'ai') {
+        const t = new Date(m.created_at).getTime();
+        return sTimes.some(st => t >= st && t - st < 2 * 60 * 1000);
+      }
+      return false;
+    }).slice(-30);
+  }
 
   // Strip attachment metadata for Claude — replace [[ATTACHMENT:{...}]] with a plain description
   function cleanContentForAI(raw: string): string {
