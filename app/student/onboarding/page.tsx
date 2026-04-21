@@ -1407,7 +1407,7 @@ function CoachBubble({ text, speak }: { text: string; speak?: (t: string) => voi
               className="absolute -bottom-3 right-3 w-7 h-7 rounded-full bg-teal/20 hover:bg-teal/30 flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Read aloud"
             >
-              <SpeakerHigh size={14} weight="fill" className="text-teal" />
+              <SpeakerHigh size={14} weight="fill" className="text-navy dark:text-teal" />
             </button>
           )}
         </div>
@@ -1467,7 +1467,7 @@ function VoiceInputButton({ onResult }: { onResult: (text: string) => void }) {
       className={`flex items-center gap-2 px-4 py-2.5 rounded-full border-2 text-sm font-medium transition-all cursor-pointer ${
         listening
           ? 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-500 animate-pulse'
-          : 'border-border bg-card-bg/50 text-text-secondary hover:border-teal hover:text-teal'
+          : 'border-border bg-card-bg/50 text-text-secondary hover:border-teal hover:text-navy dark:hover:text-teal'
       }`}
     >
       <Microphone size={16} weight="fill" />
@@ -1698,7 +1698,7 @@ function SpatialScreen({
 
       <div className="mb-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
         <div className="flex items-center gap-2 mb-2">
-          <Brain size={18} weight="fill" className="text-teal" />
+          <Brain size={18} weight="fill" className="text-navy dark:text-teal" />
           <p className="text-text-primary font-medium text-sm">{spatialPrompt}</p>
         </div>
         <CharCountTextarea
@@ -1711,7 +1711,7 @@ function SpatialScreen({
         <div className="flex items-center mt-1">
           <VoiceInputButton onResult={text => onSpatialChange(spatialDescription ? `${spatialDescription} ${text}` : text)} />
         </div>
-        <p className="text-xs text-teal/70 mt-1.5 italic">The more you share, the more I get to know you! ✨</p>
+        <p className="text-xs text-navy/70 dark:text-teal/70 mt-1.5 italic">The more you share, the more I get to know you! ✨</p>
 
       </div>
 
@@ -1744,7 +1744,7 @@ function MusicKinestheticScreen({
       {/* Musical */}
       <div className="mb-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
         <div className="flex items-center gap-2 mb-3">
-          <MusicNotes size={18} weight="fill" className="text-teal" />
+          <MusicNotes size={18} weight="fill" className="text-navy dark:text-teal" />
           <p className="text-text-primary font-medium text-sm">What&apos;s true for you about music? Pick everything that fits!</p>
         </div>
         <div className="flex flex-col gap-2">
@@ -1769,7 +1769,7 @@ function MusicKinestheticScreen({
       {/* Kinesthetic */}
       <div className="mb-2 onb-card-in" style={{ animationDelay: '0.2s' }}>
         <div className="flex items-center gap-2 mb-3">
-          <Sparkle size={18} weight="fill" className="text-teal" />
+          <Sparkle size={18} weight="fill" className="text-navy dark:text-teal" />
           <p className="text-text-primary font-medium text-sm">How do YOU learn new things best? Pick all that feel right!</p>
         </div>
         <div className="flex flex-col gap-2">
@@ -1822,7 +1822,7 @@ function SocialNatureScreen({
       {/* Interpersonal */}
       <div className="mb-5 onb-card-in" style={{ animationDelay: '0.1s' }}>
         <div className="flex items-center gap-2 mb-3">
-          <UsersThree size={18} weight="fill" className="text-teal" />
+          <UsersThree size={18} weight="fill" className="text-navy dark:text-teal" />
           <p className="text-text-primary font-medium text-sm">When you&apos;re working on something tricky, you prefer:</p>
         </div>
         <div className="grid gap-2">
@@ -1844,7 +1844,7 @@ function SocialNatureScreen({
       {/* Naturalistic */}
       <div className="mb-2 onb-card-in" style={{ animationDelay: '0.2s' }}>
         <div className="flex items-center gap-2 mb-3">
-          <Leaf size={18} weight="fill" className="text-teal" />
+          <Leaf size={18} weight="fill" className="text-navy dark:text-teal" />
           <p className="text-text-primary font-medium text-sm">How much do you enjoy being outside in nature?</p>
         </div>
         <div className="grid gap-2">
@@ -1894,7 +1894,7 @@ function AboutYouScreen({
       {/* Strengths */}
       <div className="mb-5 onb-card-in" style={{ animationDelay: '0.1s' }}>
         <div className="flex items-center gap-2 mb-2">
-          <UserCircle size={18} weight="fill" className="text-teal" />
+          <UserCircle size={18} weight="fill" className="text-navy dark:text-teal" />
           <label className="text-text-primary font-medium text-sm">What&apos;s something you&apos;re really good at?</label>
         </div>
         <CharCountTextarea
@@ -1907,13 +1907,13 @@ function AboutYouScreen({
         <div className="flex items-center mt-1">
           <VoiceInputButton onResult={text => onStrengthsChange(intrapersonalStrengths ? `${intrapersonalStrengths} ${text}` : text)} />
         </div>
-        <p className="text-xs text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
+        <p className="text-xs text-navy/70 dark:text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
       </div>
 
       {/* Growth */}
       <div className="mb-2 onb-card-in" style={{ animationDelay: '0.2s' }}>
         <div className="flex items-center gap-2 mb-2">
-          <Star size={18} weight="fill" className="text-teal" />
+          <Star size={18} weight="fill" className="text-navy dark:text-teal" />
           <label className="text-text-primary font-medium text-sm">What&apos;s one thing you want to get better at?</label>
         </div>
         <CharCountTextarea
@@ -1926,7 +1926,7 @@ function AboutYouScreen({
         <div className="flex items-center mt-1">
           <VoiceInputButton onResult={text => onGrowthChange(intrapersonalGrowth ? `${intrapersonalGrowth} ${text}` : text)} />
         </div>
-        <p className="text-xs text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
+        <p className="text-xs text-navy/70 dark:text-teal/70 mt-1 italic">The more you share, the more I get to know you! ✨</p>
       </div>
 
       <NextButton onNext={onNext} canAdvance={canAdvance} />
@@ -2085,7 +2085,7 @@ function ReadingPassageScreen({
               <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
               <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
             </div>
-            <button onClick={() => speak(passage)} className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-teal transition-colors cursor-pointer">
+            <button onClick={() => speak(passage)} className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-navy dark:hover:text-teal transition-colors cursor-pointer">
               <SpeakerHigh size={14} weight="fill" /> Listen
             </button>
           </div>
@@ -2244,7 +2244,7 @@ function ProcessingScreen({ saving, error }: { saving: boolean; error: boolean }
       <div className="flex items-center justify-center gap-3 mb-8">
         {icons.map((Icon, i) => (
           <div key={i} className="w-10 h-10 rounded-full bg-card-bg border border-border flex items-center justify-center onb-dot-bounce" style={{ animationDelay: `${i * 0.15}s` }}>
-            <Icon size={18} weight="fill" className="text-teal" />
+            <Icon size={18} weight="fill" className="text-navy dark:text-teal" />
           </div>
         ))}
       </div>

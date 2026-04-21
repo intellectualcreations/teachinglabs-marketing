@@ -8,7 +8,7 @@ import {
   ClockCounterClockwise, HandWaving, HouseSimple,
   Backpack, PencilLine, Palette, MusicNotes, Desktop, Calculator, Article, TestTube, Planet,
   Dna, Bank, MapTrifold, Translate, Basketball, PersonSimpleRun, Books, MaskHappy,
-  Heartbeat, Leaf, Robot, Ruler, Target, Lightbulb, Star,
+  Heartbeat, Leaf, Robot, Ruler, Target, Lightbulb, Star, Sparkle,
 } from '@phosphor-icons/react';
 import Link from 'next/link';
 import NotificationOptIn from '@/components/shared/NotificationOptIn';
@@ -411,6 +411,22 @@ export default function StudentDashboardPage() {
       <div className="mb-6">
         <NotificationOptIn />
       </div>
+
+      {/* Profile setup prompt */}
+      {!superpowerAvatar && (
+        <Link
+          href="/student/settings"
+          className="flex items-center gap-3 p-4 mb-6 bg-purple-500/10 border border-purple-500/20 rounded-xl hover:bg-purple-500/15 transition-colors"
+        >
+          <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+            <Sparkle size={20} weight="fill" className="text-purple-400" />
+          </div>
+          <div>
+            <p className="font-semibold text-sm text-text-primary">Set up your profile ⚡</p>
+            <p className="text-xs text-text-secondary">Choose your hero title and pick an avatar!</p>
+          </div>
+        </Link>
+      )}
 
       {/* Class cards with progress */}
       {classes.length > 0 && (
