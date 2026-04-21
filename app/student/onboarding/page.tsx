@@ -332,7 +332,7 @@ const INTERESTS = [
   { label: 'Cooking', icon: ChefHat, theme: 'cooking' as ThemeName },
   { label: 'Reading', icon: BookOpen, theme: 'space' as ThemeName },
   { label: 'Movies', icon: FilmSlate, theme: 'gaming' as ThemeName },
-  { label: 'Building Things', icon: Hammer, theme: 'science' as ThemeName },
+  { label: 'Building Things', icon: Hammer, theme: 'art' as ThemeName },
   { label: 'Nature', icon: Leaf, theme: 'animals' as ThemeName },
   { label: 'Math', icon: Calculator, theme: 'science' as ThemeName },
   { label: 'History', icon: Scroll, theme: 'space' as ThemeName },
@@ -536,13 +536,17 @@ function getAgeBubbleStyle(age: number, isSelected: boolean): React.CSSPropertie
 
 function selectTheme(interests: string[]): ThemeName {
   const scores: Record<ThemeName, number> = { gaming: 0, sports: 0, animals: 0, space: 0, music: 0, art: 0, science: 0, cooking: 0 };
-  for (const interest of interests) {
-    const found = INTERESTS.find(i => i.label === interest);
-    if (found) scores[found.theme]++;
+  // Give extra weight to first interest picked (most important to student)
+  for (let idx = 0; idx < interests.length; idx++) {
+    const found = INTERESTS.find(i => i.label === interests[idx]);
+    if (found) scores[found.theme] += (idx === 0 ? 2 : 1);
   }
   const max = Math.max(...Object.values(scores));
-  const winner = (Object.keys(scores) as ThemeName[]).find(k => scores[k] === max);
-  return winner || 'gaming';
+  // On tie, prefer the theme of the first interest the student picked
+  const firstTheme = INTERESTS.find(i => i.label === interests[0])?.theme;
+  const winners = (Object.keys(scores) as ThemeName[]).filter(k => scores[k] === max);
+  if (firstTheme && winners.includes(firstTheme)) return firstTheme;
+  return winners[0] || 'gaming';
 }
 
 function shiftTier(current: GradeTier, shift: DifficultyShift): GradeTier {
