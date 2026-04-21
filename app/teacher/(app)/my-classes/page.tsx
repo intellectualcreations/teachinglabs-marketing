@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, PencilSimple, Users, Books, Info, X, MagnifyingGlass, ArrowLeft, CheckCircle } from '@phosphor-icons/react';
+import { Plus, PencilSimple, Users, Books, Info, X, MagnifyingGlass, ArrowLeft, CheckCircle, Copy, Check } from '@phosphor-icons/react';
 import ClassIcon from '@/components/shared/ClassIcon';
 import { createClient } from '@/lib/supabase/client';
 import type { Class, Assignment } from '@/lib/supabase/types';
@@ -176,6 +176,7 @@ function AddActivityModal({
 export default function MyClassesPage() {
   const [classes, setClasses] = useState<ClassWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copiedCode, setCopiedCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<{ name: string; id: string } | null>(null);
 
@@ -301,10 +302,24 @@ export default function MyClassesPage() {
               </div>
 
               {/* Join Code */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal/8 border border-teal/20
-                rounded-lg font-heading font-bold text-base tracking-[2px] text-teal mb-4">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(c.join_code || '').catch(() => {});
+                  setCopiedCode(c.join_code || '');
+                  setTimeout(() => setCopiedCode(''), 2000);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-teal/8 border border-teal/20
+                  rounded-lg font-heading font-bold text-base tracking-[2px] text-teal mb-4
+                  hover:bg-teal/15 transition-colors cursor-pointer"
+                title="Click to copy join code"
+              >
                 {c.join_code}
-              </div>
+                {copiedCode === c.join_code ? (
+                  <Check size={14} weight="bold" className="text-green-400" />
+                ) : (
+                  <Copy size={14} weight="bold" className="text-teal/60" />
+                )}
+              </button>
 
               {/* Actions */}
               <div className="flex flex-wrap gap-1.5">
