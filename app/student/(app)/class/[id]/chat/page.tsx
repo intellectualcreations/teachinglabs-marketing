@@ -325,6 +325,9 @@ export default function ClassChatPage() {
       if (url) {
         attachmentMeta = `[[ATTACHMENT:${JSON.stringify({ url, type: pendingAttachment.type, name: pendingAttachment.file.name })}]]`;
         messageContent = attachmentMeta + (text ? ' ' + text : '');
+      } else {
+        // Upload failed — show inline error but still send the text
+        alert('Image upload failed. Your message was sent without the image. Please try again.');
       }
       if (pendingAttachment.preview) URL.revokeObjectURL(pendingAttachment.preview);
       setPendingAttachment(null);
