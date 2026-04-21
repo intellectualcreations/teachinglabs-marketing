@@ -16,11 +16,13 @@ interface ChatMessage {
   message_type: string;
   created_at: string;
   session_id?: string;
+  topic?: string;
 }
 
 interface ChatSession {
   id: string;
   session_id: string;
+  topic: string;
   firstMessage: string;
   lastActivity: string;
   messageCount: number;
@@ -103,6 +105,7 @@ function groupIntoSessions(messages: ChatMessage[]): ChatSession[] {
         sessions.push({
           id: currentSession[0].id,
           session_id: currentSession[0].session_id || currentSession[0].id,
+          topic: currentSession.find(m => m.topic)?.topic || '',
           firstMessage: currentSession.find(m => m.message_type === 'student')?.content || currentSession[0].content,
           lastActivity: currentSession[currentSession.length - 1].created_at,
           messageCount: currentSession.length,
@@ -116,6 +119,7 @@ function groupIntoSessions(messages: ChatMessage[]): ChatSession[] {
     sessions.push({
       id: currentSession[0].id,
       session_id: currentSession[0].session_id || currentSession[0].id,
+      topic: currentSession.find(m => m.topic)?.topic || '',
       firstMessage: currentSession.find(m => m.message_type === 'student')?.content || currentSession[0].content,
       lastActivity: currentSession[currentSession.length - 1].created_at,
       messageCount: currentSession.length,
@@ -130,6 +134,7 @@ function groupIntoSessions(messages: ChatMessage[]): ChatSession[] {
     sessions.push({
       id: msgs[0].id,
       session_id: sid,
+      topic: msgs.find(m => m.topic)?.topic || '',
       firstMessage: msgs.find(m => m.message_type === 'student')?.content || msgs[0].content,
       lastActivity: msgs[msgs.length - 1].created_at,
       messageCount: msgs.length,
@@ -146,6 +151,9 @@ export default function ClassChatPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
   const [newChatMode, setNewChatMode] = useState(false);
+  const [showTopicModal, setShowTopicModal] = useState(false);
+  const [topicInput, setTopicInput] = useState('');
+  const [currentTopic, setCurrentTopic] = useState('');
   const [currentSessionId, setCurrentSessionId] = useState('');
   const [speakingMsgId, setSpeakingMsgId] = useState('');
   const [input, setInput] = useState('');
@@ -359,6 +367,7 @@ export default function ClassChatPage() {
       const newSession: ChatSession = {
         id: tempId,
         session_id: currentSessionId,
+        topic: currentTopic,
         firstMessage: text || pendingAttachment?.file.name || 'Attachment',
         lastActivity: tempMsg.created_at,
         messageCount: 1,
@@ -375,7 +384,7 @@ export default function ClassChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ class_id: classId, content: messageContent, user_id: userId, new_chat: !activeSession, session_id: currentSessionId }),
+        body: JSON.stringify({ class_id: classId, content: messageContent, user_id: userId, new_chat: !activeSession, session_id: currentSessionId, topic: currentTopic || undefined }),
       });
 
       if (res.ok) {
@@ -451,7 +460,7 @@ export default function ClassChatPage() {
           </button>
           <div>
             <h1 className="font-heading font-bold text-text-primary">
-              {newChatMode ? 'New Chat' : 'Chat'}
+              {newChatMode ? (currentTopic || 'New Chat') : (activeSession?.topic || 'Chat')}
             </h1>
             <p className="text-xs text-text-secondary">{className}</p>
           </div>
@@ -470,7 +479,9 @@ export default function ClassChatPage() {
                   <span className="text-xs font-semibold text-teal">AI Tutor</span>
                 </div>
                 <div className="bg-navy/20 rounded-2xl rounded-bl-md px-4 py-3 text-sm text-white">
-                  Hi {studentName}! 👋 What would you like to chat about in {className}?
+                  {currentTopic
+                    ? `Hi ${studentName}! 👋 Let's explore "${currentTopic}" together! What would you like to start with?`
+                    : `Hi ${studentName}! 👋 What would you like to chat about in ${className}?`}
                 </div>
               </div>
             </div>
@@ -677,7 +688,7 @@ export default function ClassChatPage() {
           <p className="text-sm text-text-secondary">{className}</p>
         </div>
         <button
-          onClick={() => { setNewChatMode(true); setCurrentSessionId(crypto.randomUUID()); }}
+          onClick={() => { setShowTopicModal(true); setTopicInput(''); }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal text-navy font-semibold text-sm hover:bg-teal/90 transition-colors"
         >
           <Plus size={16} weight="bold" />
@@ -691,7 +702,7 @@ export default function ClassChatPage() {
           <p className="text-text-secondary font-medium mb-1">No chats yet</p>
           <p className="text-text-muted text-sm mb-4">Start your first conversation about {className}!</p>
           <button
-            onClick={() => { setNewChatMode(true); setCurrentSessionId(crypto.randomUUID()); }}
+            onClick={() => { setShowTopicModal(true); setTopicInput(''); }}
             className="px-5 py-2.5 rounded-xl bg-teal text-navy font-semibold text-sm hover:bg-teal/90 transition-colors"
           >
             Start Chatting
@@ -702,7 +713,7 @@ export default function ClassChatPage() {
           {sessions.map(session => (
             <button
               key={session.id}
-              onClick={() => { setActiveSession(session); setCurrentSessionId(session.session_id); }}
+              onClick={() => { setActiveSession(session); setCurrentSessionId(session.session_id); setCurrentTopic(session.topic || ''); }}
               className="w-full bg-card-bg rounded-xl border border-border p-4 hover:border-teal/40 transition-colors text-left group"
             >
               <div className="flex items-start gap-3">
@@ -711,7 +722,7 @@ export default function ClassChatPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-text-primary truncate group-hover:text-teal transition-colors">
-                    {(() => {
+                    {session.topic || (() => {
                       const p = parseAttachment(session.firstMessage);
                       const label = p.text || p.attachmentName || 'Chat session';
                       return label.length > 80 ? label.slice(0, 80) + '...' : label;
@@ -730,6 +741,54 @@ export default function ClassChatPage() {
               </div>
             </button>
           ))}
+        </div>
+      )}
+      {/* Topic Name Modal */}
+      {showTopicModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-card-bg border border-border rounded-2xl shadow-2xl p-6 max-w-sm mx-4 w-full">
+            <h3 className="font-heading font-bold text-lg text-text-primary mb-2">What do you want to explore?</h3>
+            <p className="text-sm text-text-secondary mb-4">Give your chat a topic so you can find it later.</p>
+            <input
+              type="text"
+              value={topicInput}
+              onChange={e => setTopicInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && topicInput.trim()) {
+                  setCurrentTopic(topicInput.trim());
+                  setCurrentSessionId(crypto.randomUUID());
+                  setNewChatMode(true);
+                  setShowTopicModal(false);
+                }
+              }}
+              placeholder={`e.g. Antarctica Trip, Fractions, Stone Fox...`}
+              className="w-full px-4 py-3 rounded-xl bg-navy/10 dark:bg-white/5 border border-border text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:border-teal mb-4"
+              autoFocus
+              maxLength={60}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowTopicModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-border text-text-secondary text-sm font-medium hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (topicInput.trim()) {
+                    setCurrentTopic(topicInput.trim());
+                    setCurrentSessionId(crypto.randomUUID());
+                    setNewChatMode(true);
+                    setShowTopicModal(false);
+                  }
+                }}
+                disabled={!topicInput.trim()}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-teal text-navy font-semibold text-sm hover:bg-teal/90 transition-colors disabled:opacity-40"
+              >
+                Start Chat
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
