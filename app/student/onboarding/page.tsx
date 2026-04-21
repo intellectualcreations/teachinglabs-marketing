@@ -1512,7 +1512,7 @@ function WelcomeScreen({ onBegin, firstName }: { onBegin: () => void; firstName:
           <ChatCircle size={32} weight="fill" className="text-white" />
         </div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-3 leading-tight">
-          {firstName ? `Hi ${firstName}! Welcome to the Learning Lab! 👋` : 'Hi there! Welcome to the Learning Lab! 👋'}
+          {firstName ? (<>Hi {firstName}!<br />Welcome to the Learning Lab! 👋</>) : (<>Hi there!<br />Welcome to the Learning Lab! 👋</>)}
         </h1>
         <p className="text-text-secondary text-base leading-relaxed mb-6">
           I&apos;m your Teaching Labs Coach, here to help you get started!
@@ -1520,9 +1520,9 @@ function WelcomeScreen({ onBegin, firstName }: { onBegin: () => void; firstName:
       </div>
       <div className="grid gap-3 mb-8 text-left">
         {[
-          { icon: <SpeakerHigh size={20} weight="fill" className="text-teal" />, text: 'Tap the speaker icon to hear any question read aloud.' },
-          { icon: <Microphone size={20} weight="fill" className="text-teal" />, text: 'Tap the mic button to talk your answers instead of typing.' },
-          { icon: <Gear size={20} weight="fill" className="text-teal" />, text: 'Tap the gear icon at the top to choose a different voice.' },
+          { icon: <SpeakerHigh size={20} weight="fill" className="text-navy dark:text-teal" />, text: 'Tap the speaker icon to hear any question read aloud.' },
+          { icon: <Microphone size={20} weight="fill" className="text-navy dark:text-teal" />, text: 'Tap the mic button to talk your answers instead of typing.' },
+          { icon: <Gear size={20} weight="fill" className="text-navy dark:text-teal" />, text: 'Tap the gear icon at the top to choose a different voice.' },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card-bg/50 border border-border/50 onb-card-in" style={{ animationDelay: `${0.3 + i * 0.12}s` }}>
             <div className="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center flex-shrink-0">{item.icon}</div>
