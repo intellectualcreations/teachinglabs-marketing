@@ -179,6 +179,7 @@ export default function MyClassesPage() {
   const [copiedCode, setCopiedCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<{ name: string; id: string } | null>(null);
+  const [teacherName, setTeacherName] = useState('');
 
   const closeModal = useCallback(() => setModal(null), []);
 
@@ -200,6 +201,14 @@ export default function MyClassesPage() {
         const classesWithCounts = (await res.json()) as ClassWithCounts[];
         classesWithCounts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         setClasses(classesWithCounts);
+
+        // Fetch preferred name
+        const { data: profile } = await (supabase.from as any)('profiles')
+          .select('preferred_name, display_name')
+          .eq('id', user.id)
+          .single();
+        const name = profile?.preferred_name || profile?.display_name?.split(' ')[0] || '';
+        setTeacherName(name);
       } catch (err) {
         console.error('My classes fetch error:', err);
         setError('Failed to load classes');
@@ -231,7 +240,7 @@ export default function MyClassesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-heading text-[26px] font-bold text-text-primary">My Classes</h1>
+          <h1 className="font-heading text-[26px] font-bold text-text-primary">{teacherName ? `${teacherName}'s Classes` : 'My Classes'}</h1>
           <p className="text-text-secondary text-[15px] mt-1">
             {classes.length} class{classes.length !== 1 ? 'es' : ''}
           </p>
