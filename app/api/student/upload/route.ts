@@ -35,11 +35,14 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (!enrollment) {
+      console.error('[upload] Not enrolled:', { userId, classId });
       return NextResponse.json(
         { error: 'Not enrolled in this class' },
         { status: 403 }
       );
     }
+
+    console.log('[upload] Enrollment verified, uploading file:', file.name, 'size:', file.size);
 
     // Convert File to Buffer
     const buffer = Buffer.from(await file.arrayBuffer());
