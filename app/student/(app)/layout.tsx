@@ -233,10 +233,15 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
           <X size={20} />
         </button>
 
-        {/* Logo */}
-        <div className="px-4 py-4 border-b border-white/10 flex flex-col items-center">
-          <img src="/images/logo-stacked-dark.png" alt="TeachingLabs" className="h-14 mb-1" />
-          <div className="text-xs text-white/50 leading-tight">{superpowerTitle ? `${studentName} ${superpowerTitle}` : studentName ? `${studentName}'s Learning Portal` : 'Learning Portal'}</div>
+        {/* Student avatar + identity */}
+        <div className="px-4 py-5 border-b border-white/10 flex flex-col items-center">
+          {superpowerAvatar ? (
+            <img src={superpowerAvatar} alt="Avatar" className="w-20 h-20 rounded-full object-cover border-2 border-teal/40 shadow-lg mb-2" />
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-2xl border-2 border-teal/40 shadow-lg mb-2">{studentInitials}</div>
+          )}
+          <div className="text-sm font-heading font-bold text-white">{studentName}</div>
+          {superpowerTitle && <div className="text-xs text-teal/80 mt-0.5">{superpowerTitle}</div>}
         </div>
 
         {/* Nav */}
@@ -372,15 +377,11 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
           </button>
         </div>
 
-        {/* Student footer */}
+        {/* Footer with logo + theme toggle */}
         <div className="border-t border-white/10 p-3 flex items-center gap-2.5">
-          {superpowerAvatar ? (
-            <img src={superpowerAvatar} alt="Avatar" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-teal text-white flex items-center justify-center font-heading font-bold text-xs flex-shrink-0">{studentInitials}</div>
-          )}
+          <img src="/images/logo-icon.svg" alt="Teaching Labs" className="w-8 h-8 flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-xs text-white">{studentName}</div>
+            <div className="font-semibold text-xs text-white/60">Teaching Labs</div>
           </div>
           <ThemeToggle className="border-white/20 text-white/60 hover:text-white hover:border-white/40" />
         </div>
