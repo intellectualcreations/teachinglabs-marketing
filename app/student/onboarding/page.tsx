@@ -655,15 +655,27 @@ function CharCountTextarea({
   value: string; onChange: (v: string) => void; onPaste?: (e: React.ClipboardEvent) => void;
   placeholder?: string; rows?: number; autoFocus?: boolean; className?: string; maxDisplay?: number;
 }) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const charColor = value.length >= 1200 ? 'text-red-500' : value.length >= 800 ? 'text-amber-500' : 'text-text-muted';
+
+  // Auto-grow textarea
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 300) + 'px';
+    }
+  }, [value]);
+
   return (
     <div>
       <textarea
+        ref={textareaRef}
         value={value}
         onChange={e => onChange(e.target.value)}
         onPaste={onPaste}
         placeholder={placeholder}
-        rows={rows}
+        rows={rows || 3}
         autoFocus={autoFocus}
         className={className || 'w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors resize-none overflow-y-auto text-sm leading-relaxed'}
       />
