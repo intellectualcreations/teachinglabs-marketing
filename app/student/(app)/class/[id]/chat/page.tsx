@@ -323,7 +323,7 @@ export default function ClassChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ class_id: classId, content: messageContent, user_id: userId }),
+        body: JSON.stringify({ class_id: classId, content: messageContent, user_id: userId, new_chat: !activeSession }),
       });
 
       if (res.ok) {

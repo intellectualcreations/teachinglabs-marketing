@@ -118,31 +118,26 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
           }
         }
 
-        // Fetch profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+        // Fetch profile via API (bypasses RLS)
+        let profileData: { preferred_name?: string; display_name?: string; superpower_title?: string; superpower_avatar?: string } | null = null;
+        try {
+          const { data: { session: sess } } = await supabase.auth.getSession();
+          if (sess?.access_token) {
+            const profRes = await fetch('/api/student/profile', {
+              headers: { 'Authorization': `Bearer ${sess.access_token}` },
+            });
+            if (profRes.ok) profileData = await profRes.json();
+          }
+        } catch { /* ignore */ }
 
-        // Check profiles.preferred_name first (Settings page), then assessment, then display_name
-        let preferredName = (profileData as { preferred_name?: string } | null)?.preferred_name || '';
-        if (!preferredName) {
-          try {
-            const { data: assessmentData } = await supabase
-              .from('student_assessments')
-              .select('preferred_name')
-              .eq('student_id', user.id)
-              .single();
-            if (assessmentData && (assessmentData as { preferred_name?: string }).preferred_name) {
-              preferredName = (assessmentData as { preferred_name: string }).preferred_name;
-            }
-          } catch { /* table may not exist */ }
+        if (!profileData) {
+          const { data: pd } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+          profileData = pd as typeof profileData;
         }
 
-        const displayName = preferredName || (profileData as { display_name?: string } | null)?.display_name || 'Student';
-        setSuperpowerTitle((profileData as unknown as { superpower_title?: string })?.superpower_title || '');
-        setSuperpowerAvatar((profileData as unknown as { superpower_avatar?: string })?.superpower_avatar || '');
+        const displayName = profileData?.preferred_name || profileData?.display_name || 'Student';
+        setSuperpowerTitle(profileData?.superpower_title || '');
+        setSuperpowerAvatar(profileData?.superpower_avatar || '');
         setStudentName(displayName.split(' ')[0]);
         setStudentInitials(getInitials(displayName));
 
