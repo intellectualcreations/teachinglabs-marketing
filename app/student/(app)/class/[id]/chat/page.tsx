@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import {
   ChatsCircle, PaperPlaneRight, ArrowLeft, Plus, Clock, Sparkle,
-  Paperclip, Image as ImageIcon, FileText, VideoCamera, X,
+  Paperclip, Image as ImageIcon, FileText, VideoCamera, X, SpeakerHigh, Stop,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -147,6 +147,7 @@ export default function ClassChatPage() {
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
   const [newChatMode, setNewChatMode] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState('');
+  const [speakingMsgId, setSpeakingMsgId] = useState('');
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -264,6 +265,24 @@ export default function ClassChatPage() {
     // Reset file input
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, []);
+
+  // TTS speak function
+  const speak = useCallback((text: string, msgId: string) => {
+    if (speakingMsgId === msgId) {
+      window.speechSynthesis.cancel();
+      setSpeakingMsgId('');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    // Strip markdown formatting for cleaner speech
+    const clean = text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/#{1,6}\s/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+    const utter = new SpeechSynthesisUtterance(clean);
+    utter.rate = 0.95;
+    utter.onend = () => setSpeakingMsgId('');
+    utter.onerror = () => setSpeakingMsgId('');
+    setSpeakingMsgId(msgId);
+    window.speechSynthesis.speak(utter);
+  }, [speakingMsgId]);
 
   const uploadFile = useCallback(async (file: File, uid: string): Promise<string | null> => {
     try {
@@ -513,6 +532,19 @@ export default function ClassChatPage() {
                     >
                       {parsed.text}
                     </div>
+                  )}
+                  {!isStudent && parsed.text && (
+                    <button
+                      onClick={() => speak(parsed.text, msg.id)}
+                      className="mt-1 flex items-center gap-1 text-xs text-white/40 hover:text-teal transition-colors"
+                      title={speakingMsgId === msg.id ? 'Stop' : 'Listen'}
+                    >
+                      {speakingMsgId === msg.id ? (
+                        <><Stop size={12} weight="fill" /> Stop</>)
+                      : (
+                        <><SpeakerHigh size={12} weight="fill" /> Listen</>)
+                      }
+                    </button>
                   )}
                 </div>
               </div>
