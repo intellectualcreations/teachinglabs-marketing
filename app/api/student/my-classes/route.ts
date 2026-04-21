@@ -51,11 +51,24 @@ export async function GET(request: NextRequest) {
   console.log('[my-classes] Authenticated as:', userId);
 
   // Fetch enrollments (active + pending)
-  const { data: enrollments } = await admin
+  // Note: 'pending' may not exist in the DB enum yet, so fetch active first, then try pending
+  const { data: activeEnrollments } = await admin
     .from('enrollments')
     .select('class_id, status')
     .eq('student_id', userId)
-    .in('status', ['active', 'pending']);
+    .eq('status', 'active');
+
+  let pendingEnrollments: { class_id: string; status: string }[] = [];
+  try {
+    const { data: pending } = await admin
+      .from('enrollments')
+      .select('class_id, status')
+      .eq('student_id', userId)
+      .eq('status', 'pending' as any);
+    pendingEnrollments = pending ?? [];
+  } catch { /* pending enum may not exist yet */ }
+
+  const enrollments = [...(activeEnrollments ?? []), ...pendingEnrollments];
 
   if (!enrollments || enrollments.length === 0) {
     return NextResponse.json({ classes: [], teachers: [], enrollments: [], assignments: [], submissions: [] });

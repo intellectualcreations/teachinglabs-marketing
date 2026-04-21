@@ -236,7 +236,18 @@ export default function StudentSettingsPage() {
               {SUPERPOWER_TITLES[primaryIntelligence as Intelligence]?.map((title) => (
                 <button
                   key={title}
-                  onClick={() => setSuperpowerTitle(title)}
+                  onClick={async () => {
+                    setSuperpowerTitle(title);
+                    const token = (await createClient().auth.getSession()).data.session?.access_token;
+                    if (token) {
+                      await fetch('/api/student/profile', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ superpower_title: title }),
+                      });
+                      setSaved(true); setTimeout(() => setSaved(false), 2500);
+                    }
+                  }}
                   className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer border ${
                     superpowerTitle === title
                       ? 'bg-purple-500/20 border-purple-500 text-purple-300'
@@ -280,7 +291,19 @@ export default function StudentSettingsPage() {
                   .map((avatar) => (
                   <button
                     key={avatar.id}
-                    onClick={() => setSuperpowerAvatar(avatar.path)}
+                    onClick={async () => {
+                      setSuperpowerAvatar(avatar.path);
+                      // Auto-save avatar
+                      const token = (await createClient().auth.getSession()).data.session?.access_token;
+                      if (token) {
+                        await fetch('/api/student/profile', {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                          body: JSON.stringify({ superpower_avatar: avatar.path }),
+                        });
+                        setSaved(true); setTimeout(() => setSaved(false), 2500);
+                      }
+                    }}
                     className={`relative aspect-square rounded-full overflow-hidden border-2 transition-all cursor-pointer ${
                       superpowerAvatar === avatar.path
                         ? 'border-purple-500 ring-2 ring-purple-500/30 scale-105'
