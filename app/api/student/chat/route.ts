@@ -331,14 +331,14 @@ export async function POST(request: NextRequest) {
   // Create a fake user object for compatibility
   const user = { id: userId };
 
-  let body: { class_id?: string; content?: string; user_id?: string; new_chat?: boolean; session_id?: string };
+  let body: { class_id?: string; content?: string; user_id?: string; new_chat?: boolean; session_id?: string; topic?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { class_id, content, new_chat, session_id: clientSessionId } = body;
+  const { class_id, content, new_chat, session_id: clientSessionId, topic } = body;
   // Generate a session_id for new chats, or use the one from the client
   const session_id = clientSessionId || crypto.randomUUID();
 
@@ -444,6 +444,7 @@ export async function POST(request: NextRequest) {
       content: content.trim(),
       message_type: "student",
       session_id,
+      ...(topic ? { topic } : {}),
     })
     .select()
     .single();
@@ -531,6 +532,7 @@ export async function POST(request: NextRequest) {
         content: aiContent,
         message_type: "ai",
         session_id,
+        ...(topic ? { topic } : {}),
       })
       .select()
       .single();
@@ -552,6 +554,7 @@ export async function POST(request: NextRequest) {
           "I'm having a little trouble right now, but I'm still here! Can you try asking that again?",
         message_type: "ai",
         session_id,
+        ...(topic ? { topic } : {}),
       })
       .select()
       .single();
