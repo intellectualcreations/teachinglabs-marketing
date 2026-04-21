@@ -454,7 +454,16 @@ export default function ClassChatPage() {
         {/* Header */}
         <div className="flex items-center gap-3 pb-4 border-b border-border mb-4 flex-shrink-0">
           <button
-            onClick={() => { setActiveSession(null); setNewChatMode(false); setPendingAttachment(null); }}
+            onClick={async () => {
+              setActiveSession(null); setNewChatMode(false); setPendingAttachment(null);
+              // Re-fetch chat list
+              if (userId) {
+                const chatRes = await fetch(`/api/student/chat?classId=${classId}&userId=${userId}`);
+                const chatJson = chatRes.ok ? await chatRes.json() : { messages: [] };
+                const grouped = groupIntoSessions((chatJson.messages ?? []) as ChatMessage[]);
+                setSessions(grouped);
+              }
+            }}
             className="w-8 h-8 rounded-lg bg-card-bg border border-border flex items-center justify-center hover:bg-border transition-colors"
           >
             <ArrowLeft size={16} className="text-text-secondary" />
