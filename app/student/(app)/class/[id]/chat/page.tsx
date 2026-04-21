@@ -301,6 +301,7 @@ export default function ClassChatPage() {
 
       const res = await fetch('/api/student/upload', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 
