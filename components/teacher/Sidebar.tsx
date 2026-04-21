@@ -19,6 +19,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userName, setUserName] = useState('Teacher');
+  const [preferredName, setPreferredName] = useState('');
   const [initials, setInitials] = useState('T');
 
   useEffect(() => {
@@ -31,6 +32,15 @@ export default function Sidebar() {
           setUserName(name);
           const parts = name.split(' ');
           setInitials(parts.length >= 2 ? `${parts[0][0]}${parts[parts.length-1][0]}`.toUpperCase() : name[0]?.toUpperCase() || 'T');
+
+          // Fetch preferred_name from profiles
+          const { data: profile } = await (supabase.from as any)('profiles')
+            .select('preferred_name')
+            .eq('id', user.id)
+            .single();
+          if (profile?.preferred_name) {
+            setPreferredName(profile.preferred_name);
+          }
         }
       } catch { /* ignore */ }
     }
@@ -96,6 +106,9 @@ export default function Sidebar() {
               className="h-16 w-auto"
             />
           </div>
+          {preferredName && (
+            <p className="text-xs text-white/50 mt-1 pl-1">{preferredName}</p>
+          )}
         </div>
 
         {/* Nav items */}
