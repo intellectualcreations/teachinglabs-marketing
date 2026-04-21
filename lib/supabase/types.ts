@@ -7,7 +7,7 @@
  */
 
 export type UserRole = "admin" | "teacher" | "student" | "parent";
-export type EnrollmentStatus = "active" | "inactive" | "withdrawn";
+export type EnrollmentStatus = "active" | "inactive" | "withdrawn" | "pending";
 export type MessageType = "student" | "ai" | "teacher";
 export type AttendanceStatusType = "present" | "absent" | "late";
 

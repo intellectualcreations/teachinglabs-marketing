@@ -27,19 +27,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Class not found' }, { status: 404 });
     }
 
-    // 2. Fetch active enrollments for this class
+    // 2. Fetch all enrollments for this class (active + pending)
     const { data: enrollments, error: enrollError } = await supabase
       .from('enrollments')
       .select('*')
       .eq('class_id', classId)
-      .eq('status', 'active');
+      .in('status', ['active', 'pending']);
 
     if (enrollError) {
       console.error('Enrollments error:', enrollError.message);
     }
 
-    const activeEnrollments: Enrollment[] = enrollments ?? [];
-    const studentIds = activeEnrollments.map((e) => e.student_id);
+    const allEnrollments: Enrollment[] = enrollments ?? [];
+    const activeEnrollments = allEnrollments.filter(e => e.status === 'active');
+    const pendingEnrollments = allEnrollments.filter(e => e.status === 'pending');
+    const studentIds = allEnrollments.map((e) => e.student_id);
 
     // 3. Fetch student profiles
     let students: { id: string; display_name: string | null; avatar_url: string | null; enrolled_at: string }[] = [];
@@ -53,17 +55,22 @@ export async function GET(request: NextRequest) {
         console.error('Profiles error:', profileError.message);
       }
 
-      // Merge enrollment date with profile data
+      // Merge enrollment data with profile data
       const enrollmentMap = new Map(
-        activeEnrollments.map((e) => [e.student_id, e.enrolled_at])
+        allEnrollments.map((e) => [e.student_id, { enrolled_at: e.enrolled_at, status: e.status, enrollment_id: e.id }])
       );
       const profileList: Profile[] = profiles ?? [];
-      students = profileList.map((p) => ({
-        id: p.id,
-        display_name: p.display_name,
-        avatar_url: p.avatar_url,
-        enrolled_at: enrollmentMap.get(p.id) ?? '',
-      }));
+      students = profileList.map((p) => {
+        const enr = enrollmentMap.get(p.id);
+        return {
+          id: p.id,
+          display_name: p.display_name,
+          avatar_url: p.avatar_url,
+          enrolled_at: enr?.enrolled_at ?? '',
+          enrollment_status: enr?.status ?? 'active',
+          enrollment_id: enr?.enrollment_id ?? '',
+        };
+      });
     }
 
     // 4. Fetch assignments for this class via junction table (include is_open, due_date)
@@ -101,7 +108,8 @@ export async function GET(request: NextRequest) {
       class: classRecord,
       students,
       assignments: assignmentList,
-      studentCount: students.length,
+      studentCount: activeEnrollments.length,
+      pendingCount: pendingEnrollments.length,
       assignmentCount: assignmentList.length,
     });
   } catch (err) {

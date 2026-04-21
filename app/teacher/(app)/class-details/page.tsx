@@ -487,8 +487,10 @@ function ClassDetailsContent() {
   const activeCount = activities.filter((a) => a.isOpen).length;
   const totalChats = activities.reduce((sum, a) => sum + a.chats, 0);
 
-  // Map real students to display format
-  const studentsToShow = classData.students.slice(0, 10).map((s, i) => ({
+  // Map real students to display format, separating pending from active
+  const pendingStudents = classData.students.filter((s: any) => s.enrollment_status === 'pending');
+  const activeStudents = classData.students.filter((s: any) => s.enrollment_status !== 'pending');
+  const studentsToShow = activeStudents.slice(0, 10).map((s, i) => ({
     name: s.display_name || 'Unknown Student',
     color: AVATAR_COLORS[i % AVATAR_COLORS.length],
     lastActive: s.enrolled_at ? `Joined ${new Date(s.enrolled_at).toLocaleDateString()}` : 'Active',
@@ -688,6 +690,55 @@ function ClassDetailsContent() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Student Roster */}
         <div className="bg-card-bg border border-border rounded-[20px] p-6">
+          {/* Pending Approvals */}
+          {pendingStudents.length > 0 && (
+            <div className="mb-5 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+              <h3 className="font-heading font-bold text-sm text-amber-400 flex items-center gap-2 mb-3">
+                ⏳ Pending Approval ({pendingStudents.length})
+              </h3>
+              <div className="space-y-2">
+                {pendingStudents.map((s: any, i: number) => (
+                  <div key={s.id || i} className="flex items-center gap-3 p-2.5 rounded-lg bg-card-bg/50">
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white font-heading font-bold text-xs shrink-0 bg-amber-500/60"
+                    >
+                      {(s.display_name || '?').split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm text-text-primary truncate">{s.display_name || 'Unknown'}</div>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        await fetch('/api/teacher/enrollment', {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ enrollmentId: s.enrollment_id, action: 'approve' }),
+                        });
+                        window.location.reload();
+                      }}
+                      className="px-3 py-1.5 text-xs font-semibold bg-teal text-navy rounded-lg hover:bg-teal/80 transition-colors"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await fetch('/api/teacher/enrollment', {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ enrollmentId: s.enrollment_id, action: 'deny' }),
+                        });
+                        window.location.reload();
+                      }}
+                      className="px-3 py-1.5 text-xs font-semibold bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                    >
+                      Deny
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <h2 className="font-heading font-bold text-lg text-text-primary flex items-center gap-2 mb-5">
             <Student size={20} weight="fill" className="text-navy" />
             Students

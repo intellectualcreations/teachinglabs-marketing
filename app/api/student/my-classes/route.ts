@@ -50,17 +50,18 @@ export async function GET(request: NextRequest) {
 
   console.log('[my-classes] Authenticated as:', userId);
 
-  // Fetch enrollments
+  // Fetch enrollments (active + pending)
   const { data: enrollments } = await admin
     .from('enrollments')
-    .select('class_id')
+    .select('class_id, status')
     .eq('student_id', userId)
-    .eq('status', 'active');
+    .in('status', ['active', 'pending']);
 
   if (!enrollments || enrollments.length === 0) {
     return NextResponse.json({ classes: [], teachers: [], enrollments: [], assignments: [], submissions: [] });
   }
 
+  const enrollmentStatusMap = new Map(enrollments.map((e: { class_id: string; status: string }) => [e.class_id, e.status]));
   const classIds = enrollments.map((e: { class_id: string }) => e.class_id);
 
   // Fetch classes
@@ -132,8 +133,14 @@ export async function GET(request: NextRequest) {
     submissions = subs;
   }
 
+  // Add enrollment_status to each class
+  const classesWithStatus = (classes ?? []).map((c: { id: string }) => ({
+    ...c,
+    enrollment_status: enrollmentStatusMap.get(c.id) || 'active',
+  }));
+
   return NextResponse.json({
-    classes: classes ?? [],
+    classes: classesWithStatus,
     teachers: teachers ?? [],
     enrollments: enrollments ?? [],
     assignments: assignments ?? [],
