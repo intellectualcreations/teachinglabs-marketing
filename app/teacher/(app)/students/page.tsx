@@ -415,8 +415,68 @@ function StudentsContent() {
           ))}
         </div>
 
-        {/* Table */}
-        {students.length === 0 ? (
+        {/* Pending view — different layout: grouped by class, simpler columns, Move-to-other-class action */}
+        {statusFilter === 'pending' ? (
+          <PendingView
+            students={filtered}
+            classes={classes}
+            onAccept={async (studentIds, classIds) => {
+              setBulkActionBusy('accept');
+              const supabase = createClient();
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                await fetch('/api/teacher/enrollments/actions', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ teacherId: user.id, action: 'accept', studentIds, classIds }),
+                });
+                setStudents(prev => prev.map(x => studentIds.includes(x.id) ? { ...x, status: 'active' as const } : x));
+                setSelectedIds(new Set());
+              }
+              setBulkActionBusy(null);
+            }}
+            onReject={async (studentIds, classIds) => {
+              setBulkActionBusy('reject');
+              const supabase = createClient();
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                await fetch('/api/teacher/enrollments/actions', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ teacherId: user.id, action: 'reject', studentIds, classIds }),
+                });
+                setStudents(prev => prev.filter(x => !studentIds.includes(x.id)));
+                setSelectedIds(new Set());
+              }
+              setBulkActionBusy(null);
+            }}
+            onMoveToClass={async (studentId, fromClassId, toClassId) => {
+              const supabase = createClient();
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) return;
+              // Remove from wrong class, then create pending enrollment in correct class.
+              await fetch('/api/teacher/enrollments/actions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teacherId: user.id, action: 'remove', studentIds: [studentId], classIds: [fromClassId] }),
+              });
+              // Upsert a pending enrollment in the target class. We don't have an endpoint for this,
+              // so call Supabase via a new small route. For now, update existing row or insert.
+              await fetch('/api/teacher/enrollments/move', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teacherId: user.id, studentId, toClassId }),
+              });
+              // Reload the roster
+              const res = await fetch(`/api/teacher/students?teacherId=${user.id}`);
+              if (res.ok) {
+                const data = await res.json();
+                // Rebuild from fresh data — we re-trigger a full re-fetch by updating state surfaces the user sees
+                window.location.reload();
+              }
+            }}
+          />
+        ) : students.length === 0 ? (
           <div className="text-center py-16 px-5">
             <div className="text-[40px] mb-3">👋</div>
             <h3 className="font-heading font-bold text-[15px] text-text-primary">No students enrolled yet</h3>
@@ -782,6 +842,119 @@ function StudentsContent() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── Pending View ──────────────────────────────────────────────────────────────── */
+/* Simpler layout for the Pending tab: students grouped by the class they're
+   trying to join. Per-row Accept / Reject / Move-to-different-class actions. */
+function PendingView({
+  students,
+  classes,
+  onAccept,
+  onReject,
+  onMoveToClass,
+}: {
+  students: StudentRow[];
+  classes: Class[];
+  onAccept: (studentIds: string[], classIds: string[]) => Promise<void>;
+  onReject: (studentIds: string[], classIds: string[]) => Promise<void>;
+  onMoveToClass: (studentId: string, fromClassId: string, toClassId: string) => Promise<void>;
+}) {
+  // Group students by the class they're requesting to join.
+  const byClass = new Map<string, { classId: string; className: string; students: StudentRow[] }>();
+  students.forEach((s) => {
+    s.classIds.forEach((cid, idx) => {
+      const cname = s.classNames[idx] || 'Unknown';
+      if (!byClass.has(cid)) byClass.set(cid, { classId: cid, className: cname, students: [] });
+      byClass.get(cid)!.students.push(s);
+    });
+  });
+
+  const groups = Array.from(byClass.values()).sort((a, b) => a.className.localeCompare(b.className));
+  const [moveTarget, setMoveTarget] = (require('react') as typeof import('react')).useState<{ studentId: string; fromClassId: string } | null>(null);
+
+  if (students.length === 0) {
+    return (
+      <div className="text-center py-16 px-5">
+        <div className="text-[40px] mb-3">✨</div>
+        <h3 className="font-heading font-bold text-[15px] text-text-primary">No pending requests</h3>
+        <p className="text-text-secondary text-sm mt-1">When students enter your join code they’ll appear here for review.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {groups.map((g) => (
+        <div key={g.classId} className="rounded-lg border border-amber-200 dark:border-amber-700/40 overflow-hidden">
+          <div className="px-4 py-3 bg-amber-50 dark:bg-amber-950/20 border-b border-amber-200 dark:border-amber-700/40 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] uppercase tracking-[0.5px] font-bold text-amber-900 dark:text-amber-200">Wants to join</span>
+              <span className="font-heading font-bold text-sm text-text-primary">{g.className}</span>
+              <span className="text-[11px] text-amber-900 dark:text-amber-200">{g.students.length} request{g.students.length === 1 ? '' : 's'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onAccept(g.students.map(s => s.id), [g.classId])}
+                className="px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 border-0 cursor-pointer"
+              >Accept all</button>
+              <button
+                onClick={() => { if (confirm(`Reject all ${g.students.length} request${g.students.length === 1 ? '' : 's'} for ${g.className}?`)) onReject(g.students.map(s => s.id), [g.classId]); }}
+                className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 border-0 cursor-pointer"
+              >Reject all</button>
+            </div>
+          </div>
+          <div className="divide-y divide-border">
+            {g.students
+              .sort((a, b) => a.first.localeCompare(b.first) || a.last.localeCompare(b.last))
+              .map((s) => (
+                <div key={`${s.id}-${g.classId}`} className="flex items-center justify-between px-4 py-3 hover:bg-border/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full text-white text-xs font-bold flex items-center justify-center" style={{ backgroundColor: s.color }}>
+                      {s.first[0]}{s.last[0] || ''}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">{s.first} {s.last}</p>
+                      <p className="text-[11px] text-text-muted">{s.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onAccept([s.id], [g.classId])}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-[12px] font-semibold hover:bg-emerald-600 border-0 cursor-pointer"
+                    >Accept</button>
+                    <button
+                      onClick={() => { if (confirm(`Reject ${s.first}'s request to join ${g.className}?`)) onReject([s.id], [g.classId]); }}
+                      className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-[12px] font-semibold hover:bg-amber-600 border-0 cursor-pointer"
+                    >Reject</button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setMoveTarget((prev) => prev?.studentId === s.id && prev?.fromClassId === g.classId ? null : { studentId: s.id, fromClassId: g.classId })}
+                        className="px-3 py-1.5 rounded-lg border border-border text-[12px] font-semibold text-text-secondary hover:border-navy hover:text-navy cursor-pointer"
+                      >Move to…</button>
+                      {moveTarget?.studentId === s.id && moveTarget?.fromClassId === g.classId && (
+                        <div className="absolute right-0 mt-1 z-50 min-w-[200px] rounded-lg border border-border shadow-2xl bg-white dark:bg-[#243550] overflow-hidden">
+                          <div className="px-3 py-2 border-b border-white/10 bg-black/10 dark:bg-black/20 text-[10px] uppercase tracking-[0.5px] font-bold text-text-secondary">Move {s.first} to</div>
+                          {classes.filter((c) => c.id !== g.classId).length === 0 ? (
+                            <div className="px-3 py-2 text-[11px] text-text-muted">No other classes available.</div>
+                          ) : classes.filter((c) => c.id !== g.classId).map((c) => (
+                            <button
+                              key={c.id}
+                              onClick={async () => { setMoveTarget(null); await onMoveToClass(s.id, g.classId, c.id); }}
+                              className="block w-full text-left px-3 py-2 text-[12px] text-text-primary hover:bg-navy/10 cursor-pointer"
+                            >{c.name}</button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
