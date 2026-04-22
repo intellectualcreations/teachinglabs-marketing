@@ -67,8 +67,23 @@ async function resolveUserId(request: NextRequest, admin: SupabaseAdmin): Promis
   // the RESOURCE being accessed, not the caller's identity.
   // TODO: remove this fallback once all fetches attach Authorization header.
   const url = new URL(request.url);
-  const fallbackId = url.searchParams.get('teacherId')
+  let fallbackId: string | null = url.searchParams.get('teacherId')
     || url.searchParams.get('userId');
+
+  // Also accept teacherId/userId from the JSON body on POST/PATCH/PUT/DELETE.
+  // We clone the request so the downstream handler can still call req.json().
+  if (!fallbackId && ['POST', 'PATCH', 'PUT', 'DELETE'].includes(request.method)) {
+    try {
+      const cloned = request.clone();
+      const body = await cloned.json().catch(() => null);
+      if (body && typeof body === 'object') {
+        fallbackId = body.teacherId || body.userId || null;
+      }
+    } catch {
+      // body not JSON — ignore
+    }
+  }
+
   if (fallbackId) {
     const { data } = await (admin as any).from('profiles').select('id, role').eq('id', fallbackId).maybeSingle();
     if (data?.id) return { id: data.id };
