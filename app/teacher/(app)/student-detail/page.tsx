@@ -333,11 +333,9 @@ function StudentDetailContent() {
     : undefined;
 
   return (
-    <div
-      style={pushStyle}
-      className="transition-[margin] duration-200 ease-out"
-    >
-      {/* Back button — z-index above the panel click-catcher so a single click always navigates */}
+    <div>
+      {/* PERSISTENT TOP: Back button + Student Header always span the full width,
+          never pushed by the panel. The panel slides in below these. */}
       <button
         onClick={() => { setShowAssessmentPanel(false); router.push('/teacher/students'); }}
         className="relative z-[70] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-[1.5px] border-border
@@ -347,7 +345,7 @@ function StudentDetailContent() {
         <CaretLeft size={16} weight="fill" /> Back to Students
       </button>
 
-      {/* Student Header */}
+      {/* Student Header — always full width, not pushed */}
       <div className="relative bg-card-bg border border-border rounded-[14px] p-6 mb-5 flex flex-col sm:flex-row sm:items-center gap-5 overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-navy to-teal" />
 
@@ -382,6 +380,8 @@ function StudentDetailContent() {
         </div>
       </div>
 
+      {/* Pushable content — the panel pushes this section, not the full-width header above. */}
+      <div style={pushStyle} className="transition-[margin] duration-200 ease-out">
       {/* ── Interactive Tile Stack (single column on left, panels pop from right) ─────────────── */}
       <div className="flex flex-col gap-4 mb-5 max-w-[720px]">
 
@@ -517,6 +517,8 @@ function StudentDetailContent() {
 
 
 
+      </div>{/* end pushable content */}
+
       {/* Recalibrate Confirm Modal */}
       {showRecalibrateModal && (
         <div className="fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4" onClick={() => !recalibrating && setShowRecalibrateModal(false)}>
@@ -584,8 +586,10 @@ function StudentDetailContent() {
             className="fixed inset-0 z-[55]"
             onClick={() => setShowAssessmentPanel(false)}
           />
-          {/* Align panel top with the Baseline Assessment tile (below the Student Name card) */}
-          <div className="fixed top-[204px] right-0 h-[calc(100vh-204px)] bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]">
+          {/* Panel starts below the persistent Student Header card so the teacher always
+              sees which student they're looking at. Top nav (72px) + back btn row (68px)
+              + student header (~132px) ≈ 272px. Adjust if the header size changes. */}
+          <div className="fixed top-[272px] right-0 h-[calc(100vh-272px)] bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]">
             <style jsx>{`
               @keyframes slideInRight {
                 from { transform: translateX(100%); }
