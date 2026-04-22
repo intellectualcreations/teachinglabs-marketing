@@ -232,6 +232,17 @@ function StudentDetailContent() {
   const [flagError, setFlagError] = useState('');
   const [flagSuccess, setFlagSuccess] = useState(false);
   const [showAssessmentPanel, setShowAssessmentPanel] = useState(false);
+  // Which tile the currently-open panel belongs to. Drives the accent color at the top.
+  const [panelType, setPanelType] = useState<'assessment' | 'conversations' | 'classes' | 'notes' | 'insights'>('assessment');
+  const PANEL_ACCENTS: Record<string, string> = {
+    assessment: '#7C3AED',      // purple
+    conversations: '#1F3A5F',    // navy
+    classes: '#4FA3A5',          // teal
+    notes: '#F59E0B',            // amber
+    insights: '#10B981',         // emerald (bottom of teal→navy gradient close enough)
+  };
+  const panelAccent = PANEL_ACCENTS[panelType];
+
   const [aiOverview, setAiOverview] = useState<string | null>(null);
   const [aiOverviewLoading, setAiOverviewLoading] = useState(false);
   const [aiOverviewDate, setAiOverviewDate] = useState<string | null>(null);
@@ -407,7 +418,7 @@ function StudentDetailContent() {
         {/* Tile 1: Baseline Assessment */}
         <button
           ref={firstTileRef}
-          onClick={() => hasBaseline && setShowAssessmentPanel(true)}
+          onClick={() => { if (hasBaseline) { setPanelType('assessment'); setShowAssessmentPanel(true); } }}
           disabled={!hasBaseline}
           className={`relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden transition-all ${
             hasBaseline ? 'hover:border-[#7C3AED] hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-not-allowed'
@@ -607,11 +618,13 @@ function StudentDetailContent() {
             onClick={() => setShowAssessmentPanel(false)}
           />
           {/* Panel top is measured to the top of the Baseline Assessment tile — same
-              horizontal line for every pop-out so the layout is consistent. */}
+              horizontal line for every pop-out so the layout is consistent.
+              The 4px top accent bar takes the color of the tile that opened it. */}
           <div
             style={{ top: `${panelTop}px`, height: `calc(100vh - ${panelTop}px)` }}
-            className="fixed right-0 bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]"
+            className="fixed right-0 bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px] overflow-hidden"
           >
+            <div className="h-1 shrink-0" style={{ backgroundColor: panelAccent }} />
             <style jsx>{`
               @keyframes slideInRight {
                 from { transform: translateX(100%); }
@@ -620,10 +633,13 @@ function StudentDetailContent() {
             `}</style>
 
             {/* Header */}
-            <div className="px-6 py-5 border-b border-border flex items-center justify-between bg-gradient-to-r from-[#7C3AED]/5 to-transparent">
+            <div
+              className="px-6 py-5 border-b border-border flex items-center justify-between"
+              style={{ background: `linear-gradient(to right, ${panelAccent}11, transparent)` }}
+            >
               <div>
                 <div className="flex items-center gap-2">
-                  <Brain size={20} weight="fill" className="text-[#7C3AED]" />
+                  <Brain size={20} weight="fill" style={{ color: panelAccent }} />
                   <h3 className="font-heading font-bold text-base text-text-primary">Baseline Assessment Answers</h3>
                 </div>
                 <p className="text-[11px] text-text-secondary mt-0.5">
