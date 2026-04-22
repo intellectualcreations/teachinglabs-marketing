@@ -249,13 +249,14 @@ export default function WaitlistPage() {
                   <div>
                     <label className="block font-heading text-sm font-semibold text-text-primary mb-1.5">I am a...</label>
                     <select required value={role} onChange={(e) => setRole(e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border border-[rgba(128,128,128,0.25)] dark:border-white/15 bg-white dark:bg-white/[0.06] text-text-primary text-[15px] font-body focus:outline-none focus:ring-2 focus:ring-gold/40 dark:focus:ring-teal/40 transition-shadow appearance-none">
-                      <option value="" disabled>Select your role...</option>
-                      <option value="teacher">Teacher</option>
-                      <option value="admin">School Administrator</option>
-                      <option value="district">District Leader</option>
-                      <option value="parent">Parent</option>
-                      <option value="other">Other</option>
+                      style={{ colorScheme: 'dark light' }}
+                      className="w-full px-4 py-3 rounded-lg border border-[rgba(128,128,128,0.25)] dark:border-white/15 bg-white dark:bg-[#0e1a35] text-[#0a1128] dark:text-white text-[15px] font-body focus:outline-none focus:ring-2 focus:ring-gold/40 dark:focus:ring-teal/40 transition-shadow">
+                      <option value="" disabled className="bg-white dark:bg-[#0e1a35] text-[#0a1128] dark:text-white">Select your role...</option>
+                      <option value="teacher" className="bg-white dark:bg-[#0e1a35] text-[#0a1128] dark:text-white">Teacher</option>
+                      <option value="admin" className="bg-white dark:bg-[#0e1a35] text-[#0a1128] dark:text-white">School Administrator</option>
+                      <option value="district" className="bg-white dark:bg-[#0e1a35] text-[#0a1128] dark:text-white">District Leader</option>
+                      <option value="parent" className="bg-white dark:bg-[#0e1a35] text-[#0a1128] dark:text-white">Parent</option>
+                      <option value="other" className="bg-white dark:bg-[#0e1a35] text-[#0a1128] dark:text-white">Other</option>
                     </select>
                   </div>
 
