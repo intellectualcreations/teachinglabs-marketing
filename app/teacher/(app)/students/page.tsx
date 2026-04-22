@@ -364,7 +364,6 @@ function StudentsContent() {
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Last Name</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Email</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Preferred Name</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Flag</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Superhero Name</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Learning Style</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Enrolled</th>
@@ -398,24 +397,18 @@ function StudentsContent() {
                     </td>
                     <td className="px-3 py-3 text-sm text-text-primary">{s.last || <span className="text-text-muted">—</span>}</td>
                     <td className="px-3 py-3 text-[12px] text-text-secondary">{s.email || <span className="text-text-muted">—</span>}</td>
-                    <td className="px-3 py-3 text-sm text-text-secondary">
+                    <td className="px-3 py-3 text-sm">
                       {s.preferredName
-                        ? <span className={s.nameFlagged ? 'text-amber-600 font-medium' : ''}>{s.preferredName}</span>
+                        ? (
+                          <span
+                            className={s.nameFlagged ? 'text-amber-700 font-semibold bg-amber-100 px-1.5 py-0.5 rounded' : 'text-text-secondary'}
+                            title={s.nameFlagged ? 'AI flagged this preferred name as borderline — review in the row menu.' : ''}
+                          >
+                            {s.preferredName}
+                          </span>
+                        )
                         : <span className="text-text-muted">—</span>
                       }
-                    </td>
-                    <td className="px-3 py-3 text-center">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setFlagTarget(s); setFlagError(null); }}
-                        title={s.nameFlagged ? 'Name is flagged. Click to review.' : 'Flag preferred name as inappropriate'}
-                        className={`inline-flex items-center justify-center w-7 h-7 rounded-md border transition-colors cursor-pointer ${
-                          s.nameFlagged
-                            ? 'bg-amber-100 border-amber-300 text-amber-700 hover:bg-amber-200'
-                            : 'border-border text-text-muted hover:border-amber-400 hover:text-amber-600'
-                        }`}
-                      >
-                        <Flag size={13} weight={s.nameFlagged ? 'fill' : 'regular'} />
-                      </button>
                     </td>
                     <td className="px-3 py-3 text-sm text-text-secondary">{s.superheroName || <span className="text-text-muted">—</span>}</td>
                     <td className="px-3 py-3 text-sm text-text-secondary">{s.learningStyle || <span className="text-text-muted">—</span>}</td>
@@ -448,12 +441,18 @@ function StudentsContent() {
                         <DotsThree size={20} weight="bold" className="text-text-secondary" />
                       </button>
                       {openActionMenu === s.id && (
-                        <div className="absolute right-0 top-full mt-1 bg-card-bg border border-border rounded-lg shadow-lg z-30 min-w-[170px]">
+                        <div className="absolute right-0 top-full mt-1 bg-card-bg border border-border rounded-lg shadow-lg z-30 min-w-[220px]">
                           <button
                             onClick={() => { window.location.href = `/teacher/student-detail?student=${s.id}`; setOpenActionMenu(null); }}
                             className="block w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-navy/5 cursor-pointer"
                           >
                             View Profile
+                          </button>
+                          <button
+                            onClick={() => { setFlagTarget(s); setFlagError(null); setOpenActionMenu(null); }}
+                            className="block w-full text-left px-4 py-2.5 text-sm text-amber-700 hover:bg-amber-50 cursor-pointer"
+                          >
+                            Request preferred name change
                           </button>
                         </div>
                       )}
@@ -494,15 +493,15 @@ function StudentsContent() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setFlagTarget(null)}>
           <div className="bg-card-bg border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-3">
-              <h3 className="font-heading font-bold text-base text-text-primary">Flag Preferred Name as Inappropriate</h3>
+              <h3 className="font-heading font-bold text-base text-text-primary">Request Preferred Name Change</h3>
               <button onClick={() => setFlagTarget(null)} className="text-text-muted hover:text-text-primary cursor-pointer"><X size={18} /></button>
             </div>
             <p className="text-sm text-text-secondary mb-4">
-              This will reset <span className="font-semibold text-text-primary">{flagTarget.first} {flagTarget.last}</span>'s preferred name back to <span className="font-semibold text-text-primary">{flagTarget.first}</span>. Next time they log in, they'll be asked to choose a new appropriate name.
+              This will reset <span className="font-semibold text-text-primary">{flagTarget.first} {flagTarget.last}</span>&apos;s preferred name to <span className="font-semibold text-text-primary">{flagTarget.first}</span> and ask them to choose a new one at their next login.
             </p>
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 mb-4">
               <p className="text-xs font-semibold text-amber-800 mb-1">The student will see:</p>
-              <p className="text-xs text-amber-900 italic">"Your nickname was flagged by your teacher. Please choose a new one that follows the guidelines in Settings."</p>
+              <p className="text-xs text-amber-900 italic">&ldquo;Your teacher asked you to choose a different preferred name. Please pick one that works well in class.&rdquo;</p>
             </div>
             {flagError && <p className="text-xs text-red-600 mb-3">{flagError}</p>}
             <div className="flex justify-end gap-2">
@@ -536,7 +535,7 @@ function StudentsContent() {
                   }
                 }}
                 className="px-4 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors border-0 cursor-pointer disabled:opacity-50"
-              >{flagSaving ? 'Flagging...' : 'Flag & Reset Name'}</button>
+              >{flagSaving ? 'Requesting...' : 'Request Change'}</button>
             </div>
           </div>
         </div>
