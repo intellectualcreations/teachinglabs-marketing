@@ -234,6 +234,10 @@ function StudentDetailContent() {
   const [showAssessmentPanel, setShowAssessmentPanel] = useState(false);
   // Which tile the currently-open panel belongs to. Drives the accent color at the top.
   const [panelType, setPanelType] = useState<'assessment' | 'conversations' | 'classes' | 'notes' | 'insights'>('assessment');
+  const [showConversationsPanel, setShowConversationsPanel] = useState(false);
+  const [conversations, setConversations] = useState<any[] | null>(null);
+  const [conversationsLoading, setConversationsLoading] = useState(false);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const PANEL_ACCENTS: Record<string, string> = {
     assessment: '#7C3AED',      // purple
     conversations: '#1F3A5F',    // navy
@@ -356,9 +360,10 @@ function StudentDetailContent() {
   const hasBaseline = !!assessment;
   const mi = assessment?.multiple_intelligences;
 
-  // Panel push: when the panel is open, margin-right the main content by the panel width
-  // so the tiles never get overlapped. Panel width matches its CSS clamp (40vw, min 500px, max 900px).
-  const pushStyle = showAssessmentPanel
+  // Panel push: when any slide-out panel is open, margin-right the main content
+  // so the tiles never get overlapped. Clamp matches the panel's CSS width.
+  const anyPanelOpen = showAssessmentPanel || showConversationsPanel;
+  const pushStyle = anyPanelOpen
     ? { marginRight: 'clamp(500px, 40vw, 900px)' }
     : undefined;
 
@@ -476,10 +481,25 @@ function StudentDetailContent() {
           </div>
         )}
 
-        {/* Tile 2: Conversations (placeholder) */}
+        {/* Tile 2: Conversations */}
         <button
-          disabled
-          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed"
+          onClick={async () => {
+            setPanelType('conversations');
+            setShowAssessmentPanel(false);
+            setShowConversationsPanel(true);
+            if (!conversations) {
+              setConversationsLoading(true);
+              try {
+                const supabase = createClient();
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user || !studentId) return;
+                const res = await fetch(`/api/teacher/student-conversations?studentId=${studentId}&teacherId=${user.id}`);
+                const data = await res.json();
+                if (res.ok) setConversations(data.sessions || []);
+              } finally { setConversationsLoading(false); }
+            }
+          }}
+          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden hover:border-navy hover:shadow-lg transition-all cursor-pointer"
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-navy" />
           <div className="flex items-center justify-between mb-3">
@@ -487,9 +507,9 @@ function StudentDetailContent() {
               <ChatsCircle size={18} weight="fill" className="text-navy" />
               <span className="font-heading font-bold text-sm text-text-primary">Conversations</span>
             </div>
-            <span className="text-[11px] font-semibold text-text-muted">Coming in next update</span>
+            <span className="text-[11px] font-bold text-navy bg-navy/10 px-2 py-0.5 rounded-full">View →</span>
           </div>
-          <p className="text-xs text-text-secondary">Recent AI tutor chats will preview here.</p>
+          <p className="text-xs text-text-secondary">Student&apos;s 1-on-1 AI tutor chats + activity conversations.</p>
         </button>
 
         {/* Tile 3: Classes (placeholder) */}
@@ -869,6 +889,106 @@ function StudentDetailContent() {
                 <p className="text-[11px] text-text-secondary">Assessment answers are private to this teacher.</p>
                 <button onClick={() => setShowAssessmentPanel(false)} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
               </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Conversations Slide-Out Panel */}
+      {showConversationsPanel && (
+        <>
+          <div className="fixed inset-0 z-[55]" onClick={() => { setShowConversationsPanel(false); setSelectedConversationId(null); }} />
+          <div
+            style={{ top: `${panelTop}px`, height: `calc(100vh - ${panelTop}px)` }}
+            className="fixed right-0 bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px] overflow-hidden"
+          >
+            <div className="h-1 shrink-0 bg-navy" />
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between" style={{ background: 'linear-gradient(to right, #1F3A5F11, transparent)' }}>
+              <div>
+                <div className="flex items-center gap-2">
+                  <ChatsCircle size={20} weight="fill" className="text-navy" />
+                  <h3 className="font-heading font-bold text-base text-text-primary">Conversations</h3>
+                </div>
+                <p className="text-[11px] text-text-secondary mt-0.5">
+                  {profile?.display_name} · {conversations?.length ?? 0} session{(conversations?.length ?? 0) === 1 ? '' : 's'}
+                </p>
+              </div>
+              <button onClick={() => { setShowConversationsPanel(false); setSelectedConversationId(null); }} className="w-8 h-8 rounded-lg hover:bg-border/30 flex items-center justify-center cursor-pointer text-text-secondary">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {conversationsLoading ? (
+                <div className="p-6 text-center text-sm text-text-secondary">Loading conversations…</div>
+              ) : !conversations || conversations.length === 0 ? (
+                <div className="p-6 text-center text-sm text-text-secondary">
+                  <ChatsCircle size={36} weight="thin" className="mx-auto mb-2 text-text-muted" />
+                  <p>No conversations yet.</p>
+                  <p className="text-[11px] text-text-muted mt-1">Chats will appear here as the student talks to their AI tutor.</p>
+                </div>
+              ) : selectedConversationId ? (
+                // Detail view for one conversation
+                (() => {
+                  const sess = conversations.find((s: any) => s.id === selectedConversationId);
+                  if (!sess) return null;
+                  return (
+                    <div className="flex flex-col h-full">
+                      <div className="px-6 py-3 border-b border-border flex items-center justify-between bg-surface">
+                        <button onClick={() => setSelectedConversationId(null)} className="text-[12px] text-text-secondary hover:text-text-primary cursor-pointer flex items-center gap-1">
+                          <CaretLeft size={12} /> Back to list
+                        </button>
+                        <div className="text-right">
+                          <p className="text-[12px] font-semibold text-text-primary">{sess.title}</p>
+                          <p className="text-[10px] text-text-muted">{sess.class_name} · {sess.message_count} messages</p>
+                        </div>
+                      </div>
+                      <div className="flex-1 overflow-y-auto p-5 space-y-3">
+                        {sess.messages.map((m: any) => {
+                          const isStudent = m.role === 'user';
+                          return (
+                            <div key={m.id} className={`flex ${isStudent ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-[80%] rounded-xl px-3 py-2 text-[13px] whitespace-pre-wrap ${isStudent ? 'bg-navy text-white' : 'bg-surface border border-border text-text-primary'}`}>
+                                <div className="text-[10px] font-semibold uppercase tracking-[0.5px] mb-1 opacity-70">{isStudent ? 'Student' : 'AI Tutor'}</div>
+                                {m.content}
+                                <div className="text-[10px] opacity-60 mt-1">{new Date(m.created_at).toLocaleString()}</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                // List of sessions
+                <div className="divide-y divide-border">
+                  {conversations.map((sess: any) => (
+                    <button
+                      key={sess.id}
+                      onClick={() => setSelectedConversationId(sess.id)}
+                      className="w-full text-left px-6 py-4 hover:bg-border/10 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sess.type === 'activity' ? 'bg-teal/10 text-teal' : 'bg-navy/10 text-navy'}`}>
+                            {sess.type === 'activity' ? 'Activity' : 'Chat'}
+                          </span>
+                          <span className="font-semibold text-[13px] text-text-primary">{sess.title}</span>
+                        </div>
+                        <span className="text-[10px] text-text-muted">{new Date(sess.last_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                      </div>
+                      <p className="text-[11px] text-text-secondary mb-1">{sess.class_name} · {sess.message_count} message{sess.message_count === 1 ? '' : 's'}</p>
+                      <p className="text-[12px] text-text-primary line-clamp-2 italic">{sess.preview || '(no preview)'}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-border bg-surface px-6 py-3 flex justify-between items-center">
+              <p className="text-[11px] text-text-secondary">Private AI tutor conversations. Content is visible only to this teacher.</p>
+              <button onClick={() => { setShowConversationsPanel(false); setSelectedConversationId(null); }} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
             </div>
           </div>
         </>
