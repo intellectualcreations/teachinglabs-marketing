@@ -307,259 +307,135 @@ function StudentDetailContent() {
         </div>
       </div>
 
-      {/* Baseline Assessment */}
-      {hasBaseline && assessment && mi ? (
-        <div className="relative bg-card-bg border border-border rounded-[14px] p-6 mb-5 overflow-hidden">
+      {/* ── Interactive Tile Grid ─────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+
+        {/* Tile 1: Baseline Assessment */}
+        <button
+          onClick={() => hasBaseline && setShowAssessmentPanel(true)}
+          disabled={!hasBaseline}
+          className={`relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden transition-all ${
+            hasBaseline ? 'hover:border-[#7C3AED] hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-not-allowed'
+          }`}
+        >
           <div className="absolute top-0 left-0 right-0 h-1 bg-[#7C3AED]" />
-
-          <div className="flex items-start justify-between mb-1">
-            <button
-              onClick={() => setShowAssessmentPanel(true)}
-              className="font-heading font-bold text-[15px] text-text-primary flex items-center gap-2 bg-transparent border-0 cursor-pointer hover:text-[#7C3AED] transition-colors"
-              title="View assessment data and student answers"
-            >
-              <Brain size={20} weight="fill" className="text-[#7C3AED]" />
-              Baseline Assessment
-              <span className="text-[11px] font-semibold text-[#7C3AED] ml-1 px-2 py-0.5 rounded-full bg-[#7C3AED]/10">View Answers →</span>
-            </button>
-            <div className="flex gap-2">
-              <button className="text-[12px] font-semibold text-[#7C3AED] hover:underline cursor-pointer bg-transparent border-0">
-                View Rubric &amp; Scoring Guide
-              </button>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Brain size={18} weight="fill" className="text-[#7C3AED]" />
+              <span className="font-heading font-bold text-sm text-text-primary">Baseline Assessment</span>
             </div>
-          </div>
-          <div className="text-xs text-text-secondary mb-[18px]">
-            {assessment.theme && (
-              <span className="capitalize">{assessment.theme} theme</span>
-            )}
-            {assessment.age && (
-              <span> · Age {assessment.age}</span>
-            )}
-            {assessment.completed_at && (
-              <span> · Completed {formatDate(assessment.completed_at)}</span>
-            )}
-            {profile.updated_at && (
-              <span> · Last updated {formatDate(profile.updated_at)}</span>
+            {hasBaseline ? (
+              <span className="text-[11px] font-bold text-[#7C3AED] bg-[#7C3AED]/10 px-2 py-0.5 rounded-full">View Answers →</span>
+            ) : (
+              <span className="text-[11px] font-semibold text-text-muted">Not yet</span>
             )}
           </div>
-
-          {/* Interests */}
-          {assessment.interests && assessment.interests.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-[18px]">
-              {assessment.interests.map((interest) => (
-                <span key={interest} className="px-3 py-1 rounded-full text-xs font-semibold bg-[#7C3AED]/8 text-[#7C3AED] capitalize">
-                  <Sparkle size={10} weight="fill" className="inline mr-1" />
-                  {interest}
-                </span>
-              ))}
-              {assessment.other_interests && (
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#7C3AED]/8 text-[#7C3AED]">
-                  <Sparkle size={10} weight="fill" className="inline mr-1" />
-                  {assessment.other_interests}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Academic Tiers */}
-          <div className="mb-[18px]">
-            <div className="text-xs font-bold uppercase tracking-[0.5px] text-text-secondary mb-3 flex items-center gap-1.5">
-              <BookOpenText size={14} weight="fill" /> Academic Levels
-            </div>
-            <div className="flex flex-col gap-[14px]">
+          {hasBaseline && assessment && mi ? (
+            <div className="space-y-2">
+              <div className="text-[11px] text-text-secondary">
+                {assessment.theme && <span className="capitalize">{assessment.theme} theme</span>}
+                {assessment.completed_at && <span> · {formatDate(assessment.completed_at)}</span>}
+              </div>
               {[
-                { name: 'Reading Level', tier: assessment.reading_level },
-                { name: 'Math Level', tier: assessment.math_level },
-                { name: 'Logic & Reasoning', tier: assessment.logic_reasoning_level },
+                { name: 'Reading', tier: assessment.reading_level },
+                { name: 'Math', tier: assessment.math_level },
+                { name: 'Logic', tier: assessment.logic_reasoning_level },
               ].map(({ name, tier }) => (
-                <div key={name}>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-[13px] font-semibold text-text-primary">{name}</span>
-                    <span className="text-xs font-semibold" style={{ color: getTierColor(tier) }}>
-                      {getTierLabel(tier)}
-                    </span>
+                <div key={name} className="flex items-center gap-2">
+                  <span className="text-[11px] text-text-secondary w-12">{name}</span>
+                  <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${getTierPercent(tier)}%`, backgroundColor: getTierColor(tier) }} />
                   </div>
-                  <div className="h-2 bg-border rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${getTierPercent(tier)}%`, backgroundColor: getTierColor(tier) }}
-                    />
-                  </div>
+                  <span className="text-[10px] font-bold" style={{ color: getTierColor(tier) }}>{getTierLabel(tier)}</span>
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Gardner Intelligence Signals */}
-          <div className="mb-[18px]">
-            <div className="text-xs font-bold uppercase tracking-[0.5px] text-text-secondary mb-3 flex items-center gap-1.5">
-              <Lightbulb size={14} weight="fill" /> Gardner Intelligence Signals
+          ) : (
+            <div className="text-center py-4">
+              <div className="text-[28px] mb-1">📋</div>
+              <p className="text-xs text-text-secondary">Assessment not completed yet</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(['spatial', 'musical', 'bodily_kinesthetic', 'interpersonal', 'intrapersonal', 'naturalistic'] as const).map((key) => {
-                const signal = mi[key] || 'emerging';
-                const Icon = GARDNER_ICONS[key] || Brain;
-                return (
-                  <div key={key} className="flex items-center gap-3 bg-surface border border-border rounded-[10px] px-4 py-3">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${getSignalColor(signal)}15` }}
-                    >
-                      <Icon size={16} weight="fill" style={{ color: getSignalColor(signal) }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[12px] font-semibold text-text-primary">{GARDNER_LABELS[key]}</span>
-                        <span className="text-[11px] font-semibold" style={{ color: getSignalColor(signal) }}>
-                          {getSignalLabel(signal)}
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-border rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${getSignalPercent(signal)}%`, backgroundColor: getSignalColor(signal) }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex justify-end mt-3 gap-2">
-            <button
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-[1.5px] border-border
-                bg-transparent text-text-secondary text-[13px] font-semibold font-heading cursor-pointer
-                hover:border-navy hover:text-text-primary transition-all"
-            >
-              <ArrowsClockwise size={14} weight="fill" /> Recalibrate
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="relative bg-card-bg border border-border rounded-[14px] p-6 mb-5 overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-[#7C3AED]" />
-          <div className="font-heading font-bold text-[15px] text-text-primary flex items-center gap-2 mb-3">
-            <Brain size={20} weight="fill" className="text-[#7C3AED]" />
-            Baseline Assessment
-          </div>
-          <div className="text-center py-8">
-            <div className="text-[36px] mb-2">📋</div>
-            <p className="text-sm text-text-secondary mb-1">No baseline assessment yet</p>
-            <p className="text-xs text-text-secondary">
-              This student hasn&apos;t completed their onboarding assessment. The assessment generates automatically when students first log in.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Actions Bar */}
-      <div className="flex gap-2 mb-5 flex-wrap">
-        <a
-          href="/teacher/conversation-detail"
-          className="inline-flex items-center gap-1.5 px-[18px] py-2 rounded-lg bg-navy text-white
-            font-heading font-semibold text-[13px] cursor-pointer hover:opacity-85 transition-opacity no-underline"
-        >
-          <ChatsCircle size={14} weight="fill" /> View Conversations
-        </a>
-        <button className="inline-flex items-center gap-1.5 px-[18px] py-2 rounded-lg bg-teal text-navy
-          font-heading font-semibold text-[13px] cursor-pointer hover:opacity-85 transition-opacity border-0">
-          <Export size={14} weight="fill" /> Export Report
+          )}
         </button>
-        <button className="inline-flex items-center gap-1.5 px-[18px] py-2 rounded-lg border-[1.5px] border-border
-          bg-transparent text-text-secondary font-heading font-semibold text-[13px] cursor-pointer
-          hover:border-navy hover:text-text-primary transition-all">
-          <EnvelopeSimple size={14} weight="fill" /> Send to Parents
-        </button>
+
+        {/* Tile 2: Conversations (placeholder) */}
         <button
-          onClick={() => { setShowFlagModal(true); setFlagError(''); setFlagSuccess(false); }}
-          className="inline-flex items-center gap-1.5 px-[18px] py-2 rounded-lg border-[1.5px] border-orange-400/50
-            bg-transparent text-orange-400 font-heading font-semibold text-[13px] cursor-pointer
-            hover:border-orange-400 hover:text-orange-300 transition-all"
+          disabled
+          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed"
         >
-          <PencilSimple size={14} weight="fill" /> Flag Name
+          <div className="absolute top-0 left-0 right-0 h-1 bg-navy" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <ChatsCircle size={18} weight="fill" className="text-navy" />
+              <span className="font-heading font-bold text-sm text-text-primary">Conversations</span>
+            </div>
+            <span className="text-[11px] font-semibold text-text-muted">Coming in next update</span>
+          </div>
+          <p className="text-xs text-text-secondary">Recent AI tutor chats will preview here.</p>
         </button>
+
+        {/* Tile 3: Classes (placeholder) */}
+        <button
+          disabled
+          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed"
+        >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-teal" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <BookOpenText size={18} weight="fill" className="text-teal" />
+              <span className="font-heading font-bold text-sm text-text-primary">Classes</span>
+            </div>
+            <span className="text-[11px] font-semibold text-text-muted">Coming in next update</span>
+          </div>
+          <p className="text-xs text-text-secondary">
+            Enrolled in {enrollments.length} {enrollments.length === 1 ? 'class' : 'classes'}
+            {enrollments.length > 0 && `: ${enrollments.slice(0, 3).map(e => e.class_name).join(', ')}${enrollments.length > 3 ? '…' : ''}`}
+          </p>
+        </button>
+
+        {/* Tile 4: Teacher Notes (placeholder) */}
+        <button
+          disabled
+          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed"
+        >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <PencilSimple size={18} weight="fill" className="text-amber-500" />
+              <span className="font-heading font-bold text-sm text-text-primary">Teacher Notes</span>
+            </div>
+            <span className="text-[11px] font-semibold text-text-muted">Coming in next update</span>
+          </div>
+          <p className="text-xs text-text-secondary">Private running journal — newest first, filter by date.</p>
+        </button>
+
+        {/* Tile 5: More Insights (placeholder) */}
+        <button
+          disabled
+          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed lg:col-span-2"
+        >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal to-navy" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Sparkle size={18} weight="fill" className="text-teal" />
+              <span className="font-heading font-bold text-sm text-text-primary">More Insights</span>
+            </div>
+            <span className="text-[11px] font-semibold text-text-muted">Coming soon</span>
+          </div>
+          <p className="text-xs text-text-secondary">Activity tracking, badges, AI-generated insights, and trend analysis as students use the platform.</p>
+        </button>
+
       </div>
 
-      {/* Flag Name Modal */}
-      {showFlagModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowFlagModal(false)}>
-          <div className="bg-white dark:bg-[#0f1a2e] border border-border rounded-xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading font-bold text-base text-text-primary">Flag Nickname as Inappropriate</h3>
-              <button onClick={() => setShowFlagModal(false)} className="text-text-secondary hover:text-text-primary transition-colors bg-transparent border-0 cursor-pointer">
-                <X size={20} />
-              </button>
-            </div>
-            <p className="text-sm text-text-secondary mb-3">This will reset the student&apos;s nickname back to their first name. Next time they log in, they&apos;ll see a message asking them to choose a new, appropriate nickname.</p>
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-4">
-              <p className="text-sm font-medium text-amber-400 mb-1">The student will see:</p>
-              <p className="text-xs text-text-secondary italic">&quot;Your nickname was flagged by your teacher. Please choose a new one that follows the guidelines in Settings.&quot;</p>
-            </div>
-            {flagError && <p className="text-sm text-red-500 mb-3">{flagError}</p>}
-            {flagSuccess && <p className="text-sm text-green-500 mb-3">Nickname flagged and reset!</p>}
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setShowFlagModal(false)}
-                className="px-4 py-2 rounded-lg border border-border text-text-secondary text-sm font-medium hover:text-text-primary transition-colors bg-transparent cursor-pointer"
-              >Cancel</button>
-              <button
-                onClick={async () => {
-                  if (!studentId) return;
-                  setFlagSaving(true);
-                  setFlagError('');
-                  try {
-                    const supabase = createClient();
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (!user) return;
-                    // Get student's first name from profile
-                    const firstName = profile?.display_name?.split(' ')[0] || 'Student';
-                    const res = await fetch('/api/teacher/student-detail', {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ studentId, teacherId: user.id, preferred_name: firstName, flagged: true }),
-                    });
-                    if (res.ok) {
-                      setFlagSuccess(true);
-                      if (assessment) assessment.preferred_name = firstName;
-                      setTimeout(() => { setShowFlagModal(false); setFlagSuccess(false); }, 1500);
-                    } else {
-                      const data = await res.json();
-                      setFlagError(data.error || 'Failed to flag name');
-                    }
-                  } catch { setFlagError('Failed to flag name'); }
-                  setFlagSaving(false);
-                }}
-                disabled={flagSaving}
-                className="px-4 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors border-0 cursor-pointer disabled:opacity-50"
-              >{flagSaving ? 'Flagging...' : 'Flag & Reset Name'}</button>
-            </div>
-          </div>
+      {/* Recalibrate action stays visible when baseline is complete */}
+      {hasBaseline && (
+        <div className="flex justify-end mb-5">
+          <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-[1.5px] border-border bg-transparent text-text-secondary text-[13px] font-semibold font-heading cursor-pointer hover:border-navy hover:text-text-primary transition-all">
+            <ArrowsClockwise size={14} weight="fill" /> Recalibrate
+          </button>
         </div>
       )}
 
-      {/* Coming Soon Section */}
-      <div className="relative bg-card-bg border border-border rounded-[14px] p-8 mb-5 text-center overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal to-navy" />
-        <div className="text-[40px] mb-3">🚀</div>
-        <h3 className="font-heading font-bold text-base text-text-primary mb-2">More Insights Coming Soon</h3>
-        <p className="text-sm text-text-secondary max-w-md mx-auto">
-          Activity tracking, badges, and AI insights will appear here as students use the platform.
-        </p>
-      </div>
-
-      {/* Teacher Notes */}
-      <div className="bg-card-bg rounded-[20px] border border-border p-6">
-        <h2 className="font-heading font-bold text-sm text-text-primary mb-4">Teacher Notes</h2>
-        <textarea
-          value={teacherNotes}
-          onChange={(e) => setTeacherNotes(e.target.value)}
-          placeholder="Add private notes about this student..."
-          className="w-full min-h-[120px] p-3 rounded-lg border border-border bg-surface text-[13px]
-            text-text-primary placeholder:text-text-secondary resize-y outline-none focus:border-navy"
-        />
-      </div>
 
       {/* Assessment Slide-Out Panel */}
       {showAssessmentPanel && assessment && (
