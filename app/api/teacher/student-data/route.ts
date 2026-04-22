@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
  * GET /api/teacher/student-data?teacherId=<uuid>
@@ -7,12 +7,10 @@ import { createAdminClient } from '@/lib/supabase/server';
  * Uses admin client to bypass RLS.
  */
 export async function GET(request: NextRequest) {
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
-  if (!teacherId) {
-    return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
-  }
-
-  const supabase = createAdminClient();
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const teacherId = user.id;
 
   try {
     // Fetch teacher's classes

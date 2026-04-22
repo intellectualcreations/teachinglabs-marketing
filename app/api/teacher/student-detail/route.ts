@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher, requireTeacherOwnsStudent } from '@/lib/api-auth';
 
 // Profanity blocklist (same as student profile API)
 const BLOCKED_WORDS = [
@@ -24,17 +25,18 @@ function containsProfanity(text: string): boolean {
  * Uses admin client to bypass RLS.
  */
 export async function GET(request: NextRequest) {
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const teacherId = user.id;
   const studentId = request.nextUrl.searchParams.get('studentId');
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
 
-  if (!studentId || !teacherId) {
-    return NextResponse.json(
-      { error: 'studentId and teacherId are required' },
-      { status: 400 }
-    );
+  if (!studentId) {
+    return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
+  const ownsErr = await requireTeacherOwnsStudent(supabase, teacherId, studentId);
+  if (ownsErr) return ownsErr;
 
   try {
     // 1. Get student profile
@@ -128,12 +130,17 @@ export async function GET(request: NextRequest) {
  */
 export async function PATCH(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { studentId, teacherId, preferred_name, flagged } = body;
+    const auth = await requireTeacher(request);
+    if ('error' in auth) return auth.error;
+    const { user, admin: supabase } = auth;
+    const teacherId = user.id;
 
-    if (!studentId || !teacherId || typeof preferred_name !== 'string') {
+    const body = await request.json();
+    const { studentId, preferred_name, flagged } = body;
+
+    if (!studentId || typeof preferred_name !== 'string') {
       return NextResponse.json(
-        { error: 'studentId, teacherId, and preferred_name are required' },
+        { error: 'studentId and preferred_name are required' },
         { status: 400 }
       );
     }
@@ -146,30 +153,14 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const supabase = createAdminClient();
-
-    // Verify teacher has this student in one of their classes
-    const { data: classes } = await supabase
-      .from('classes')
-      .select('id')
-      .eq('teacher_id', teacherId);
-
-    if (!classes || classes.length === 0) {
-      return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
-    }
-
-    const { data: enrollment } = await supabase
-      .from('enrollments')
-      .select('id')
-      .eq('student_id', studentId)
-      .in('class_id', classes.map((c: { id: string }) => c.id))
-      .eq('status', 'active')
-      .limit(1)
-      .maybeSingle();
-
-    if (!enrollment) {
+    const ownsErr = await requireTeacherOwnsStudent(supabase, teacherId, studentId);
+    if (ownsErr) return ownsErr;
+    // Preserve the original behavior of early-returning on missing enrollment,
+    // but now guarded by the shared helper above.
+    if (false) {
       return NextResponse.json({ error: 'Student not in your classes' }, { status: 403 });
     }
+    // end defensive block (always skipped)
 
     const updateData: Record<string, unknown> = { preferred_name: name };
     if (flagged) {

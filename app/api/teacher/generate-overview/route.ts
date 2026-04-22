@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher, requireTeacherOwnsStudent } from '@/lib/api-auth';
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -14,32 +15,19 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
  */
 export async function POST(request: NextRequest) {
   try {
+    const authRes = await requireTeacher(request);
+    if ('error' in authRes) return authRes.error;
+    const { user, admin } = authRes;
+    const teacherId = user.id;
+
     const body = await request.json();
-    const { studentId, teacherId, regenerate } = body || {};
-    if (!studentId || !teacherId) {
-      return NextResponse.json({ error: 'studentId and teacherId required' }, { status: 400 });
+    const { studentId, regenerate } = body || {};
+    if (!studentId) {
+      return NextResponse.json({ error: 'studentId required' }, { status: 400 });
     }
 
-    const admin = createAdminClient();
-
-    // Authorize: teacher must have student in one of their classes
-    const { data: teacherClasses } = await (admin as any)
-      .from('classes')
-      .select('id')
-      .eq('teacher_id', teacherId);
-    const classIds = (teacherClasses ?? []).map((c: any) => c.id);
-    if (classIds.length === 0) {
-      return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
-    }
-    const { data: enrollment } = await (admin as any)
-      .from('enrollments')
-      .select('student_id')
-      .eq('student_id', studentId)
-      .in('class_id', classIds)
-      .maybeSingle();
-    if (!enrollment) {
-      return NextResponse.json({ error: 'Student not in your classes' }, { status: 403 });
-    }
+    const ownsErr = await requireTeacherOwnsStudent(admin, teacherId, studentId);
+    if (ownsErr) return ownsErr;
 
     // Load assessment + profile + responses
     const { data: assessment } = await (admin as any)

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher, requireTeacherOwnsStudent } from '@/lib/api-auth';
 
 /**
  * GET /api/teacher/student-conversations?studentId=<uuid>&teacherId=<uuid>
@@ -24,13 +25,18 @@ import { createAdminClient } from '@/lib/supabase/server';
  * }
  */
 export async function GET(request: NextRequest) {
+  const authRes = await requireTeacher(request);
+  if ('error' in authRes) return authRes.error;
+  const { user, admin } = authRes;
+  const teacherId = user.id;
+
   const studentId = request.nextUrl.searchParams.get('studentId');
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
-  if (!studentId || !teacherId) {
-    return NextResponse.json({ error: 'studentId and teacherId required' }, { status: 400 });
+  if (!studentId) {
+    return NextResponse.json({ error: 'studentId required' }, { status: 400 });
   }
 
-  const admin = createAdminClient();
+  const ownsErr = await requireTeacherOwnsStudent(admin, teacherId, studentId);
+  if (ownsErr) return ownsErr;
 
   // Authorize
   const { data: teacherClasses } = await (admin as any)

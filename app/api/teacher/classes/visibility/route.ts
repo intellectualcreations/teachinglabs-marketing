@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher, requireTeacherOwnsClass } from '@/lib/api-auth';
 
 /**
  * POST /api/teacher/classes/visibility
@@ -12,23 +13,22 @@ import { createAdminClient } from '@/lib/supabase/server';
  */
 export async function POST(request: NextRequest) {
   try {
-    const { teacherId, classId, action } = await request.json();
-    if (!teacherId || !classId || !action) {
-      return NextResponse.json({ error: 'teacherId, classId, action required' }, { status: 400 });
+    const authRes = await requireTeacher(request);
+    if ('error' in authRes) return authRes.error;
+    const { user, admin } = authRes;
+    const teacherId = user.id;
+
+    const { classId, action } = await request.json();
+    if (!classId || !action) {
+      return NextResponse.json({ error: 'classId and action required' }, { status: 400 });
     }
     const allowed = ['archive', 'unarchive', 'hide', 'show'];
     if (!allowed.includes(action)) {
       return NextResponse.json({ error: `action must be one of ${allowed.join(', ')}` }, { status: 400 });
     }
 
-    const admin = createAdminClient();
-
-    // Authorize
-    const { data: cls } = await (admin as any)
-      .from('classes').select('id, teacher_id').eq('id', classId).maybeSingle();
-    if (!cls || cls.teacher_id !== teacherId) {
-      return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
-    }
+    const ownsErr = await requireTeacherOwnsClass(admin, teacherId, classId);
+    if (ownsErr) return ownsErr;
 
     const update: Record<string, unknown> = {};
     if (action === 'archive')   { update.is_archived = true;  update.archived_at = new Date().toISOString(); }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
  * POST /api/teacher/enrollments/actions
@@ -16,17 +17,20 @@ import { createAdminClient } from '@/lib/supabase/server';
  */
 export async function POST(request: NextRequest) {
   try {
+    const authRes = await requireTeacher(request);
+    if ('error' in authRes) return authRes.error;
+    const { user, admin } = authRes;
+    const teacherId = user.id;
+
     const body = await request.json();
-    const { teacherId, action, studentIds, classIds } = body || {};
-    if (!teacherId || !action || !Array.isArray(studentIds) || studentIds.length === 0) {
-      return NextResponse.json({ error: 'teacherId, action, and studentIds[] required' }, { status: 400 });
+    const { action, studentIds, classIds } = body || {};
+    if (!action || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return NextResponse.json({ error: 'action and studentIds[] required' }, { status: 400 });
     }
     const allowed = ['accept', 'reject', 'archive', 'reactivate', 'remove'];
     if (!allowed.includes(action)) {
       return NextResponse.json({ error: `action must be one of ${allowed.join(', ')}` }, { status: 400 });
     }
-
-    const admin = createAdminClient();
 
     // Scope: only classes owned by this teacher
     const { data: myClasses } = await (admin as any)

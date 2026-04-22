@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher, requireTeacherOwnsStudent } from '@/lib/api-auth';
 
 /**
  * POST /api/teacher/students/delete
@@ -14,24 +15,19 @@ import { createAdminClient } from '@/lib/supabase/server';
  */
 export async function POST(request: NextRequest) {
   try {
+    const authRes = await requireTeacher(request);
+    if ('error' in authRes) return authRes.error;
+    const { user, admin } = authRes;
+    const teacherId = user.id;
+
     const body = await request.json();
-    const { teacherId, studentId, reason } = body || {};
-    if (!teacherId || !studentId) {
-      return NextResponse.json({ error: 'teacherId and studentId required' }, { status: 400 });
+    const { studentId, reason } = body || {};
+    if (!studentId) {
+      return NextResponse.json({ error: 'studentId required' }, { status: 400 });
     }
 
-    const admin = createAdminClient();
-
-    // Authorize
-    const { data: myClasses } = await (admin as any)
-      .from('classes').select('id').eq('teacher_id', teacherId);
-    const classIds = (myClasses ?? []).map((c: any) => c.id);
-    if (classIds.length === 0) return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
-    const { data: enr } = await (admin as any)
-      .from('enrollments').select('student_id').eq('student_id', studentId).in('class_id', classIds);
-    if (!enr || enr.length === 0) {
-      return NextResponse.json({ error: 'Student is not in your classes' }, { status: 403 });
-    }
+    const ownsErr = await requireTeacherOwnsStudent(admin, teacherId, studentId);
+    if (ownsErr) return ownsErr;
 
     // Cascade deletions (FKs should handle most, but be explicit for belt-and-suspenders)
     try { await (admin as any).from('enrollments').delete().eq('student_id', studentId); } catch {}

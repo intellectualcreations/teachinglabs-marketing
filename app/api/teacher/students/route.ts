@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
- * GET /api/teacher/students?teacherId=<uuid>
- * Returns { classes, students[], enrollments[] } for the students page.
- * Uses admin client to bypass RLS.
+ * GET /api/teacher/students
+ * Returns { classes, students[], enrollments[] } for the authenticated teacher only.
+ * Auth: session cookie or Authorization: Bearer token.
+ * teacherId query param is ignored — we use the authenticated user's id.
  */
 export async function GET(request: NextRequest) {
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
-  if (!teacherId) {
-    return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
-  }
-
-  const supabase = createAdminClient();
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const teacherId = user.id;
 
   try {
     // Fetch teacher's classes

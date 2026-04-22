@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
  * POST /api/teacher/enrollments/move
@@ -10,12 +11,15 @@ import { createAdminClient } from '@/lib/supabase/server';
  */
 export async function POST(request: NextRequest) {
   try {
-    const { teacherId, studentId, toClassId } = await request.json();
-    if (!teacherId || !studentId || !toClassId) {
-      return NextResponse.json({ error: 'teacherId, studentId, toClassId required' }, { status: 400 });
-    }
+    const authRes = await requireTeacher(request);
+    if ('error' in authRes) return authRes.error;
+    const { user, admin } = authRes;
+    const teacherId = user.id;
 
-    const admin = createAdminClient();
+    const { studentId, toClassId } = await request.json();
+    if (!studentId || !toClassId) {
+      return NextResponse.json({ error: 'studentId and toClassId required' }, { status: 400 });
+    }
 
     // Authorize: toClassId must belong to teacher
     const { data: ownedClasses } = await (admin as any)

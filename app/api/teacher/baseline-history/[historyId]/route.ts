@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
  * GET /api/teacher/baseline-history/[historyId]?teacherId=<uuid>
@@ -10,12 +11,13 @@ export async function GET(
   { params }: { params: Promise<{ historyId: string }> }
 ) {
   const { historyId } = await params;
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
-  if (!historyId || !teacherId) {
-    return NextResponse.json({ error: 'historyId and teacherId required' }, { status: 400 });
+  const authRes = await requireTeacher(request);
+  if ('error' in authRes) return authRes.error;
+  const { user, admin } = authRes;
+  const teacherId = user.id;
+  if (!historyId) {
+    return NextResponse.json({ error: 'historyId required' }, { status: 400 });
   }
-
-  const admin = createAdminClient();
 
   const { data: history, error } = await (admin as any)
     .from('baseline_history')
