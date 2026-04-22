@@ -845,15 +845,17 @@ function StudentsContent() {
               This will <strong>permanently delete</strong> their account, enrollments, assessments, chats, and notes.
               This cannot be undone. If the student might return, use <strong>Archive</strong> instead.
             </p>
-            <label className="block text-xs font-semibold text-text-secondary mb-1">Reason (for audit log)</label>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Reason for deletion <span className="text-red-500">*</span> <span className="text-text-muted font-normal">(mandatory, for audit log)</span></label>
             <input
               type="text"
               value={deleteReason}
               onChange={(e) => setDeleteReason(e.target.value)}
-              placeholder="e.g. bypassed invite, not in my class"
+              placeholder="e.g. bug, error, practice, false signup, bypassed invite"
               className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary text-sm outline-none focus:border-red-500"
               maxLength={200}
+              autoFocus
             />
+            <p className="text-[11px] text-text-muted mt-1">Minimum 3 characters. This is logged permanently.</p>
             <div className="flex justify-end gap-2 mt-4">
               <button
                 disabled={deleteSaving}
@@ -861,8 +863,9 @@ function StudentsContent() {
                 className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-border/10 cursor-pointer disabled:opacity-50"
               >Cancel</button>
               <button
-                disabled={deleteSaving}
+                disabled={deleteSaving || deleteReason.trim().length < 3}
                 onClick={async () => {
+                  if (deleteReason.trim().length < 3) return;
                   setDeleteSaving(true);
                   try {
                     const supabase = createClient();
@@ -882,7 +885,7 @@ function StudentsContent() {
                     }
                   } finally { setDeleteSaving(false); }
                 }}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 border-0 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 border-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >{deleteSaving ? 'Deleting…' : 'Permanently Delete'}</button>
             </div>
           </div>

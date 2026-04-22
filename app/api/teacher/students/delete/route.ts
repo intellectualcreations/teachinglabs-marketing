@@ -25,6 +25,10 @@ export async function POST(request: NextRequest) {
     if (!studentId) {
       return NextResponse.json({ error: 'studentId required' }, { status: 400 });
     }
+    const trimmedReason = typeof reason === 'string' ? reason.trim() : '';
+    if (trimmedReason.length < 3) {
+      return NextResponse.json({ error: 'Reason is required (minimum 3 characters) for audit log.' }, { status: 400 });
+    }
 
     const ownsErr = await requireTeacherOwnsStudent(admin, teacherId, studentId);
     if (ownsErr) return ownsErr;
@@ -44,7 +48,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    console.log(`[delete student] teacher=${teacherId} deleted studentId=${studentId} reason=${reason || ''}`);
+    // Permanent audit log entry — written to server stdout so it's retained in
+    // platform logs regardless of whether any downstream audit table is populated.
+    console.log(JSON.stringify({
+      event: 'student_deleted',
+      teacher_id: teacherId,
+      student_id: studentId,
+      reason: trimmedReason,
+      at: new Date().toISOString(),
+    }));
     return NextResponse.json({ ok: true, studentId });
   } catch (err) {
     console.error('[delete student] error:', err);
