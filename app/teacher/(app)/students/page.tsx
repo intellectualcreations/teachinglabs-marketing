@@ -82,6 +82,7 @@ function StudentsContent() {
   const [deleteSaving, setDeleteSaving] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
   const [bulkActionBusy, setBulkActionBusy] = useState<string | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<{ student: StudentRow; scope: 'all' | 'current'; } | null>(null);
 
   async function callEnrollmentAction(action: 'accept' | 'reject' | 'archive' | 'reactivate' | 'remove', studentIds: string[]) {
     const supabase = createClient();
@@ -622,15 +623,15 @@ function StudentsContent() {
                           )}
                           {s.status === 'active' && (
                             <button
-                              onClick={async () => {
-                                if (!confirm(`Archive ${s.first} ${s.last}? They'll be hidden from the active list but kept in case they return.`)) { setOpenActionMenu(null); return; }
+                              onClick={() => {
                                 setOpenActionMenu(null);
-                                const ok = await callEnrollmentAction('archive', [s.id]);
-                                if (ok) setStudents(prev => prev.map(x => x.id === s.id ? { ...x, status: 'archived' as const } : x));
+                                // If teacher is viewing All Classes, default to archiving from all.
+                                // If filtered to a specific class, default to just that one.
+                                setArchiveTarget({ student: s, scope: classFilter === 'all' ? 'all' : 'current' });
                               }}
                               className="block w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-navy/5 cursor-pointer border-t border-border"
                             >
-                              Archive student
+                              Archive student…
                             </button>
                           )}
                           {s.status === 'archived' && (
@@ -725,6 +726,96 @@ function StudentsContent() {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Archive Scope Modal */}
+      {archiveTarget && (
+        <div className="fixed inset-0 bg-black/70 z-[80] flex items-center justify-center p-4" onClick={() => !bulkActionBusy && setArchiveTarget(null)}>
+          <div className="bg-white dark:bg-[#243550] border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-heading font-bold text-base text-text-primary mb-1">Archive {archiveTarget.student.first} {archiveTarget.student.last}</h3>
+            <p className="text-sm text-text-secondary mb-4">
+              {archiveTarget.student.first} is enrolled in <span className="font-semibold text-text-primary">{archiveTarget.student.classNames.length} class{archiveTarget.student.classNames.length === 1 ? '' : 'es'}</span>: {archiveTarget.student.classNames.join(', ')}.
+            </p>
+
+            {archiveTarget.student.classNames.length > 1 && classFilter !== 'all' && (
+              <div className="space-y-2 mb-4">
+                <label className="flex items-start gap-2 p-3 rounded-lg border border-border cursor-pointer hover:border-navy">
+                  <input
+                    type="radio"
+                    checked={archiveTarget.scope === 'current'}
+                    onChange={() => setArchiveTarget({ ...archiveTarget, scope: 'current' })}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary">Archive from {classes.find(c => c.id === classFilter)?.name || 'this class'} only</p>
+                    <p className="text-[11px] text-text-secondary">They stay active in their other class{archiveTarget.student.classNames.length === 2 ? '' : 'es'}.</p>
+                  </div>
+                </label>
+                <label className="flex items-start gap-2 p-3 rounded-lg border border-border cursor-pointer hover:border-navy">
+                  <input
+                    type="radio"
+                    checked={archiveTarget.scope === 'all'}
+                    onChange={() => setArchiveTarget({ ...archiveTarget, scope: 'all' })}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary">Archive from all my classes</p>
+                    <p className="text-[11px] text-text-secondary">Removes them from your active roster everywhere. You can reactivate later.</p>
+                  </div>
+                </label>
+              </div>
+            )}
+            {archiveTarget.student.classNames.length === 1 && (
+              <p className="text-[12px] text-text-secondary bg-surface border border-border rounded p-3 mb-4">
+                They&apos;re only enrolled in {archiveTarget.student.classNames[0]}, so this archives them from that class.
+              </p>
+            )}
+            {archiveTarget.student.classNames.length > 1 && classFilter === 'all' && (
+              <p className="text-[12px] text-text-secondary bg-surface border border-border rounded p-3 mb-4">
+                You&apos;re viewing All Classes. Archiving here removes them from all {archiveTarget.student.classNames.length} of your classes. Switch to a specific class filter first to archive from just one.
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <button
+                disabled={bulkActionBusy === 'archive-one'}
+                onClick={() => setArchiveTarget(null)}
+                className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-border/10 cursor-pointer disabled:opacity-50"
+              >Cancel</button>
+              <button
+                disabled={bulkActionBusy === 'archive-one'}
+                onClick={async () => {
+                  if (!archiveTarget) return;
+                  setBulkActionBusy('archive-one');
+                  const scopeClassIds = archiveTarget.scope === 'current' && classFilter !== 'all'
+                    ? [classFilter]
+                    : undefined;
+                  const supabase = createClient();
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const res = await fetch('/api/teacher/enrollments/actions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        teacherId: user.id,
+                        action: 'archive',
+                        studentIds: [archiveTarget.student.id],
+                        classIds: scopeClassIds,
+                      }),
+                    });
+                    if (res.ok) {
+                      // Refresh the roster — a full reload is simpler and correct
+                      window.location.reload();
+                      return;
+                    }
+                  }
+                  setBulkActionBusy(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-teal text-navy text-sm font-semibold hover:opacity-90 border-0 cursor-pointer disabled:opacity-50"
+              >{bulkActionBusy === 'archive-one' ? 'Archiving…' : 'Archive'}</button>
+            </div>
           </div>
         </div>
       )}
