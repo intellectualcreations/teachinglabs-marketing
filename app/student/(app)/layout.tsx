@@ -69,9 +69,8 @@ interface SidebarClass {
 const NAV_ITEMS = [
   { href: '/student/dashboard', label: 'Dashboard', Icon: SquaresFour },
   { href: '/student/analytics', label: 'Analytics', Icon: ChartBar },
-  { href: '/student/messages', label: 'Chat', Icon: ChatText },
-  // Global Message Board removed from student nav — per-class message boards
-  // are accessible under each class in the sidebar (matches teacher pattern).
+  // Global 'Chat' removed — chat is per-class, accessed from each class in the sidebar.
+  // Global Message Board removed — per-class message boards live under each class.
 ];
 
 export default function StudentAppLayout({ children }: { children: React.ReactNode }) {
