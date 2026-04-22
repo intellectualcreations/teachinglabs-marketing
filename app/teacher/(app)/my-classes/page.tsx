@@ -367,23 +367,32 @@ export default function MyClassesPage() {
 
               {/* Footer: sidebar toggle + archive */}
               <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer text-[11px] text-text-secondary">
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] text-text-secondary select-none">
                   <input
                     type="checkbox"
                     checked={(c as any).show_in_sidebar !== false}
                     onChange={async (e) => {
-                      const supabase = createClient();
-                      const { data: { user } } = await supabase.auth.getUser();
-                      if (!user) return;
-                      const action = e.target.checked ? 'show' : 'hide';
-                      await fetch('/api/teacher/classes/visibility', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ teacherId: user.id, classId: c.id, action }),
-                      });
-                      setClasses(prev => prev.map(x => x.id === c.id ? { ...x, show_in_sidebar: e.target.checked } as any : x));
+                      const next = e.target.checked;
+                      // Optimistic UI: flip the state immediately, revert if the API fails.
+                      setClasses(prev => prev.map(x => x.id === c.id ? { ...x, show_in_sidebar: next } as any : x));
+                      try {
+                        const supabase = createClient();
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (!user) throw new Error('Not signed in');
+                        const action = next ? 'show' : 'hide';
+                        const res = await fetch('/api/teacher/classes/visibility', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ teacherId: user.id, classId: c.id, action }),
+                        });
+                        if (!res.ok) throw new Error('Save failed');
+                      } catch (err) {
+                        console.error('Visibility toggle failed:', err);
+                        // Revert
+                        setClasses(prev => prev.map(x => x.id === c.id ? { ...x, show_in_sidebar: !next } as any : x));
+                      }
                     }}
-                    className="w-3.5 h-3.5"
+                    className="w-3.5 h-3.5 cursor-pointer accent-teal"
                   />
                   Show in sidebar
                 </label>
