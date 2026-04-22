@@ -25,12 +25,25 @@ export default function Sidebar() {
   const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
   const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
 
+  // Reusable class-list refresh (called on mount + on teacher-classes-updated event)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const refreshSidebarClasses = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/classes/by-teacher?teacherId=${userId}&sidebarOnly=true&t=${Date.now()}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : (data.classes ?? []);
+      setClasses(list.map((c: any) => ({ id: c.id, name: c.name })));
+    } catch { /* ignore */ }
+  };
+
   useEffect(() => {
     async function loadUser() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          setCurrentUserId(user.id);
           const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Teacher';
           setUserName(name);
           const parts = name.split(' ');
@@ -45,18 +58,23 @@ export default function Sidebar() {
             setPreferredName(profile.preferred_name);
           }
 
-          // Fetch teacher's classes (sidebar only shows visible + non-archived)
-          const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}&sidebarOnly=true`);
-          if (res.ok) {
-            const data = await res.json();
-            const list = Array.isArray(data) ? data : (data.classes ?? []);
-            setClasses(list.map((c: any) => ({ id: c.id, name: c.name })));
-          }
+          // Initial load
+          await refreshSidebarClasses(user.id);
         }
       } catch { /* ignore */ }
     }
     loadUser();
   }, []);
+
+  // Listen for live updates fired from My Classes when teacher toggles show-in-sidebar
+  // or archive state — re-fetch the sidebar immediately without a page refresh.
+  useEffect(() => {
+    function onClassesUpdated() {
+      if (currentUserId) refreshSidebarClasses(currentUserId);
+    }
+    window.addEventListener('teacher-classes-updated', onClassesUpdated);
+    return () => window.removeEventListener('teacher-classes-updated', onClassesUpdated);
+  }, [currentUserId]);
 
   // Auto-expand class from URL (supports ?classId=... and ?class=...)
   useEffect(() => {

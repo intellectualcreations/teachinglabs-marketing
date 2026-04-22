@@ -386,6 +386,8 @@ export default function MyClassesPage() {
                           body: JSON.stringify({ teacherId: user.id, classId: c.id, action }),
                         });
                         if (!res.ok) throw new Error('Save failed');
+                        // Broadcast so the global sidebar re-fetches and shows/hides this class live
+                        window.dispatchEvent(new CustomEvent('teacher-classes-updated'));
                       } catch (err) {
                         console.error('Visibility toggle failed:', err);
                         // Revert
@@ -408,6 +410,7 @@ export default function MyClassesPage() {
                       body: JSON.stringify({ teacherId: user.id, classId: c.id, action: 'archive' }),
                     });
                     setClasses(prev => prev.map(x => x.id === c.id ? { ...x, is_archived: true, archived_at: new Date().toISOString() } as any : x));
+                    window.dispatchEvent(new CustomEvent('teacher-classes-updated'));
                   }}
                   className="text-[11px] text-text-muted hover:text-text-primary cursor-pointer"
                 >Archive class</button>
@@ -451,6 +454,7 @@ export default function MyClassesPage() {
                       body: JSON.stringify({ teacherId: user.id, classId: c.id, action: 'unarchive' }),
                     });
                     setClasses(prev => prev.map(x => x.id === c.id ? { ...x, is_archived: false, archived_at: null } as any : x));
+                    window.dispatchEvent(new CustomEvent('teacher-classes-updated'));
                   }}
                   className="text-[11px] font-semibold text-teal hover:underline cursor-pointer whitespace-nowrap"
                 >Un-archive</button>
