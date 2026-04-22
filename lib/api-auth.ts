@@ -59,14 +59,15 @@ async function resolveUserId(request: NextRequest, admin: SupabaseAdmin): Promis
   // 3. Transition fallback — the current browser client uses a custom
   // storageKey (localStorage: sb-auth-token) so no cookie is sent on fetches.
   // While we migrate clients to attach the Bearer token, we accept an
-  // explicit userId/teacherId/studentId in the query string and verify it
-  // maps to a real auth user. This closes the cross-tenant impersonation
-  // risk (attacker can no longer invent IDs) but doesn't achieve full
+  // explicit teacherId/userId in the query string and verify it maps to
+  // a real auth user. This closes the cross-tenant impersonation risk
+  // (attacker can no longer invent IDs) but doesn't achieve full
   // session-bound auth until clients are migrated.
+  // IMPORTANT: do NOT accept studentId as the caller here — studentId is
+  // the RESOURCE being accessed, not the caller's identity.
   // TODO: remove this fallback once all fetches attach Authorization header.
   const url = new URL(request.url);
   const fallbackId = url.searchParams.get('teacherId')
-    || url.searchParams.get('studentId')
     || url.searchParams.get('userId');
   if (fallbackId) {
     const { data } = await (admin as any).from('profiles').select('id, role').eq('id', fallbackId).maybeSingle();
@@ -165,13 +166,17 @@ export async function requireTeacherOwnsStudent(
   if (classIds.length === 0) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
   }
-  const { data: enrollment } = await (admin as any)
+  const { data: enrollments, error } = await (admin as any)
     .from('enrollments')
     .select('student_id')
     .eq('student_id', studentId)
     .in('class_id', classIds)
-    .maybeSingle();
-  if (!enrollment) {
+    .limit(1);
+  if (error) {
+    console.error('requireTeacherOwnsStudent error:', error.message);
+    return NextResponse.json({ error: 'Authorization check failed' }, { status: 500 });
+  }
+  if (!enrollments || enrollments.length === 0) {
     return NextResponse.json({ error: 'Student is not in any of your classes' }, { status: 403 });
   }
   return null;
