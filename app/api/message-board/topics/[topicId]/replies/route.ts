@@ -137,7 +137,7 @@ async function runTwinReply({ supabase, topicId, topic }: { supabase: any; topic
     const { data: cls } = await (supabase as any)
       .from('classes').select('name, subject').eq('id', topic.class_id).maybeSingle();
     const { data: teacherProf } = await (supabase as any)
-      .from('profiles').select('display_name, preferred_name, first_name, last_name, classroom_name, twin_name').eq('id', topic.created_by).maybeSingle();
+      .from('profiles').select('display_name, preferred_name, first_name, last_name, classroom_name, classroom_title, classroom_surname, twin_name, twin_clarifier, twin_unique_name').eq('id', topic.created_by).maybeSingle();
     const { teacherClassroomName, teacherTwinName } = await import('@/lib/teacher-identity');
 
     const twinReply = await generateTwinReply({

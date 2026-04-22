@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   const creatorIds = [...new Set(visible.map((t: any) => t.created_by))];
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('id, display_name, preferred_name, first_name, last_name, classroom_name, role')
+    .select('id, display_name, preferred_name, first_name, last_name, classroom_name, classroom_title, classroom_surname, role')
     .in('id', creatorIds.length ? creatorIds : ['00000000-0000-0000-0000-000000000000']);
   const { teacherClassroomName } = await import('@/lib/teacher-identity');
   const nameMap = new Map<string, string>();

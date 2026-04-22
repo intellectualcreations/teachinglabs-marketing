@@ -62,10 +62,26 @@ export async function PATCH(request: NextRequest) {
   const allowed: Record<string, string | null> = {};
   if (typeof updates.display_name === 'string') allowed.display_name = updates.display_name;
   if (typeof updates.preferred_name === 'string') allowed.preferred_name = updates.preferred_name;
-  // Student-facing identity fields
+  // Student-facing identity fields (legacy single strings)
   if ('classroom_name' in updates) allowed.classroom_name = updates.classroom_name ? String(updates.classroom_name).slice(0, 60) : null;
   if ('twin_name' in updates) allowed.twin_name = updates.twin_name ? String(updates.twin_name).slice(0, 60) : null;
   if ('twin_tagline' in updates) allowed.twin_tagline = updates.twin_tagline ? String(updates.twin_tagline).slice(0, 120) : null;
+  // Student-facing identity fields (structured parts). We sanitize each piece.
+  const clean = (v: any, maxLen: number): string | null => {
+    if (v === null) return null;
+    if (typeof v !== 'string') return null;
+    const cleaned = v.trim().replace(/\s+/g, ' ').slice(0, maxLen).replace(/[\n\r\t]/g, '');
+    return cleaned || null;
+  };
+  const cleanAndStripAi = (v: any, maxLen: number): string | null => {
+    const c = clean(v, maxLen);
+    if (!c) return null;
+    return c.replace(/^AI\s+/i, '') || null;
+  };
+  if ('classroom_title' in updates) allowed.classroom_title = clean(updates.classroom_title, 20);
+  if ('classroom_surname' in updates) allowed.classroom_surname = clean(updates.classroom_surname, 40);
+  if ('twin_clarifier' in updates) allowed.twin_clarifier = cleanAndStripAi(updates.twin_clarifier, 30);
+  if ('twin_unique_name' in updates) allowed.twin_unique_name = cleanAndStripAi(updates.twin_unique_name, 30);
 
   if (Object.keys(allowed).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });

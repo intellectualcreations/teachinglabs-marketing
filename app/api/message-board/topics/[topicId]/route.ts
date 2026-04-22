@@ -63,7 +63,7 @@ export async function GET(
   senderIds.push(topic.created_by);
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('id, display_name, preferred_name, first_name, last_name, classroom_name, twin_name, role')
+    .select('id, display_name, preferred_name, first_name, last_name, classroom_name, classroom_title, classroom_surname, twin_name, twin_clarifier, twin_unique_name, role')
     .in('id', senderIds);
   const { teacherClassroomName } = await import('@/lib/teacher-identity');
   const profileMap = new Map<string, { name: string; role: string }>();
@@ -128,9 +128,10 @@ export async function GET(
     },
     replies: scrubbedReplies.map((r: any) => {
       if (r.is_twin) {
-        // Twin replies use the teacher's twin_name (e.g. "Coach Sparkle"), never the teacher's classroom_name.
+        // Twin replies render with the teacher's Twin name (e.g. 'AI Coach Sparkle').
         const teacherProfile: any = (profiles ?? []).find((p: any) => p.id === r.sender_id);
-        const twinLabel = (teacherProfile?.twin_name && String(teacherProfile.twin_name).trim()) || 'Coach Sparkle';
+        const { teacherTwinName } = require('@/lib/teacher-identity');
+        const twinLabel = teacherTwinName(teacherProfile);
         return { ...r, sender_name: twinLabel, sender_role: 'twin' };
       }
       return {

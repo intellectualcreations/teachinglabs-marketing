@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (body.teacherId) {
       const { data: teacherProfile } = await (supabase as any)
         .from('profiles')
-        .select('display_name, preferred_name, first_name, last_name, classroom_name')
+        .select('display_name, preferred_name, first_name, last_name, classroom_name, classroom_title, classroom_surname')
         .eq('id', body.teacherId)
         .single();
       const { teacherClassroomName } = await import('@/lib/teacher-identity');

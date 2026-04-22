@@ -104,9 +104,11 @@ export default function SettingsPage() {
   const [profileSaved, setProfileSaved] = useState(false);
   const [userId, setUserId] = useState('');
 
-  // Classroom identity (what students see)
-  const [classroomName, setClassroomName] = useState('');
-  const [twinName, setTwinName] = useState('');
+  // Classroom identity (what students see) — structured parts
+  const [classroomTitle, setClassroomTitle] = useState('Mrs.');   // Mr./Mrs./Ms./Mx./Dr./Coach (or custom)
+  const [classroomSurname, setClassroomSurname] = useState('');
+  const [twinClarifier, setTwinClarifier] = useState('Coach');     // Coach / Spark / Mentor / Assistant / Helper / Bot (or custom)
+  const [twinUniqueName, setTwinUniqueName] = useState('');        // optional
   const [twinTagline, setTwinTagline] = useState('');
   const [identityDirty, setIdentityDirty] = useState(false);
   const [identitySaving, setIdentitySaving] = useState(false);
@@ -136,8 +138,10 @@ export default function SettingsPage() {
         setName(displayName);
         setPreferredName((p as { preferred_name?: string })?.preferred_name || '');
         const px = p as any;
-        setClassroomName(px?.classroom_name || (px?.last_name ? `Mrs. ${px.last_name}` : (px?.preferred_name || '')));
-        setTwinName(px?.twin_name || 'Coach Sparkle');
+        setClassroomTitle(px?.classroom_title || 'Mrs.');
+        setClassroomSurname(px?.classroom_surname || px?.last_name || '');
+        setTwinClarifier(px?.twin_clarifier || 'Coach');
+        setTwinUniqueName(px?.twin_unique_name || '');
         setTwinTagline(px?.twin_tagline || '');
         setRole(p?.role || 'Teacher');
         setUserId(user.id);
@@ -333,65 +337,87 @@ export default function SettingsPage() {
 
         {/* ─── 1b. How Students See You ─── */}
         <Section icon={User} title="How Students See You">
-          <div className="space-y-4">
+          <div className="space-y-5">
             <p className="text-sm text-text-secondary">
-              Students never see your legal name. Choose the name you want them to call you, and give your AI co-teacher its own name too.
+              Students never see your legal name. Pick what they call you in class — and give your AI co-teacher its own clearly-AI name so kids always know who they’re talking to.
             </p>
 
+            {/* Classroom name (title + last name) */}
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Classroom name</label>
-              <input
-                type="text"
-                value={classroomName}
-                onChange={(e) => { setClassroomName(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
-                placeholder="Mrs. Stewart"
-                maxLength={60}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal"
-              />
-              <p className="text-xs text-text-muted mt-1">What students see in chats, message boards, and emails. E.g. “Mrs. Stewart” or “Coach Stewart.”</p>
+              <label className="block text-sm font-medium text-text-primary mb-2">Your classroom name</label>
+              <div className="flex gap-2">
+                <select
+                  value={classroomTitle}
+                  onChange={(e) => { setClassroomTitle(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
+                  className="px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal min-w-[100px]"
+                >
+                  <option value="Mr.">Mr.</option>
+                  <option value="Mrs.">Mrs.</option>
+                  <option value="Ms.">Ms.</option>
+                  <option value="Mx.">Mx.</option>
+                  <option value="Dr.">Dr.</option>
+                  <option value="Coach">Coach</option>
+                </select>
+                <input
+                  type="text"
+                  value={classroomSurname}
+                  onChange={(e) => { setClassroomSurname(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
+                  placeholder="Stewart"
+                  maxLength={40}
+                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal"
+                />
+              </div>
+              <p className="text-xs text-text-muted mt-1">Use what your students <em>actually</em> call you every day. E.g. Mrs. Stewart, Coach Stewart, or Mx. Chen.</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Your AI Coach’s name</label>
-              <input
-                type="text"
-                value={twinName}
-                onChange={(e) => { setTwinName(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
-                placeholder="Coach Sparkle"
-                maxLength={60}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal"
-              />
-              <p className="text-xs text-text-muted mt-1">What the AI co-teacher is called when it posts in message boards. Picks up the tone of your classroom.</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">AI Coach tagline <span className="text-text-muted font-normal">(optional)</span></label>
-              <input
-                type="text"
-                value={twinTagline}
-                onChange={(e) => { setTwinTagline(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
-                placeholder={`${classroomName || 'Your'}'s AI co-teacher`}
-                maxLength={120}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal"
-              />
-              <p className="text-xs text-text-muted mt-1">Short subtitle shown under your coach&apos;s name.</p>
+            {/* Twin identity */}
+            <div className="pt-2 border-t border-border">
+              <label className="block text-sm font-medium text-text-primary mb-2">Your AI co-teacher’s name</label>
+              <p className="text-xs text-text-secondary mb-2">Starts with <span className="font-bold">AI</span> so students always know it&apos;s the co-teacher bot, not you.</p>
+              <div className="flex gap-2 items-center">
+                <span className="text-[13px] font-bold text-text-secondary">AI</span>
+                <select
+                  value={twinClarifier}
+                  onChange={(e) => { setTwinClarifier(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
+                  className="px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal min-w-[120px]"
+                >
+                  <option value="Coach">Coach</option>
+                  <option value="Spark">Spark</option>
+                  <option value="Mentor">Mentor</option>
+                  <option value="Assistant">Assistant</option>
+                  <option value="Helper">Helper</option>
+                  <option value="Bot">Bot</option>
+                </select>
+                <input
+                  type="text"
+                  value={twinUniqueName}
+                  onChange={(e) => { setTwinUniqueName(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
+                  placeholder="Sparkle (optional)"
+                  maxLength={30}
+                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal"
+                />
+              </div>
+              <p className="text-xs text-text-muted mt-1">Examples: <em>AI Coach</em>, <em>AI Coach Sparkle</em>, <em>AI Mentor Bot</em>, <em>AI Spark Genius</em>. Unique name is optional.</p>
             </div>
 
             {/* Preview */}
-            <div className="rounded-lg border border-border bg-surface p-3">
+            <div className="rounded-lg border border-teal/30 bg-teal/5 p-3">
               <p className="text-[11px] uppercase tracking-[0.5px] font-bold text-text-secondary mb-2">Preview — what students see</p>
               <div className="flex items-center gap-2 mb-2">
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-teal/20 text-teal">{classroomName || 'Mrs. Stewart'} · Teacher</span>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-teal/20 text-teal">
+                  {classroomTitle} {classroomSurname || '— add your last name'} · Teacher
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-400">{twinName || 'Coach Sparkle'} · AI Coach</span>
-                <span className="text-[10px] text-text-muted">{twinTagline || `${classroomName || 'Mrs. Stewart'}'s AI co-teacher`}</span>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-400">
+                  AI {twinClarifier}{twinUniqueName ? ` ${twinUniqueName}` : ''} · AI Co-Teacher
+                </span>
               </div>
             </div>
 
             {identityDirty && (
               <button
-                disabled={identitySaving}
+                disabled={identitySaving || !classroomSurname.trim()}
                 onClick={async () => {
                   setIdentitySaving(true);
                   try {
@@ -403,9 +429,10 @@ export default function SettingsPage() {
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         teacherId: user.id,
-                        classroom_name: classroomName.trim() || null,
-                        twin_name: twinName.trim() || null,
-                        twin_tagline: twinTagline.trim() || null,
+                        classroom_title: classroomTitle.trim(),
+                        classroom_surname: classroomSurname.trim(),
+                        twin_clarifier: twinClarifier.trim(),
+                        twin_unique_name: twinUniqueName.trim() || null,
                       }),
                     });
                     if (res.ok) {
