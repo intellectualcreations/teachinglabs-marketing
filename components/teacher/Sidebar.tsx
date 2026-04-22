@@ -46,10 +46,11 @@ export default function Sidebar() {
           }
 
           // Fetch teacher's classes
-          const res = await fetch('/api/classes/by-teacher');
+          const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}`);
           if (res.ok) {
             const data = await res.json();
-            setClasses((data.classes ?? []).map((c: any) => ({ id: c.id, name: c.name })));
+            const list = Array.isArray(data) ? data : (data.classes ?? []);
+            setClasses(list.map((c: any) => ({ id: c.id, name: c.name })));
           }
         }
       } catch { /* ignore */ }
