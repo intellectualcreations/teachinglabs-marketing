@@ -151,42 +151,28 @@ export default function StudentSettingsPage() {
             <p className="text-sm text-text-secondary">Loading...</p>
           ) : (
             <div className="space-y-4">
-              {/* Full Name (read-only) */}
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">Full Name</label>
-                <p className="px-3 py-2 rounded-lg bg-bg border border-border text-text-primary text-sm">
-                  {displayName || 'Not set'}
-                </p>
-              </div>
-
-              {/* Role (read-only) */}
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">Role</label>
-                <p className="px-3 py-2 rounded-lg bg-bg border border-border text-text-primary text-sm">
-                  Student
-                </p>
-              </div>
-
-              {/* Preferred Name (editable) */}
+              {/* Preferred Name (editable) — the only identity field students manage */}
               <div>
                 {nameFlagged && (
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-3">
-                    <p className="text-sm font-medium text-amber-400 mb-1">Every hero needs a name… what&apos;s your learning superpower identity?</p>
-                    <p className="text-xs text-text-secondary mb-2">Choose something creative and fun — just make sure it&apos;s appropriate, easy to read, and classroom-ready.</p>
-                    <p className="text-xs text-text-muted italic">Ideas: &quot;Mind Master&quot; · &quot;Code Wizard&quot; · &quot;Science Explorer&quot; · &quot;History Guardian&quot;</p>
+                    <p className="text-sm font-medium text-amber-400 mb-1">Your teacher flagged this name.</p>
+                    <p className="text-xs text-text-secondary mb-2">Please pick something school-appropriate — a real first name or a nickname you actually go by.</p>
                   </div>
                 )}
                 <label className="block text-sm font-medium text-text-secondary mb-1">
-                  Nickname
+                  Preferred name
                 </label>
                 <input
                   type="text"
                   value={preferredName}
                   onChange={(e) => setPreferredName(e.target.value.slice(0, 50))}
-                  placeholder="What should we call you?"
+                  placeholder="Your first name or nickname"
                   maxLength={50}
                   className="w-full px-3 py-2 rounded-lg bg-bg border border-border text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
+                <p className="text-xs text-text-muted mt-1 leading-snug">
+                  This is what your teacher and classmates see every day. Keep it school-appropriate.
+                </p>
                 <p className="text-xs text-text-muted mt-1">{preferredName.length}/50 characters</p>
               </div>
 
