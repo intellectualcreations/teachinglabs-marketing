@@ -333,8 +333,8 @@ function StudentDetailContent() {
         </div>
       </div>
 
-      {/* ── Interactive Tile Grid ─────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+      {/* ── Interactive Tile Stack (single column on left, panels pop from right) ─────────────── */}
+      <div className="flex flex-col gap-4 mb-5 max-w-[720px]">
 
         {/* Tile 1: Baseline Assessment */}
         <button
@@ -438,7 +438,7 @@ function StudentDetailContent() {
         {/* Tile 5: More Insights (placeholder) */}
         <button
           disabled
-          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed lg:col-span-2"
+          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed"
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal to-navy" />
           <div className="flex items-center justify-between mb-2">
