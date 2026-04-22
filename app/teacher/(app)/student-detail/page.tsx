@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   CaretLeft, CheckCircle, XCircle, UsersThree, Brain,
@@ -214,6 +214,7 @@ function GenerateOverviewInline({ studentId, onReady }: { studentId: string; onR
 
 function StudentDetailContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const studentId = searchParams.get('student');
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -320,15 +321,15 @@ function StudentDetailContent() {
 
   return (
     <div>
-      {/* Back button */}
-      <a
-        href="/teacher/students"
-        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-[1.5px] border-border
+      {/* Back button — z-index above the panel click-catcher so a single click always navigates */}
+      <button
+        onClick={() => { setShowAssessmentPanel(false); router.push('/teacher/students'); }}
+        className="relative z-[70] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-[1.5px] border-border
           bg-transparent text-text-secondary text-[13px] font-medium cursor-pointer transition-all
-          hover:border-navy hover:text-text-primary mb-5 no-underline"
+          hover:border-navy hover:text-text-primary mb-5"
       >
         <CaretLeft size={16} weight="fill" /> Back to Students
-      </a>
+      </button>
 
       {/* Student Header */}
       <div className="relative bg-card-bg border border-border rounded-[14px] p-6 mb-5 flex flex-col sm:flex-row sm:items-center gap-5 overflow-hidden">
@@ -503,7 +504,8 @@ function StudentDetailContent() {
             className="fixed inset-0 z-[55]"
             onClick={() => setShowAssessmentPanel(false)}
           />
-          <div className="fixed top-0 right-0 h-screen bg-card-bg border-l border-border z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]">
+          {/* Start below the top nav bar so the panel aligns with the Student Name card on the left */}
+          <div className="fixed top-[84px] right-0 h-[calc(100vh-84px)] bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]">
             <style jsx>{`
               @keyframes slideInRight {
                 from { transform: translateX(100%); }
