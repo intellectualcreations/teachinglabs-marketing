@@ -321,7 +321,8 @@ function GroupBreakdown({
 
 function ClassDetailsContent() {
   const searchParams = useSearchParams();
-  const classId = searchParams.get('class');
+  // Sidebar sends ?classId=... while older links send ?class=... — accept both.
+  const classId = searchParams.get('class') || searchParams.get('classId');
 
   // Real data state
   const [classData, setClassData] = useState<ClassDetailsResponse | null>(null);

@@ -59,7 +59,7 @@ function getInitials(first: string, last: string): string {
 
 function StudentsContent() {
   const searchParams = useSearchParams();
-  const classParam = searchParams.get('class');
+  const classParam = searchParams.get('class') || searchParams.get('classId');
 
   const [classes, setClasses] = useState<Class[]>([]);
   const [students, setStudents] = useState<StudentRow[]>([]);
