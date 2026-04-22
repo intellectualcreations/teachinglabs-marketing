@@ -150,24 +150,12 @@ async function redirectUser(
     const role: string = dbRole ?? pendingRole ?? 'student';
     const isNewSignup = !!pendingRole || !!localStorage.getItem('pending_school_id');
 
-    const pendingClassId = localStorage.getItem('pending_class_id');
-    if (pendingClassId && role === 'student') {
-      try {
-        await fetch('/api/classes/enroll', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ studentId: user.id, classId: pendingClassId }),
-        });
-      } catch (e) {
-        console.error('Auto-enroll failed:', e);
-      }
-    }
-
+    // Do NOT enroll here — the real enrollment happens at the end of onboarding
+    // via /api/student/complete-signup which also writes birth_year and sets
+    // enrollment status='pending'. We keep pending_class_id / pending_birth_year
+    // / pending_student_name in localStorage so onboarding can consume them.
     localStorage.removeItem('pending_role');
     localStorage.removeItem('pending_school_id');
-    localStorage.removeItem('pending_class_id');
-    localStorage.removeItem('pending_birth_year');
-    localStorage.removeItem('pending_student_name');
 
     if (isNewSignup) {
       if (role === 'student') { window.location.href = '/student/onboarding'; return; }
