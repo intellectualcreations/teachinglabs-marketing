@@ -129,6 +129,31 @@ function StudentMessageBoardContent() {
     if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
   }, [topicReplies]);
 
+  // Poll the selected topic every 4s for new replies (picks up teacher replies,
+  // peer replies, and the Twin's async responses). Gentle — only while a topic
+  // is open and the tab is visible.
+  useEffect(() => {
+    if (!selectedTopic?.id || !userId) return;
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled || document.hidden) return;
+      try {
+        const res = await fetch(`/api/message-board/topics/${selectedTopic.id}?userId=${userId}&role=student`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        setTopicReplies(prev => {
+          const prevIds = new Set(prev.map((r: any) => r.id));
+          const merged = [...prev];
+          for (const r of (data.replies ?? [])) if (!prevIds.has(r.id)) merged.push(r);
+          return merged;
+        });
+      } catch { /* ignore */ }
+    };
+    const interval = setInterval(tick, 4000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [selectedTopic?.id, userId]);
+
   async function sendReply() {
     if (!selectedTopic || !replyText.trim() || !userId) return;
     setSending(true);
