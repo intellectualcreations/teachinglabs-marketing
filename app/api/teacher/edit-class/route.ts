@@ -9,7 +9,7 @@ import { createAdminClient } from '@/lib/supabase/server';
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { classId, name, subject, grade_level, description, icon } = body;
+    const { classId, name, subject, grade_level, description, icon, requires_approval } = body;
 
     if (!classId) {
       return NextResponse.json({ error: 'classId required' }, { status: 400 });
@@ -28,6 +28,7 @@ export async function PUT(request: NextRequest) {
         grade_level: grade_level || null,
         description: description || null,
         icon: icon || null,
+        requires_approval: typeof requires_approval === 'boolean' ? requires_approval : undefined,
       } as never)
       .eq('id', classId)
       .select()

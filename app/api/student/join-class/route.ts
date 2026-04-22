@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
   // Look up class by join code (bypasses RLS)
   const { data: cls, error: clsErr } = await admin
     .from('classes')
-    .select('id, name')
+    .select('id, name, requires_approval')
     .eq('join_code', joinCode)
     .single();
 
@@ -50,8 +50,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid class code. Check with your teacher and try again.' }, { status: 404 });
   }
 
-  const classId = (cls as { id: string; name: string }).id;
-  const className = (cls as { id: string; name: string }).name;
+  const classId = (cls as { id: string; name: string; requires_approval: boolean }).id;
+  const className = (cls as { id: string; name: string; requires_approval: boolean }).name;
+  const requiresApproval = (cls as { id: string; name: string; requires_approval: boolean }).requires_approval;
 
   // Check if already enrolled
   const { data: existing } = await admin
@@ -66,14 +67,25 @@ export async function POST(request: NextRequest) {
   }
 
   // Enroll via admin (bypasses RLS)
+  // If class requires approval, set status to 'pending' instead of 'active'
+  const enrollStatus = requiresApproval ? 'pending' : 'active';
   const { error: enrollErr } = await admin
     .from('enrollments')
-    .insert({ student_id: userId, class_id: classId, status: 'active' } as never);
+    .insert({ student_id: userId, class_id: classId, status: enrollStatus } as never);
 
   if (enrollErr) {
     console.error('Enrollment error:', enrollErr.message);
     return NextResponse.json({ error: 'Could not enroll' }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, className });
+  if (requiresApproval) {
+    return NextResponse.json({
+      success: true,
+      className,
+      status: 'pending',
+      message: `Your request to join ${className} has been sent to your teacher for approval.`,
+    });
+  }
+
+  return NextResponse.json({ success: true, className, status: 'active' });
 }

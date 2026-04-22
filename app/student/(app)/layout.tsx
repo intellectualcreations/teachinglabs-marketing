@@ -69,7 +69,6 @@ interface SidebarClass {
 const NAV_ITEMS = [
   { href: '/student/dashboard', label: 'Dashboard', Icon: SquaresFour },
   { href: '/student/analytics', label: 'Analytics', Icon: ChartBar },
-  { href: '/student/messages', label: 'Messages', Icon: ChatText },
 ];
 
 export default function StudentAppLayout({ children }: { children: React.ReactNode }) {
@@ -349,6 +348,18 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
                       >
                         <ClipboardText size={14} weight="fill" />
                         Activities
+                      </Link>
+                      <Link
+                        href={`${classBasePath}/messages`}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center gap-2 px-2.5 py-2 rounded-md text-xs transition-colors ${
+                          pathname === `${classBasePath}/messages`
+                            ? 'bg-teal/20 text-teal font-semibold'
+                            : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                        }`}
+                      >
+                        <ChatText size={14} weight="fill" />
+                        Message Board
                       </Link>
                     </div>
                   )}

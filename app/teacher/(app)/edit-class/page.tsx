@@ -29,6 +29,7 @@ interface ClassRecord {
   join_code: string;
   description: string | null;
   icon: string | null;
+  requires_approval: boolean;
   created_at: string;
 }
 
@@ -101,6 +102,7 @@ function EditClassPage() {
   const [grade, setGrade] = useState('');
   const [desc, setDesc] = useState('');
   const [selectedIconIdx, setSelectedIconIdx] = useState(0);
+  const [requiresApproval, setRequiresApproval] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -133,6 +135,7 @@ function EditClassPage() {
       setSubject(cls.subject ?? '');
       setGrade(cls.grade_level ?? '');
       setDesc(cls.description ?? '');
+      setRequiresApproval(cls.requires_approval ?? false);
 
       // Find matching icon index by val
       const iconIdx = ICON_OPTIONS.findIndex((opt) => opt.val === cls.icon);
@@ -170,6 +173,7 @@ function EditClassPage() {
           subject,
           grade_level: grade,
           description: desc,
+          requires_approval: requiresApproval,
           icon: ICON_OPTIONS[selectedIconIdx]?.val ?? 'star',
         }),
       });
@@ -369,6 +373,34 @@ function EditClassPage() {
               bg-surface text-text-primary outline-none focus:border-navy transition-colors resize-y"
           />
         </div>
+      </div>
+
+      {/* ── Enrollment settings ── */}
+      <div className="bg-card-bg border border-border rounded-2xl p-8 mb-6">
+        <div className="font-heading font-semibold text-[17px] text-text-primary mb-1">Enrollment settings</div>
+        <div className="text-[14px] text-text-secondary mb-5">Control how students join this class.</div>
+        <label className="flex items-center gap-3 cursor-pointer">
+          <div
+            className={`w-11 h-6 rounded-full relative transition-colors ${
+              requiresApproval ? 'bg-navy' : 'bg-border'
+            }`}
+            onClick={() => setRequiresApproval(!requiresApproval)}
+          >
+            <div
+              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                requiresApproval ? 'translate-x-[22px]' : 'translate-x-0.5'
+              }`}
+            />
+          </div>
+          <div>
+            <div className="text-[14px] font-medium text-text-primary">Require approval to join</div>
+            <div className="text-[12px] text-text-secondary">
+              {requiresApproval
+                ? 'Students must be approved by you before they can access class content.'
+                : 'Students can join immediately with the class code.'}
+            </div>
+          </div>
+        </label>
       </div>
 
       {/* ── Join code card ── */}
