@@ -407,10 +407,7 @@ export default function StudentDashboardPage() {
         <JoinClassInline onJoined={() => window.location.reload()} />
       </div>
 
-      {/* Push notification opt-in */}
-      <div className="mb-6">
-        <NotificationOptIn />
-      </div>
+      {/* Push notification opt-in moved to Settings page. */}
 
       {/* Profile setup prompt */}
       {!superpowerAvatar && (

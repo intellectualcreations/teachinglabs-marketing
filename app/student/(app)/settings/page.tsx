@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import {
-  ArrowLeft, Gear, Sun, Moon, Desktop, SignOut, User,
+  ArrowLeft, Gear, Sun, Moon, Desktop, SignOut, User, Bell,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import { SUPERPOWER_TITLES, INTELLIGENCE_LABELS, INTELLIGENCE_EMOJIS, type Intelligence } from '@/lib/superpower';
 import { AVATARS, AVATAR_STYLES } from '@/lib/avatar-manifest';
+import NotificationOptIn from '@/components/shared/NotificationOptIn';
 import Image from 'next/image';
 
 /* ─── Helper: get access token from Supabase session ─── */
@@ -309,6 +310,17 @@ export default function StudentSettingsPage() {
             </div>
           </div>
         )}
+
+        {/* Divider */}
+        <div className="border-t border-border" />
+
+        {/* ─── Notifications Section ─── */}
+        <div>
+          <h2 className="font-heading font-bold text-base text-text-primary flex items-center gap-2 mb-4">
+            <Bell size={20} weight="bold" /> Notifications
+          </h2>
+          <NotificationOptIn />
+        </div>
 
         {/* Divider */}
         <div className="border-t border-border" />
