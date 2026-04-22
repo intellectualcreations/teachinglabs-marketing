@@ -18,11 +18,17 @@ interface StudentRow {
   displayName: string;
   first: string;
   last: string;
+  email: string;
   classNames: string[];
   classIds: string[];
   enrolledAt: string;
   baselineDate: string | null;
   preferredName: string | null;
+  nameFlagged: boolean;
+  superheroName: string | null;
+  superpowerAvatar: string | null;
+  learningStyle: string | null;
+  baselineLevel: 'Basic' | 'Proficient' | 'Advanced' | null;
   color: string;
   studentNumber: string | null;
 }
@@ -116,19 +122,26 @@ function StudentsContent() {
               existing.classNames.push(className);
             }
           } else {
-            const p = profileMap.get(e.student_id);
+            const p = profileMap.get(e.student_id) as any;
             const displayName = p?.display_name ?? 'Unknown Student';
-            const parts = displayName.split(' ');
+            const first = p?.first_name || displayName.split(' ')[0] || '';
+            const last = p?.last_name || displayName.split(' ').slice(1).join(' ') || '';
             studentMap.set(e.student_id, {
               id: e.student_id,
               displayName,
-              first: parts[0] ?? '',
-              last: parts.slice(1).join(' ') || '',
+              first,
+              last,
+              email: p?.email || '',
               classNames: [className],
               classIds: [e.class_id],
-              enrolledAt: e.enrolled_at,
-              baselineDate: assessmentMap.get(e.student_id) ?? null,
-              preferredName: (p as unknown as { preferred_name?: string })?.preferred_name || preferredNameMap.get(e.student_id) || null,
+              enrolledAt: p?.enrolled_at || e.enrolled_at,
+              baselineDate: p?.baseline_assessment_at || assessmentMap.get(e.student_id) || null,
+              preferredName: p?.preferred_name || preferredNameMap.get(e.student_id) || null,
+              nameFlagged: !!p?.name_flagged,
+              superheroName: p?.superpower_title || null,
+              superpowerAvatar: p?.superpower_avatar || null,
+              learningStyle: p?.primary_intelligence || null,
+              baselineLevel: p?.baseline_level || null,
               color: AVATAR_COLORS[i % AVATAR_COLORS.length],
               studentNumber: null,
             });
@@ -344,11 +357,16 @@ function StudentsContent() {
                       className="w-4 h-4 rounded border-border accent-teal cursor-pointer"
                     />
                   </th>
-                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Student</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">First Name</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Last Name</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Email</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Preferred Name</th>
-                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Classes</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Flag</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Superhero Name</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Learning Style</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Enrolled</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Last Baseline</th>
+                  <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border">Level</th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-text-secondary uppercase tracking-[0.5px] border-b-2 border-border w-10"></th>
                 </tr>
               </thead>
@@ -364,33 +382,30 @@ function StudentsContent() {
                       />
                     </td>
                     <td className="px-3 py-3">
-                      <a href={`/teacher/student-detail?student=${s.id}`} className="flex items-center gap-3 no-underline cursor-pointer hover:opacity-80">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                          style={{ backgroundColor: s.color }}
-                        >
-                          {getInitials(s.first, s.last)}
-                        </div>
-                        <span className="font-semibold text-sm text-text-primary">
-                          {nameFormat === 'last-first' ? `${s.last}, ${s.first}` : `${s.first} ${s.last}`}
-                        </span>
+                      <a href={`/teacher/student-detail?student=${s.id}`} className="flex items-center gap-2 no-underline cursor-pointer hover:opacity-80">
+                        {s.superpowerAvatar ? (
+                          <img src={s.superpowerAvatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: s.color }}>
+                            {getInitials(s.first, s.last)}
+                          </div>
+                        )}
+                        <span className="font-semibold text-sm text-text-primary">{s.first}</span>
                       </a>
                     </td>
+                    <td className="px-3 py-3 text-sm text-text-primary">{s.last || <span className="text-text-muted">—</span>}</td>
+                    <td className="px-3 py-3 text-[12px] text-text-secondary">{s.email || <span className="text-text-muted">—</span>}</td>
                     <td className="px-3 py-3 text-sm text-text-secondary">
                       {s.preferredName
-                        ? <span className={s.preferredName.toLowerCase() !== s.first.toLowerCase() ? 'text-amber-600 font-medium' : ''}>{s.preferredName}</span>
+                        ? <span className={s.nameFlagged ? 'text-amber-600 font-medium' : ''}>{s.preferredName}</span>
                         : <span className="text-text-muted">—</span>
                       }
                     </td>
-                    <td className="px-3 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {s.classNames.map((cn) => (
-                          <span key={cn} className="px-2 py-0.5 rounded-full bg-teal/10 text-[11px] font-medium text-teal whitespace-nowrap">
-                            {cn}
-                          </span>
-                        ))}
-                      </div>
+                    <td className="px-3 py-3 text-center">
+                      {s.nameFlagged ? <span className="inline-block w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold leading-5 text-center" title="Preferred name differs from legal name">!</span> : <span className="text-text-muted">—</span>}
                     </td>
+                    <td className="px-3 py-3 text-sm text-text-secondary">{s.superheroName || <span className="text-text-muted">—</span>}</td>
+                    <td className="px-3 py-3 text-sm text-text-secondary">{s.learningStyle || <span className="text-text-muted">—</span>}</td>
                     <td className="px-3 py-3 text-sm text-text-secondary">
                       {new Date(s.enrolledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
@@ -399,6 +414,15 @@ function StudentsContent() {
                         ? new Date(s.baselineDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                         : <span className="text-text-muted">—</span>
                       }
+                    </td>
+                    <td className="px-3 py-3">
+                      {s.baselineLevel ? (
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${
+                          s.baselineLevel === 'Advanced' ? 'bg-emerald-100 text-emerald-800' :
+                          s.baselineLevel === 'Proficient' ? 'bg-blue-100 text-blue-800' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>{s.baselineLevel}</span>
+                      ) : <span className="text-text-muted">—</span>}
                     </td>
                     <td className="px-3 py-3 relative">
                       <button

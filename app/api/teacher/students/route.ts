@@ -55,6 +55,25 @@ export async function GET(request: NextRequest) {
       .select('*')
       .in('id', studentIds);
 
+    // Pull email addresses from auth.users (not stored on profiles)
+    const emailMap = new Map<string, string>();
+    try {
+      let page = 1;
+      const ids = new Set(studentIds);
+      while (ids.size > 0) {
+        const { data } = await (supabase as any).auth.admin.listUsers({ page, perPage: 1000 });
+        if (!data?.users?.length) break;
+        for (const u of data.users) {
+          if (ids.has(u.id)) { emailMap.set(u.id, u.email || ''); ids.delete(u.id); }
+        }
+        if (data.users.length < 1000) break;
+        page++;
+      }
+    } catch (e) {
+      console.warn('email lookup failed:', (e as Error).message);
+    }
+    const profilesWithEmail = (studentProfiles ?? []).map((p: any) => ({ ...p, email: emailMap.get(p.id) || '' }));
+
     // Fetch baseline assessment completion dates (table may not exist yet)
     let assessments: { student_id: string; completed_at: string }[] = [];
     try {
@@ -69,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       classes: teacherClasses,
-      students: studentProfiles ?? [],
+      students: profilesWithEmail,
       enrollments,
       assessments: assessments ?? [],
     });
