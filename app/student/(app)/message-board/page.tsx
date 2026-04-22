@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChatsCircle, PaperPlaneRight, ArrowLeft, Plus, Lock, UsersThree, ChatCircleText,
 } from '@phosphor-icons/react';
@@ -44,8 +44,10 @@ function timeAgo(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function StudentMessageBoardPage() {
+function StudentMessageBoardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlClassId = searchParams.get('classId');
   const [userId, setUserId] = useState<string | null>(null);
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [activeClass, setActiveClass] = useState<ClassRow | null>(null);
@@ -89,11 +91,15 @@ export default function StudentMessageBoardPage() {
       }
 
       setClasses(rows);
-      if (rows.length > 0) setActiveClass(rows[0]);
+      if (rows.length > 0) {
+        const match = urlClassId ? rows.find((r) => r.id === urlClassId) : null;
+        setActiveClass(match || rows[0]);
+      }
       setLoading(false);
     }
     init();
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router, urlClassId]);
 
   // Load topics for active class
   const loadTopics = useCallback(async () => {
@@ -411,5 +417,13 @@ export default function StudentMessageBoardPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function StudentMessageBoardPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-text-secondary">Loading...</div>}>
+      <StudentMessageBoardContent />
+    </Suspense>
   );
 }

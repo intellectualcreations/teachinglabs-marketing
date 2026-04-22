@@ -70,7 +70,8 @@ const NAV_ITEMS = [
   { href: '/student/dashboard', label: 'Dashboard', Icon: SquaresFour },
   { href: '/student/analytics', label: 'Analytics', Icon: ChartBar },
   { href: '/student/messages', label: 'Chat', Icon: ChatText },
-  { href: '/student/message-board', label: 'Message Board', Icon: ChatsCircle },
+  // Global Message Board removed from student nav — per-class message boards
+  // are accessible under each class in the sidebar (matches teacher pattern).
 ];
 
 export default function StudentAppLayout({ children }: { children: React.ReactNode }) {
@@ -367,13 +368,9 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
                         Activities
                       </Link>
                       <Link
-                        href={`${classBasePath}/messages`}
+                        href={`/student/message-board?classId=${cls.id}`}
                         onClick={() => setMobileOpen(false)}
-                        className={`flex items-center gap-2 px-2.5 py-2 rounded-md text-xs transition-colors ${
-                          pathname === `${classBasePath}/messages`
-                            ? 'bg-teal/20 text-teal font-semibold'
-                            : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-                        }`}
+                        className={`flex items-center gap-2 px-2.5 py-2 rounded-md text-xs transition-colors text-white/50 hover:text-white/80 hover:bg-white/5`}
                       >
                         <ChatText size={14} weight="fill" />
                         Message Board
