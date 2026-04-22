@@ -36,6 +36,22 @@ interface StudentRow {
   status: 'active' | 'pending' | 'archived' | 'rejected';
 }
 
+// Canonical intelligence keys (lowercase snake_case) map to human-readable labels.
+const INTELLIGENCE_DISPLAY: Record<string, string> = {
+  linguistic: 'Linguistic',
+  logical_mathematical: 'Logical-Mathematical',
+  spatial: 'Visual-Spatial',
+  musical: 'Musical',
+  bodily_kinesthetic: 'Bodily-Kinesthetic',
+  interpersonal: 'Interpersonal',
+  intrapersonal: 'Intrapersonal',
+  naturalistic: 'Naturalistic',
+};
+function prettyIntelligence(v: string | null | undefined): string | null {
+  if (!v) return null;
+  return INTELLIGENCE_DISPLAY[v] || v;
+}
+
 const AVATAR_COLORS = [
   '#1F3A5F', '#4FA3A5', '#E8836B', '#F59E0B', '#8B5CF6',
   '#059669', '#3B82F6', '#DC2626', '#6366F1', '#0891B2',
@@ -553,7 +569,7 @@ function StudentsContent() {
                       }
                     </td>
                     <td className="px-3 py-3 text-sm text-text-secondary">{s.superheroName || <span className="text-text-muted">—</span>}</td>
-                    <td className="px-3 py-3 text-sm text-text-secondary">{s.learningStyle || <span className="text-text-muted">—</span>}</td>
+                    <td className="px-3 py-3 text-sm text-text-secondary">{prettyIntelligence(s.learningStyle) || <span className="text-text-muted">—</span>}</td>
                     <td className="px-3 py-3 text-sm text-text-secondary">
                       {new Date(s.enrolledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>

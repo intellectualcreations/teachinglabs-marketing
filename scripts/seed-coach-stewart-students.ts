@@ -292,7 +292,8 @@ async function main() {
       age: 12,
       superpower_title: title,
       superpower_avatar: avatar,
-      primary_intelligence: INTEL_LABEL[primary],
+      // Store the canonical snake_case key; UIs map to labels via INTELLIGENCE_LABELS / prettyIntelligence.
+      primary_intelligence: primary,
       baseline_level: s.level,
       baseline_assessment_at: s.baselineDate,
       enrolled_at: s.enrolledDate,
