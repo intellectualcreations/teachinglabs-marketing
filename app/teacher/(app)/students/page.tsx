@@ -512,8 +512,8 @@ function StudentsContent() {
                         <DotsThree size={20} weight="bold" className="text-text-secondary" />
                       </button>
                       {openActionMenu === s.id && (
-                        <div className="absolute right-0 mt-2 border border-border rounded-lg shadow-2xl z-40 min-w-[260px] overflow-hidden bg-white dark:bg-[#0e1a35] top-[calc(100%+4px)]">
-                          <div className="px-3 py-2 border-b border-border bg-surface">
+                        <div className="absolute right-0 mt-2 border border-white/10 rounded-lg shadow-2xl z-40 min-w-[260px] overflow-hidden bg-white dark:bg-[#243550] top-[calc(100%+4px)]">
+                          <div className="px-3 py-2 border-b border-white/10 bg-black/10 dark:bg-black/20">
                             <p className="text-[11px] font-semibold text-text-primary truncate">{s.first} {s.last}</p>
                             <p className="text-[10px] text-text-muted truncate">{s.email}</p>
                           </div>
