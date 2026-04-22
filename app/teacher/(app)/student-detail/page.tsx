@@ -239,6 +239,13 @@ function StudentDetailContent() {
   const [conversationsLoading, setConversationsLoading] = useState(false);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showClassesPanel, setShowClassesPanel] = useState(false);
+  const [showNotesPanel, setShowNotesPanel] = useState(false);
+  const [notes, setNotes] = useState<any[] | null>(null);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [newNote, setNewNote] = useState('');
+  const [notesFromDate, setNotesFromDate] = useState<string>('');
+  const [notesToDate, setNotesToDate] = useState<string>('');
+  const [showInsightsPanel, setShowInsightsPanel] = useState(false);
   const PANEL_ACCENTS: Record<string, string> = {
     assessment: '#7C3AED',      // purple
     conversations: '#1F3A5F',    // navy
@@ -363,7 +370,23 @@ function StudentDetailContent() {
 
   // Panel push: when any slide-out panel is open, margin-right the main content
   // so the tiles never get overlapped. Clamp matches the panel's CSS width.
-  const anyPanelOpen = showAssessmentPanel || showConversationsPanel || showClassesPanel;
+  const anyPanelOpen = showAssessmentPanel || showConversationsPanel || showClassesPanel || showNotesPanel || showInsightsPanel;
+
+  async function loadNotes(from?: string, to?: string) {
+    if (!studentId) return;
+    setNotesLoading(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const params = new URLSearchParams({ teacherId: user.id, studentId });
+      if (from) params.set('from', new Date(from).toISOString());
+      if (to) params.set('to', new Date(new Date(to).getTime() + 24 * 3600 * 1000).toISOString());
+      const res = await fetch(`/api/teacher/notes?${params.toString()}`);
+      const data = await res.json();
+      if (res.ok) setNotes(data.notes || []);
+    } finally { setNotesLoading(false); }
+  }
   const pushStyle = anyPanelOpen
     ? { marginRight: 'clamp(500px, 40vw, 900px)' }
     : undefined;
@@ -424,7 +447,7 @@ function StudentDetailContent() {
         {/* Tile 1: Baseline Assessment */}
         <button
           ref={firstTileRef}
-          onClick={() => { if (hasBaseline) { setPanelType('assessment'); setShowConversationsPanel(false); setShowClassesPanel(false); setShowAssessmentPanel(true); } }}
+          onClick={() => { if (hasBaseline) { setPanelType('assessment'); setShowConversationsPanel(false); setShowClassesPanel(false); setShowNotesPanel(false); setShowInsightsPanel(false); setShowAssessmentPanel(true); } }}
           disabled={!hasBaseline}
           className={`relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden transition-all ${
             hasBaseline ? 'hover:border-[#7C3AED] hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-not-allowed'
@@ -488,6 +511,8 @@ function StudentDetailContent() {
             setPanelType('conversations');
             setShowAssessmentPanel(false);
             setShowClassesPanel(false);
+            setShowNotesPanel(false);
+            setShowInsightsPanel(false);
             setShowConversationsPanel(true);
             if (!conversations) {
               setConversationsLoading(true);
@@ -516,7 +541,7 @@ function StudentDetailContent() {
 
         {/* Tile 3: Classes */}
         <button
-          onClick={() => { setPanelType('classes'); setShowAssessmentPanel(false); setShowConversationsPanel(false); setShowClassesPanel(true); }}
+          onClick={() => { setPanelType('classes'); setShowAssessmentPanel(false); setShowConversationsPanel(false); setShowNotesPanel(false); setShowInsightsPanel(false); setShowClassesPanel(true); }}
           className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden hover:border-teal hover:shadow-lg transition-all cursor-pointer"
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-teal" />
@@ -533,10 +558,15 @@ function StudentDetailContent() {
           </p>
         </button>
 
-        {/* Tile 4: Teacher Notes (placeholder) */}
+        {/* Tile 4: Teacher Notes */}
         <button
-          disabled
-          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed"
+          onClick={async () => {
+            setPanelType('notes');
+            setShowAssessmentPanel(false); setShowConversationsPanel(false); setShowClassesPanel(false); setShowInsightsPanel(false);
+            setShowNotesPanel(true);
+            if (!notes) await loadNotes();
+          }}
+          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden hover:border-amber-500 hover:shadow-lg transition-all cursor-pointer"
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
           <div className="flex items-center justify-between mb-3">
@@ -544,15 +574,15 @@ function StudentDetailContent() {
               <PencilSimple size={18} weight="fill" className="text-amber-500" />
               <span className="font-heading font-bold text-sm text-text-primary">Teacher Notes</span>
             </div>
-            <span className="text-[11px] font-semibold text-text-muted">Coming in next update</span>
+            <span className="text-[11px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">{notes ? `${notes.length} note${notes.length === 1 ? '' : 's'}` : 'View →'}</span>
           </div>
           <p className="text-xs text-text-secondary">Private running journal — newest first, filter by date.</p>
         </button>
 
-        {/* Tile 5: More Insights (placeholder) */}
+        {/* Tile 5: More Insights */}
         <button
-          disabled
-          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed"
+          onClick={() => { setPanelType('insights'); setShowAssessmentPanel(false); setShowConversationsPanel(false); setShowClassesPanel(false); setShowNotesPanel(false); setShowInsightsPanel(true); }}
+          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden hover:border-teal hover:shadow-lg transition-all cursor-pointer"
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal to-navy" />
           <div className="flex items-center justify-between mb-2">
@@ -560,7 +590,7 @@ function StudentDetailContent() {
               <Sparkle size={18} weight="fill" className="text-teal" />
               <span className="font-heading font-bold text-sm text-text-primary">More Insights</span>
             </div>
-            <span className="text-[11px] font-semibold text-text-muted">Coming soon</span>
+            <span className="text-[11px] font-bold text-teal bg-teal/10 px-2 py-0.5 rounded-full">Roadmap →</span>
           </div>
           <p className="text-xs text-text-secondary">Activity tracking, badges, AI-generated insights, and trend analysis as students use the platform.</p>
         </button>
@@ -991,6 +1021,149 @@ function StudentDetailContent() {
             <div className="border-t border-border bg-surface px-6 py-3 flex justify-between items-center">
               <p className="text-[11px] text-text-secondary">Private AI tutor conversations. Content is visible only to this teacher.</p>
               <button onClick={() => { setShowConversationsPanel(false); setSelectedConversationId(null); }} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Teacher Notes Slide-Out Panel */}
+      {showNotesPanel && (
+        <>
+          <div className="fixed inset-0 z-[55]" onClick={() => setShowNotesPanel(false)} />
+          <div
+            style={{ top: `${panelTop}px`, height: `calc(100vh - ${panelTop}px)` }}
+            className="fixed right-0 bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px] overflow-hidden"
+          >
+            <div className="h-1 shrink-0 bg-amber-500" />
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between" style={{ background: 'linear-gradient(to right, #F59E0B11, transparent)' }}>
+              <div>
+                <div className="flex items-center gap-2">
+                  <PencilSimple size={20} weight="fill" className="text-amber-500" />
+                  <h3 className="font-heading font-bold text-base text-text-primary">Teacher Notes</h3>
+                </div>
+                <p className="text-[11px] text-text-secondary mt-0.5">{profile?.display_name} · Private to you</p>
+              </div>
+              <button onClick={() => setShowNotesPanel(false)} className="w-8 h-8 rounded-lg hover:bg-border/30 flex items-center justify-center cursor-pointer text-text-secondary"><X size={18} /></button>
+            </div>
+
+            {/* New note input */}
+            <div className="px-6 py-4 border-b border-border bg-amber-50/30 dark:bg-amber-950/10">
+              <textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                rows={3}
+                placeholder="Add a quick note — observations, questions, things to follow up on…"
+                className="w-full text-[13px] p-3 rounded-lg border border-border bg-card-bg text-text-primary placeholder:text-text-secondary resize-y outline-none focus:border-amber-500"
+              />
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  disabled={!newNote.trim()}
+                  onClick={async () => {
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user || !studentId) return;
+                    const res = await fetch('/api/teacher/notes', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ teacherId: user.id, studentId, content: newNote.trim() }),
+                    });
+                    if (res.ok) {
+                      const { note } = await res.json();
+                      setNotes((prev) => prev ? [note, ...prev] : [note]);
+                      setNewNote('');
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 border-0 cursor-pointer disabled:opacity-50"
+                >Save Note</button>
+              </div>
+            </div>
+
+            {/* Date filter */}
+            <div className="px-6 py-3 border-b border-border flex items-center gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary">Filter</span>
+              <input type="date" value={notesFromDate} onChange={(e) => setNotesFromDate(e.target.value)} className="text-[12px] px-2 py-1 rounded border border-border bg-card-bg text-text-primary outline-none focus:border-amber-500" />
+              <span className="text-[11px] text-text-secondary">to</span>
+              <input type="date" value={notesToDate} onChange={(e) => setNotesToDate(e.target.value)} className="text-[12px] px-2 py-1 rounded border border-border bg-card-bg text-text-primary outline-none focus:border-amber-500" />
+              <button onClick={() => loadNotes(notesFromDate || undefined, notesToDate || undefined)} className="text-[11px] px-2 py-1 rounded border border-border text-text-secondary hover:border-amber-500 hover:text-amber-600 cursor-pointer">Apply</button>
+              {(notesFromDate || notesToDate) && (
+                <button onClick={() => { setNotesFromDate(''); setNotesToDate(''); loadNotes(); }} className="text-[11px] text-text-secondary hover:text-text-primary cursor-pointer">Clear</button>
+              )}
+            </div>
+
+            {/* Notes list */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+              {notesLoading ? (
+                <div className="text-center text-sm text-text-secondary py-6">Loading…</div>
+              ) : !notes || notes.length === 0 ? (
+                <div className="text-center text-sm text-text-secondary py-6">
+                  <PencilSimple size={28} weight="thin" className="mx-auto mb-1 text-text-muted" />
+                  <p>No notes yet. Start the journal above.</p>
+                </div>
+              ) : notes.map((n: any) => (
+                <div key={n.id} className="rounded-lg border border-border bg-surface p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-semibold text-amber-600">{new Date(n.created_at).toLocaleString()}</span>
+                    <button
+                      onClick={async () => {
+                        if (!confirm('Delete this note?')) return;
+                        const supabase = createClient();
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (!user) return;
+                        const res = await fetch(`/api/teacher/notes?id=${n.id}&teacherId=${user.id}`, { method: 'DELETE' });
+                        if (res.ok) setNotes((prev) => (prev ?? []).filter((x: any) => x.id !== n.id));
+                      }}
+                      className="text-[10px] text-text-muted hover:text-red-500 cursor-pointer"
+                    >Delete</button>
+                  </div>
+                  <p className="text-[13px] text-text-primary whitespace-pre-wrap leading-[1.55]">{n.content}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-border bg-surface px-6 py-3 flex justify-between items-center">
+              <p className="text-[11px] text-text-secondary">Notes are private to you. Future: AI summaries from your note history.</p>
+              <button onClick={() => setShowNotesPanel(false)} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* More Insights Slide-Out Panel (placeholder with roadmap) */}
+      {showInsightsPanel && (
+        <>
+          <div className="fixed inset-0 z-[55]" onClick={() => setShowInsightsPanel(false)} />
+          <div
+            style={{ top: `${panelTop}px`, height: `calc(100vh - ${panelTop}px)` }}
+            className="fixed right-0 bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px] overflow-hidden"
+          >
+            <div className="h-1 shrink-0 bg-gradient-to-r from-teal to-navy" />
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between" style={{ background: 'linear-gradient(to right, #10B98111, transparent)' }}>
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkle size={20} weight="fill" className="text-teal" />
+                  <h3 className="font-heading font-bold text-base text-text-primary">More Insights</h3>
+                </div>
+                <p className="text-[11px] text-text-secondary mt-0.5">Roadmap for this student view</p>
+              </div>
+              <button onClick={() => setShowInsightsPanel(false)} className="w-8 h-8 rounded-lg hover:bg-border/30 flex items-center justify-center cursor-pointer text-text-secondary"><X size={18} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              <div className="rounded-lg border border-dashed border-border p-4">
+                <p className="text-[11px] uppercase tracking-[0.5px] font-bold text-text-secondary mb-2">Coming Soon</p>
+                <ul className="space-y-2 text-[13px] text-text-primary">
+                  <li>• <strong>Activity completion trends</strong> — see how often this student engages with assigned work and how quickly they finish.</li>
+                  <li>• <strong>Mastery trajectory</strong> — per-subject growth curve from baseline → now, with a projected forecast.</li>
+                  <li>• <strong>Badges & milestones</strong> — visual earn log with dates and context.</li>
+                  <li>• <strong>AI-generated weekly digest</strong> — a 3-sentence weekly summary of what the student learned, what they struggled with, and what to watch next.</li>
+                  <li>• <strong>Flagged moments</strong> — auto-surfaced conversations where the student asked for deeper help or went off-topic.</li>
+                  <li>• <strong>Comparison view</strong> — private growth-tracking side-by-side with archived baselines.</li>
+                </ul>
+              </div>
+              <p className="text-[11px] text-text-muted italic">Want one of these sooner? Tell us which matters most and we&apos;ll prioritize.</p>
+            </div>
+            <div className="border-t border-border bg-surface px-6 py-3 flex justify-between items-center">
+              <p className="text-[11px] text-text-secondary">Nothing to click yet — placeholder for upcoming insights.</p>
+              <button onClick={() => setShowInsightsPanel(false)} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
             </div>
           </div>
         </>
