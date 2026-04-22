@@ -39,9 +39,12 @@ export async function POST(request: NextRequest) {
       ? classIds.filter((id: string) => myClassIds.includes(id))
       : myClassIds;
 
-    const newStatus = ({
+    const preferredStatus = ({
       accept: 'active', reject: 'rejected', archive: 'archived', reactivate: 'active',
     } as Record<string, string>)[action];
+    const fallbackStatus: Record<string, string> = {
+      accept: 'active', reject: 'inactive', archive: 'inactive', reactivate: 'active',
+    };
 
     let affected = 0;
     if (action === 'remove') {
@@ -53,13 +56,22 @@ export async function POST(request: NextRequest) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       affected = count ?? 0;
     } else {
-      const { error, count } = await (admin as any)
+      // Try preferred status first (requires migration 020). Fall back to the
+      // pre-migration enum value if the enum doesn't yet have the new variant.
+      let res = await (admin as any)
         .from('enrollments')
-        .update({ status: newStatus }, { count: 'exact' })
+        .update({ status: preferredStatus }, { count: 'exact' })
         .in('student_id', studentIds)
         .in('class_id', targetClassIds);
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-      affected = count ?? 0;
+      if (res.error && /enum/i.test(String(res.error.message || ''))) {
+        res = await (admin as any)
+          .from('enrollments')
+          .update({ status: fallbackStatus[action] }, { count: 'exact' })
+          .in('student_id', studentIds)
+          .in('class_id', targetClassIds);
+      }
+      if (res.error) return NextResponse.json({ error: res.error.message }, { status: 500 });
+      affected = res.count ?? 0;
     }
     return NextResponse.json({ ok: true, affected, action });
   } catch (err) {
