@@ -38,6 +38,15 @@ interface Assessment {
   math_performance_q2?: string;
   logic_question?: string;
   logic_answer_given?: string;
+  reading_passage?: string;
+  reading_question?: string;
+  reading_student_answer?: string;
+  math_q1_question?: string;
+  math_q1_student_answer?: string;
+  math_q1_correct_answer?: string;
+  math_q2_question?: string;
+  math_q2_student_answer?: string;
+  math_q2_correct_answer?: string;
   multiple_intelligences: {
     linguistic: string;
     logical_mathematical: string;
@@ -497,27 +506,70 @@ function StudentDetailContent() {
 
               {/* Reading */}
               <section className="rounded-lg border border-border bg-surface p-4">
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5"><BookOpenText size={14} weight="fill" /> Reading Level</h4>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getTierColor(assessment.reading_level), backgroundColor: getTierColor(assessment.reading_level) + '20' }}>{getTierLabel(assessment.reading_level)}</span>
                 </div>
-                <p className="text-[12px] text-text-secondary">Assessed from reading passage comprehension + language tier ({assessment.language_tier}).</p>
+                {assessment.reading_passage ? (
+                  <>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Reading Passage</p>
+                    <p className="text-[13px] text-text-primary bg-card-bg rounded-md border border-border px-3 py-2 mb-3 leading-[1.55] whitespace-pre-wrap">{assessment.reading_passage}</p>
+                    {assessment.reading_question && (
+                      <>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Question</p>
+                        <p className="text-[13px] text-text-primary italic mb-3">“{assessment.reading_question}”</p>
+                      </>
+                    )}
+                    {assessment.reading_student_answer && (
+                      <>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Student&apos;s Answer</p>
+                        <p className="text-[13px] text-text-primary bg-card-bg rounded-md border border-border px-3 py-2 whitespace-pre-wrap leading-[1.55]">{assessment.reading_student_answer}</p>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-[12px] text-text-secondary">Assessed from reading passage comprehension + language tier ({assessment.language_tier}).</p>
+                )}
               </section>
 
               {/* Math */}
               <section className="rounded-lg border border-border bg-surface p-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5"><Brain size={14} weight="fill" /> Math Level</h4>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getTierColor(assessment.math_level), backgroundColor: getTierColor(assessment.math_level) + '20' }}>{getTierLabel(assessment.math_level)}</span>
                 </div>
-                <div className="space-y-1.5 text-[12px]">
-                  {assessment.math_performance_q1 && (
+                {[1, 2].map((n) => {
+                  const q = (assessment as any)[`math_q${n}_question`] as string | undefined;
+                  const a = (assessment as any)[`math_q${n}_student_answer`] as string | undefined;
+                  const c = (assessment as any)[`math_q${n}_correct_answer`] as string | undefined;
+                  const perf = (assessment as any)[`math_performance_q${n}`] as string | undefined;
+                  const isCorrect = a && c && String(a).trim() === String(c).trim();
+                  if (!q) return null;
+                  return (
+                    <div key={n} className={`mb-3 last:mb-0 p-3 rounded-md border ${isCorrect ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900' : 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900'}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary">Math Q{n}</p>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                          {isCorrect ? 'Correct' : perf ? perf.replace(/-/g, ' ').replace(/\b\w/g, s => s.toUpperCase()) : 'Off'}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-text-primary italic mb-2">“{q}”</p>
+                      <div className="flex items-center gap-3 text-[12px]">
+                        <span className="text-text-secondary">Student answered:</span>
+                        <span className="text-text-primary font-semibold">{a || '(blank)'}</span>
+                        {c && <><span className="text-text-secondary ml-2">Correct:</span><span className="text-text-primary font-semibold">{c}</span></>}
+                      </div>
+                    </div>
+                  );
+                })}
+                {!assessment.math_q1_question && assessment.math_performance_q1 && (
+                  <div className="space-y-1.5 text-[12px]">
                     <div><span className="text-text-secondary">Math Q1 performance:</span> <span className="text-text-primary font-semibold capitalize">{assessment.math_performance_q1.replace(/-/g, ' ')}</span></div>
-                  )}
-                  {assessment.math_performance_q2 && (
-                    <div><span className="text-text-secondary">Math Q2 performance:</span> <span className="text-text-primary font-semibold capitalize">{assessment.math_performance_q2.replace(/-/g, ' ')}</span></div>
-                  )}
-                </div>
+                    {assessment.math_performance_q2 && (
+                      <div><span className="text-text-secondary">Math Q2 performance:</span> <span className="text-text-primary font-semibold capitalize">{assessment.math_performance_q2.replace(/-/g, ' ')}</span></div>
+                    )}
+                  </div>
+                )}
               </section>
 
               {/* Logic */}
