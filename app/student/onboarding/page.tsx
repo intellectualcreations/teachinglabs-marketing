@@ -43,7 +43,8 @@ type GradeTier = 'lower' | 'middle' | 'upper';
 type LanguageTier = 'young' | 'middle' | 'older';
 type ThemeName = 'gaming' | 'sports' | 'animals' | 'space' | 'music' | 'art' | 'science' | 'cooking';
 type DifficultyShift = 'up' | 'same' | 'down';
-type GardnerSignal = 'strong' | 'developing' | 'emerging';
+// Canonical 5-level proficiency scale. All signal computation emits these strings directly.
+type GardnerSignal = 'Emerging' | 'Developing' | 'Proficient' | 'Advanced' | 'Exemplary';
 
 interface AuthenticitySignals {
   pastedFields: string[];
@@ -405,11 +406,12 @@ function getLogicQuestion(tier: GradeTier): LogicQuestion {
 function evaluateLogic(answer: string, tier: GradeTier): GardnerSignal {
   const correct = tier === 'lower' ? 10 : tier === 'middle' ? 48 : 54;
   const nums = answer.match(/\d+/g)?.map(Number) || [];
-  if (nums.includes(correct)) return 'strong';
+  if (nums.includes(correct)) return 'Advanced';
   for (const n of nums) {
-    if (Math.abs(n - correct) <= correct * 0.12) return 'developing';
+    if (Math.abs(n - correct) <= correct * 0.05) return 'Proficient';
+    if (Math.abs(n - correct) <= correct * 0.15) return 'Developing';
   }
-  return 'emerging';
+  return nums.length > 0 ? 'Developing' : 'Emerging';
 }
 
 /* ─── Gardner signal computation ─────────────────────────────────────────────── */
@@ -419,34 +421,63 @@ function computeGardnerSignals(answers: StudentAnswers, readingTier: GradeTier, 
   const kines = answers.kinestheticSignals;
 
   const musicalScore: GardnerSignal =
-    musical.includes('plays_instrument') || musical.includes('makes_beats') ? 'strong'
-    : musical.length > 0 && !musical.includes('not_my_thing') ? 'developing'
-    : 'emerging';
+    // Musical scoring:
+    //  Exemplary  — plays_instrument AND makes_beats
+    //  Advanced   — plays_instrument OR makes_beats
+    //  Proficient — sings OR 2+ casual signals
+    //  Developing — listens_daily
+    //  Emerging   — nothing or 'not_my_thing'
+    (musical.includes('plays_instrument') && musical.includes('makes_beats')) ? 'Exemplary'
+    : (musical.includes('plays_instrument') || musical.includes('makes_beats')) ? 'Advanced'
+    : musical.includes('sings') || musical.filter(s => s !== 'not_my_thing').length >= 2 ? 'Proficient'
+    : musical.includes('listens_daily') ? 'Developing'
+    : 'Emerging';
 
   const kinestheticScore: GardnerSignal =
-    (kines.includes('hands_on') || kines.includes('moving')) && kines.includes('trial_error') ? 'strong'
-    : kines.includes('hands_on') || kines.includes('moving') ? 'developing'
-    : 'emerging';
+    // Kinesthetic scoring:
+    //  Exemplary  — hands_on + moving + trial_error
+    //  Advanced   — hands_on AND (moving OR trial_error)
+    //  Proficient — hands_on OR moving
+    //  Developing — trial_error only or watch_first
+    //  Emerging   — nothing
+    (kines.includes('hands_on') && kines.includes('moving') && kines.includes('trial_error')) ? 'Exemplary'
+    : (kines.includes('hands_on') && (kines.includes('moving') || kines.includes('trial_error'))) ? 'Advanced'
+    : (kines.includes('hands_on') || kines.includes('moving')) ? 'Proficient'
+    : kines.length > 0 ? 'Developing'
+    : 'Emerging';
 
   const spatialScore: GardnerSignal =
-    answers.spatialDescription.length > 60 ? 'strong'
-    : answers.spatialDescription.length > 20 ? 'developing'
-    : 'emerging';
+    // Spatial scoring by richness of description:
+    //  Exemplary  — 400+ chars
+    //  Advanced   — 150-400
+    //  Proficient — 60-150
+    //  Developing — 20-60
+    //  Emerging   — under 20
+    answers.spatialDescription.length > 400 ? 'Exemplary'
+    : answers.spatialDescription.length > 150 ? 'Advanced'
+    : answers.spatialDescription.length > 60 ? 'Proficient'
+    : answers.spatialDescription.length > 20 ? 'Developing'
+    : 'Emerging';
 
   const interpersonalScore: GardnerSignal =
-    answers.interpersonalStyle === 'group' ? 'strong'
-    : answers.interpersonalStyle === 'both' ? 'developing'
-    : 'emerging';
+    answers.interpersonalStyle === 'group' ? 'Advanced'
+    : answers.interpersonalStyle === 'both' ? 'Proficient'
+    : answers.interpersonalStyle === 'solo' ? 'Developing'
+    : 'Emerging';
 
+  // Intrapersonal from self-reflection depth
   const intrapersonalScore: GardnerSignal =
-    answers.intrapersonalStrengths.length > 30 && answers.intrapersonalGrowth.length > 15 ? 'strong'
-    : answers.intrapersonalStrengths.length > 8 ? 'developing'
-    : 'emerging';
+    answers.intrapersonalStrengths.length > 120 && answers.intrapersonalGrowth.length > 80 ? 'Exemplary'
+    : answers.intrapersonalStrengths.length > 60 && answers.intrapersonalGrowth.length > 30 ? 'Advanced'
+    : answers.intrapersonalStrengths.length > 30 ? 'Proficient'
+    : answers.intrapersonalStrengths.length > 8 ? 'Developing'
+    : 'Emerging';
 
   const naturalisticScore: GardnerSignal =
-    answers.naturalisticSignal === 'love_nature' ? 'strong'
-    : answers.naturalisticSignal === 'sometimes' ? 'developing'
-    : 'emerging';
+    answers.naturalisticSignal === 'love_nature' ? 'Advanced'
+    : answers.naturalisticSignal === 'sometimes' ? 'Proficient'
+    : answers.naturalisticSignal === 'indoor' ? 'Developing'
+    : 'Emerging';
 
   return {
     linguistic: readingTier,
@@ -2386,7 +2417,7 @@ function ResultsScreen({
     upper: 'Advanced Explorer',
   };
   const signalLabels: Record<GardnerSignal, string> = {
-    strong: 'Strong', developing: 'Developing', emerging: 'Emerging',
+    Exemplary: 'Exemplary', Advanced: 'Advanced', Proficient: 'Proficient', Developing: 'Developing', Emerging: 'Emerging',
   };
 
   const ageLabel = age === 18 ? '18+' : age !== null ? `${age}` : '';
@@ -2421,13 +2452,13 @@ function ResultsScreen({
   };
 
   for (const [key, val] of Object.entries(gardnerSignals)) {
-    if (key in gardnerLabelMap && val === 'strong') {
+    if (key in gardnerLabelMap && (val === 'Exemplary' || val === 'Advanced')) {
       gardnerHighlights.push(gardnerLabelMap[key]);
     }
   }
   if (gardnerHighlights.length === 0) {
     for (const [key, val] of Object.entries(gardnerSignals)) {
-      if (key in gardnerLabelMap && val === 'developing') {
+      if (key in gardnerLabelMap && val === 'Proficient') {
         gardnerHighlights.push(gardnerLabelMap[key]);
         if (gardnerHighlights.length >= 2) break;
       }

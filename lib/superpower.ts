@@ -59,18 +59,19 @@ export const INTELLIGENCE_EMOJIS: Record<Intelligence, string> = {
 
 /**
  * Determine primary intelligence from Gardner MI signals.
- * Scoring: strong=3, developing/upper=2.5, middle=2, emerging/lower=1
+ * Scoring (unified 5-level scale + legacy values for safety):
+ *   Exemplary=5, Advanced=4, Proficient=3, Developing=2, Emerging=1
+ * Legacy:
+ *   strong=4 (→Advanced), developing=2, emerging=1, upper=4, middle=3, lower=2
  */
 export function determinePrimaryIntelligence(
   mi: Record<string, string | string[]>
 ): Intelligence {
   const scoreMap: Record<string, number> = {
-    strong: 3,
-    upper: 2.5,
-    developing: 2,
-    middle: 2,
-    emerging: 1,
-    lower: 1,
+    // Canonical 5-level
+    Exemplary: 5, Advanced: 4, Proficient: 3, Developing: 2, Emerging: 1,
+    // Legacy
+    strong: 4, upper: 4, middle: 3, developing: 2, lower: 2, emerging: 1,
   };
 
   const intelligences: Intelligence[] = [
