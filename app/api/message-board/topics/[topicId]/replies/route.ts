@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { moderateMessageBoardReply } from '@/lib/message-board-moderation';
+import { shouldTwinRespond, generateTwinReply } from '@/lib/teacher-twin-responder';
 
 /**
  * POST /api/message-board/topics/[topicId]/replies
@@ -21,10 +22,10 @@ export async function POST(
 
   const supabase = createAdminClient();
 
-  // Verify topic exists + visibility
+  // Verify topic exists + visibility. Pull Twin metadata too for the async responder.
   const { data: topic } = await (supabase as any)
     .from('message_board_topics')
-    .select('id, class_id, is_private')
+    .select('id, class_id, is_private, title, created_by, twin_enabled')
     .eq('id', topicId)
     .maybeSingle();
 
@@ -81,5 +82,86 @@ export async function POST(
     responseReply = rest;
   }
 
+  // ── Teacher Twin auto-responder ─────────────────────────────────────────────────────────────────
+  // Only fires for student replies, when Twin is enabled for the topic.
+  // Runs asynchronously after we respond to the student — fire and forget.
+  if (role === 'student' && topic.twin_enabled !== false && moderation.reason === null) {
+    // Don't await — let it complete in the background.
+    void runTwinReply({ supabase, topicId, topic });
+  }
+
   return NextResponse.json({ reply: responseReply });
+}
+
+// Generate + persist a Twin reply in the background. Errors are logged and
+// swallowed so they never impact the student's experience.
+async function runTwinReply({ supabase, topicId, topic }: { supabase: any; topicId: string; topic: any }) {
+  try {
+    // Load all replies + sender metadata to pass to decision function.
+    const { data: allReplies } = await (supabase as any)
+      .from('message_board_replies')
+      .select('id, sender_id, content, is_twin, created_at')
+      .eq('topic_id', topicId)
+      .order('created_at', { ascending: true });
+    if (!allReplies || allReplies.length === 0) return;
+
+    const senderIds = [...new Set(allReplies.map((r: any) => r.sender_id))];
+    const { data: profiles } = await (supabase as any)
+      .from('profiles')
+      .select('id, display_name, preferred_name, role')
+      .in('id', senderIds);
+    const profileMap = new Map<string, { name: string; role: string }>();
+    (profiles ?? []).forEach((p: any) => {
+      profileMap.set(p.id, { name: p.preferred_name || p.display_name || 'User', role: p.role || 'student' });
+    });
+
+    const replyCtx = allReplies.map((r: any) => {
+      const senderIsTeacher = r.sender_id === topic.created_by;
+      const role: 'student' | 'teacher' | 'twin' = r.is_twin ? 'twin' : senderIsTeacher ? 'teacher' : 'student';
+      const info = profileMap.get(r.sender_id);
+      return {
+        id: r.id,
+        sender_id: r.sender_id,
+        sender_name: info?.name || 'User',
+        sender_role: role,
+        content: r.content,
+        created_at: r.created_at,
+      };
+    });
+
+    const decision = shouldTwinRespond(replyCtx);
+    console.log(`[twin] topic=${topicId} decision=${decision.shouldRespond} reason="${decision.reason}"`);
+    if (!decision.shouldRespond) return;
+
+    // Pull class metadata for context.
+    const { data: cls } = await (supabase as any)
+      .from('classes').select('name, subject').eq('id', topic.class_id).maybeSingle();
+    const { data: teacherProf } = await (supabase as any)
+      .from('profiles').select('display_name, preferred_name').eq('id', topic.created_by).maybeSingle();
+
+    const twinReply = await generateTwinReply({
+      topic: {
+        id: topic.id,
+        title: topic.title,
+        class_id: topic.class_id,
+        class_name: cls?.name ?? 'Class',
+        class_subject: cls?.subject ?? null,
+        is_private: topic.is_private,
+        created_by: topic.created_by,
+        created_by_name: teacherProf?.preferred_name || teacherProf?.display_name || 'your teacher',
+      },
+      replies: replyCtx,
+    });
+    if (!twinReply?.content) return;
+
+    // Persist as a Twin reply under the teacher's sender_id so FKs hold.
+    await (supabase as any).from('message_board_replies').insert({
+      topic_id: topicId,
+      sender_id: topic.created_by,
+      content: twinReply.content,
+      is_twin: true,
+    });
+  } catch (err) {
+    console.error('[twin] runTwinReply error:', (err as Error).message);
+  }
 }

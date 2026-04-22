@@ -50,10 +50,13 @@ export async function GET(
     .order('created_at', { ascending: true });
 
   // For students, hide moderation fields — only teachers see flagged reason/explanation/highlight
+  // Also attach a computed role: twin > teacher > student so the UI can style accordingly.
   const scrubbedReplies = (replies ?? []).map((r: any) => {
-    if (role === 'teacher') return r;
-    const { flagged_reason, flagged_explanation, flagged_highlight, flagged_dismissed_at, flagged_dismissed_by, ...rest } = r;
-    return rest;
+    const scrubbed = role === 'teacher' ? r : (() => {
+      const { flagged_reason, flagged_explanation, flagged_highlight, flagged_dismissed_at, flagged_dismissed_by, ...rest } = r;
+      return rest;
+    })();
+    return scrubbed;
   });
 
   const senderIds = [...new Set((replies ?? []).map((r: any) => r.sender_id))];
@@ -121,8 +124,8 @@ export async function GET(
     },
     replies: scrubbedReplies.map((r: any) => ({
       ...r,
-      sender_name: profileMap.get(r.sender_id)?.name || 'User',
-      sender_role: profileMap.get(r.sender_id)?.role || 'student',
+      sender_name: r.is_twin ? 'AI Teacher Twin' : (profileMap.get(r.sender_id)?.name || 'User'),
+      sender_role: r.is_twin ? 'twin' : (profileMap.get(r.sender_id)?.role || 'student'),
     })),
     participants,
   });

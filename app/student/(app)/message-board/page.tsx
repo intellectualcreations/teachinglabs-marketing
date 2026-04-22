@@ -366,23 +366,27 @@ function StudentMessageBoardContent() {
                   <p className="text-text-muted text-sm">No messages yet. Say something!</p>
                 </div>
               ) : topicReplies.map(r => {
-                const isMe = r.sender_id === userId;
-                const isTeacher = r.sender_role === 'teacher' || r.sender_role === 'instructor';
+                const isMe = r.sender_id === userId && r.sender_role !== 'twin';
+                const isTwin = r.sender_role === 'twin';
+                const isTeacher = !isTwin && (r.sender_role === 'teacher' || r.sender_role === 'instructor');
                 return (
                   <div key={r.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[75%]">
                       {!isMe && (
                         <p className="text-[10px] text-text-muted mb-1 ml-1 flex items-center gap-1">
-                          {r.sender_name}
+                          {isTwin ? 'AI Teacher Twin' : r.sender_name}
+                          {isTwin && <span className="text-[9px] font-bold text-purple-400 uppercase bg-purple-500/10 px-1.5 py-0.5 rounded-full">AI Twin</span>}
                           {isTeacher && <span className="text-[9px] font-bold text-teal uppercase">Teacher</span>}
                         </p>
                       )}
                       <div className={`px-3.5 py-2.5 rounded-2xl text-sm ${
                         isMe
                           ? 'bg-teal text-navy font-medium rounded-br-sm'
-                          : isTeacher
-                            ? 'bg-teal/10 border border-teal/30 text-text-primary rounded-bl-sm'
-                            : 'bg-card-bg border border-border text-text-primary rounded-bl-sm'
+                          : isTwin
+                            ? 'bg-purple-500/10 border border-purple-500/30 text-text-primary rounded-bl-sm'
+                            : isTeacher
+                              ? 'bg-teal/10 border border-teal/30 text-text-primary rounded-bl-sm'
+                              : 'bg-card-bg border border-border text-text-primary rounded-bl-sm'
                       }`}>
                         {r.content}
                       </div>

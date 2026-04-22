@@ -581,8 +581,9 @@ function TeacherMessageBoardContent() {
                   <p className="text-text-muted text-sm">No messages yet.</p>
                 </div>
               ) : topicReplies.map(r => {
-                const isMe = r.sender_id === userId;
-                const isTeacher = r.sender_role === 'teacher' || r.sender_role === 'instructor';
+                const isMe = r.sender_id === userId && r.sender_role !== 'twin';
+                const isTwin = r.sender_role === 'twin';
+                const isTeacher = !isTwin && (r.sender_role === 'teacher' || r.sender_role === 'instructor');
                 const isFlagged = !!r.flagged_reason && !r.flagged_dismissed_at;
                 const isHighlighted = highlightReplyId === r.id;
                 return (
@@ -590,7 +591,8 @@ function TeacherMessageBoardContent() {
                     <div className="max-w-[75%]">
                       {!isMe && (
                         <p className="text-[10px] text-text-muted mb-1 ml-1 flex items-center gap-1.5">
-                          {r.sender_name}
+                          {isTwin ? 'AI Teacher Twin' : r.sender_name}
+                          {isTwin && <span className="text-[9px] font-bold text-purple-400 uppercase bg-purple-500/10 px-1.5 py-0.5 rounded-full">AI Twin</span>}
                           {isTeacher && <span className="text-[9px] font-bold text-teal uppercase">Teacher</span>}
                           {isFlagged && r.flagged_reason && <FlagBadge reason={r.flagged_reason} />}
                         </p>
@@ -603,6 +605,7 @@ function TeacherMessageBoardContent() {
                       <div className={`px-3.5 py-2.5 text-sm ${
                         isFlagged ? 'rounded-b-2xl border border-yellow-200 bg-yellow-50/40 text-text-primary' :
                         isMe ? 'rounded-2xl bg-teal text-navy font-medium rounded-br-sm' :
+                        isTwin ? 'rounded-2xl bg-purple-500/10 border border-purple-500/30 text-text-primary rounded-bl-sm' :
                         isTeacher ? 'rounded-2xl bg-teal/10 border border-teal/30 text-text-primary rounded-bl-sm' :
                         'rounded-2xl bg-card-bg border border-border text-text-primary rounded-bl-sm'
                       }`}>
