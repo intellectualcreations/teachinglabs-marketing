@@ -152,7 +152,16 @@ export default function StudentSettingsPage() {
             <p className="text-sm text-text-secondary">Loading...</p>
           ) : (
             <div className="space-y-4">
-              {/* Preferred Name (editable) — the only identity field students manage */}
+              {/* Full Name (read-only — signed up under this name, can't self-edit) */}
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">Full name</label>
+                <p className="px-3 py-2 rounded-lg bg-bg/50 border border-border text-text-primary text-sm">
+                  {displayName || 'Not set'}
+                </p>
+                <p className="text-xs text-text-muted mt-1">This is your legal name on file. Ask your teacher if this needs to change.</p>
+              </div>
+
+              {/* Preferred Name (editable) */}
               <div>
                 {nameFlagged && (
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-3">
