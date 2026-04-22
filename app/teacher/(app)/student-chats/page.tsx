@@ -259,19 +259,32 @@ function StudentChatsContent() {
             )}
           </div>
 
-          {/* Class Tabs */}
-          <div className="flex gap-1 border-b-2 border-border mb-4">
-            {visibleClasses.map((cls) => (
-              <button key={cls} onClick={() => { setClassTab(cls); setSelectedTopic(null); setSummary(null); }}
-                className={`px-4 py-2.5 font-heading font-semibold text-sm border-b-2 -mb-[2px] transition-all cursor-pointer flex items-center gap-1.5 bg-transparent border-t-0 border-l-0 border-r-0
-                  ${classTab === cls ? 'text-navy border-navy' : 'text-text-secondary border-transparent hover:text-text-primary'}`}>
-                {cls}
-                {classCounts[cls] != null && (
-                  <span className="text-[10px] font-bold bg-teal/10 text-teal px-1.5 py-0.5 rounded-full">{classCounts[cls]}</span>
+          {/* Class Tabs — hidden when URL is scoped to a single class; header shows name instead */}
+          {!urlClassId ? (
+            <div className="flex gap-1 border-b-2 border-border mb-4">
+              {visibleClasses.map((cls) => (
+                <button key={cls} onClick={() => { setClassTab(cls); setSelectedTopic(null); setSummary(null); }}
+                  className={`px-4 py-2.5 font-heading font-semibold text-sm border-b-2 -mb-[2px] transition-all cursor-pointer flex items-center gap-1.5 bg-transparent border-t-0 border-l-0 border-r-0
+                    ${classTab === cls ? 'text-navy border-navy' : 'text-text-secondary border-transparent hover:text-text-primary'}`}>
+                  {cls}
+                  {classCounts[cls] != null && (
+                    <span className="text-[10px] font-bold bg-teal/10 text-teal px-1.5 py-0.5 rounded-full">{classCounts[cls]}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="mb-4 px-4 py-2 rounded-lg bg-navy/5 border border-navy/10 flex items-center justify-between">
+              <p className="text-[13px] text-text-primary">
+                <span className="text-[10px] uppercase tracking-[0.5px] font-bold text-text-secondary mr-2">Scoped to</span>
+                <span className="font-heading font-bold">{classTab}</span>
+                {classCounts[classTab] != null && (
+                  <span className="ml-2 text-[11px] font-bold bg-teal/10 text-teal px-2 py-0.5 rounded-full">{classCounts[classTab]} chats</span>
                 )}
-              </button>
-            ))}
-          </div>
+              </p>
+              <a href="/teacher/student-chats" className="text-[11px] font-semibold text-teal hover:underline">← View all classes</a>
+            </div>
+          )}
 
           {/* 3-Column Layout: Topic List | AI Summary | (Slide-out Full Chat) */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-0 border border-border rounded-[14px] overflow-hidden" style={{ minHeight: 460 }}>
