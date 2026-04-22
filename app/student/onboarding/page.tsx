@@ -1461,6 +1461,18 @@ export default function StudentOnboardingPage() {
               localStorage.setItem('teachinglabs_onboarded', 'true');
               router.push('/student/dashboard');
             }}
+            onSuperpowerChange={async (newTitle: string) => {
+              try {
+                const supabase = createClient();
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+                await fetch('/api/student/profile', {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ superpower_title: newTitle }),
+                });
+              } catch (e) { console.error('Superpower save failed:', e); }
+            }}
           />
         )}
       </div>
@@ -1687,16 +1699,19 @@ function NameAgeScreen({
 }) {
   return (
     <div className="max-w-lg mx-auto w-full">
-      <CoachBubble text="What would you like me to call you? It can be your name, a nickname, whatever you go by! " />
+      <CoachBubble text="What should your classmates and teacher call you? Pick a real first name or a nickname you actually use — this is what everyone in class will see. " />
       <div className="space-y-6 onb-card-in" style={{ animationDelay: '0.1s' }}>
         {/* Name input */}
         <div>
-          <label className="block text-text-secondary text-sm font-medium mb-2">What should I call you?</label>
+          <label className="block text-text-secondary text-sm font-medium mb-2">Your preferred name</label>
           <input
             type="text" value={name} onChange={e => onNameChange(e.target.value)}
-            placeholder="Your name or nickname..." autoFocus
+            placeholder="Your first name or nickname..." autoFocus
             className="w-full px-4 py-3 rounded-xl border-2 border-border bg-card-bg/30 text-text-primary placeholder:text-text-muted/50 focus:border-teal focus:outline-none transition-colors text-base"
           />
+          <p className="text-xs text-text-muted mt-1.5 leading-snug">
+            This is what your teacher and classmates will see every day. Please keep it school-appropriate — if it looks off, your teacher gets flagged so they can check in.
+          </p>
         </div>
 
         {/* Age selector */}
@@ -2397,13 +2412,14 @@ function ProcessingScreen({ saving, error }: { saving: boolean; error: boolean }
 
 function ResultsScreen({
   name, age, interests, theme, readingTier, mathTier, languageTier,
-  gardnerSignals, logicLevel, onContinue,
+  gardnerSignals, logicLevel, onContinue, onSuperpowerChange,
 }: {
   name: string; age: number | null; interests: string[]; theme: ThemeName;
   readingTier: GradeTier; mathTier: GradeTier; languageTier: LanguageTier;
   gardnerSignals: Record<string, GardnerSignal | string[] | string>;
   logicLevel: GardnerSignal;
   onContinue: () => void;
+  onSuperpowerChange?: (newTitle: string) => void;
 }) {
   const themeLabels: Record<ThemeName, string> = {
     gaming: 'Gaming & Technology', sports: 'Sports & Movement',
@@ -2467,6 +2483,52 @@ function ResultsScreen({
 
   const topInterests = interests.slice(0, 4);
 
+  // Compute their default superpower title so they can confirm or personalize it.
+  const primaryIntelGuess = (() => {
+    try {
+      // Simple heuristic using the same signals the save route uses.
+      const entries = Object.entries(gardnerSignals).filter(([, v]) => typeof v === 'string');
+      const rank: Record<string, number> = { Exemplary: 5, Advanced: 4, Proficient: 3, Developing: 2, Emerging: 1 };
+      const sorted = entries.sort((a, b) => (rank[b[1] as string] || 0) - (rank[a[1] as string] || 0));
+      return sorted[0]?.[0] || 'linguistic';
+    } catch { return 'linguistic'; }
+  })();
+  const defaultSuperpowerMap: Record<string, string> = {
+    linguistic: 'The Word Wizard',
+    logical_mathematical: 'The Problem Solver',
+    spatial: 'The Creator',
+    bodily_kinesthetic: 'The Athlete',
+    musical: 'The Composer',
+    interpersonal: 'The Team Captain',
+    intrapersonal: 'The Sage',
+    naturalistic: 'The Ranger',
+  };
+  const defaultTitle = defaultSuperpowerMap[primaryIntelGuess] || 'The Explorer';
+  const [superpowerDraft, setSuperpowerDraft] = useState<string>(defaultTitle);
+  const [superpowerEditing, setSuperpowerEditing] = useState<boolean>(false);
+  const [superpowerSaved, setSuperpowerSaved] = useState<boolean>(false);
+  const [superpowerError, setSuperpowerError] = useState<string>('');
+
+  // Light appropriateness check — reuses the same word list logic as the name field.
+  function isTitleAppropriate(title: string): boolean {
+    const t = title.trim();
+    if (t.length < 2 || t.length > 40) return false;
+    return !isNameInappropriate(t);
+  }
+
+  const handleSaveSuperpower = () => {
+    const trimmed = superpowerDraft.trim();
+    if (!isTitleAppropriate(trimmed)) {
+      setSuperpowerError("Let's pick something school-appropriate.");
+      return;
+    }
+    setSuperpowerError('');
+    setSuperpowerEditing(false);
+    setSuperpowerSaved(true);
+    onSuperpowerChange?.(trimmed);
+    setTimeout(() => setSuperpowerSaved(false), 2200);
+  };
+
   return (
     <div className="max-w-xl mx-auto w-full">
       <div className="text-center mb-8 onb-fade-up">
@@ -2503,6 +2565,42 @@ function ResultsScreen({
             <p className="text-text-primary font-semibold text-sm">{tierLabels[mathTier]}</p>
             <p className="text-text-muted text-xs mt-0.5">Reasoning: {signalLabels[logicLevel]}</p>
           </div>
+        </div>
+
+        {/* Superpower name — student confirms or personalizes */}
+        <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-teal/10 border border-purple-500/30 onb-card-in" style={{ animationDelay: '0.3s' }}>
+          <p className="text-text-muted text-xs uppercase tracking-wider mb-2 font-heading">Your Superpower Name</p>
+          {!superpowerEditing ? (
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-text-primary font-bold text-lg">✨ {superpowerDraft}</p>
+              <button
+                onClick={() => setSuperpowerEditing(true)}
+                className="text-xs font-semibold text-teal hover:underline cursor-pointer"
+              >
+                Make my own
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={superpowerDraft}
+                onChange={(e) => { setSuperpowerDraft(e.target.value); setSuperpowerError(''); }}
+                maxLength={40}
+                placeholder="e.g. The Word Wizard, The Star Scout, The Builder..."
+                className="w-full px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-base outline-none focus:border-teal"
+              />
+              <div className="flex gap-2">
+                <button onClick={handleSaveSuperpower} className="px-3 py-1.5 text-xs font-semibold bg-teal text-navy rounded-md hover:bg-teal/90 cursor-pointer">Save</button>
+                <button onClick={() => { setSuperpowerDraft(defaultTitle); setSuperpowerEditing(false); setSuperpowerError(''); }} className="px-3 py-1.5 text-xs font-semibold border border-border text-text-secondary rounded-md hover:border-text-secondary cursor-pointer">Keep default</button>
+              </div>
+              {superpowerError && <p className="text-xs text-red-400">{superpowerError}</p>}
+            </div>
+          )}
+          {superpowerSaved && <p className="text-xs text-teal mt-1">✓ Saved</p>}
+          <p className="text-xs text-text-muted mt-2 leading-snug">
+            This is the badge your teacher and classmates see next to your name. Keep it school-appropriate.
+          </p>
         </div>
 
         {/* Gardner highlights */}
