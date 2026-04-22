@@ -35,12 +35,13 @@ export async function GET(request: NextRequest) {
 
     const classIds = teacherClasses.map((c: { id: string }) => c.id);
 
-    // Fetch enrollments
+    // Fetch enrollments — return everything except 'rejected' (those stay hidden by default).
+    // The UI filters further by status (active / pending / archived).
     const { data: enrollmentData } = await supabase
       .from('enrollments')
       .select('student_id, class_id, enrolled_at, status')
       .in('class_id', classIds)
-      .eq('status', 'active');
+      .neq('status', 'rejected');
 
     const enrollments = enrollmentData ?? [];
 

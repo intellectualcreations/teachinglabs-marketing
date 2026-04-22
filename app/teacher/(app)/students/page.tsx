@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import type { Profile, Class } from '@/lib/supabase/types';
 
 /* ─── Types ─── */
-type SortOption = 'first-az' | 'first-za' | 'last-az' | 'last-za' | 'enrollment';
+type SortOption = 'first-az' | 'first-za' | 'last-az' | 'last-za' | 'preferred-az' | 'preferred-za' | 'enrollment';
 type NameFormat = 'first-last' | 'last-first';
 
 interface StudentRow {
@@ -31,6 +31,9 @@ interface StudentRow {
   baselineLevel: 'Emerging' | 'Developing' | 'Proficient' | 'Advanced' | 'Exemplary' | null;
   color: string;
   studentNumber: string | null;
+  // Roster status — union of statuses across this student's enrollments in the teacher's classes.
+  // 'pending' trumps the others for visibility. 'active' is default. 'archived' means student left.
+  status: 'active' | 'pending' | 'archived' | 'rejected';
 }
 
 const AVATAR_COLORS = [
@@ -43,6 +46,8 @@ const SORT_LABELS: Record<SortOption, string> = {
   'first-za': 'First Name Z–A',
   'last-az': 'Last Name A–Z',
   'last-za': 'Last Name Z–A',
+  'preferred-az': 'Preferred Name A–Z',
+  'preferred-za': 'Preferred Name Z–A',
   enrollment: 'Enrollment Date',
 };
 
@@ -72,6 +77,24 @@ function StudentsContent() {
   const [flagTarget, setFlagTarget] = useState<StudentRow | null>(null);
   const [flagSaving, setFlagSaving] = useState(false);
   const [flagError, setFlagError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'active' | 'pending' | 'archived'>('active');
+  const [deleteTarget, setDeleteTarget] = useState<StudentRow | null>(null);
+  const [deleteSaving, setDeleteSaving] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [bulkActionBusy, setBulkActionBusy] = useState<string | null>(null);
+
+  async function callEnrollmentAction(action: 'accept' | 'reject' | 'archive' | 'reactivate' | 'remove', studentIds: string[]) {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const classIds = classFilter !== 'all' ? [classFilter] : undefined;
+    const res = await fetch('/api/teacher/enrollments/actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ teacherId: user.id, action, studentIds, classIds }),
+    });
+    return res.ok;
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -116,13 +139,20 @@ function StudentsContent() {
 
         // Group enrollments by student (dedup across classes)
         const studentMap = new Map<string, StudentRow>();
+        // Priority for combining status across classes: pending > archived > active
+        const priority: Record<string, number> = { pending: 3, archived: 2, active: 1, rejected: 0 };
         enrollments.forEach((e, i) => {
           const existing = studentMap.get(e.student_id);
           const className = classNameMap.get(e.class_id) ?? 'Unknown';
+          const incomingStatus = (e.status || 'active') as StudentRow['status'];
           if (existing) {
             if (!existing.classIds.includes(e.class_id)) {
               existing.classIds.push(e.class_id);
               existing.classNames.push(className);
+            }
+            // Bump status if incoming is higher priority
+            if ((priority[incomingStatus] ?? 0) > (priority[existing.status] ?? 0)) {
+              existing.status = incomingStatus;
             }
           } else {
             const p = profileMap.get(e.student_id) as any;
@@ -147,6 +177,7 @@ function StudentsContent() {
               baselineLevel: p?.baseline_level || null,
               color: AVATAR_COLORS[i % AVATAR_COLORS.length],
               studentNumber: null,
+              status: incomingStatus,
             });
           }
         });
@@ -196,12 +227,20 @@ function StudentsContent() {
       case 'last-za':
         list.sort((a, b) => b.last.localeCompare(a.last) || b.first.localeCompare(a.first));
         break;
+      case 'preferred-az':
+        list.sort((a, b) => (a.preferredName || a.first).localeCompare(b.preferredName || b.first));
+        break;
+      case 'preferred-za':
+        list.sort((a, b) => (b.preferredName || b.first).localeCompare(a.preferredName || a.first));
+        break;
       case 'enrollment':
         list.sort((a, b) => new Date(b.enrolledAt).getTime() - new Date(a.enrolledAt).getTime());
         break;
     }
+    // Filter by status tab
+    list = list.filter((s) => s.status === statusFilter);
     return list;
-  }, [students, classFilter, search, sort]);
+  }, [students, classFilter, search, sort, statusFilter]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -258,6 +297,38 @@ function StudentsContent() {
             Export CSV
           </button>
         </div>
+      </div>
+
+      {/* Pending review banner */}
+      {students.some(s => s.status === 'pending') && statusFilter !== 'pending' && (
+        <div className="mb-4 rounded-lg border border-amber-400 bg-amber-50 dark:bg-amber-950/20 p-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">{students.filter(s => s.status === 'pending').length} student{students.filter(s => s.status === 'pending').length === 1 ? '' : 's'} waiting to join your class{students.filter(s => s.status === 'pending').length === 1 ? '' : 'es'}</p>
+            <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">Review and accept or reject their join requests.</p>
+          </div>
+          <button onClick={() => setStatusFilter('pending')} className="px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 border-0 cursor-pointer">Review Requests</button>
+        </div>
+      )}
+
+      {/* Status tabs */}
+      <div className="flex items-center gap-2 mb-4">
+        {(['active', 'pending', 'archived'] as const).map((key) => {
+          const count = students.filter(s => s.status === key).length;
+          const labels = { active: 'Active', pending: 'Pending', archived: 'Archived' };
+          return (
+            <button
+              key={key}
+              onClick={() => { setStatusFilter(key); setSelectedIds(new Set()); }}
+              className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium cursor-pointer transition-all border-[1.5px] ${
+                statusFilter === key
+                  ? (key === 'pending' ? 'bg-amber-500 border-amber-500 text-white' : key === 'archived' ? 'bg-text-secondary border-text-secondary text-white' : 'bg-navy border-navy text-white')
+                  : 'border-border text-text-secondary hover:border-navy hover:text-navy'
+              }`}
+            >
+              {labels[key]} {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
+            </button>
+          );
+        })}
       </div>
 
       {/* Main Card */}
@@ -441,22 +512,71 @@ function StudentsContent() {
                         <DotsThree size={20} weight="bold" className="text-text-secondary" />
                       </button>
                       {openActionMenu === s.id && (
-                        <div className="absolute right-0 mt-2 border border-border rounded-lg shadow-2xl z-40 min-w-[240px] overflow-hidden bg-white dark:bg-[#0e1a35] top-[calc(100%+4px)]">
-                          {/* Small visual connector between the ... button and the menu so it reads as a clean popover */}
+                        <div className="absolute right-0 mt-2 border border-border rounded-lg shadow-2xl z-40 min-w-[260px] overflow-hidden bg-white dark:bg-[#0e1a35] top-[calc(100%+4px)]">
                           <div className="px-3 py-2 border-b border-border bg-surface">
                             <p className="text-[11px] font-semibold text-text-primary truncate">{s.first} {s.last}</p>
+                            <p className="text-[10px] text-text-muted truncate">{s.email}</p>
                           </div>
                           <button
-                            onClick={() => { window.location.href = `/teacher/student-detail?student=${s.id}`; setOpenActionMenu(null); }}
-                            className="block w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-navy/5 cursor-pointer"
-                          >
-                            View Profile
-                          </button>
-                          <button
                             onClick={() => { setFlagTarget(s); setFlagError(null); setOpenActionMenu(null); }}
-                            className="block w-full text-left px-4 py-2.5 text-sm text-amber-700 hover:bg-amber-50 cursor-pointer"
+                            className="block w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-amber-50 dark:hover:bg-amber-950/30 cursor-pointer"
                           >
                             Request preferred name change
+                          </button>
+                          {s.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={async () => {
+                                  setOpenActionMenu(null);
+                                  const ok = await callEnrollmentAction('accept', [s.id]);
+                                  if (ok) setStudents(prev => prev.map(x => x.id === s.id ? { ...x, status: 'active' as const } : x));
+                                }}
+                                className="block w-full text-left px-4 py-2.5 text-sm text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer"
+                              >
+                                ✓ Accept join request
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  setOpenActionMenu(null);
+                                  const ok = await callEnrollmentAction('reject', [s.id]);
+                                  if (ok) setStudents(prev => prev.filter(x => x.id !== s.id));
+                                }}
+                                className="block w-full text-left px-4 py-2.5 text-sm text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30 cursor-pointer"
+                              >
+                                ✗ Reject join request
+                              </button>
+                            </>
+                          )}
+                          {s.status === 'active' && (
+                            <button
+                              onClick={async () => {
+                                if (!confirm(`Archive ${s.first} ${s.last}? They'll be hidden from the active list but kept in case they return.`)) { setOpenActionMenu(null); return; }
+                                setOpenActionMenu(null);
+                                const ok = await callEnrollmentAction('archive', [s.id]);
+                                if (ok) setStudents(prev => prev.map(x => x.id === s.id ? { ...x, status: 'archived' as const } : x));
+                              }}
+                              className="block w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-navy/5 cursor-pointer border-t border-border"
+                            >
+                              Archive student
+                            </button>
+                          )}
+                          {s.status === 'archived' && (
+                            <button
+                              onClick={async () => {
+                                setOpenActionMenu(null);
+                                const ok = await callEnrollmentAction('reactivate', [s.id]);
+                                if (ok) setStudents(prev => prev.map(x => x.id === s.id ? { ...x, status: 'active' as const } : x));
+                              }}
+                              className="block w-full text-left px-4 py-2.5 text-sm text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer border-t border-border"
+                            >
+                              Reactivate student
+                            </button>
+                          )}
+                          <button
+                            onClick={() => { setDeleteTarget(s); setDeleteReason(''); setOpenActionMenu(null); }}
+                            className="block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer border-t border-border"
+                          >
+                            Delete student (permanent)
                           </button>
                         </div>
                       )}
@@ -473,13 +593,118 @@ function StudentsContent() {
       {selectedIds.size > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-navy border-t border-border px-6 py-3.5 flex items-center justify-between">
           <span className="text-white text-sm font-medium">{selectedIds.size} student{selectedIds.size !== 1 ? 's' : ''} selected</span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {statusFilter === 'pending' ? (
+              <>
+                <button
+                  disabled={bulkActionBusy !== null}
+                  onClick={async () => {
+                    setBulkActionBusy('accept');
+                    const ok = await callEnrollmentAction('accept', [...selectedIds]);
+                    if (ok) setStudents(prev => prev.map(x => selectedIds.has(x.id) ? { ...x, status: 'active' as const } : x));
+                    setSelectedIds(new Set());
+                    setBulkActionBusy(null);
+                  }}
+                  className="px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 border-0 cursor-pointer"
+                >Accept All</button>
+                <button
+                  disabled={bulkActionBusy !== null}
+                  onClick={async () => {
+                    if (!confirm(`Reject ${selectedIds.size} join request(s)?`)) return;
+                    setBulkActionBusy('reject');
+                    const ok = await callEnrollmentAction('reject', [...selectedIds]);
+                    if (ok) setStudents(prev => prev.filter(x => !selectedIds.has(x.id)));
+                    setSelectedIds(new Set());
+                    setBulkActionBusy(null);
+                  }}
+                  className="px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 border-0 cursor-pointer"
+                >Reject All</button>
+              </>
+            ) : statusFilter === 'archived' ? (
+              <button
+                disabled={bulkActionBusy !== null}
+                onClick={async () => {
+                  setBulkActionBusy('reactivate');
+                  const ok = await callEnrollmentAction('reactivate', [...selectedIds]);
+                  if (ok) setStudents(prev => prev.map(x => selectedIds.has(x.id) ? { ...x, status: 'active' as const } : x));
+                  setSelectedIds(new Set());
+                  setBulkActionBusy(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 border-0 cursor-pointer"
+              >Reactivate</button>
+            ) : (
+              <button
+                disabled={bulkActionBusy !== null}
+                onClick={async () => {
+                  if (!confirm(`Archive ${selectedIds.size} student${selectedIds.size === 1 ? '' : 's'}?`)) return;
+                  setBulkActionBusy('archive');
+                  const ok = await callEnrollmentAction('archive', [...selectedIds]);
+                  if (ok) setStudents(prev => prev.map(x => selectedIds.has(x.id) ? { ...x, status: 'archived' as const } : x));
+                  setSelectedIds(new Set());
+                  setBulkActionBusy(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-teal text-navy text-sm font-semibold hover:opacity-90 border-0 cursor-pointer"
+              >Archive</button>
+            )}
             <button
               onClick={() => setSelectedIds(new Set())}
               className="px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 rounded-lg cursor-pointer transition-all"
             >
-              Deselect All
+              Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Student Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/70 z-[80] flex items-center justify-center p-4" onClick={() => !deleteSaving && setDeleteTarget(null)}>
+          <div className="bg-card-bg border border-red-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-heading font-bold text-base text-red-600 mb-2">Permanently Delete {deleteTarget.first} {deleteTarget.last}?</h3>
+            <p className="text-sm text-text-secondary mb-3">
+              This will <strong>permanently delete</strong> their account, enrollments, assessments, chats, and notes.
+              This cannot be undone. If the student might return, use <strong>Archive</strong> instead.
+            </p>
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Reason (for audit log)</label>
+            <input
+              type="text"
+              value={deleteReason}
+              onChange={(e) => setDeleteReason(e.target.value)}
+              placeholder="e.g. bypassed invite, not in my class"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary text-sm outline-none focus:border-red-500"
+              maxLength={200}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                disabled={deleteSaving}
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-border/10 cursor-pointer disabled:opacity-50"
+              >Cancel</button>
+              <button
+                disabled={deleteSaving || !deleteReason.trim()}
+                onClick={async () => {
+                  setDeleteSaving(true);
+                  try {
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    const res = await fetch('/api/teacher/students/delete', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ teacherId: user.id, studentId: deleteTarget.id, reason: deleteReason }),
+                    });
+                    if (res.ok) {
+                      setStudents(prev => prev.filter(x => x.id !== deleteTarget.id));
+                      setDeleteTarget(null);
+                    } else {
+                      const d = await res.json().catch(() => ({}));
+                      alert(d.error || 'Delete failed');
+                    }
+                  } finally { setDeleteSaving(false); }
+                }}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 border-0 cursor-pointer disabled:opacity-50"
+              >{deleteSaving ? 'Deleting…' : 'Permanently Delete'}</button>
+            </div>
           </div>
         </div>
       )}
