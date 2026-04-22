@@ -65,14 +65,18 @@ export async function GET(request: NextRequest) {
     replyMap.set(r.topic_id, arr);
   });
 
-  // Creator display names
+  // Creator display names — for student callers, use classroom_name so kids see 'Mrs. Stewart' not 'Dottie Stewart'.
   const creatorIds = [...new Set(visible.map((t: any) => t.created_by))];
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('id, display_name')
+    .select('id, display_name, preferred_name, first_name, last_name, classroom_name, role')
     .in('id', creatorIds.length ? creatorIds : ['00000000-0000-0000-0000-000000000000']);
+  const { teacherClassroomName } = await import('@/lib/teacher-identity');
   const nameMap = new Map<string, string>();
-  (profiles ?? []).forEach((p: any) => nameMap.set(p.id, p.display_name || 'User'));
+  (profiles ?? []).forEach((p: any) => {
+    const name = p.role === 'teacher' ? teacherClassroomName(p) : (p.preferred_name || p.display_name || 'User');
+    nameMap.set(p.id, name);
+  });
 
   const result = visible.map((t: any) => {
     const rs = replyMap.get(t.id) ?? [];
@@ -80,7 +84,7 @@ export async function GET(request: NextRequest) {
     const openFlags = rs.filter((r: any) => r.flagged_reason && !r.flagged_dismissed_at).length;
     return {
       ...t,
-      created_by_name: nameMap.get(t.created_by) || 'User',
+      created_by_name: nameMap.get(t.created_by) || 'User', // Teacher's classroom_name for student consumers
       reply_count: rs.length,
       last_reply_at: last?.created_at ?? t.created_at,
       last_reply_preview: last?.content?.slice(0, 120) ?? null,

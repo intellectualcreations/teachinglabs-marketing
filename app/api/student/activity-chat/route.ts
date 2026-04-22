@@ -58,15 +58,16 @@ export async function POST(request: NextRequest) {
       .single();
     const studentName = studentProfile?.preferred_name || studentProfile?.display_name?.split(' ')[0] || 'there';
 
-    // Get teacher name from the activity's teacher_id
+    // Get teacher name from the activity's teacher_id. Use classroom_name for student-facing AI.
     let teacherName = 'your teacher';
     if (body.teacherId) {
       const { data: teacherProfile } = await (supabase as any)
         .from('profiles')
-        .select('display_name, preferred_name')
+        .select('display_name, preferred_name, first_name, last_name, classroom_name')
         .eq('id', body.teacherId)
         .single();
-      teacherName = teacherProfile?.preferred_name || teacherProfile?.display_name || 'your teacher';
+      const { teacherClassroomName } = await import('@/lib/teacher-identity');
+      teacherName = teacherClassroomName(teacherProfile);
     }
 
     const systemPrompt = `You are an awesome AI tutor named Spark who works with K-12 students. You're friendly, fun, encouraging, and make learning feel like an adventure — not a chore.

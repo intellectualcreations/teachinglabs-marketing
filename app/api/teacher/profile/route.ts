@@ -59,9 +59,13 @@ export async function PATCH(request: NextRequest) {
   }
 
   // Only allow safe fields
-  const allowed: Record<string, string> = {};
+  const allowed: Record<string, string | null> = {};
   if (typeof updates.display_name === 'string') allowed.display_name = updates.display_name;
   if (typeof updates.preferred_name === 'string') allowed.preferred_name = updates.preferred_name;
+  // Student-facing identity fields
+  if ('classroom_name' in updates) allowed.classroom_name = updates.classroom_name ? String(updates.classroom_name).slice(0, 60) : null;
+  if ('twin_name' in updates) allowed.twin_name = updates.twin_name ? String(updates.twin_name).slice(0, 60) : null;
+  if ('twin_tagline' in updates) allowed.twin_tagline = updates.twin_tagline ? String(updates.twin_tagline).slice(0, 120) : null;
 
   if (Object.keys(allowed).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });

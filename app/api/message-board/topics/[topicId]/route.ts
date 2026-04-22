@@ -63,12 +63,16 @@ export async function GET(
   senderIds.push(topic.created_by);
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('id, display_name, role')
+    .select('id, display_name, preferred_name, first_name, last_name, classroom_name, twin_name, role')
     .in('id', senderIds);
+  const { teacherClassroomName } = await import('@/lib/teacher-identity');
   const profileMap = new Map<string, { name: string; role: string }>();
-  (profiles ?? []).forEach((p: any) =>
-    profileMap.set(p.id, { name: p.display_name || 'User', role: p.role || 'student' })
-  );
+  (profiles ?? []).forEach((p: any) => {
+    const displayName = p.role === 'teacher'
+      ? teacherClassroomName(p)
+      : (p.preferred_name || p.display_name || 'User');
+    profileMap.set(p.id, { name: displayName, role: p.role || 'student' });
+  });
 
   // Participant list. For private topics: the specifically-added participants.
   // For public topics: the whole class roster (so teacher sees who can see it).
@@ -122,11 +126,19 @@ export async function GET(
       class_name: cls?.name || null,
       created_by_name: profileMap.get(topic.created_by)?.name || 'User',
     },
-    replies: scrubbedReplies.map((r: any) => ({
-      ...r,
-      sender_name: r.is_twin ? 'AI Teacher Twin' : (profileMap.get(r.sender_id)?.name || 'User'),
-      sender_role: r.is_twin ? 'twin' : (profileMap.get(r.sender_id)?.role || 'student'),
-    })),
+    replies: scrubbedReplies.map((r: any) => {
+      if (r.is_twin) {
+        // Twin replies use the teacher's twin_name (e.g. "Coach Sparkle"), never the teacher's classroom_name.
+        const teacherProfile: any = (profiles ?? []).find((p: any) => p.id === r.sender_id);
+        const twinLabel = (teacherProfile?.twin_name && String(teacherProfile.twin_name).trim()) || 'Coach Sparkle';
+        return { ...r, sender_name: twinLabel, sender_role: 'twin' };
+      }
+      return {
+        ...r,
+        sender_name: profileMap.get(r.sender_id)?.name || 'User',
+        sender_role: profileMap.get(r.sender_id)?.role || 'student',
+      };
+    }),
     participants,
   });
 }

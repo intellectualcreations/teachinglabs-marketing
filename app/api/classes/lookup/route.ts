@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     .from('classes')
     .select(`
       id, name, subject, join_code,
-      teacher:profiles!classes_teacher_id_fkey ( display_name ),
+      teacher:profiles!classes_teacher_id_fkey ( display_name, preferred_name, first_name, last_name, classroom_name ),
       school:schools!classes_school_id_fkey ( name )
     `)
     .ilike('join_code', code)
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   }
 
   const row = data as unknown as Record<string, unknown>;
-  const teacher = row.teacher as { display_name?: string } | null;
+  const teacher = row.teacher as { display_name?: string; preferred_name?: string; first_name?: string; last_name?: string; classroom_name?: string } | null;
   const school = row.school as { name?: string } | null;
 
   return NextResponse.json({
@@ -41,7 +41,8 @@ export async function GET(request: NextRequest) {
       id: data.id,
       name: data.name,
       subject: data.subject,
-      teacherName: teacher?.display_name ?? 'Teacher',
+      teacherName: teacher?.classroom_name
+        || (teacher?.last_name ? `Mrs. ${teacher.last_name}` : teacher?.preferred_name || teacher?.display_name || 'Teacher'),
       schoolName: school?.name ?? null,
     },
   });

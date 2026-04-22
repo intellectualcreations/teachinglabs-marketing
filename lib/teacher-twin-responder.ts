@@ -12,6 +12,8 @@
  *  - Twin uses the student's preferred name.
  *  - Twin stays age-appropriate for K-12.
  *  - Twin knows the class subject and topic title.
+ *  - When referencing the human teacher, Twin uses their classroom_name
+ *    (e.g. "Mrs. Stewart") — never the teacher's legal display_name.
  */
 
 import Anthropic from '@anthropic-ai/sdk';
@@ -25,8 +27,9 @@ export interface TopicContext {
   class_name: string;
   class_subject: string | null;
   is_private: boolean;
-  created_by: string;          // teacher user id
-  created_by_name: string;     // teacher display name
+  created_by: string;                  // teacher user id
+  teacher_classroom_name: string;      // e.g. 'Mrs. Stewart' — what students see for the human teacher
+  twin_name: string;                   // e.g. 'Coach Sparkle' — the Twin's own identity
 }
 
 export interface ReplyContext {
@@ -76,7 +79,7 @@ export function shouldTwinRespond(replies: ReplyContext[]): TwinDecision {
 
   // First student ever in this thread — Twin should welcome them.
   if (studentReplies.length === 1) {
-    return { shouldRespond: true, reason: 'First student reply \u2014 icebreaker' };
+    return { shouldRespond: true, reason: 'First student reply — icebreaker' };
   }
 
   // Latest message is a direct question — Twin answers (scaffolds).
@@ -87,13 +90,13 @@ export function shouldTwinRespond(replies: ReplyContext[]): TwinDecision {
   // Avoid Twin monologue: if last 2 messages are Twin posts (no student between), stay silent.
   const lastTwoNonCurrent = replies.slice(-3, -1);
   if (lastTwoNonCurrent.filter(r => r.sender_role === 'twin').length >= 1 && twinReplies.length >= studentReplies.length) {
-    return { shouldRespond: false, reason: 'Avoid Twin monologue \u2014 let peers respond' };
+    return { shouldRespond: false, reason: 'Avoid Twin monologue — let peers respond' };
   }
 
   // If the same student has posted 2+ in a row with no peer reply, Twin nudges to invite peers.
   const lastTwoStudents = replies.slice(-2);
   if (lastTwoStudents.length === 2 && lastTwoStudents.every(r => r.sender_role === 'student' && r.sender_id === latest.sender_id)) {
-    return { shouldRespond: true, reason: 'Same student twice in a row \u2014 nudge peers' };
+    return { shouldRespond: true, reason: 'Same student twice in a row — nudge peers' };
   }
 
   // Healthy peer-to-peer dialogue? Stay out of the way.
@@ -116,28 +119,29 @@ export async function generateTwinReply(params: {
   const latest = replies[replies.length - 1];
   const transcript = replies.map(r => {
     const who =
-      r.sender_role === 'twin' ? 'AI Twin'
-      : r.sender_role === 'teacher' ? `${topic.created_by_name} (teacher)`
+      r.sender_role === 'twin' ? topic.twin_name
+      : r.sender_role === 'teacher' ? `${topic.teacher_classroom_name} (teacher)`
       : r.sender_name;
     return `${who}: ${r.content}`;
   }).join('\n');
 
-  const system = `You are the AI Teacher Twin assistant in a K-12 class message board. You support ${topic.created_by_name}'s class. This topic is in "${topic.class_name}"${topic.class_subject ? ` (${topic.class_subject})` : ''} and is titled "${topic.title}".
+  const system = `You are ${topic.twin_name}, the AI co-teacher supporting ${topic.teacher_classroom_name}'s class. This topic is in "${topic.class_name}"${topic.class_subject ? ` (${topic.class_subject})` : ''} and is titled "${topic.title}".
 
 Your role:
-- You are NOT the teacher. You are a co-teacher AI that scaffolds student discussion.
-- Keep students talking to each OTHER, not to you.
+- You are NOT the human teacher. You are ${topic.teacher_classroom_name}'s AI co-teacher, named ${topic.twin_name}.
+- When you reference the human teacher, call them ${topic.teacher_classroom_name}. Never use any other name for them.
+- Keep students talking to each OTHER, not just to you.
 - Ask open, thought-provoking questions. Don't lecture. Don't give complete answers.
 - Use the student's name when addressing them.
 - Celebrate specific moves when warranted ("I love how you connected X to Y").
 - Stay age-appropriate for K-12 and classroom-friendly.
 - Stay on the topic; redirect gently if the conversation drifts.
 - Keep replies SHORT: 2-4 sentences max. One question is enough.
-- Sound warm, curious, and encouraging \u2014 never stiff or corporate.
+- Sound warm, curious, and encouraging — never stiff or corporate.
 ${teacherTwinPersona ? `\nYou embody this teacher's persona: ${teacherTwinPersona}\n` : ''}
 
 Do NOT repeat yourself or what the teacher already said.
-Do NOT sign off with "Teacher Twin" or any name \u2014 the UI will label you.
+Do NOT sign off with any name — the UI will label you as ${topic.twin_name}.
 Reply with ONLY the reply text, nothing else.`;
 
   const userPrompt = `Topic: "${topic.title}"

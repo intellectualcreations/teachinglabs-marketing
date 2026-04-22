@@ -392,12 +392,14 @@ export async function POST(request: NextRequest) {
   if (classInfo?.teacher_id) {
     const { data: tp } = await admin
       .from("profiles")
-      .select("preferred_name, display_name")
+      .select("preferred_name, display_name, first_name, last_name, classroom_name")
       .eq("id", classInfo.teacher_id)
       .single();
-    const teacherProfile = tp as { preferred_name: string | null; display_name: string | null } | null;
+    const teacherProfile = tp as { preferred_name?: string | null; display_name?: string | null; first_name?: string | null; last_name?: string | null; classroom_name?: string | null } | null;
     if (teacherProfile) {
-      teacherName = teacherProfile.preferred_name || teacherProfile.display_name || "your teacher";
+      // Use classroom_name (e.g. 'Mrs. Stewart') in student-facing AI. Never legal display_name.
+      const { teacherClassroomName } = await import('@/lib/teacher-identity');
+      teacherName = teacherClassroomName(teacherProfile);
     }
 
     // Fetch teacher soul

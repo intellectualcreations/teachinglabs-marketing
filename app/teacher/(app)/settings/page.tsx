@@ -104,6 +104,14 @@ export default function SettingsPage() {
   const [profileSaved, setProfileSaved] = useState(false);
   const [userId, setUserId] = useState('');
 
+  // Classroom identity (what students see)
+  const [classroomName, setClassroomName] = useState('');
+  const [twinName, setTwinName] = useState('');
+  const [twinTagline, setTwinTagline] = useState('');
+  const [identityDirty, setIdentityDirty] = useState(false);
+  const [identitySaving, setIdentitySaving] = useState(false);
+  const [identitySaved, setIdentitySaved] = useState(false);
+
   useEffect(() => {
     async function loadProfile() {
       try {
@@ -127,6 +135,10 @@ export default function SettingsPage() {
           || '';
         setName(displayName);
         setPreferredName((p as { preferred_name?: string })?.preferred_name || '');
+        const px = p as any;
+        setClassroomName(px?.classroom_name || (px?.last_name ? `Mrs. ${px.last_name}` : (px?.preferred_name || '')));
+        setTwinName(px?.twin_name || 'Coach Sparkle');
+        setTwinTagline(px?.twin_tagline || '');
         setRole(p?.role || 'Teacher');
         setUserId(user.id);
 
@@ -316,6 +328,98 @@ export default function SettingsPage() {
                 </button>
               )}
             </div>
+          </div>
+        </Section>
+
+        {/* ─── 1b. How Students See You ─── */}
+        <Section icon={User} title="How Students See You">
+          <div className="space-y-4">
+            <p className="text-sm text-text-secondary">
+              Students never see your legal name. Choose the name you want them to call you, and give your AI co-teacher its own name too.
+            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1">Classroom name</label>
+              <input
+                type="text"
+                value={classroomName}
+                onChange={(e) => { setClassroomName(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
+                placeholder="Mrs. Stewart"
+                maxLength={60}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal"
+              />
+              <p className="text-xs text-text-muted mt-1">What students see in chats, message boards, and emails. E.g. “Mrs. Stewart” or “Coach Stewart.”</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1">Your AI Coach’s name</label>
+              <input
+                type="text"
+                value={twinName}
+                onChange={(e) => { setTwinName(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
+                placeholder="Coach Sparkle"
+                maxLength={60}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal"
+              />
+              <p className="text-xs text-text-muted mt-1">What the AI co-teacher is called when it posts in message boards. Picks up the tone of your classroom.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1">AI Coach tagline <span className="text-text-muted font-normal">(optional)</span></label>
+              <input
+                type="text"
+                value={twinTagline}
+                onChange={(e) => { setTwinTagline(e.target.value); setIdentityDirty(true); setIdentitySaved(false); }}
+                placeholder={`${classroomName || 'Your'}'s AI co-teacher`}
+                maxLength={120}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-card-bg text-text-primary text-sm outline-none focus:border-teal"
+              />
+              <p className="text-xs text-text-muted mt-1">Short subtitle shown under your coach&apos;s name.</p>
+            </div>
+
+            {/* Preview */}
+            <div className="rounded-lg border border-border bg-surface p-3">
+              <p className="text-[11px] uppercase tracking-[0.5px] font-bold text-text-secondary mb-2">Preview — what students see</p>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-teal/20 text-teal">{classroomName || 'Mrs. Stewart'} · Teacher</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-400">{twinName || 'Coach Sparkle'} · AI Coach</span>
+                <span className="text-[10px] text-text-muted">{twinTagline || `${classroomName || 'Mrs. Stewart'}'s AI co-teacher`}</span>
+              </div>
+            </div>
+
+            {identityDirty && (
+              <button
+                disabled={identitySaving}
+                onClick={async () => {
+                  setIdentitySaving(true);
+                  try {
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    const res = await fetch('/api/teacher/profile', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        teacherId: user.id,
+                        classroom_name: classroomName.trim() || null,
+                        twin_name: twinName.trim() || null,
+                        twin_tagline: twinTagline.trim() || null,
+                      }),
+                    });
+                    if (res.ok) {
+                      setIdentityDirty(false);
+                      setIdentitySaved(true);
+                      setTimeout(() => setIdentitySaved(false), 2000);
+                    }
+                  } finally { setIdentitySaving(false); }
+                }}
+                className="px-5 py-2 text-sm font-medium bg-teal text-navy rounded-lg hover:bg-teal/90 transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {identitySaved ? <><Check size={14} weight="bold" /> Saved!</> : identitySaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            )}
           </div>
         </Section>
 

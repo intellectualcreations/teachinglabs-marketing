@@ -133,11 +133,12 @@ async function runTwinReply({ supabase, topicId, topic }: { supabase: any; topic
     console.log(`[twin] topic=${topicId} decision=${decision.shouldRespond} reason="${decision.reason}"`);
     if (!decision.shouldRespond) return;
 
-    // Pull class metadata for context.
+    // Pull class + teacher identity for the Twin's context.
     const { data: cls } = await (supabase as any)
       .from('classes').select('name, subject').eq('id', topic.class_id).maybeSingle();
     const { data: teacherProf } = await (supabase as any)
-      .from('profiles').select('display_name, preferred_name').eq('id', topic.created_by).maybeSingle();
+      .from('profiles').select('display_name, preferred_name, first_name, last_name, classroom_name, twin_name').eq('id', topic.created_by).maybeSingle();
+    const { teacherClassroomName, teacherTwinName } = await import('@/lib/teacher-identity');
 
     const twinReply = await generateTwinReply({
       topic: {
@@ -148,7 +149,8 @@ async function runTwinReply({ supabase, topicId, topic }: { supabase: any; topic
         class_subject: cls?.subject ?? null,
         is_private: topic.is_private,
         created_by: topic.created_by,
-        created_by_name: teacherProf?.preferred_name || teacherProf?.display_name || 'your teacher',
+        teacher_classroom_name: teacherClassroomName(teacherProf),
+        twin_name: teacherTwinName(teacherProf),
       },
       replies: replyCtx,
     });
