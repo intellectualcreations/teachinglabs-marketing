@@ -72,6 +72,21 @@ interface Enrollment {
   enrolled_at: string;
 }
 
+interface AssessmentResponse {
+  id: string;
+  category: string;
+  question_key: string;
+  question_order: number | null;
+  question_text: string | null;
+  question_type: string | null;
+  options_shown: any;
+  student_answer: string | null;
+  correct_answer: string | null;
+  signal_result: string | null;
+  scoring_metadata: any;
+  created_at: string;
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function getTierLabel(tier: string): string {
@@ -179,6 +194,7 @@ function StudentDetailContent() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [responses, setResponses] = useState<AssessmentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [teacherNotes, setTeacherNotes] = useState('');
@@ -214,6 +230,7 @@ function StudentDetailContent() {
         setProfile(data.profile);
         setAssessment(data.assessment || null);
         setEnrollments(data.enrollments || []);
+        setResponses(data.responses || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load student');
       } finally {
@@ -483,9 +500,9 @@ function StudentDetailContent() {
               <section>
                 <h4 className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-2">About</h4>
                 <div className="space-y-2 text-sm">
-                  <div><span className="text-text-secondary">Preferred name:</span> <span className="text-text-primary font-semibold">{assessment.preferred_name}</span></div>
-                  <div><span className="text-text-secondary">Age:</span> <span className="text-text-primary font-semibold">{assessment.age}</span></div>
-                  <div><span className="text-text-secondary">Theme chosen:</span> <span className="text-text-primary font-semibold capitalize">{assessment.theme}</span></div>
+                  {assessment.preferred_name && <div><span className="text-text-secondary">Preferred name:</span> <span className="text-text-primary font-semibold">{assessment.preferred_name}</span></div>}
+                  {assessment.age && <div><span className="text-text-secondary">Age:</span> <span className="text-text-primary font-semibold">{assessment.age}</span></div>}
+                  {assessment.theme && <div><span className="text-text-secondary">Theme chosen:</span> <span className="text-text-primary font-semibold capitalize">{assessment.theme}</span></div>}
                 </div>
               </section>
 
@@ -504,145 +521,113 @@ function StudentDetailContent() {
                 </section>
               )}
 
-              {/* Reading */}
-              <section className="rounded-lg border border-border bg-surface p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5"><BookOpenText size={14} weight="fill" /> Reading Level</h4>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getTierColor(assessment.reading_level), backgroundColor: getTierColor(assessment.reading_level) + '20' }}>{getTierLabel(assessment.reading_level)}</span>
-                </div>
-                {assessment.reading_passage ? (
-                  <>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Reading Passage</p>
-                    <p className="text-[13px] text-text-primary bg-card-bg rounded-md border border-border px-3 py-2 mb-3 leading-[1.55] whitespace-pre-wrap">{assessment.reading_passage}</p>
-                    {assessment.reading_question && (
-                      <>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Question</p>
-                        <p className="text-[13px] text-text-primary italic mb-3">“{assessment.reading_question}”</p>
-                      </>
-                    )}
-                    {assessment.reading_student_answer && (
-                      <>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Student&apos;s Answer</p>
-                        <p className="text-[13px] text-text-primary bg-card-bg rounded-md border border-border px-3 py-2 whitespace-pre-wrap leading-[1.55]">{assessment.reading_student_answer}</p>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-[12px] text-text-secondary">Assessed from reading passage comprehension + language tier ({assessment.language_tier}).</p>
-                )}
-              </section>
-
-              {/* Math */}
-              <section className="rounded-lg border border-border bg-surface p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5"><Brain size={14} weight="fill" /> Math Level</h4>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getTierColor(assessment.math_level), backgroundColor: getTierColor(assessment.math_level) + '20' }}>{getTierLabel(assessment.math_level)}</span>
-                </div>
-                {[1, 2].map((n) => {
-                  const q = (assessment as any)[`math_q${n}_question`] as string | undefined;
-                  const a = (assessment as any)[`math_q${n}_student_answer`] as string | undefined;
-                  const c = (assessment as any)[`math_q${n}_correct_answer`] as string | undefined;
-                  const perf = (assessment as any)[`math_performance_q${n}`] as string | undefined;
-                  const isCorrect = a && c && String(a).trim() === String(c).trim();
-                  if (!q) return null;
+              {/* Generic per-category responses renderer ─────────────────── */}
+              {responses.length === 0 ? (
+                <section className="rounded-lg border border-border bg-surface p-4 text-center">
+                  <p className="text-[12px] text-text-secondary">No detailed responses captured yet. This student completed their baseline assessment before we started capturing per-question answers. Future students will show full Q&amp;A here automatically.</p>
+                </section>
+              ) : (
+                // Group by category in the order they first appear
+                Object.entries(
+                  responses.reduce<Record<string, AssessmentResponse[]>>((acc, r) => {
+                    const key = r.category || 'other';
+                    if (!acc[key]) acc[key] = [];
+                    acc[key].push(r);
+                    return acc;
+                  }, {})
+                ).map(([category, rows]) => {
+                  const categoryLabels: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+                    reading: { label: 'Reading', icon: BookOpenText, color: '#0EA5E9' },
+                    math: { label: 'Math', icon: Brain, color: '#F59E0B' },
+                    logic: { label: 'Logic & Reasoning', icon: Lightbulb, color: '#EAB308' },
+                    writing: { label: 'Writing', icon: PencilSimple, color: '#EC4899' },
+                    spatial: { label: 'Visual-Spatial', icon: Eye, color: '#6366F1' },
+                    musical: { label: 'Musical', icon: MusicNotes, color: '#8B5CF6' },
+                    kinesthetic: { label: 'Bodily-Kinesthetic', icon: Barbell, color: '#EF4444' },
+                    interpersonal: { label: 'Interpersonal', icon: PersonArmsSpread, color: '#10B981' },
+                    intrapersonal: { label: 'Intrapersonal', icon: HandHeart, color: '#14B8A6' },
+                    naturalistic: { label: 'Naturalistic', icon: TreeEvergreen, color: '#84CC16' },
+                    eq: { label: 'Emotional Intelligence', icon: HandHeart, color: '#F43F5E' },
+                    authenticity: { label: 'Authenticity', icon: Sparkle, color: '#94A3B8' },
+                  };
+                  const cfg = categoryLabels[category] || { label: category, icon: Brain, color: '#94A3B8' };
+                  const IconC = cfg.icon;
                   return (
-                    <div key={n} className={`mb-3 last:mb-0 p-3 rounded-md border ${isCorrect ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900' : 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900'}`}>
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary">Math Q{n}</p>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                          {isCorrect ? 'Correct' : perf ? perf.replace(/-/g, ' ').replace(/\b\w/g, s => s.toUpperCase()) : 'Off'}
-                        </span>
+                    <section key={category} className="rounded-lg border border-border bg-surface p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <IconC size={15} weight="fill" style={{ color: cfg.color }} />
+                        <h4 className="text-sm font-bold text-text-primary">{cfg.label}</h4>
+                        {rows.some(r => r.signal_result) && (
+                          <div className="flex gap-1 ml-auto">
+                            {Array.from(new Set(rows.map(r => r.signal_result).filter(Boolean))).map(sig => (
+                              <span key={String(sig)} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: getSignalColor(String(sig)), backgroundColor: getSignalColor(String(sig)) + '20' }}>
+                                {getSignalLabel(String(sig))}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-[13px] text-text-primary italic mb-2">“{q}”</p>
-                      <div className="flex items-center gap-3 text-[12px]">
-                        <span className="text-text-secondary">Student answered:</span>
-                        <span className="text-text-primary font-semibold">{a || '(blank)'}</span>
-                        {c && <><span className="text-text-secondary ml-2">Correct:</span><span className="text-text-primary font-semibold">{c}</span></>}
+                      <div className="space-y-3">
+                        {rows.map(r => {
+                          const isChecklist = r.question_type === 'checkbox' || r.question_type === 'multi_choice';
+                          let parsedAnswer: string[] | null = null;
+                          if (isChecklist && r.student_answer) {
+                            try { parsedAnswer = JSON.parse(r.student_answer); } catch {}
+                          }
+                          const isNumberMath = r.category === 'math' && r.correct_answer !== null && r.student_answer !== null;
+                          const isCorrect = isNumberMath && String(r.student_answer).trim() === String(r.correct_answer).trim();
+
+                          return (
+                            <div key={r.id} className={`rounded-md border p-3 ${
+                              isNumberMath
+                                ? (isCorrect
+                                    ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900'
+                                    : 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900')
+                                : 'bg-card-bg border-border'
+                            }`}>
+                              {r.question_text && (
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Question</p>
+                              )}
+                              {r.question_text && (
+                                <p className="text-[13px] text-text-primary italic mb-2 whitespace-pre-wrap">{r.question_text}</p>
+                              )}
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Student&apos;s Answer</p>
+                              {parsedAnswer && Array.isArray(parsedAnswer) ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {parsedAnswer.length === 0 ? (
+                                    <span className="text-[12px] text-text-muted italic">(none selected)</span>
+                                  ) : parsedAnswer.map(v => (
+                                    <span key={v} className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-border/40 text-text-primary capitalize">{String(v).replace(/_/g, ' ')}</span>
+                                  ))}
+                                  {Array.isArray(r.options_shown) && r.options_shown.length > 0 && (
+                                    <span className="text-[10px] text-text-muted ml-1">(of {r.options_shown.length} options)</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-[13px] text-text-primary whitespace-pre-wrap leading-[1.55]">{r.student_answer || <span className="italic text-text-muted">(blank)</span>}</p>
+                              )}
+                              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                                {r.correct_answer && (
+                                  <span className="text-[11px] text-text-secondary">Correct: <span className="font-semibold text-text-primary">{r.correct_answer}</span></span>
+                                )}
+                                {isNumberMath && (
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                                    {isCorrect ? 'Correct' : 'Off'}
+                                  </span>
+                                )}
+                                {r.signal_result && (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full ml-auto" style={{ color: getSignalColor(r.signal_result), backgroundColor: getSignalColor(r.signal_result) + '20' }}>
+                                    Signal: {getSignalLabel(r.signal_result)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
+                    </section>
                   );
-                })}
-                {!assessment.math_q1_question && assessment.math_performance_q1 && (
-                  <div className="space-y-1.5 text-[12px]">
-                    <div><span className="text-text-secondary">Math Q1 performance:</span> <span className="text-text-primary font-semibold capitalize">{assessment.math_performance_q1.replace(/-/g, ' ')}</span></div>
-                    {assessment.math_performance_q2 && (
-                      <div><span className="text-text-secondary">Math Q2 performance:</span> <span className="text-text-primary font-semibold capitalize">{assessment.math_performance_q2.replace(/-/g, ' ')}</span></div>
-                    )}
-                  </div>
-                )}
-              </section>
-
-              {/* Logic */}
-              {(assessment.logic_question || assessment.logic_answer_given || assessment.logic_reasoning_level) && (
-                <section className="rounded-lg border border-border bg-surface p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5"><Lightbulb size={14} weight="fill" /> Logic & Reasoning</h4>
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getTierColor(assessment.logic_reasoning_level), backgroundColor: getTierColor(assessment.logic_reasoning_level) + '20' }}>{getTierLabel(assessment.logic_reasoning_level)}</span>
-                  </div>
-                  {assessment.logic_question && (
-                    <div className="mb-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Question</p>
-                      <p className="text-[13px] text-text-primary italic">“{assessment.logic_question}”</p>
-                    </div>
-                  )}
-                  {assessment.logic_answer_given && (
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Student&apos;s Answer</p>
-                      <p className="text-[13px] text-text-primary bg-card-bg rounded-md border border-border px-3 py-2">{assessment.logic_answer_given}</p>
-                    </div>
-                  )}
-                </section>
-              )}
-
-              {/* Writing Response */}
-              {assessment.writing_response && (
-                <section className="rounded-lg border border-border bg-surface p-4">
-                  <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5 mb-2"><PencilSimple size={14} weight="fill" /> Writing Sample</h4>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">What the student wrote</p>
-                  <p className="text-[13px] text-text-primary bg-card-bg rounded-md border border-border px-3 py-2 whitespace-pre-wrap leading-[1.55]">{assessment.writing_response}</p>
-                </section>
-              )}
-
-              {/* Multiple Intelligences (full breakdown) */}
-              {mi && (
-                <section>
-                  <h4 className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-2">Multiple Intelligences — All 8</h4>
-                  <div className="grid grid-cols-1 gap-2">
-                    {([
-                      ['linguistic', 'Linguistic'],
-                      ['logical_mathematical', 'Logical-Mathematical'],
-                      ['spatial', 'Visual-Spatial'],
-                      ['musical', 'Musical'],
-                      ['bodily_kinesthetic', 'Bodily-Kinesthetic'],
-                      ['interpersonal', 'Interpersonal'],
-                      ['intrapersonal', 'Intrapersonal'],
-                      ['naturalistic', 'Naturalistic'],
-                    ] as const).map(([key, label]) => {
-                      const signal = (mi as any)[key] || 'emerging';
-                      return (
-                        <div key={key} className="flex items-center justify-between px-3 py-2 rounded-md bg-surface border border-border">
-                          <span className="text-[12px] text-text-primary">{label}</span>
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getSignalColor(signal), backgroundColor: getSignalColor(signal) + '20' }}>{getSignalLabel(signal)}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              )}
-
-              {/* Emotional Intelligence Signals */}
-              {assessment.emotional_intelligence_signals && Object.keys(assessment.emotional_intelligence_signals).length > 0 && (
-                <section>
-                  <h4 className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-2">Emotional Intelligence Signals</h4>
-                  <div className="space-y-1.5 text-[12px]">
-                    {Object.entries(assessment.emotional_intelligence_signals).map(([k, v]) => (
-                      <div key={k} className="flex justify-between px-3 py-2 rounded-md bg-surface border border-border">
-                        <span className="text-text-primary capitalize">{k.replace(/_/g, ' ')}</span>
-                        <span className="font-semibold text-text-secondary">{String(v)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                })
               )}
             </div>
 

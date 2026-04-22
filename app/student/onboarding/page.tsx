@@ -955,16 +955,6 @@ export default function StudentOnboardingPage() {
       language_tier: languageTier,
       math_performance_q1: mathShift1,
       math_performance_q2: mathShift2,
-      // Persist the actual questions + answers so teachers see exactly what the student worked on
-      reading_passage: theme.passage[readingTier],
-      reading_question: theme.readingQuestion[readingTier],
-      reading_student_answer: answers.readingResponse,
-      math_q1_question: q1.question,
-      math_q1_student_answer: answers.mathResponse1,
-      math_q1_correct_answer: String(q1.answer),
-      math_q2_question: q2.question,
-      math_q2_student_answer: answers.mathResponse2,
-      math_q2_correct_answer: String(q2.answer),
       writing_response: answers.writingResponse,
       multiple_intelligences: gardnerSignals,
       logic_reasoning_level: logicLevel,
@@ -977,6 +967,92 @@ export default function StudentOnboardingPage() {
       authenticity_signals: answers.authenticitySignals,
       completed_at: new Date().toISOString(),
     };
+
+    // Build the assessment_responses rows — generic capture, one per question.
+    // Adding a new assessment question in the future = add one entry here and it flows into the teacher panel automatically.
+    const responses: Array<{
+      category: string; question_key: string; question_order: number;
+      question_text: string; question_type: string;
+      options_shown?: unknown; student_answer: string;
+      correct_answer?: string; signal_result?: string; scoring_metadata?: unknown;
+    }> = [
+      // Reading
+      { category: 'reading', question_key: 'reading_passage_comprehension', question_order: 1,
+        question_text: `Reading passage: ${theme.passage[readingTier]}\n\nQuestion: ${theme.readingQuestion[readingTier]}`,
+        question_type: 'text', student_answer: answers.readingResponse,
+        signal_result: readingTier,
+        scoring_metadata: { theme: selectedTheme, tier: readingTier } },
+
+      // Math
+      { category: 'math', question_key: 'math_q1', question_order: 2,
+        question_text: q1.question, question_type: 'number',
+        student_answer: answers.mathResponse1, correct_answer: String(q1.answer),
+        signal_result: mathShift1 },
+      { category: 'math', question_key: 'math_q2', question_order: 3,
+        question_text: q2.question, question_type: 'number',
+        student_answer: answers.mathResponse2, correct_answer: String(q2.answer),
+        signal_result: mathShift2 },
+
+      // Logic
+      { category: 'logic', question_key: 'logic_reasoning', question_order: 4,
+        question_text: logicQ.question, question_type: 'text',
+        student_answer: answers.logicAnswer, correct_answer: String(logicQ.correctAnswer),
+        signal_result: logicLevel },
+
+      // Writing
+      { category: 'writing', question_key: 'writing_prompt', question_order: 5,
+        question_text: theme.writingPrompt || 'Writing prompt', question_type: 'text',
+        student_answer: answers.writingResponse },
+
+      // Spatial (Gardner)
+      { category: 'spatial', question_key: 'spatial_description', question_order: 6,
+        question_text: 'Describe your dream invention, world, or game — as wild or detailed as you want.',
+        question_type: 'text', student_answer: answers.spatialDescription,
+        signal_result: gardnerSignals.spatial as string },
+
+      // Musical
+      { category: 'musical', question_key: 'musical_signals', question_order: 7,
+        question_text: 'Which of these describe how music fits into your life?',
+        question_type: 'checkbox', options_shown: ['plays_instrument', 'makes_beats', 'sings', 'listens_daily', 'not_my_thing'],
+        student_answer: JSON.stringify(answers.musicalSignals),
+        signal_result: gardnerSignals.musical as string },
+
+      // Kinesthetic
+      { category: 'kinesthetic', question_key: 'kinesthetic_signals', question_order: 8,
+        question_text: 'How do you like to learn new things?',
+        question_type: 'checkbox', options_shown: ['hands_on', 'moving', 'trial_error', 'watch_first'],
+        student_answer: JSON.stringify(answers.kinestheticSignals),
+        signal_result: gardnerSignals.bodily_kinesthetic as string },
+
+      // Interpersonal
+      { category: 'interpersonal', question_key: 'interpersonal_style', question_order: 9,
+        question_text: 'When you are working on a project, how do you usually like to work?',
+        question_type: 'text', student_answer: answers.interpersonalStyle,
+        signal_result: gardnerSignals.interpersonal as string },
+
+      // Intrapersonal
+      { category: 'intrapersonal', question_key: 'intrapersonal_strengths', question_order: 10,
+        question_text: 'What is something you are really good at?',
+        question_type: 'text', student_answer: answers.intrapersonalStrengths,
+        signal_result: gardnerSignals.intrapersonal as string },
+      { category: 'intrapersonal', question_key: 'intrapersonal_growth', question_order: 11,
+        question_text: 'What is something you want to get better at?',
+        question_type: 'text', student_answer: answers.intrapersonalGrowth },
+
+      // Naturalistic
+      { category: 'naturalistic', question_key: 'naturalistic_signal', question_order: 12,
+        question_text: 'How do you feel about nature, plants, animals, or the outdoors?',
+        question_type: 'text', student_answer: answers.naturalisticSignal,
+        signal_result: gardnerSignals.naturalistic as string },
+
+      // Emotional Intelligence
+      { category: 'eq', question_key: 'eq_friend_response', question_order: 13,
+        question_text: 'Your friend is upset about something that happened at school. What do you do?',
+        question_type: 'text', student_answer: answers.eqFriendResponse },
+      { category: 'eq', question_key: 'eq_self_response', question_order: 14,
+        question_text: 'When you are feeling really frustrated or upset, what helps you feel better?',
+        question_type: 'text', student_answer: answers.eqSelfResponse },
+    ].filter(r => r.student_answer && String(r.student_answer).trim() !== '' && r.student_answer !== '[]');
 
     const save = async () => {
       setSaving(true);
@@ -998,6 +1074,7 @@ export default function StudentOnboardingPage() {
               preferredName: answers.name || null,
               primaryIntelligence: primaryIntel,
               superpowerTitle: defaultTitle,
+              responses,
             }),
           });
 

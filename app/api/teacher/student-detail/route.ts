@@ -61,6 +61,19 @@ export async function GET(request: NextRequest) {
       // Table may not exist yet
     }
 
+    // 2b. Get the generic per-question assessment responses
+    let responses: any[] = [];
+    try {
+      const { data: respData } = await (supabase as any)
+        .from('assessment_responses')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('question_order', { ascending: true });
+      responses = respData ?? [];
+    } catch {
+      // Table may not exist yet (migration 014 not applied)
+    }
+
     // 3. Get enrollments for this student in this teacher's classes
     const { data: classes } = await supabase
       .from('classes')
@@ -88,7 +101,7 @@ export async function GET(request: NextRequest) {
       }));
     }
 
-    return NextResponse.json({ profile, assessment, enrollments });
+    return NextResponse.json({ profile, assessment, enrollments, responses });
   } catch (err) {
     console.error('Student detail API error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
