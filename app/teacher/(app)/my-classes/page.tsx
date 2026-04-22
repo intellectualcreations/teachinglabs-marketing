@@ -190,8 +190,8 @@ export default function MyClassesPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { window.location.href = '/login'; return; setLoading(false); return; }
 
-        // Fetch teacher's classes with counts via API route (bypasses RLS)
-        const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}`);
+        // Fetch teacher's classes including archived so My Classes can show both
+        const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}&includeArchived=true`);
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           setError(body.error ?? `Failed to load classes (${res.status})`);
@@ -275,7 +275,7 @@ export default function MyClassesPage() {
           className="grid gap-5 mt-6"
           style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))' }}
         >
-          {classes.map((c, i) => (
+          {classes.filter((c: any) => !c.is_archived).map((c, i) => (
             <div
               key={c.id}
               className="bg-card-bg border border-border rounded-[20px] p-6 relative overflow-hidden
@@ -364,8 +364,90 @@ export default function MyClassesPage() {
                   <PencilSimple size={12} /> Edit
                 </Link>
               </div>
+
+              {/* Footer: sidebar toggle + archive */}
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={(c as any).show_in_sidebar !== false}
+                    onChange={async (e) => {
+                      const supabase = createClient();
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if (!user) return;
+                      const action = e.target.checked ? 'show' : 'hide';
+                      await fetch('/api/teacher/classes/visibility', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ teacherId: user.id, classId: c.id, action }),
+                      });
+                      setClasses(prev => prev.map(x => x.id === c.id ? { ...x, show_in_sidebar: e.target.checked } as any : x));
+                    }}
+                    className="w-3.5 h-3.5"
+                  />
+                  Show in sidebar
+                </label>
+                <button
+                  onClick={async () => {
+                    if (!confirm(`Archive ${c.name}? You can un-archive any time from the Archived section below.`)) return;
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    await fetch('/api/teacher/classes/visibility', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ teacherId: user.id, classId: c.id, action: 'archive' }),
+                    });
+                    setClasses(prev => prev.map(x => x.id === c.id ? { ...x, is_archived: true, archived_at: new Date().toISOString() } as any : x));
+                  }}
+                  className="text-[11px] text-text-muted hover:text-text-primary cursor-pointer"
+                >Archive class</button>
+              </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Archived Classes Section */}
+      {classes.some((c: any) => c.is_archived) && (
+        <div className="mt-12 pt-6 border-t border-border">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-heading font-bold text-[18px] text-text-primary">Archived Classes</h2>
+              <p className="text-text-secondary text-[13px] mt-0.5">Hidden from your dashboard and sidebar. Un-archive to bring them back.</p>
+            </div>
+            <span className="text-[12px] text-text-muted">{classes.filter((c: any) => c.is_archived).length} archived</span>
+          </div>
+          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+            {classes.filter((c: any) => c.is_archived).map((c) => (
+              <div key={c.id} className="bg-surface border border-border rounded-lg p-4 flex items-center justify-between gap-3 opacity-75 hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-3 min-w-0">
+                  <ClassIcon name={c.name} icon={c.icon} size={28} />
+                  <div className="min-w-0">
+                    <p className="font-heading font-semibold text-sm text-text-primary truncate">{c.name}</p>
+                    <p className="text-[11px] text-text-muted truncate">
+                      {c.studentCount} student{c.studentCount === 1 ? '' : 's'}
+                      {(c as any).archived_at && ` · archived ${new Date((c as any).archived_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    await fetch('/api/teacher/classes/visibility', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ teacherId: user.id, classId: c.id, action: 'unarchive' }),
+                    });
+                    setClasses(prev => prev.map(x => x.id === c.id ? { ...x, is_archived: false, archived_at: null } as any : x));
+                  }}
+                  className="text-[11px] font-semibold text-teal hover:underline cursor-pointer whitespace-nowrap"
+                >Un-archive</button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

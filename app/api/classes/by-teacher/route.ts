@@ -8,18 +8,32 @@ import { createAdminClient } from '@/lib/supabase/server';
  */
 export async function GET(request: NextRequest) {
   const teacherId = request.nextUrl.searchParams.get('teacherId');
+  const includeArchived = request.nextUrl.searchParams.get('includeArchived') === 'true';
+  const sidebarOnly = request.nextUrl.searchParams.get('sidebarOnly') === 'true';
   if (!teacherId) {
     return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
   }
 
   const supabase = createAdminClient();
 
-  // Fetch classes
-  const { data: classes, error: classError } = await supabase
-    .from('classes')
-    .select('*')
-    .eq('teacher_id', teacherId)
-    .order('created_at', { ascending: false });
+  // Fetch classes. Gracefully fall back if the new columns aren't migrated yet.
+  let classes: any[] | null = null;
+  let classError: any = null;
+  {
+    let q = (supabase as any).from('classes').select('*').eq('teacher_id', teacherId).order('created_at', { ascending: false });
+    if (!includeArchived) q = q.eq('is_archived', false);
+    if (sidebarOnly)      q = q.eq('show_in_sidebar', true);
+    const res = await q;
+    if (res.error && /(is_archived|show_in_sidebar)/.test(String(res.error.message || ''))) {
+      // Columns missing — fall back to unfiltered (pre-migration 021 state)
+      const res2 = await supabase.from('classes').select('*').eq('teacher_id', teacherId).order('created_at', { ascending: false });
+      classes = res2.data;
+      classError = res2.error;
+    } else {
+      classes = res.data;
+      classError = res.error;
+    }
+  }
 
   if (classError) {
     console.error('by-teacher classes error:', classError.message);

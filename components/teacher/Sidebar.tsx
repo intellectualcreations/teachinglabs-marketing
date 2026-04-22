@@ -45,8 +45,8 @@ export default function Sidebar() {
             setPreferredName(profile.preferred_name);
           }
 
-          // Fetch teacher's classes
-          const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}`);
+          // Fetch teacher's classes (sidebar only shows visible + non-archived)
+          const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}&sidebarOnly=true`);
           if (res.ok) {
             const data = await res.json();
             const list = Array.isArray(data) ? data : (data.classes ?? []);
@@ -58,10 +58,12 @@ export default function Sidebar() {
     loadUser();
   }, []);
 
-  // Auto-expand class from URL
+  // Auto-expand class from URL (supports ?classId=... and ?class=...)
   useEffect(() => {
-    const match = pathname.match(/classId=([^&]+)/);
-    if (match) setExpandedClassId(match[1]);
+    const m1 = typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('classId') : null;
+    const m2 = typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('class') : null;
+    const id = m1 || m2;
+    if (id) setExpandedClassId(id);
   }, [pathname]);
 
   // Map sub-pages to their parent nav item
@@ -155,16 +157,29 @@ export default function Sidebar() {
               <div className="px-5 pb-1 text-[10px] font-bold uppercase tracking-wide text-white/40">Classes</div>
               {classes.map((cls) => {
                 const isExpanded = expandedClassId === cls.id;
+                const isActiveClass = typeof window !== 'undefined'
+                  && new URL(window.location.href).searchParams.get('classId') === cls.id
+                  || new URL(window.location.href).searchParams.get('class') === cls.id;
                 return (
                   <div key={cls.id}>
-                    <button
-                      onClick={() => setExpandedClassId(isExpanded ? null : cls.id)}
-                      className="flex items-center gap-3 px-5 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/[0.08] transition-colors w-full text-left"
-                    >
-                      {isExpanded ? <CaretDown size={12} weight="bold" /> : <CaretRight size={12} weight="bold" />}
-                      <BookOpenText size={16} weight="fill" />
-                      <span className="truncate">{cls.name}</span>
-                    </button>
+                    {/* Row = caret (toggle expand) + class name (navigate to class overview) */}
+                    <div className={`flex items-center gap-2 pr-3 transition-colors ${isActiveClass ? 'bg-white/[0.12]' : 'hover:bg-white/[0.08]'}`}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setExpandedClassId(isExpanded ? null : cls.id); }}
+                        className="px-3 py-2 text-white/50 hover:text-white"
+                        aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                      >
+                        {isExpanded ? <CaretDown size={12} weight="bold" /> : <CaretRight size={12} weight="bold" />}
+                      </button>
+                      <Link
+                        href={`/teacher/class-details?classId=${cls.id}`}
+                        onClick={() => { setMobileOpen(false); setExpandedClassId(cls.id); }}
+                        className="flex items-center gap-2 py-2 text-sm font-medium text-white/70 hover:text-white transition-colors flex-1 min-w-0"
+                      >
+                        <BookOpenText size={16} weight="fill" />
+                        <span className="truncate">{cls.name}</span>
+                      </Link>
+                    </div>
                     {isExpanded && (
                       <div className="ml-10 border-l border-white/10 pl-2 py-1 space-y-0.5">
                         <a
@@ -175,14 +190,14 @@ export default function Sidebar() {
                           Student Chats
                         </a>
                         <a
-                          href={`/teacher/class-details?classId=${cls.id}`}
+                          href={`/teacher/class-details?classId=${cls.id}#activities`}
                           className="flex items-center gap-2 px-2.5 py-2 rounded-md text-xs text-white/50 hover:text-white/80 hover:bg-white/5 transition-colors"
                         >
                           <ClipboardText size={14} weight="fill" />
                           Activities
                         </a>
                         <a
-                          href={`/teacher/class-messages?classId=${cls.id}`}
+                          href={`/teacher/message-board?classId=${cls.id}`}
                           className="flex items-center gap-2 px-2.5 py-2 rounded-md text-xs text-white/50 hover:text-white/80 hover:bg-white/5 transition-colors"
                         >
                           <MegaphoneSimple size={14} weight="fill" />

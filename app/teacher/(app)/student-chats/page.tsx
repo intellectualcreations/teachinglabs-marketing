@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   ChatsCircle, MagnifyingGlass, X, Eye, Sparkle, CaretRight,
 } from '@phosphor-icons/react';
@@ -20,7 +21,9 @@ interface ChatTopic {
   messageCount: number;
 }
 
-export default function StudentChatsPage() {
+function StudentChatsContent() {
+  const searchParams = useSearchParams();
+  const urlClassId = searchParams.get('classId');
   const [topics, setTopics] = useState<ChatTopic[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +31,14 @@ export default function StudentChatsPage() {
 
   const [studentFilter, setStudentFilter] = useState<string | null>(null);
   const [classTab, setClassTab] = useState('All Classes');
+
+  // When arriving with ?classId=<id>, scope the view to that class.
+  useEffect(() => {
+    if (urlClassId && classes.length > 0) {
+      const cls = classes.find((c: any) => c.id === urlClassId);
+      if (cls) setClassTab(cls.name);
+    }
+  }, [urlClassId, classes]);
   const [selectedTopic, setSelectedTopic] = useState<ChatTopic | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -439,5 +450,13 @@ export default function StudentChatsPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function StudentChatsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-text-secondary">Loading chats...</div>}>
+      <StudentChatsContent />
+    </Suspense>
   );
 }

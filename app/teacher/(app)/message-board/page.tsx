@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChatsCircle, PaperPlaneRight, ArrowLeft, Plus, Lock, UsersThree, ChatCircleText,
   Flag, Warning, Question, Lightning, X, Gear, Check,
@@ -85,7 +85,9 @@ function renderWithHighlight(content: string, highlight: string | null | undefin
   );
 }
 
-export default function TeacherMessageBoardPage() {
+function TeacherMessageBoardContent() {
+  const searchParams = useSearchParams();
+  const urlClassId = searchParams.get('classId');
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -132,7 +134,11 @@ export default function TeacherMessageBoardPage() {
       const data = res.ok ? await res.json() : [];
       const rows: ClassRow[] = Array.isArray(data) ? data : (data.classes ?? []);
       setClasses(rows);
-      if (rows.length > 0) setActiveClass(rows[0]);
+      if (rows.length > 0) {
+        // Prefer the class from the URL (?classId=...) when present
+        const match = urlClassId ? rows.find((r: any) => r.id === urlClassId) : null;
+        setActiveClass(match || rows[0]);
+      }
       setLoading(false);
     }
     init();
@@ -678,5 +684,13 @@ function FlaggedView({
         ))}
       </div>
     </>
+  );
+}
+
+export default function TeacherMessageBoardPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-text-secondary">Loading...</div>}>
+      <TeacherMessageBoardContent />
+    </Suspense>
   );
 }
