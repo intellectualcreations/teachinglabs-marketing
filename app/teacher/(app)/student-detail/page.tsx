@@ -319,8 +319,17 @@ function StudentDetailContent() {
   const hasBaseline = !!assessment;
   const mi = assessment?.multiple_intelligences;
 
+  // Panel push: when the panel is open, margin-right the main content by the panel width
+  // so the tiles never get overlapped. Panel width matches its CSS clamp (40vw, min 500px, max 900px).
+  const pushStyle = showAssessmentPanel
+    ? { marginRight: 'clamp(500px, 40vw, 900px)' }
+    : undefined;
+
   return (
-    <div>
+    <div
+      style={pushStyle}
+      className="transition-[margin] duration-200 ease-out"
+    >
       {/* Back button — z-index above the panel click-catcher so a single click always navigates */}
       <button
         onClick={() => { setShowAssessmentPanel(false); router.push('/teacher/students'); }}
