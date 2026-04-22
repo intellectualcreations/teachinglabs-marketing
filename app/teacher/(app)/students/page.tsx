@@ -300,15 +300,25 @@ function StudentsContent() {
       </div>
 
       {/* Pending review banner */}
-      {students.some(s => s.status === 'pending') && statusFilter !== 'pending' && (
-        <div className="mb-4 rounded-lg border border-amber-400 bg-amber-50 dark:bg-amber-950/20 p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">{students.filter(s => s.status === 'pending').length} student{students.filter(s => s.status === 'pending').length === 1 ? '' : 's'} waiting to join your class{students.filter(s => s.status === 'pending').length === 1 ? '' : 'es'}</p>
-            <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">Review and accept or reject their join requests.</p>
+      {students.some(s => s.status === 'pending') && statusFilter !== 'pending' && (() => {
+        const pendingStudents = students.filter(s => s.status === 'pending');
+        const pendingClassNames = Array.from(new Set(pendingStudents.flatMap(s => s.classNames)));
+        const classList = pendingClassNames.length === 0 ? 'your classes' :
+          pendingClassNames.length === 1 ? pendingClassNames[0] :
+          pendingClassNames.length === 2 ? `${pendingClassNames[0]} and ${pendingClassNames[1]}` :
+          `${pendingClassNames.slice(0, -1).join(', ')}, and ${pendingClassNames[pendingClassNames.length - 1]}`;
+        return (
+          <div className="mb-4 rounded-lg border border-amber-400 bg-amber-50 dark:bg-amber-950/20 p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                {pendingStudents.length} student{pendingStudents.length === 1 ? '' : 's'} waiting to join <span className="underline decoration-amber-400">{classList}</span>
+              </p>
+              <p className="text-xs text-amber-800 dark:text-amber-300 mt-0.5">Review and accept or reject their join request{pendingStudents.length === 1 ? '' : 's'}.</p>
+            </div>
+            <button onClick={() => setStatusFilter('pending')} className="px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 border-0 cursor-pointer whitespace-nowrap">Review Request{pendingStudents.length === 1 ? '' : 's'}</button>
           </div>
-          <button onClick={() => setStatusFilter('pending')} className="px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 border-0 cursor-pointer">Review Requests</button>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Status tabs */}
       <div className="flex items-center gap-2 mb-4">
@@ -516,6 +526,9 @@ function StudentsContent() {
                           <div className="px-3 py-2 border-b border-white/10 bg-black/10 dark:bg-black/20">
                             <p className="text-[11px] font-semibold text-text-primary truncate">{s.first} {s.last}</p>
                             <p className="text-[10px] text-text-muted truncate">{s.email}</p>
+                            {s.classNames.length > 0 && (
+                              <p className="text-[10px] text-text-muted truncate mt-0.5">{s.status === 'pending' ? 'Wants to join: ' : 'In: '}{s.classNames.join(', ')}</p>
+                            )}
                           </div>
                           <button
                             onClick={() => { setFlagTarget(s); setFlagError(null); setOpenActionMenu(null); }}
