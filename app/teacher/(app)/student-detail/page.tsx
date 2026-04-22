@@ -235,20 +235,23 @@ function StudentDetailContent() {
   const [aiOverview, setAiOverview] = useState<string | null>(null);
   const [aiOverviewLoading, setAiOverviewLoading] = useState(false);
   const [aiOverviewDate, setAiOverviewDate] = useState<string | null>(null);
-  // Measure the persistent header height so the panel can start exactly below it
-  const headerRef = useRef<HTMLDivElement | null>(null);
-  const [headerBottom, setHeaderBottom] = useState<number>(272);
+  // Measure the top of the first tile (Baseline Assessment) so the panel aligns
+  // to that exact horizontal line — same spot for every slide-out.
+  const firstTileRef = useRef<HTMLButtonElement | null>(null);
+  const [panelTop, setPanelTop] = useState<number>(272);
   useEffect(() => {
     function update() {
-      if (headerRef.current) {
-        const rect = headerRef.current.getBoundingClientRect();
-        // rect.bottom is from the viewport top — exactly where the panel should start
-        setHeaderBottom(Math.ceil(rect.bottom) + 8); // 8px breathing room
+      if (firstTileRef.current) {
+        const rect = firstTileRef.current.getBoundingClientRect();
+        // rect.top is from the viewport top — the panel should start at this y
+        setPanelTop(Math.max(0, Math.floor(rect.top)));
       }
     }
     update();
     window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    // Remeasure on next tick in case layout shifts after mount
+    const t = setTimeout(update, 50);
+    return () => { window.removeEventListener('resize', update); clearTimeout(t); };
   });
 
   const [showRecalibrateModal, setShowRecalibrateModal] = useState(false);
@@ -351,9 +354,7 @@ function StudentDetailContent() {
   return (
     <div>
       {/* PERSISTENT TOP: Back button + Student Header always span the full width,
-          never pushed by the panel. The panel slides in below these. Ref measures
-          the bottom edge so the panel's top aligns precisely. */}
-      <div ref={headerRef}>
+          never pushed by the panel. The panel slides in level with the first tile below. */}
       <button
         onClick={() => { setShowAssessmentPanel(false); router.push('/teacher/students'); }}
         className="relative z-[70] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-[1.5px] border-border
@@ -398,8 +399,6 @@ function StudentDetailContent() {
         </div>
       </div>
 
-      </div>{/* end persistent header */}
-
       {/* Pushable content — the panel pushes this section, not the full-width header above. */}
       <div style={pushStyle} className="transition-[margin] duration-200 ease-out">
       {/* ── Interactive Tile Stack (single column on left, panels pop from right) ─────────────── */}
@@ -407,6 +406,7 @@ function StudentDetailContent() {
 
         {/* Tile 1: Baseline Assessment */}
         <button
+          ref={firstTileRef}
           onClick={() => hasBaseline && setShowAssessmentPanel(true)}
           disabled={!hasBaseline}
           className={`relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden transition-all ${
@@ -606,10 +606,10 @@ function StudentDetailContent() {
             className="fixed inset-0 z-[55]"
             onClick={() => setShowAssessmentPanel(false)}
           />
-          {/* Panel top is measured dynamically to the bottom of the persistent header,
-              so it always lands precisely below the Student Name card. */}
+          {/* Panel top is measured to the top of the Baseline Assessment tile — same
+              horizontal line for every pop-out so the layout is consistent. */}
           <div
-            style={{ top: `${headerBottom}px`, height: `calc(100vh - ${headerBottom}px)` }}
+            style={{ top: `${panelTop}px`, height: `calc(100vh - ${panelTop}px)` }}
             className="fixed right-0 bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]"
           >
             <style jsx>{`
