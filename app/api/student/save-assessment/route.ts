@@ -13,15 +13,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing userId or profile' }, { status: 400 });
     }
 
-    // Save assessment
-    const { error: assessErr } = await (admin.from as any)('student_assessments').upsert(
-      { student_id: userId, ...profile },
-      { onConflict: 'student_id' }
-    );
+    // Save assessment. Defensive: if an unknown column sneaks into `profile`,
+    // strip it and retry so the student's onboarding isn't blocked.
+    let assessErr: { message?: string; code?: string } | null = null;
+    let attempt = { student_id: userId, ...profile } as Record<string, unknown>;
+    for (let i = 0; i < 5; i++) {
+      const res = await (admin.from as any)('student_assessments').upsert(attempt, { onConflict: 'student_id' });
+      assessErr = res.error;
+      if (!assessErr) break;
+      // Supabase unknown-column error message:
+      //   "Could not find the 'xyz_col' column of 'student_assessments' in the schema cache"
+      const m = /Could not find the '([^']+)' column/.exec(String(assessErr?.message || ''));
+      if (m && m[1] && m[1] in attempt) {
+        console.warn('save-assessment: stripping unknown column', m[1]);
+        delete attempt[m[1]];
+        continue;
+      }
+      break;
+    }
 
     if (assessErr) {
       console.error('Assessment save error:', assessErr);
-      return NextResponse.json({ error: 'Failed to save assessment' }, { status: 500 });
+      // Don't block: keep going so superpower + responses + enrollment still save.
+      // We surface this in logs; the student experience is that they DO get their
+      // avatar, name, and class, but the raw assessment blob may be missing.
     }
 
     // Save assessment responses (generic per-question capture)
