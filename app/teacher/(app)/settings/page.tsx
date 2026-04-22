@@ -592,6 +592,22 @@ export default function SettingsPage() {
           </div>
         </Section>
 
+        {/* ─── Teacher Resources ─── */}
+        <Section icon={BookOpen} title="Teacher Resources">
+          <div className="space-y-3">
+            <a
+              href="/teacher/assessment-guide"
+              className="flex items-center justify-between px-4 py-3 rounded-lg border border-border hover:border-navy transition-colors no-underline group"
+            >
+              <div>
+                <p className="text-sm font-semibold text-text-primary group-hover:text-navy">Assessment Guide</p>
+                <p className="text-xs text-text-secondary mt-0.5">Rubrics, scoring guidance, and how Teaching Labs measures learning.</p>
+              </div>
+              <span className="text-navy text-sm">→</span>
+            </a>
+          </div>
+        </Section>
+
         {/* ─── 5. Connected Accounts ─── */}
         <Section icon={Plugs} title="Connected Accounts">
           <div className="space-y-4">
