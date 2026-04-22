@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -235,6 +235,22 @@ function StudentDetailContent() {
   const [aiOverview, setAiOverview] = useState<string | null>(null);
   const [aiOverviewLoading, setAiOverviewLoading] = useState(false);
   const [aiOverviewDate, setAiOverviewDate] = useState<string | null>(null);
+  // Measure the persistent header height so the panel can start exactly below it
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const [headerBottom, setHeaderBottom] = useState<number>(272);
+  useEffect(() => {
+    function update() {
+      if (headerRef.current) {
+        const rect = headerRef.current.getBoundingClientRect();
+        // rect.bottom is from the viewport top — exactly where the panel should start
+        setHeaderBottom(Math.ceil(rect.bottom) + 8); // 8px breathing room
+      }
+    }
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  });
+
   const [showRecalibrateModal, setShowRecalibrateModal] = useState(false);
   const [recalibrating, setRecalibrating] = useState(false);
   const [recalibrateError, setRecalibrateError] = useState<string | null>(null);
@@ -335,7 +351,9 @@ function StudentDetailContent() {
   return (
     <div>
       {/* PERSISTENT TOP: Back button + Student Header always span the full width,
-          never pushed by the panel. The panel slides in below these. */}
+          never pushed by the panel. The panel slides in below these. Ref measures
+          the bottom edge so the panel's top aligns precisely. */}
+      <div ref={headerRef}>
       <button
         onClick={() => { setShowAssessmentPanel(false); router.push('/teacher/students'); }}
         className="relative z-[70] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-[1.5px] border-border
@@ -379,6 +397,8 @@ function StudentDetailContent() {
           </div>
         </div>
       </div>
+
+      </div>{/* end persistent header */}
 
       {/* Pushable content — the panel pushes this section, not the full-width header above. */}
       <div style={pushStyle} className="transition-[margin] duration-200 ease-out">
@@ -586,10 +606,12 @@ function StudentDetailContent() {
             className="fixed inset-0 z-[55]"
             onClick={() => setShowAssessmentPanel(false)}
           />
-          {/* Panel starts below the persistent Student Header card so the teacher always
-              sees which student they're looking at. Top nav (72px) + back btn row (68px)
-              + student header (~132px) ≈ 272px. Adjust if the header size changes. */}
-          <div className="fixed top-[272px] right-0 h-[calc(100vh-272px)] bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]">
+          {/* Panel top is measured dynamically to the bottom of the persistent header,
+              so it always lands precisely below the Student Name card. */}
+          <div
+            style={{ top: `${headerBottom}px`, height: `calc(100vh - ${headerBottom}px)` }}
+            className="fixed right-0 bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]"
+          >
             <style jsx>{`
               @keyframes slideInRight {
                 from { transform: translateX(100%); }
