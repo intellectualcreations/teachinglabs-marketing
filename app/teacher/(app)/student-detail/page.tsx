@@ -513,8 +513,8 @@ function StudentDetailContent() {
             className="fixed inset-0 z-[55]"
             onClick={() => setShowAssessmentPanel(false)}
           />
-          {/* Start below the top nav bar so the panel aligns with the Student Name card on the left */}
-          <div className="fixed top-[84px] right-0 h-[calc(100vh-84px)] bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]">
+          {/* Align panel top with the Baseline Assessment tile (below the Student Name card) */}
+          <div className="fixed top-[204px] right-0 h-[calc(100vh-204px)] bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]">
             <style jsx>{`
               @keyframes slideInRight {
                 from { transform: translateX(100%); }
