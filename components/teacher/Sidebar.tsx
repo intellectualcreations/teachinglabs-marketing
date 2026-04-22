@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
-  SquaresFour, BookOpenText, UsersThree, Books, ChatsCircle, GearSix, List, X, SignOut,
+  SquaresFour, BookOpenText, UsersThree, Books, ChatsCircle, ChatCircleText, GearSix, List, X, SignOut,
   CaretRight, CaretDown, ClipboardText, MegaphoneSimple,
 } from '@phosphor-icons/react';
 import { useState, useEffect } from 'react';
@@ -13,7 +13,7 @@ import { TEACHER_NAV } from '@/lib/constants';
 import { createClient } from '@/lib/supabase/client';
 
 const iconMap: Record<string, React.ComponentType<{ size?: number; weight?: 'fill' | 'regular'; className?: string }>> = {
-  SquaresFour, BookOpenText, UsersThree, Books, ChatsCircle,
+  SquaresFour, BookOpenText, UsersThree, Books, ChatsCircle, ChatCircleText,
 };
 
 export default function Sidebar() {

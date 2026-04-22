@@ -69,6 +69,8 @@ interface SidebarClass {
 const NAV_ITEMS = [
   { href: '/student/dashboard', label: 'Dashboard', Icon: SquaresFour },
   { href: '/student/analytics', label: 'Analytics', Icon: ChartBar },
+  { href: '/student/messages', label: 'Chat', Icon: ChatText },
+  { href: '/student/message-board', label: 'Message Board', Icon: ChatsCircle },
 ];
 
 export default function StudentAppLayout({ children }: { children: React.ReactNode }) {
