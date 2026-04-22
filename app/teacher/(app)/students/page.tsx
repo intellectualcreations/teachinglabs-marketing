@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   MagnifyingGlass, Plus, DotsThree, Users, FunnelSimple,
-  ArrowsDownUp, Export, Robot, UserPlus, X, CheckCircle, CaretDown,
+  ArrowsDownUp, Export, Robot, UserPlus, X, CheckCircle, CaretDown, Flag,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile, Class } from '@/lib/supabase/types';
@@ -69,6 +69,9 @@ function StudentsContent() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [flagTarget, setFlagTarget] = useState<StudentRow | null>(null);
+  const [flagSaving, setFlagSaving] = useState(false);
+  const [flagError, setFlagError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -402,7 +405,17 @@ function StudentsContent() {
                       }
                     </td>
                     <td className="px-3 py-3 text-center">
-                      {s.nameFlagged ? <span className="inline-block w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold leading-5 text-center" title="Preferred name differs from legal name">!</span> : <span className="text-text-muted">—</span>}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setFlagTarget(s); setFlagError(null); }}
+                        title={s.nameFlagged ? 'Name is flagged. Click to review.' : 'Flag preferred name as inappropriate'}
+                        className={`inline-flex items-center justify-center w-7 h-7 rounded-md border transition-colors cursor-pointer ${
+                          s.nameFlagged
+                            ? 'bg-amber-100 border-amber-300 text-amber-700 hover:bg-amber-200'
+                            : 'border-border text-text-muted hover:border-amber-400 hover:text-amber-600'
+                        }`}
+                      >
+                        <Flag size={13} weight={s.nameFlagged ? 'fill' : 'regular'} />
+                      </button>
                     </td>
                     <td className="px-3 py-3 text-sm text-text-secondary">{s.superheroName || <span className="text-text-muted">—</span>}</td>
                     <td className="px-3 py-3 text-sm text-text-secondary">{s.learningStyle || <span className="text-text-muted">—</span>}</td>
@@ -471,6 +484,59 @@ function StudentsContent() {
           className="fixed inset-0 z-10"
           onClick={() => { setOpenActionMenu(null); setShowSortDropdown(false); }}
         />
+      )}
+
+      {/* Flag Name Modal */}
+      {flagTarget && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setFlagTarget(null)}>
+          <div className="bg-card-bg border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="font-heading font-bold text-base text-text-primary">Flag Preferred Name as Inappropriate</h3>
+              <button onClick={() => setFlagTarget(null)} className="text-text-muted hover:text-text-primary cursor-pointer"><X size={18} /></button>
+            </div>
+            <p className="text-sm text-text-secondary mb-4">
+              This will reset <span className="font-semibold text-text-primary">{flagTarget.first} {flagTarget.last}</span>'s preferred name back to <span className="font-semibold text-text-primary">{flagTarget.first}</span>. Next time they log in, they'll be asked to choose a new appropriate name.
+            </p>
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 mb-4">
+              <p className="text-xs font-semibold text-amber-800 mb-1">The student will see:</p>
+              <p className="text-xs text-amber-900 italic">"Your nickname was flagged by your teacher. Please choose a new one that follows the guidelines in Settings."</p>
+            </div>
+            {flagError && <p className="text-xs text-red-600 mb-3">{flagError}</p>}
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setFlagTarget(null)} className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-border/10 cursor-pointer">Cancel</button>
+              <button
+                disabled={flagSaving}
+                onClick={async () => {
+                  if (!flagTarget) return;
+                  setFlagSaving(true);
+                  setFlagError(null);
+                  try {
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) { setFlagError('Not signed in'); setFlagSaving(false); return; }
+                    const res = await fetch('/api/teacher/student-detail', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ studentId: flagTarget.id, teacherId: user.id, preferred_name: flagTarget.first, flagged: true }),
+                    });
+                    if (res.ok) {
+                      setStudents((prev) => prev.map((x) => x.id === flagTarget.id ? { ...x, preferredName: flagTarget.first, nameFlagged: true } : x));
+                      setFlagTarget(null);
+                    } else {
+                      const d = await res.json().catch(() => ({}));
+                      setFlagError(d.error || 'Failed to flag name');
+                    }
+                  } catch {
+                    setFlagError('Failed to flag name');
+                  } finally {
+                    setFlagSaving(false);
+                  }
+                }}
+                className="px-4 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors border-0 cursor-pointer disabled:opacity-50"
+              >{flagSaving ? 'Flagging...' : 'Flag & Reset Name'}</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
