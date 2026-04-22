@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   SquaresFour, BookOpenText, UsersThree, Books, ChatsCircle, GearSix, List, X, SignOut,
+  CaretRight, CaretDown, ClipboardText, MegaphoneSimple,
 } from '@phosphor-icons/react';
 import { useState, useEffect } from 'react';
 import ThemeToggle from '@/components/shared/ThemeToggle';
@@ -21,6 +22,8 @@ export default function Sidebar() {
   const [userName, setUserName] = useState('Teacher');
   const [preferredName, setPreferredName] = useState('');
   const [initials, setInitials] = useState('T');
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
+  const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -41,11 +44,24 @@ export default function Sidebar() {
           if (profile?.preferred_name) {
             setPreferredName(profile.preferred_name);
           }
+
+          // Fetch teacher's classes
+          const res = await fetch('/api/classes/by-teacher');
+          if (res.ok) {
+            const data = await res.json();
+            setClasses((data.classes ?? []).map((c: any) => ({ id: c.id, name: c.name })));
+          }
         }
       } catch { /* ignore */ }
     }
     loadUser();
   }, []);
+
+  // Auto-expand class from URL
+  useEffect(() => {
+    const match = pathname.match(/classId=([^&]+)/);
+    if (match) setExpandedClassId(match[1]);
+  }, [pathname]);
 
   // Map sub-pages to their parent nav item
   const subPageMap: Record<string, string> = {
@@ -131,6 +147,53 @@ export default function Sidebar() {
               </Link>
             );
           })}
+
+          {/* Classes with sub-items */}
+          {classes.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-white/10">
+              <div className="px-5 pb-1 text-[10px] font-bold uppercase tracking-wide text-white/40">Classes</div>
+              {classes.map((cls) => {
+                const isExpanded = expandedClassId === cls.id;
+                return (
+                  <div key={cls.id}>
+                    <button
+                      onClick={() => setExpandedClassId(isExpanded ? null : cls.id)}
+                      className="flex items-center gap-3 px-5 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/[0.08] transition-colors w-full text-left"
+                    >
+                      {isExpanded ? <CaretDown size={12} weight="bold" /> : <CaretRight size={12} weight="bold" />}
+                      <BookOpenText size={16} weight="fill" />
+                      <span className="truncate">{cls.name}</span>
+                    </button>
+                    {isExpanded && (
+                      <div className="ml-10 border-l border-white/10 pl-2 py-1 space-y-0.5">
+                        <a
+                          href={`/teacher/student-chats?classId=${cls.id}`}
+                          className="flex items-center gap-2 px-2.5 py-2 rounded-md text-xs text-white/50 hover:text-white/80 hover:bg-white/5 transition-colors"
+                        >
+                          <ChatsCircle size={14} weight="fill" />
+                          Student Chats
+                        </a>
+                        <a
+                          href={`/teacher/class-details?classId=${cls.id}`}
+                          className="flex items-center gap-2 px-2.5 py-2 rounded-md text-xs text-white/50 hover:text-white/80 hover:bg-white/5 transition-colors"
+                        >
+                          <ClipboardText size={14} weight="fill" />
+                          Activities
+                        </a>
+                        <a
+                          href={`/teacher/class-messages?classId=${cls.id}`}
+                          className="flex items-center gap-2 px-2.5 py-2 rounded-md text-xs text-white/50 hover:text-white/80 hover:bg-white/5 transition-colors"
+                        >
+                          <MegaphoneSimple size={14} weight="fill" />
+                          Message Board
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         {/* Bottom: Settings + Avatar */}
