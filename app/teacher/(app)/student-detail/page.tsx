@@ -221,6 +221,9 @@ function StudentDetailContent() {
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [responses, setResponses] = useState<AssessmentResponse[]>([]);
+  const [baselineHistory, setBaselineHistory] = useState<Array<{ id: string; baseline_level: string | null; primary_intelligence: string | null; ai_overview: string | null; completed_at: string | null; archived_at: string; }>>([]);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+  const [historyDetail, setHistoryDetail] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [teacherNotes, setTeacherNotes] = useState('');
@@ -232,6 +235,9 @@ function StudentDetailContent() {
   const [aiOverview, setAiOverview] = useState<string | null>(null);
   const [aiOverviewLoading, setAiOverviewLoading] = useState(false);
   const [aiOverviewDate, setAiOverviewDate] = useState<string | null>(null);
+  const [showRecalibrateModal, setShowRecalibrateModal] = useState(false);
+  const [recalibrating, setRecalibrating] = useState(false);
+  const [recalibrateError, setRecalibrateError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -260,6 +266,7 @@ function StudentDetailContent() {
         setAssessment(data.assessment || null);
         setEnrollments(data.enrollments || []);
         setResponses(data.responses || []);
+        setBaselineHistory(data.baselineHistory || []);
         if (data.assessment?.ai_overview) {
           setAiOverview(data.assessment.ai_overview);
           setAiOverviewDate(data.assessment.ai_overview_generated_at || null);
@@ -426,6 +433,18 @@ function StudentDetailContent() {
           )}
         </button>
 
+        {/* Recalibrate row — belongs with the Baseline Assessment tile */}
+        {hasBaseline && (
+          <div className="flex justify-end -mt-2">
+            <button
+              onClick={() => { setShowRecalibrateModal(true); setRecalibrateError(null); }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-transparent text-text-secondary text-[12px] font-semibold cursor-pointer hover:border-[#7C3AED] hover:text-[#7C3AED] transition-all"
+            >
+              <ArrowsClockwise size={13} weight="fill" /> Recalibrate
+            </button>
+          </div>
+        )}
+
         {/* Tile 2: Conversations (placeholder) */}
         <button
           disabled
@@ -495,15 +514,67 @@ function StudentDetailContent() {
 
       </div>
 
-      {/* Recalibrate action stays visible when baseline is complete */}
-      {hasBaseline && (
-        <div className="flex justify-end mb-5">
-          <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-[1.5px] border-border bg-transparent text-text-secondary text-[13px] font-semibold font-heading cursor-pointer hover:border-navy hover:text-text-primary transition-all">
-            <ArrowsClockwise size={14} weight="fill" /> Recalibrate
-          </button>
+
+
+
+      {/* Recalibrate Confirm Modal */}
+      {showRecalibrateModal && (
+        <div className="fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4" onClick={() => !recalibrating && setShowRecalibrateModal(false)}>
+          <div className="bg-card-bg border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <ArrowsClockwise size={18} weight="fill" className="text-[#7C3AED]" />
+                <h3 className="font-heading font-bold text-base text-text-primary">Recalibrate Baseline?</h3>
+              </div>
+              <button onClick={() => !recalibrating && setShowRecalibrateModal(false)} className="text-text-muted hover:text-text-primary cursor-pointer"><X size={18} /></button>
+            </div>
+            <p className="text-sm text-text-secondary mb-3">
+              This will archive {profile?.display_name?.split(' ')[0] || 'the student'}&apos;s current baseline to history and re-trigger their baseline assessment on next login.
+            </p>
+            <div className="rounded-lg bg-[#7C3AED]/10 border border-[#7C3AED]/30 p-3 mb-4 text-[12px] text-text-primary space-y-1">
+              <p><span className="font-semibold">✓</span> Current baseline saved to history with today&apos;s date</p>
+              <p><span className="font-semibold">✓</span> You can still view the archived baseline later to compare growth</p>
+              <p><span className="font-semibold">✓</span> Student will take a fresh assessment at their next login</p>
+            </div>
+            {recalibrateError && <p className="text-xs text-red-600 mb-3">{recalibrateError}</p>}
+            <div className="flex justify-end gap-2">
+              <button
+                disabled={recalibrating}
+                onClick={() => setShowRecalibrateModal(false)}
+                className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-border/10 cursor-pointer disabled:opacity-50"
+              >Cancel</button>
+              <button
+                disabled={recalibrating}
+                onClick={async () => {
+                  setRecalibrating(true);
+                  setRecalibrateError(null);
+                  try {
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user || !studentId) { setRecalibrateError('Not signed in.'); setRecalibrating(false); return; }
+                    const res = await fetch('/api/teacher/recalibrate', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ studentId, teacherId: user.id }),
+                    });
+                    if (res.ok) {
+                      setShowRecalibrateModal(false);
+                      // Reload the page so everything reflects the cleared baseline
+                      window.location.reload();
+                    } else {
+                      const d = await res.json().catch(() => ({}));
+                      setRecalibrateError(d.error || 'Failed to recalibrate.');
+                    }
+                  } catch {
+                    setRecalibrateError('Failed to recalibrate.');
+                  } finally { setRecalibrating(false); }
+                }}
+                className="px-4 py-2 rounded-lg bg-[#7C3AED] text-white text-sm font-semibold hover:bg-[#6D28D9] border-0 cursor-pointer disabled:opacity-50"
+              >{recalibrating ? 'Archiving…' : 'Archive & Reset Baseline'}</button>
+            </div>
+          </div>
         </div>
       )}
-
 
       {/* Assessment Slide-Out Panel */}
       {showAssessmentPanel && assessment && (
@@ -724,13 +795,80 @@ function StudentDetailContent() {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="px-6 py-3 border-t border-border bg-surface flex justify-between items-center">
-              <p className="text-[11px] text-text-secondary">Assessment answers are private to this teacher.</p>
-              <button onClick={() => setShowAssessmentPanel(false)} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
+            {/* Footer with Baseline History */}
+            <div className="border-t border-border bg-surface">
+              {baselineHistory.length > 0 && (
+                <div className="px-6 py-3 border-b border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ArrowsClockwise size={13} weight="fill" className="text-text-secondary" />
+                    <h4 className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-secondary">Baseline History · {baselineHistory.length}</h4>
+                  </div>
+                  <div className="space-y-1.5">
+                    {baselineHistory.map(h => (
+                      <button
+                        key={h.id}
+                        onClick={async () => {
+                          const res = await fetch(`/api/teacher/baseline-history/${h.id}?teacherId=${await (async () => { const s = createClient(); const { data: { user } } = await s.auth.getUser(); return user?.id || ''; })()}`);
+                          if (res.ok) { const { history } = await res.json(); setHistoryDetail(history); setSelectedHistoryId(h.id); }
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-md bg-card-bg border border-border hover:border-[#7C3AED] transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] text-text-primary font-semibold">Baseline archived {new Date(h.archived_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          {h.baseline_level && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: getSignalColor(h.baseline_level), backgroundColor: getSignalColor(h.baseline_level) + '20' }}>{h.baseline_level}</span>}
+                        </div>
+                        {h.completed_at && <p className="text-[10px] text-text-muted mt-0.5">Originally completed {new Date(h.completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="px-6 py-3 flex justify-between items-center">
+                <p className="text-[11px] text-text-secondary">Assessment answers are private to this teacher.</p>
+                <button onClick={() => setShowAssessmentPanel(false)} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
+              </div>
             </div>
           </div>
         </>
+      )}
+
+      {/* Archived Baseline Snapshot Modal */}
+      {selectedHistoryId && historyDetail && (
+        <div className="fixed inset-0 bg-black/60 z-[90] flex items-center justify-center p-4" onClick={() => { setSelectedHistoryId(null); setHistoryDetail(null); }}>
+          <div className="bg-card-bg border border-border rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h3 className="font-heading font-bold text-base text-text-primary flex items-center gap-2"><ArrowsClockwise size={16} weight="fill" className="text-[#7C3AED]" /> Archived Baseline</h3>
+                <p className="text-[11px] text-text-secondary mt-0.5">Archived {new Date(historyDetail.archived_at).toLocaleString()} · Originally completed {historyDetail.completed_at ? new Date(historyDetail.completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
+              </div>
+              <button onClick={() => { setSelectedHistoryId(null); setHistoryDetail(null); }} className="text-text-muted hover:text-text-primary cursor-pointer"><X size={18} /></button>
+            </div>
+            {historyDetail.baseline_level && (
+              <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full mb-3" style={{ color: getSignalColor(historyDetail.baseline_level), backgroundColor: getSignalColor(historyDetail.baseline_level) + '20' }}>{historyDetail.baseline_level}</span>
+            )}
+            {historyDetail.ai_overview && (
+              <div className="rounded-lg border border-[#7C3AED]/30 bg-[#7C3AED]/5 p-3 mb-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-[#7C3AED] mb-1">AI Overview (archived)</p>
+                <p className="text-[13px] text-text-primary leading-[1.6]">{historyDetail.ai_overview}</p>
+              </div>
+            )}
+            {Array.isArray(historyDetail.responses_snapshot) && historyDetail.responses_snapshot.length > 0 && (
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-2">Archived Responses ({historyDetail.responses_snapshot.length})</p>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {historyDetail.responses_snapshot.map((r: any) => (
+                    <div key={r.id || r.question_key} className="rounded-md border border-border bg-surface p-2">
+                      <p className="text-[10px] uppercase tracking-[0.5px] text-text-secondary">{r.category}</p>
+                      <p className="text-[11px] text-text-primary italic mb-0.5">{r.question_text}</p>
+                      <p className="text-[12px] text-text-primary"><span className="text-text-secondary">Answered:</span> {r.student_answer || '(blank)'}</p>
+                      {r.signal_result && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ color: getSignalColor(r.signal_result), backgroundColor: getSignalColor(r.signal_result) + '20' }}>{r.signal_result}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

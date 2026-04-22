@@ -74,6 +74,19 @@ export async function GET(request: NextRequest) {
       // Table may not exist yet (migration 014 not applied)
     }
 
+    // 2c. Load any archived baselines (recalibrate history)
+    let baselineHistory: any[] = [];
+    try {
+      const { data: histData } = await (supabase as any)
+        .from('baseline_history')
+        .select('id, baseline_level, primary_intelligence, ai_overview, completed_at, archived_at')
+        .eq('student_id', studentId)
+        .order('archived_at', { ascending: false });
+      baselineHistory = histData ?? [];
+    } catch {
+      // Table may not exist yet (migration 017 not applied)
+    }
+
     // 3. Get enrollments for this student in this teacher's classes
     const { data: classes } = await supabase
       .from('classes')
@@ -101,7 +114,7 @@ export async function GET(request: NextRequest) {
       }));
     }
 
-    return NextResponse.json({ profile, assessment, enrollments, responses });
+    return NextResponse.json({ profile, assessment, enrollments, responses, baselineHistory });
   } catch (err) {
     console.error('Student detail API error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
