@@ -33,6 +33,11 @@ interface Assessment {
   math_level: string;
   language_tier: string;
   logic_reasoning_level: string;
+  writing_response?: string;
+  math_performance_q1?: string;
+  math_performance_q2?: string;
+  logic_question?: string;
+  logic_answer_given?: string;
   multiple_intelligences: {
     linguistic: string;
     logical_mathematical: string;
@@ -172,6 +177,7 @@ function StudentDetailContent() {
   const [flagSaving, setFlagSaving] = useState(false);
   const [flagError, setFlagError] = useState('');
   const [flagSuccess, setFlagSuccess] = useState(false);
+  const [showAssessmentPanel, setShowAssessmentPanel] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -307,10 +313,15 @@ function StudentDetailContent() {
           <div className="absolute top-0 left-0 right-0 h-1 bg-[#7C3AED]" />
 
           <div className="flex items-start justify-between mb-1">
-            <div className="font-heading font-bold text-[15px] text-text-primary flex items-center gap-2">
+            <button
+              onClick={() => setShowAssessmentPanel(true)}
+              className="font-heading font-bold text-[15px] text-text-primary flex items-center gap-2 bg-transparent border-0 cursor-pointer hover:text-[#7C3AED] transition-colors"
+              title="View assessment data and student answers"
+            >
               <Brain size={20} weight="fill" className="text-[#7C3AED]" />
               Baseline Assessment
-            </div>
+              <span className="text-[11px] font-semibold text-[#7C3AED] ml-1 px-2 py-0.5 rounded-full bg-[#7C3AED]/10">View Answers →</span>
+            </button>
             <div className="flex gap-2">
               <button className="text-[12px] font-semibold text-[#7C3AED] hover:underline cursor-pointer bg-transparent border-0">
                 View Rubric &amp; Scoring Guide
@@ -549,6 +560,172 @@ function StudentDetailContent() {
             text-text-primary placeholder:text-text-secondary resize-y outline-none focus:border-navy"
         />
       </div>
+
+      {/* Assessment Slide-Out Panel */}
+      {showAssessmentPanel && assessment && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[55]"
+            onClick={() => setShowAssessmentPanel(false)}
+          />
+          <div className="fixed top-0 right-0 h-screen w-full max-w-[560px] bg-card-bg border-l border-border z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out]">
+            <style jsx>{`
+              @keyframes slideInRight {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+              }
+            `}</style>
+
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between bg-gradient-to-r from-[#7C3AED]/5 to-transparent">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Brain size={20} weight="fill" className="text-[#7C3AED]" />
+                  <h3 className="font-heading font-bold text-base text-text-primary">Baseline Assessment Answers</h3>
+                </div>
+                <p className="text-[11px] text-text-secondary mt-0.5">
+                  {profile?.display_name} · Completed {assessment.completed_at && formatDate(assessment.completed_at)}
+                </p>
+              </div>
+              <button onClick={() => setShowAssessmentPanel(false)} className="w-8 h-8 rounded-lg hover:bg-border/30 flex items-center justify-center cursor-pointer text-text-secondary">
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+              {/* About section */}
+              <section>
+                <h4 className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-2">About</h4>
+                <div className="space-y-2 text-sm">
+                  <div><span className="text-text-secondary">Preferred name:</span> <span className="text-text-primary font-semibold">{assessment.preferred_name}</span></div>
+                  <div><span className="text-text-secondary">Age:</span> <span className="text-text-primary font-semibold">{assessment.age}</span></div>
+                  <div><span className="text-text-secondary">Theme chosen:</span> <span className="text-text-primary font-semibold capitalize">{assessment.theme}</span></div>
+                </div>
+              </section>
+
+              {/* Interests */}
+              {assessment.interests && assessment.interests.length > 0 && (
+                <section>
+                  <h4 className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-2">Interests Picked</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {assessment.interests.map(i => (
+                      <span key={i} className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#7C3AED]/10 text-[#7C3AED] capitalize">{i.replace(/_/g, ' ')}</span>
+                    ))}
+                    {assessment.other_interests && (
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#7C3AED]/10 text-[#7C3AED]">{assessment.other_interests}</span>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Reading */}
+              <section className="rounded-lg border border-border bg-surface p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5"><BookOpenText size={14} weight="fill" /> Reading Level</h4>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getTierColor(assessment.reading_level), backgroundColor: getTierColor(assessment.reading_level) + '20' }}>{getTierLabel(assessment.reading_level)}</span>
+                </div>
+                <p className="text-[12px] text-text-secondary">Assessed from reading passage comprehension + language tier ({assessment.language_tier}).</p>
+              </section>
+
+              {/* Math */}
+              <section className="rounded-lg border border-border bg-surface p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5"><Brain size={14} weight="fill" /> Math Level</h4>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getTierColor(assessment.math_level), backgroundColor: getTierColor(assessment.math_level) + '20' }}>{getTierLabel(assessment.math_level)}</span>
+                </div>
+                <div className="space-y-1.5 text-[12px]">
+                  {assessment.math_performance_q1 && (
+                    <div><span className="text-text-secondary">Math Q1 performance:</span> <span className="text-text-primary font-semibold capitalize">{assessment.math_performance_q1.replace(/-/g, ' ')}</span></div>
+                  )}
+                  {assessment.math_performance_q2 && (
+                    <div><span className="text-text-secondary">Math Q2 performance:</span> <span className="text-text-primary font-semibold capitalize">{assessment.math_performance_q2.replace(/-/g, ' ')}</span></div>
+                  )}
+                </div>
+              </section>
+
+              {/* Logic */}
+              {(assessment.logic_question || assessment.logic_answer_given || assessment.logic_reasoning_level) && (
+                <section className="rounded-lg border border-border bg-surface p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5"><Lightbulb size={14} weight="fill" /> Logic & Reasoning</h4>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getTierColor(assessment.logic_reasoning_level), backgroundColor: getTierColor(assessment.logic_reasoning_level) + '20' }}>{getTierLabel(assessment.logic_reasoning_level)}</span>
+                  </div>
+                  {assessment.logic_question && (
+                    <div className="mb-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Question</p>
+                      <p className="text-[13px] text-text-primary italic">“{assessment.logic_question}”</p>
+                    </div>
+                  )}
+                  {assessment.logic_answer_given && (
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">Student&apos;s Answer</p>
+                      <p className="text-[13px] text-text-primary bg-card-bg rounded-md border border-border px-3 py-2">{assessment.logic_answer_given}</p>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {/* Writing Response */}
+              {assessment.writing_response && (
+                <section className="rounded-lg border border-border bg-surface p-4">
+                  <h4 className="text-sm font-bold text-text-primary flex items-center gap-1.5 mb-2"><PencilSimple size={14} weight="fill" /> Writing Sample</h4>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary mb-1">What the student wrote</p>
+                  <p className="text-[13px] text-text-primary bg-card-bg rounded-md border border-border px-3 py-2 whitespace-pre-wrap leading-[1.55]">{assessment.writing_response}</p>
+                </section>
+              )}
+
+              {/* Multiple Intelligences (full breakdown) */}
+              {mi && (
+                <section>
+                  <h4 className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-2">Multiple Intelligences — All 8</h4>
+                  <div className="grid grid-cols-1 gap-2">
+                    {([
+                      ['linguistic', 'Linguistic'],
+                      ['logical_mathematical', 'Logical-Mathematical'],
+                      ['spatial', 'Visual-Spatial'],
+                      ['musical', 'Musical'],
+                      ['bodily_kinesthetic', 'Bodily-Kinesthetic'],
+                      ['interpersonal', 'Interpersonal'],
+                      ['intrapersonal', 'Intrapersonal'],
+                      ['naturalistic', 'Naturalistic'],
+                    ] as const).map(([key, label]) => {
+                      const signal = (mi as any)[key] || 'emerging';
+                      return (
+                        <div key={key} className="flex items-center justify-between px-3 py-2 rounded-md bg-surface border border-border">
+                          <span className="text-[12px] text-text-primary">{label}</span>
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ color: getSignalColor(signal), backgroundColor: getSignalColor(signal) + '20' }}>{getSignalLabel(signal)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {/* Emotional Intelligence Signals */}
+              {assessment.emotional_intelligence_signals && Object.keys(assessment.emotional_intelligence_signals).length > 0 && (
+                <section>
+                  <h4 className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-2">Emotional Intelligence Signals</h4>
+                  <div className="space-y-1.5 text-[12px]">
+                    {Object.entries(assessment.emotional_intelligence_signals).map(([k, v]) => (
+                      <div key={k} className="flex justify-between px-3 py-2 rounded-md bg-surface border border-border">
+                        <span className="text-text-primary capitalize">{k.replace(/_/g, ' ')}</span>
+                        <span className="font-semibold text-text-secondary">{String(v)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-3 border-t border-border bg-surface flex justify-between items-center">
+              <p className="text-[11px] text-text-secondary">Assessment answers are private to this teacher.</p>
+              <button onClick={() => setShowAssessmentPanel(false)} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
