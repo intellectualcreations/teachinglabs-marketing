@@ -17,7 +17,7 @@ const admin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
-type Level = 'Basic' | 'Proficient' | 'Advanced';
+type Level = 'Emerging' | 'Developing' | 'Proficient' | 'Advanced' | 'Exemplary';
 
 // Space-themed content (since seeded students all have theme='space')
 const SPACE = {
@@ -44,16 +44,26 @@ const SPACE = {
 };
 
 function tierFor(level: Level): 'lower' | 'middle' | 'upper' {
-  if (level === 'Basic') return 'lower';
+  if (level === 'Emerging' || level === 'Developing') return 'lower';
   if (level === 'Proficient') return 'middle';
-  return 'upper';
+  return 'upper'; // Advanced or Exemplary
 }
 
 const READING_ANSWER_BY_LEVEL: Record<Level, { lower: string; middle: string; upper: string }> = {
-  Basic: {
+  Emerging: {
+    lower: 'Light and heat.',
+    middle: 'Because it goes fast.',
+    upper: 'It collapses.',
+  },
+  Developing: {
     lower: 'The Sun gives plants light and heat.',
     middle: 'Because the Space Station goes around the Earth really fast.',
     upper: 'Because it runs out of energy and gets squished by gravity.',
+  },
+  Exemplary: {
+    lower: 'The Sun provides energy in the form of light (for photosynthesis) and heat (for the temperatures plants need). Without these, the carbon fixation cycle that creates plant tissue could not run.',
+    middle: 'The Station orbits once every 90 minutes at ~17,500 mph, completing 16 orbits per 24-hour day. Because each orbit passes through both the day and night side of Earth, astronauts see 16 sunrises and 16 sunsets in a single Earth day — not because the Sun moves faster, but because they do.',
+    upper: 'In equilibrium, a massive star balances outward radiation pressure from thermonuclear fusion against inward gravitational force. When fuel is exhausted, fusion ceases and the outward pressure vanishes. Gravitational collapse begins: electron degeneracy pressure first halts collapse into a white dwarf, then neutron degeneracy pressure at higher masses yields a neutron star. Above ~3 solar masses (the Tolman-Oppenheimer-Volkoff limit) even that fails, and the core continues collapsing past the Schwarzschild radius into a black hole with an event horizon beyond which no information can escape.',
   },
   Proficient: {
     lower: 'The Sun gives us light and heat, which plants need to grow food.',
@@ -68,88 +78,115 @@ const READING_ANSWER_BY_LEVEL: Record<Level, { lower: string; middle: string; up
 };
 
 const WRITING_BY_LEVEL: Record<Level, string> = {
-  Basic: `My name is {name}. I like games and my dog. School is ok. Math is hard sometimes.`,
+  Emerging: `My name is {name}. I like games.`,
+  Exemplary: `I'm {name}, and I've always been drawn to the edges of what we understand — the places where physics stops giving clean answers, where ecosystems hold intricate relationships no one has fully mapped, where language can almost-but-not-quite describe a feeling. I read widely, write daily, and keep a lab notebook for the experiments I run in my garage. This year I'm co-writing a zine with two friends and training for my first half-marathon. What I want from school is fewer answers and better questions.`,
+  Developing: `My name is {name}. I like games and my dog. School is ok. Math is hard sometimes.`,
   Proficient: `I'm {name}. I like spending time with friends, playing soccer, and video games. My favorite class is science because we do experiments. I want to be better at writing stories because I have a lot of ideas but I get stuck when I try to put them on paper.`,
   Advanced: `I'm {name}, and I've been obsessed with how things work since I was little. I spend most of my free time reading about space, building with my 3D printer, and arguing with my friends about whether AI is going to change everything. My biggest goal this year is to finish the short novel I started during winter break. School can be frustrating when we move too slow, but I love it when a teacher lets us go deep.`,
 };
 
 const SPATIAL_BY_LEVEL: Record<Level, string> = {
-  Basic: `A spaceship with a big lazer and a kitchen inside`,
+  Emerging: `a house`,
+  Exemplary: `A self-healing biosphere cube — the outer shell is algae-infused bioglass that photosynthesizes and scrubs CO2, the interior is stratified: lower third hydroponic farms, middle third living quarters with rotating fabric architecture (walls change based on activity), upper third is a micro-cloud forest with resident hummingbirds and amphibians. Heating and cooling is passive via salt-hydrate phase-change walls. The whole cube floats on water and tracks the sun for optimal light exposure.`,
+  Developing: `A spaceship with a big lazer and a kitchen inside`,
   Proficient: `A colony on Mars with three round buildings for houses, a greenhouse dome with food plants, and tunnels connecting everything so no one has to go outside when there's a dust storm.`,
   Advanced: `A modular orbital habitat that spins to create artificial gravity — two counter-rotating rings connected by a central hub. The inner ring has agricultural zones with rotating hydroponic towers, the outer ring has living quarters, and the hub is for arrival docks and zero-G research labs. The windows would polarize automatically based on sun exposure.`,
 };
 
 const INTERPERSONAL_BY_LEVEL: Record<Level, string> = {
-  Basic: `I like to work with my best friend.`,
+  Emerging: `with my mom`,
+  Exemplary: `I flex between modes based on the work. For creative divergence I want a small diverse group because we collectively surface angles I'd never reach alone. For deep analysis I need solo time first — I have to form my own thesis before exposing it. When I lead a group I deliberately invite disagreement early because consensus reached too fast is usually wrong.`,
+  Developing: `I like to work with my best friend.`,
   Proficient: `I like working in a group of 2 or 3. We talk through the problem together and split up the hard parts. If I get stuck I ask someone to explain it a different way.`,
   Advanced: `It depends on the task. For creative work I love bouncing ideas with a small team because other people spot things I miss. But for deep problem-solving I need quiet solo time first, then I bring what I figured out back to the group.`,
 };
 
 const INTRA_STRENGTHS_BY_LEVEL: Record<Level, string> = {
-  Basic: `I am good at coloring`,
+  Emerging: `games`,
+  Exemplary: `Metacognition — I'm genuinely good at noticing why I'm struggling and reframing the approach. Also: spotting when two unrelated-looking things are structurally the same. And I can usually tell within 30 seconds whether a conversation needs a question, a joke, or just silence.`,
+  Developing: `I am good at coloring`,
   Proficient: `I'm good at remembering facts about animals and I can read fast.`,
   Advanced: `I'm really good at noticing patterns — like when someone's mood changes, or when a math problem has the same shape as a different one I already solved. I also pick up new video games crazy fast because I figure out the system.`,
 };
 
 const INTRA_GROWTH_BY_LEVEL: Record<Level, string> = {
-  Basic: `math and cleaning my room`,
+  Emerging: `be good`,
+  Exemplary: `Patience with iteration. I see the end state clearly and I want to be there immediately. I have to consciously remind myself that craft comes from finishing the unglamorous middle sections of a project, not just inspired starts and endings.`,
+  Developing: `math and cleaning my room`,
   Proficient: `Being more patient when things don't work the first time. I get frustrated and want to quit.`,
   Advanced: `Public speaking — I have clear ideas in my head but my voice gets shaky when I have to explain them in front of the class. I also want to get better at asking for help earlier instead of trying to figure everything out alone.`,
 };
 
 const NATURAL_BY_LEVEL: Record<Level, string> = {
-  Basic: `I like dogs and trees`,
+  Emerging: `I like my dog`,
+  Exemplary: `Foundational. I've been keeping a seasonal observation journal since I was 7. I can identify every bird that nests within a mile of my house, I know which trees leaf out first in spring, and I get real joy from watching how ecosystems negotiate change. My favorite class would be one held entirely outside.`,
+  Developing: `I like dogs and trees`,
   Proficient: `I love being outside. I go on hikes with my family and I can name a bunch of bird species.`,
   Advanced: `Deeply. I keep a nature journal where I sketch what I see and I've been tracking the same red-tailed hawk pair that nests near our house for two years. Watching ecosystems respond to seasonal change is genuinely one of my favorite things.`,
 };
 
 const EQ_FRIEND_BY_LEVEL: Record<Level, string> = {
-  Basic: `Ask them what is wrong.`,
+  Emerging: `ask what happened`,
+  Exemplary: `First I'd read their state — some people want to talk, some want distraction, some want quiet company. I'd ask which, honestly: "Do you want to talk about it, or do you want me to just hang with you?" If they want to talk, my job is to listen without rushing to fix. I try to reflect back what I hear so they know they're understood, and I only offer thoughts if they ask. And I'd check in again the next day.`,
+  Developing: `Ask them what is wrong.`,
   Proficient: `I'd ask them what happened and really listen. I try not to jump in with advice right away because sometimes people just need to be heard first.`,
   Advanced: `I'd check if they want to talk or just want someone to sit with them — those are different needs. If they want to talk I'd ask open questions. If they want company I'd just be there without making it weird. And I wouldn't try to fix it unless they asked.`,
 };
 
 const EQ_SELF_BY_LEVEL: Record<Level, string> = {
-  Basic: `I go to my room and play games.`,
+  Emerging: `play games`,
+  Exemplary: `Naming the emotion specifically — not "bad" but "disappointed" or "overwhelmed" or "grief-adjacent." Accuracy changes what I need. Then I pick the right regulation tool: breath work if it's panic, movement if it's anger, journaling if it's confusion, company if it's loneliness. I learned the hard way that isolating when I'm low makes it worse, so now I force myself to send one text.`,
+  Developing: `I go to my room and play games.`,
   Proficient: `I usually take a walk or listen to music. If I'm really upset I'll talk to my mom later when I'm calmer.`,
   Advanced: `First I recognize what I'm actually feeling — sometimes what feels like anger is really disappointment or fear. Then I either write it out or go do something physical to burn the energy. If it's about a person I'll reach out later when I can talk without reacting.`,
 };
 
 const MUSICAL_SIGNALS_BY_LEVEL: Record<Level, string[]> = {
-  Basic: ['listens_daily'],
+  Emerging: [],
+  Exemplary: ['plays_instrument', 'makes_beats', 'sings', 'listens_daily'],
+  Developing: ['listens_daily'],
   Proficient: ['listens_daily', 'sings'],
   Advanced: ['plays_instrument', 'makes_beats', 'listens_daily'],
 };
 
 const KINES_SIGNALS_BY_LEVEL: Record<Level, string[]> = {
-  Basic: ['hands_on'],
+  Emerging: [],
+  Exemplary: ['hands_on', 'moving', 'trial_error'],
+  Developing: ['hands_on'],
   Proficient: ['hands_on', 'trial_error'],
   Advanced: ['hands_on', 'moving', 'trial_error'],
 };
 
 function mathAnswerFor(level: Level, correct: number): string {
-  if (level === 'Advanced' || level === 'Proficient') return String(correct);
-  // Basic gets it wrong-ish
+  if (level === 'Advanced' || level === 'Proficient' || level === 'Exemplary') return String(correct);
+  // Emerging / Developing get it wrong-ish
   const off = correct > 10 ? Math.round(correct * 0.7) : Math.max(0, correct - 2);
   return String(off);
 }
 
+// All signals below are returned in the unified capitalized scale.
 function signalForMath(level: Level): string {
-  if (level === 'Advanced') return 'above';
-  if (level === 'Proficient') return 'on-track';
-  return 'struggling';
+  if (level === 'Exemplary') return 'Exemplary';
+  if (level === 'Advanced')  return 'Advanced';
+  if (level === 'Proficient')return 'Proficient';
+  if (level === 'Developing')return 'Developing';
+  return 'Emerging';
 }
 
 function signalForLogic(level: Level): string {
-  if (level === 'Advanced') return 'strong';
-  if (level === 'Proficient') return 'developing';
-  return 'emerging';
+  if (level === 'Exemplary') return 'Exemplary';
+  if (level === 'Advanced')  return 'Advanced';
+  if (level === 'Proficient')return 'Proficient';
+  if (level === 'Developing')return 'Developing';
+  return 'Emerging';
 }
 
 function signalForGardner(level: Level, high: boolean): string {
-  if (level === 'Advanced') return high ? 'strong' : 'developing';
-  if (level === 'Proficient') return high ? 'developing' : 'emerging';
-  return 'emerging';
+  if (level === 'Exemplary') return high ? 'Exemplary' : 'Advanced';
+  if (level === 'Advanced')  return high ? 'Advanced'  : 'Proficient';
+  if (level === 'Proficient')return high ? 'Proficient': 'Developing';
+  if (level === 'Developing')return high ? 'Developing': 'Emerging';
+  return 'Emerging';
 }
 
 async function main() {
@@ -194,7 +231,7 @@ async function main() {
       { category: 'logic', question_key: 'logic_reasoning', question_order: 4,
         question_text: 'If a shelf has 3 books and you add 2 more then take 1 away, how many books are left?',
         question_type: 'text',
-        student_answer: level === 'Basic' ? '5' : '4', correct_answer: '4',
+        student_answer: (level === 'Emerging' || level === 'Developing') ? '5' : '4', correct_answer: '4',
         signal_result: signalForLogic(level) },
 
       // Writing

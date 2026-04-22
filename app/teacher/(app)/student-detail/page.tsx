@@ -89,59 +89,46 @@ interface AssessmentResponse {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function getTierLabel(tier: string): string {
-  switch (tier) {
-    case 'lower': return 'Building Strong Foundations';
-    case 'middle': return 'Expanding Your Skills';
-    case 'upper': return 'Advanced Explorer';
-    default: return tier;
-  }
+// Unified 5-level proficiency scale: Emerging → Developing → Proficient → Advanced → Exemplary
+// Maps every legacy signal value (tier keys like 'lower/middle/upper', gardner 'strong/developing/emerging',
+// math 'struggling/on-track/above', and the new capitalized forms) onto a single vocabulary.
+const LEVEL_COLORS: Record<string, string> = {
+  Emerging:   '#94A3B8', // grey
+  Developing: '#F59E0B', // amber
+  Proficient: '#3B82F6', // blue
+  Advanced:   '#10B981', // emerald
+  Exemplary:  '#8B5CF6', // purple
+};
+
+const LEVEL_PERCENT: Record<string, number> = {
+  Emerging: 20, Developing: 40, Proficient: 60, Advanced: 80, Exemplary: 100,
+};
+
+function normalizeLevel(raw: string | null | undefined): string {
+  if (!raw) return '';
+  const v = String(raw).trim();
+  // Already in canonical form
+  if (v in LEVEL_COLORS) return v;
+  // Legacy mappings
+  const mapping: Record<string, string> = {
+    // Gardner signals
+    strong: 'Advanced', developing: 'Developing', emerging: 'Emerging',
+    // Reading/math tier keys
+    lower: 'Developing', middle: 'Proficient', upper: 'Advanced',
+    // Math performance
+    struggling: 'Developing', 'on-track': 'Proficient', above: 'Advanced', below: 'Developing', on: 'Proficient',
+    // Profile baseline (old)
+    Basic: 'Developing',
+  };
+  return mapping[v] || v;
 }
 
-function getTierColor(tier: string): string {
-  switch (tier) {
-    case 'lower': return '#F59E0B';
-    case 'middle': return '#4FA3A5';
-    case 'upper': return '#10B981';
-    default: return '#94A3B8';
-  }
-}
-
-function getTierPercent(tier: string): number {
-  switch (tier) {
-    case 'lower': return 33;
-    case 'middle': return 66;
-    case 'upper': return 100;
-    default: return 20;
-  }
-}
-
-function getSignalLabel(signal: string): string {
-  switch (signal) {
-    case 'strong': return 'Strong';
-    case 'developing': return 'Developing';
-    case 'emerging': return 'Emerging';
-    default: return signal;
-  }
-}
-
-function getSignalColor(signal: string): string {
-  switch (signal) {
-    case 'strong': return '#10B981';
-    case 'developing': return '#F59E0B';
-    case 'emerging': return '#94A3B8';
-    default: return '#94A3B8';
-  }
-}
-
-function getSignalPercent(signal: string): number {
-  switch (signal) {
-    case 'strong': return 100;
-    case 'developing': return 60;
-    case 'emerging': return 25;
-    default: return 15;
-  }
-}
+function getTierLabel(tier: string): string { return normalizeLevel(tier); }
+function getTierColor(tier: string): string { const n = normalizeLevel(tier); return LEVEL_COLORS[n] || '#94A3B8'; }
+function getTierPercent(tier: string): number { const n = normalizeLevel(tier); return LEVEL_PERCENT[n] ?? 20; }
+function getSignalLabel(signal: string): string { return normalizeLevel(signal); }
+function getSignalColor(signal: string): string { const n = normalizeLevel(signal); return LEVEL_COLORS[n] || '#94A3B8'; }
+function getSignalPercent(signal: string): number { const n = normalizeLevel(signal); return LEVEL_PERCENT[n] ?? 20; }
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);

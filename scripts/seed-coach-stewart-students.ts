@@ -43,38 +43,40 @@ interface StudentRow {
   email: string;
   enrolledDate: string;     // ISO date
   baselineDate: string;     // ISO date
-  level: 'Basic' | 'Proficient' | 'Advanced';
+  // Unified scale: Emerging → Developing → Proficient → Advanced → Exemplary
+  // Legacy "Basic" maps to "Developing".
+  level: 'Emerging' | 'Developing' | 'Proficient' | 'Advanced' | 'Exemplary';
 }
 
 const STUDENTS: StudentRow[] = [
   { firstName: 'Liam',     lastName: 'O\u2019Connor',       preferredName: 'Liam',   nameFlagged: false, email: 'imastudent1@stewart.in',  enrolledDate: '2026-01-15', baselineDate: '2026-01-15', level: 'Proficient' },
   { firstName: 'Aaliyah',  lastName: 'Johnson',              preferredName: 'Aaliyah',nameFlagged: false, email: 'imastudent2@stewart.in',  enrolledDate: '2026-02-03', baselineDate: '2026-02-03', level: 'Advanced'   },
-  { firstName: 'Mateo',    lastName: 'Ramirez',              preferredName: 'Mateo',  nameFlagged: true,  email: 'imastudent3@stewart.in',  enrolledDate: '2026-01-28', baselineDate: '2026-01-28', level: 'Basic'      },
+  { firstName: 'Mateo',    lastName: 'Ramirez',              preferredName: 'Mateo',  nameFlagged: true,  email: 'imastudent3@stewart.in',  enrolledDate: '2026-01-28', baselineDate: '2026-01-28', level: 'Developing' },
   { firstName: 'Sophia',   lastName: 'Chen',                 preferredName: 'Sophie', nameFlagged: false, email: 'imastudent4@stewart.in',  enrolledDate: '2026-03-01', baselineDate: '2026-03-01', level: 'Proficient' },
-  { firstName: 'Elijah',   lastName: 'Washington',           preferredName: 'Eli',    nameFlagged: true,  email: 'imastudent5@stewart.in',  enrolledDate: '2026-02-10', baselineDate: '2026-02-10', level: 'Basic'      },
+  { firstName: 'Elijah',   lastName: 'Washington',           preferredName: 'Eli',    nameFlagged: true,  email: 'imastudent5@stewart.in',  enrolledDate: '2026-02-10', baselineDate: '2026-02-10', level: 'Developing' },
   { firstName: 'Isabella', lastName: 'Rossi',                preferredName: 'Bella',  nameFlagged: false, email: 'imastudent6@stewart.in',  enrolledDate: '2026-01-22', baselineDate: '2026-01-22', level: 'Advanced'   },
   { firstName: 'Noah',     lastName: 'Kim',                  preferredName: 'Noah',   nameFlagged: false, email: 'imastudent7@stewart.in',  enrolledDate: '2026-02-18', baselineDate: '2026-02-18', level: 'Proficient' },
   { firstName: 'Ava',      lastName: 'Patel',                preferredName: 'Ava',    nameFlagged: false, email: 'imastudent8@stewart.in',  enrolledDate: '2026-01-30', baselineDate: '2026-01-30', level: 'Proficient' },
-  { firstName: 'Jayden',   lastName: 'Brooks',               preferredName: 'Jay',    nameFlagged: true,  email: 'imastudent9@stewart.in',  enrolledDate: '2026-02-25', baselineDate: '2026-02-25', level: 'Basic'      },
+  { firstName: 'Jayden',   lastName: 'Brooks',               preferredName: 'Jay',    nameFlagged: true,  email: 'imastudent9@stewart.in',  enrolledDate: '2026-02-25', baselineDate: '2026-02-25', level: 'Developing' },
   { firstName: 'Fatima',   lastName: 'Hassan',               preferredName: 'Fatima', nameFlagged: false, email: 'imastudent10@stewart.in', enrolledDate: '2026-03-05', baselineDate: '2026-03-05', level: 'Advanced'   },
   { firstName: 'Lucas',    lastName: 'M\u00fcller',          preferredName: 'Luke',   nameFlagged: false, email: 'imastudent11@stewart.in', enrolledDate: '2026-01-19', baselineDate: '2026-01-19', level: 'Proficient' },
   { firstName: 'Mia',      lastName: 'Nguyen',               preferredName: 'Mia',    nameFlagged: false, email: 'imastudent12@stewart.in', enrolledDate: '2026-02-07', baselineDate: '2026-02-07', level: 'Advanced'   },
   { firstName: 'Ethan',    lastName: 'Cohen',                preferredName: 'Ethan',  nameFlagged: false, email: 'imastudent13@stewart.in', enrolledDate: '2026-01-26', baselineDate: '2026-01-26', level: 'Proficient' },
   { firstName: 'Zoe',      lastName: 'Papadopoulos',         preferredName: 'Zoe',    nameFlagged: false, email: 'imastudent14@stewart.in', enrolledDate: '2026-03-03', baselineDate: '2026-03-03', level: 'Advanced'   },
-  { firstName: 'Amir',     lastName: 'Khan',                 preferredName: 'Amir',   nameFlagged: true,  email: 'imastudent15@stewart.in', enrolledDate: '2026-02-12', baselineDate: '2026-02-12', level: 'Basic'      },
+  { firstName: 'Amir',     lastName: 'Khan',                 preferredName: 'Amir',   nameFlagged: true,  email: 'imastudent15@stewart.in', enrolledDate: '2026-02-12', baselineDate: '2026-02-12', level: 'Developing' },
   { firstName: 'Chloe',    lastName: 'Dubois',               preferredName: 'Chloe',  nameFlagged: false, email: 'imastudent16@stewart.in', enrolledDate: '2026-01-31', baselineDate: '2026-01-31', level: 'Proficient' },
-  { firstName: 'Daniel',   lastName: 'Park',                 preferredName: 'Danny',  nameFlagged: true,  email: 'imastudent17@stewart.in', enrolledDate: '2026-02-20', baselineDate: '2026-02-20', level: 'Basic'      },
+  { firstName: 'Daniel',   lastName: 'Park',                 preferredName: 'Danny',  nameFlagged: true,  email: 'imastudent17@stewart.in', enrolledDate: '2026-02-20', baselineDate: '2026-02-20', level: 'Developing' },
   { firstName: 'Gabriela', lastName: 'Silva',                preferredName: 'Gabby',  nameFlagged: false, email: 'imastudent18@stewart.in', enrolledDate: '2026-01-24', baselineDate: '2026-01-24', level: 'Proficient' },
-  { firstName: 'Jackson',  lastName: 'Smith',                preferredName: 'Jack',   nameFlagged: true,  email: 'imastudent19@stewart.in', enrolledDate: '2026-02-14', baselineDate: '2026-02-14', level: 'Basic'      },
+  { firstName: 'Jackson',  lastName: 'Smith',                preferredName: 'Jack',   nameFlagged: true,  email: 'imastudent19@stewart.in', enrolledDate: '2026-02-14', baselineDate: '2026-02-14', level: 'Developing' },
   { firstName: 'Priya',    lastName: 'Shah',                 preferredName: 'Priya',  nameFlagged: false, email: 'imastudent20@stewart.in', enrolledDate: '2026-03-06', baselineDate: '2026-03-06', level: 'Advanced'   },
-  { firstName: 'Caleb',    lastName: 'Brown',                preferredName: 'Caleb',  nameFlagged: true,  email: 'imastudent21@stewart.in', enrolledDate: '2026-01-18', baselineDate: '2026-01-18', level: 'Basic'      },
+  { firstName: 'Caleb',    lastName: 'Brown',                preferredName: 'Caleb',  nameFlagged: true,  email: 'imastudent21@stewart.in', enrolledDate: '2026-01-18', baselineDate: '2026-01-18', level: 'Developing' },
   { firstName: 'Leila',    lastName: 'Haddad',               preferredName: 'Leila',  nameFlagged: false, email: 'imastudent22@stewart.in', enrolledDate: '2026-02-09', baselineDate: '2026-02-09', level: 'Proficient' },
   { firstName: 'Oliver',   lastName: 'Schmidt',              preferredName: 'Ollie',  nameFlagged: false, email: 'imastudent23@stewart.in', enrolledDate: '2026-01-27', baselineDate: '2026-01-27', level: 'Proficient' },
   { firstName: 'Arjun',    lastName: 'Reddy',                preferredName: 'Arjun',  nameFlagged: false, email: 'imastudent24@stewart.in', enrolledDate: '2026-02-22', baselineDate: '2026-02-22', level: 'Advanced'   },
   { firstName: 'Sofia',    lastName: 'Martinez',             preferredName: 'Sofi',   nameFlagged: false, email: 'imastudent25@stewart.in', enrolledDate: '2026-03-04', baselineDate: '2026-03-04', level: 'Proficient' },
   { firstName: 'Benjamin', lastName: 'Taylor',               preferredName: 'Ben',    nameFlagged: false, email: 'imastudent26@stewart.in', enrolledDate: '2026-01-21', baselineDate: '2026-01-21', level: 'Advanced'   },
   { firstName: 'Nia',      lastName: 'Okafor',               preferredName: 'Nia',    nameFlagged: false, email: 'imastudent27@stewart.in', enrolledDate: '2026-02-16', baselineDate: '2026-02-16', level: 'Proficient' },
-  { firstName: 'Dylan',    lastName: 'Murphy',               preferredName: 'Dylan',  nameFlagged: true,  email: 'imastudent28@stewart.in', enrolledDate: '2026-01-29', baselineDate: '2026-01-29', level: 'Basic'      },
+  { firstName: 'Dylan',    lastName: 'Murphy',               preferredName: 'Dylan',  nameFlagged: true,  email: 'imastudent28@stewart.in', enrolledDate: '2026-01-29', baselineDate: '2026-01-29', level: 'Developing' },
   { firstName: 'Hana',     lastName: 'Suzuki',               preferredName: 'Hana',   nameFlagged: false, email: 'imastudent29@stewart.in', enrolledDate: '2026-02-27', baselineDate: '2026-02-27', level: 'Advanced'   },
   { firstName: 'Marcus',   lastName: 'Johnson',              preferredName: 'Marcus', nameFlagged: false, email: 'imastudent30@stewart.in', enrolledDate: '2026-01-23', baselineDate: '2026-01-23', level: 'Proficient' },
 ];
@@ -161,18 +163,21 @@ function buildGardnerSignals(primary: Intelligence, level: StudentRow['level']):
 }
 
 function tierForLevel(level: StudentRow['level']): { reading: string; math: string; language: string; logic: string } {
-  if (level === 'Basic')      return { reading: 'below', math: 'below', language: 'emerging', logic: 'developing' };
-  if (level === 'Proficient') return { reading: 'on',    math: 'on',    language: 'developing', logic: 'developing' };
-  return                              { reading: 'above', math: 'above', language: 'strong',    logic: 'strong' };
+  if (level === 'Emerging')   return { reading: 'below', math: 'below', language: 'emerging',  logic: 'emerging' };
+  if (level === 'Developing') return { reading: 'below', math: 'below', language: 'developing',logic: 'developing' };
+  if (level === 'Proficient') return { reading: 'on',    math: 'on',    language: 'developing',logic: 'developing' };
+  if (level === 'Advanced')   return { reading: 'above', math: 'above', language: 'strong',    logic: 'strong' };
+  return                              { reading: 'above', math: 'above', language: 'strong',    logic: 'strong' }; // Exemplary
 }
 
 function writingResponseFor(level: StudentRow['level'], firstName: string): string {
-  if (level === 'Basic') {
+  if (level === 'Emerging' || level === 'Developing') {
     return `My name is ${firstName}. I like games and my dog. School is ok. Math is hard sometimes.`;
   }
   if (level === 'Proficient') {
     return `I'm ${firstName}. I like spending time with friends, playing soccer, and video games. My favorite class is science because we do experiments. I want to be better at writing stories because I have a lot of ideas but I get stuck when I try to put them on paper.`;
   }
+  // Advanced or Exemplary
   return `I'm ${firstName}, and I've been obsessed with how things work since I was little. I spend most of my free time reading about space, building with my 3D printer, and arguing with my friends about whether AI is going to change everything. My biggest goal this year is to finish the short novel I started during winter break. School can be frustrating when we move too slow, but I love it when a teacher lets us go deep.`;
 }
 
@@ -310,15 +315,15 @@ async function main() {
       reading_level: tiers.reading,
       math_level: tiers.math,
       language_tier: tiers.language,
-      math_performance_q1: s.level === 'Basic' ? 'struggling' : s.level === 'Proficient' ? 'on-track' : 'above',
-      math_performance_q2: s.level === 'Basic' ? 'struggling' : s.level === 'Proficient' ? 'on-track' : 'above',
+      math_performance_q1: (s.level === 'Emerging' || s.level === 'Developing') ? 'struggling' : s.level === 'Proficient' ? 'on-track' : 'above',
+      math_performance_q2: (s.level === 'Emerging' || s.level === 'Developing') ? 'struggling' : s.level === 'Proficient' ? 'on-track' : 'above',
       writing_response: writingResponseFor(s.level, s.preferredName),
       multiple_intelligences: mi,
       logic_reasoning_level: tiers.logic,
       logic_question: 'If a shelf has 3 books and you add 2 more then take 1 away, how many books are left?',
-      logic_answer_given: s.level === 'Basic' ? '5' : '4',
+      logic_answer_given: (s.level === 'Emerging' || s.level === 'Developing') ? '5' : '4',
       emotional_intelligence_signals: {
-        self_awareness: s.level === 'Basic' ? 'emerging' : 'developing',
+        self_awareness: (s.level === 'Emerging' || s.level === 'Developing') ? 'emerging' : 'developing',
         self_regulation: 'developing',
         empathy: 'developing',
       },

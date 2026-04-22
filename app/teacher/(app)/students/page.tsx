@@ -28,7 +28,7 @@ interface StudentRow {
   superheroName: string | null;
   superpowerAvatar: string | null;
   learningStyle: string | null;
-  baselineLevel: 'Basic' | 'Proficient' | 'Advanced' | null;
+  baselineLevel: 'Emerging' | 'Developing' | 'Proficient' | 'Advanced' | 'Exemplary' | null;
   color: string;
   studentNumber: string | null;
 }
@@ -431,8 +431,11 @@ function StudentsContent() {
                     <td className="px-3 py-3">
                       {s.baselineLevel ? (
                         <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${
-                          s.baselineLevel === 'Advanced' ? 'bg-emerald-100 text-emerald-800' :
+                          s.baselineLevel === 'Exemplary'  ? 'bg-purple-100 text-purple-800' :
+                          s.baselineLevel === 'Advanced'   ? 'bg-emerald-100 text-emerald-800' :
                           s.baselineLevel === 'Proficient' ? 'bg-blue-100 text-blue-800' :
+                          s.baselineLevel === 'Developing' ? 'bg-amber-100 text-amber-800' :
+                          s.baselineLevel === 'Emerging'   ? 'bg-slate-100 text-slate-700' :
                           'bg-amber-100 text-amber-800'
                         }`}>{s.baselineLevel}</span>
                       ) : <span className="text-text-muted">—</span>}
