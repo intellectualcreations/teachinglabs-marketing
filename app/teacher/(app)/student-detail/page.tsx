@@ -238,6 +238,7 @@ function StudentDetailContent() {
   const [conversations, setConversations] = useState<any[] | null>(null);
   const [conversationsLoading, setConversationsLoading] = useState(false);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [showClassesPanel, setShowClassesPanel] = useState(false);
   const PANEL_ACCENTS: Record<string, string> = {
     assessment: '#7C3AED',      // purple
     conversations: '#1F3A5F',    // navy
@@ -362,7 +363,7 @@ function StudentDetailContent() {
 
   // Panel push: when any slide-out panel is open, margin-right the main content
   // so the tiles never get overlapped. Clamp matches the panel's CSS width.
-  const anyPanelOpen = showAssessmentPanel || showConversationsPanel;
+  const anyPanelOpen = showAssessmentPanel || showConversationsPanel || showClassesPanel;
   const pushStyle = anyPanelOpen
     ? { marginRight: 'clamp(500px, 40vw, 900px)' }
     : undefined;
@@ -423,7 +424,7 @@ function StudentDetailContent() {
         {/* Tile 1: Baseline Assessment */}
         <button
           ref={firstTileRef}
-          onClick={() => { if (hasBaseline) { setPanelType('assessment'); setShowAssessmentPanel(true); } }}
+          onClick={() => { if (hasBaseline) { setPanelType('assessment'); setShowConversationsPanel(false); setShowClassesPanel(false); setShowAssessmentPanel(true); } }}
           disabled={!hasBaseline}
           className={`relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden transition-all ${
             hasBaseline ? 'hover:border-[#7C3AED] hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-not-allowed'
@@ -486,6 +487,7 @@ function StudentDetailContent() {
           onClick={async () => {
             setPanelType('conversations');
             setShowAssessmentPanel(false);
+            setShowClassesPanel(false);
             setShowConversationsPanel(true);
             if (!conversations) {
               setConversationsLoading(true);
@@ -512,10 +514,10 @@ function StudentDetailContent() {
           <p className="text-xs text-text-secondary">Student&apos;s 1-on-1 AI tutor chats + activity conversations.</p>
         </button>
 
-        {/* Tile 3: Classes (placeholder) */}
+        {/* Tile 3: Classes */}
         <button
-          disabled
-          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden opacity-60 cursor-not-allowed"
+          onClick={() => { setPanelType('classes'); setShowAssessmentPanel(false); setShowConversationsPanel(false); setShowClassesPanel(true); }}
+          className="relative text-left bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden hover:border-teal hover:shadow-lg transition-all cursor-pointer"
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-teal" />
           <div className="flex items-center justify-between mb-3">
@@ -523,7 +525,7 @@ function StudentDetailContent() {
               <BookOpenText size={18} weight="fill" className="text-teal" />
               <span className="font-heading font-bold text-sm text-text-primary">Classes</span>
             </div>
-            <span className="text-[11px] font-semibold text-text-muted">Coming in next update</span>
+            <span className="text-[11px] font-bold text-teal bg-teal/10 px-2 py-0.5 rounded-full">View →</span>
           </div>
           <p className="text-xs text-text-secondary">
             Enrolled in {enrollments.length} {enrollments.length === 1 ? 'class' : 'classes'}
@@ -989,6 +991,57 @@ function StudentDetailContent() {
             <div className="border-t border-border bg-surface px-6 py-3 flex justify-between items-center">
               <p className="text-[11px] text-text-secondary">Private AI tutor conversations. Content is visible only to this teacher.</p>
               <button onClick={() => { setShowConversationsPanel(false); setSelectedConversationId(null); }} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Classes Slide-Out Panel */}
+      {showClassesPanel && (
+        <>
+          <div className="fixed inset-0 z-[55]" onClick={() => setShowClassesPanel(false)} />
+          <div
+            style={{ top: `${panelTop}px`, height: `calc(100vh - ${panelTop}px)` }}
+            className="fixed right-0 bg-card-bg border-l border-t border-border rounded-tl-[14px] z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px] overflow-hidden"
+          >
+            <div className="h-1 shrink-0 bg-teal" />
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between" style={{ background: 'linear-gradient(to right, #4FA3A511, transparent)' }}>
+              <div>
+                <div className="flex items-center gap-2">
+                  <BookOpenText size={20} weight="fill" className="text-teal" />
+                  <h3 className="font-heading font-bold text-base text-text-primary">Classes</h3>
+                </div>
+                <p className="text-[11px] text-text-secondary mt-0.5">
+                  {profile?.display_name} · Enrolled in {enrollments.length} {enrollments.length === 1 ? 'class' : 'classes'}
+                </p>
+              </div>
+              <button onClick={() => setShowClassesPanel(false)} className="w-8 h-8 rounded-lg hover:bg-border/30 flex items-center justify-center cursor-pointer text-text-secondary">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              {enrollments.length === 0 ? (
+                <div className="text-center py-10 text-text-secondary">
+                  <BookOpenText size={36} weight="thin" className="mx-auto mb-2 text-text-muted" />
+                  <p className="text-sm">Not enrolled in any of your classes yet.</p>
+                </div>
+              ) : enrollments.map((e: any) => (
+                <div key={e.class_id} className="rounded-lg border border-border bg-surface p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-heading font-bold text-sm text-text-primary">{e.class_name}</h4>
+                    <a href={`/teacher/class-details?class=${e.class_id}`} className="text-[11px] font-semibold text-teal hover:underline no-underline">Open class →</a>
+                  </div>
+                  <div className="text-[12px] text-text-secondary space-y-1">
+                    <div><span className="text-text-muted">Enrolled:</span> <span className="text-text-primary font-medium">{new Date(e.enrolled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-border bg-surface px-6 py-3 flex justify-between items-center">
+              <p className="text-[11px] text-text-secondary">Click any class to open its full details page.</p>
+              <button onClick={() => setShowClassesPanel(false)} className="px-3 py-1.5 rounded-lg border border-border text-xs text-text-secondary hover:bg-border/20 cursor-pointer">Close</button>
             </div>
           </div>
         </>
