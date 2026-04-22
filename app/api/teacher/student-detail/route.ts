@@ -173,7 +173,12 @@ export async function PATCH(request: NextRequest) {
 
     const updateData: Record<string, unknown> = { preferred_name: name };
     if (flagged) {
-      updateData.name_flagged = true;
+      // Teacher triggered a "Request preferred name change" — flip state so the
+      // student's next login forces them to pick a new name.
+      updateData.preferred_name_change_requested_at = new Date().toISOString();
+      updateData.preferred_name_change_requested_by = teacherId;
+      // Clear any stale AI borderline flag; the reset is now the signal.
+      updateData.name_flagged = false;
     }
     const { error } = await supabase
       .from('profiles')

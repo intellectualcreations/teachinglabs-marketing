@@ -81,6 +81,11 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
   const [studentInitials, setStudentInitials] = useState('');
   const [superpowerTitle, setSuperpowerTitle] = useState('');
   const [superpowerAvatar, setSuperpowerAvatar] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [nameChangeRequested, setNameChangeRequested] = useState(false);
+  const [newPreferredName, setNewPreferredName] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
   const [classes, setClasses] = useState<SidebarClass[]>([]);
   const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -120,7 +125,14 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
         }
 
         // Fetch profile via API (bypasses RLS)
-        let profileData: { preferred_name?: string; display_name?: string; superpower_title?: string; superpower_avatar?: string } | null = null;
+        let profileData: {
+          preferred_name?: string;
+          display_name?: string;
+          first_name?: string;
+          superpower_title?: string;
+          superpower_avatar?: string;
+          preferred_name_change_requested_at?: string | null;
+        } | null = null;
         try {
           const { data: { session: sess } } = await supabase.auth.getSession();
           if (sess?.access_token) {
@@ -141,6 +153,9 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
         setSuperpowerAvatar(profileData?.superpower_avatar || '');
         setStudentName(displayName.split(' ')[0]);
         setStudentInitials(getInitials(displayName));
+        const pd = profileData as any;
+        setFirstName(pd?.first_name || displayName.split(' ')[0] || '');
+        setNameChangeRequested(!!pd?.preferred_name_change_requested_at);
 
         // Fetch classes
         let authHeaders: Record<string, string> = {};
@@ -408,6 +423,60 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
       <main className="flex-1 overflow-y-auto px-4 py-5 sm:px-8 sm:py-7">
         {children}
       </main>
+
+      {/* Teacher-requested preferred name change — immovable modal until resolved */}
+      {nameChangeRequested && (
+        <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+          <div className="bg-card-bg border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <h3 className="font-heading font-bold text-lg text-text-primary mb-2">Choose a new preferred name</h3>
+            <p className="text-sm text-text-secondary mb-4">
+              Your teacher asked you to pick a different preferred name. No worries — just choose one that works well in class.
+              Something you actually want to be called is perfect.
+            </p>
+            <input
+              type="text"
+              value={newPreferredName}
+              onChange={(e) => setNewPreferredName(e.target.value)}
+              placeholder={firstName || 'Your preferred name'}
+              autoFocus
+              className="w-full px-3 py-2.5 rounded-lg border border-border bg-surface text-text-primary text-sm outline-none focus:ring-2 focus:ring-teal/30 focus:border-teal"
+              maxLength={50}
+            />
+            {nameError && <p className="text-xs text-red-500 mt-2">{nameError}</p>}
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={async () => {
+                  const value = newPreferredName.trim();
+                  if (!value) { setNameError('Pick a name first.'); return; }
+                  setSavingName(true); setNameError(null);
+                  try {
+                    const supabase = createClient();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session?.access_token) { setNameError('Not signed in.'); return; }
+                    const res = await fetch('/api/student/profile', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                      body: JSON.stringify({ preferred_name: value }),
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok) {
+                      setStudentName(value.split(' ')[0]);
+                      setStudentInitials(getInitials(value));
+                      setNameChangeRequested(false);
+                      setNewPreferredName('');
+                    } else {
+                      setNameError(data.error || 'Could not save that name. Try a different one.');
+                    }
+                  } catch { setNameError('Could not save that name. Try again.'); }
+                  finally { setSavingName(false); }
+                }}
+                disabled={savingName || !newPreferredName.trim()}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-teal text-navy text-sm font-semibold hover:opacity-90 border-0 cursor-pointer disabled:opacity-50"
+              >{savingName ? 'Saving…' : 'Save & Continue'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
