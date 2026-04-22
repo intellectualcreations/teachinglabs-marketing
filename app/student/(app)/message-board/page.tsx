@@ -55,6 +55,8 @@ export default function StudentMessageBoardPage() {
 
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [topicReplies, setTopicReplies] = useState<Reply[]>([]);
+  const [topicParticipants, setTopicParticipants] = useState<Array<{ id: string; name: string; role: string }>>([]);
+  const [showParticipantsList, setShowParticipantsList] = useState(false);
   const [loadingTopic, setLoadingTopic] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
@@ -109,9 +111,11 @@ export default function StudentMessageBoardPage() {
   async function openTopic(topic: Topic) {
     setSelectedTopic(topic);
     setLoadingTopic(true);
+    setShowParticipantsList(false);
     const res = await fetch(`/api/message-board/topics/${topic.id}?userId=${userId}&role=student`);
-    const data = res.ok ? await res.json() : { replies: [] };
+    const data = res.ok ? await res.json() : { replies: [], participants: [] };
     setTopicReplies(data.replies ?? []);
+    setTopicParticipants(data.participants ?? []);
     setLoadingTopic(false);
   }
 
@@ -312,9 +316,38 @@ export default function StudentMessageBoardPage() {
                   {selectedTopic.is_private && <Lock size={12} weight="fill" className="text-teal" />}
                   <p className="font-heading font-bold text-[14px] text-text-primary truncate">{selectedTopic.title}</p>
                 </div>
-                <p className="text-[11px] text-text-muted">Started by {selectedTopic.created_by_name}</p>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <p className="text-[11px] text-text-muted">Started by {selectedTopic.created_by_name}</p>
+                  {topicParticipants.length > 0 && (
+                    <button
+                      onClick={() => setShowParticipantsList((v) => !v)}
+                      className="text-[11px] text-teal hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      {selectedTopic.is_private ? (
+                        <>· <Lock size={10} weight="fill" /> {topicParticipants.length} in this group</>
+                      ) : (
+                        <>· Whole class ({topicParticipants.length})</>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
+
+            {showParticipantsList && topicParticipants.length > 0 && (
+              <div className="px-5 py-3 border-b border-border bg-teal/5">
+                <p className="text-[10px] uppercase tracking-[0.5px] font-bold text-text-secondary mb-2">
+                  {selectedTopic.is_private ? 'In this group' : 'Everyone in the class'}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {topicParticipants.map((p) => (
+                    <span key={p.id} className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${p.role === 'teacher' ? 'bg-teal/20 text-teal' : 'bg-surface border border-border text-text-primary'}`}>
+                      {p.name}{p.role === 'teacher' ? ' · Teacher' : ''}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
               {loadingTopic ? (

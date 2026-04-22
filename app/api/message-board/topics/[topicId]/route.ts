@@ -67,7 +67,8 @@ export async function GET(
     profileMap.set(p.id, { name: p.display_name || 'User', role: p.role || 'student' })
   );
 
-  // Participant list (only meaningful for private topics)
+  // Participant list. For private topics: the specifically-added participants.
+  // For public topics: the whole class roster (so teacher sees who can see it).
   let participants: any[] = [];
   if (topic.is_private) {
     const { data: parts } = await (supabase as any)
@@ -77,18 +78,45 @@ export async function GET(
     const partIds = (parts ?? []).map((p: any) => p.user_id);
     const { data: partProfiles } = await supabase
       .from('profiles')
-      .select('id, display_name, role')
+      .select('id, display_name, preferred_name, role')
       .in('id', partIds.length ? partIds : ['00000000-0000-0000-0000-000000000000']);
     participants = (partProfiles ?? []).map((p: any) => ({
       id: p.id,
-      name: p.display_name || 'Student',
+      name: p.preferred_name || p.display_name || 'Student',
       role: p.role || 'student',
     }));
+  } else {
+    // Public topic: show the entire class roster as implicit participants.
+    const { data: enrolls } = await (supabase as any)
+      .from('enrollments')
+      .select('student_id')
+      .eq('class_id', topic.class_id)
+      .eq('status', 'active');
+    const studentIds = (enrolls ?? []).map((e: any) => e.student_id);
+    if (studentIds.length > 0) {
+      const { data: rosterProfiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, preferred_name, role')
+        .in('id', studentIds);
+      participants = (rosterProfiles ?? []).map((p: any) => ({
+        id: p.id,
+        name: p.preferred_name || p.display_name || 'Student',
+        role: p.role || 'student',
+      }));
+    }
   }
+
+  // Also fetch the class name for header context
+  const { data: cls } = await (supabase as any)
+    .from('classes')
+    .select('name')
+    .eq('id', topic.class_id)
+    .maybeSingle();
 
   return NextResponse.json({
     topic: {
       ...topic,
+      class_name: cls?.name || null,
       created_by_name: profileMap.get(topic.created_by)?.name || 'User',
     },
     replies: scrubbedReplies.map((r: any) => ({
