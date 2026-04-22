@@ -444,7 +444,7 @@ function StudentDetailContent() {
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[55]"
             onClick={() => setShowAssessmentPanel(false)}
           />
-          <div className="fixed top-0 right-0 h-screen w-full max-w-[560px] bg-card-bg border-l border-border z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out]">
+          <div className="fixed top-0 right-0 h-screen bg-card-bg border-l border-border z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]">
             <style jsx>{`
               @keyframes slideInRight {
                 from { transform: translateX(100%); }
