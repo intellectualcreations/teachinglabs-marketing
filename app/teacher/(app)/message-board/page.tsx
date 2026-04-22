@@ -302,44 +302,74 @@ function TeacherMessageBoardContent() {
     );
   }
 
+  // When the URL scopes us to a single class, the inner class-switcher disappears entirely.
+  // The outer teacher sidebar already tells the teacher which class they're in.
+  const isClassScoped = !!urlClassId;
+
   return (
     <div className="flex h-[calc(100vh-80px)] gap-0 -mx-4 -mt-4 overflow-hidden">
-      {/* Sidebar: classes + tabs */}
-      <div className="w-60 shrink-0 border-r border-border bg-card-bg flex flex-col">
-        <div className="px-4 py-4 border-b border-border">
-          <h1 className="font-heading text-lg font-bold text-text-primary flex items-center gap-2">
-            <ChatsCircle size={20} weight="fill" className="text-teal" />
-            Message Board
-          </h1>
-        </div>
-        <div className="px-2 py-2 border-b border-border flex gap-1">
-          <button
-            onClick={() => setTab('topics')}
-            className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold ${tab === 'topics' ? 'bg-teal text-navy' : 'text-text-secondary hover:bg-border/20'}`}
-          >Topics</button>
-          <button
-            onClick={() => setTab('flagged')}
-            className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 ${tab === 'flagged' ? 'bg-red-500 text-white' : 'text-text-secondary hover:bg-border/20'}`}
-          >
-            <Flag size={12} weight="fill" />
-            Flagged
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {tab === 'topics' && classes.map(cls => (
+      {/* Inner sidebar: hidden when URL is scoped to a single class */}
+      {!isClassScoped && (
+        <div className="w-60 shrink-0 border-r border-border bg-card-bg flex flex-col">
+          <div className="px-4 py-4 border-b border-border">
+            <h1 className="font-heading text-lg font-bold text-text-primary flex items-center gap-2">
+              <ChatsCircle size={20} weight="fill" className="text-teal" />
+              Message Board
+            </h1>
+          </div>
+          <div className="px-2 py-2 border-b border-border flex gap-1">
             <button
-              key={cls.id}
-              onClick={() => { setActiveClass(cls); setSelectedTopic(null); }}
-              className={`w-full text-left px-4 py-3 border-b border-border/50 transition-colors ${
-                activeClass?.id === cls.id ? 'bg-teal/5 border-l-2 border-l-teal' : 'hover:bg-border/20'
-              }`}
+              onClick={() => setTab('topics')}
+              className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold ${tab === 'topics' ? 'bg-teal text-navy' : 'text-text-secondary hover:bg-border/20'}`}
+            >Topics</button>
+            <button
+              onClick={() => setTab('flagged')}
+              className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 ${tab === 'flagged' ? 'bg-red-500 text-white' : 'text-text-secondary hover:bg-border/20'}`}
             >
-              <p className="font-heading font-semibold text-[13px] text-text-primary truncate">{cls.name}</p>
-              <p className="text-[11px] text-text-muted truncate mt-0.5">{cls.subject || 'Class'}</p>
+              <Flag size={12} weight="fill" />
+              Flagged
             </button>
-          ))}
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {tab === 'topics' && classes.map(cls => (
+              <button
+                key={cls.id}
+                onClick={() => { setActiveClass(cls); setSelectedTopic(null); }}
+                className={`w-full text-left px-4 py-3 border-b border-border/50 transition-colors ${
+                  activeClass?.id === cls.id ? 'bg-teal/5 border-l-2 border-l-teal' : 'hover:bg-border/20'
+                }`}
+              >
+                <p className="font-heading font-semibold text-[13px] text-text-primary truncate">{cls.name}</p>
+                <p className="text-[11px] text-text-muted truncate mt-0.5">{cls.subject || 'Class'}</p>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Compact class-scoped header when coming from the outer class sidebar */}
+      {isClassScoped && (
+        <div className="w-60 shrink-0 border-r border-border bg-card-bg flex flex-col">
+          <div className="px-4 py-4 border-b border-border">
+            <p className="text-[10px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-1">Message Board</p>
+            <h1 className="font-heading text-lg font-bold text-text-primary">{activeClass?.name ?? '…'}</h1>
+            <p className="text-[11px] text-text-muted mt-0.5">{activeClass?.subject || 'Class'}</p>
+          </div>
+          <div className="px-2 py-2 border-b border-border flex gap-1">
+            <button
+              onClick={() => setTab('topics')}
+              className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold ${tab === 'topics' ? 'bg-teal text-navy' : 'text-text-secondary hover:bg-border/20'}`}
+            >Topics</button>
+            <button
+              onClick={() => setTab('flagged')}
+              className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 ${tab === 'flagged' ? 'bg-red-500 text-white' : 'text-text-secondary hover:bg-border/20'}`}
+            >
+              <Flag size={12} weight="fill" />
+              Flagged
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-h-0">
