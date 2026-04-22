@@ -243,6 +243,8 @@ function StudentDetailContent() {
   const [notes, setNotes] = useState<any[] | null>(null);
   const [notesLoading, setNotesLoading] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [noteError, setNoteError] = useState<string | null>(null);
   const [notesFromDate, setNotesFromDate] = useState<string>('');
   const [notesToDate, setNotesToDate] = useState<string>('');
   const [showInsightsPanel, setShowInsightsPanel] = useState(false);
@@ -1057,25 +1059,37 @@ function StudentDetailContent() {
               />
               <div className="flex justify-end gap-2 mt-2">
                 <button
-                  disabled={!newNote.trim()}
+                  disabled={!newNote.trim() || noteSaving}
                   onClick={async () => {
-                    const supabase = createClient();
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (!user || !studentId) return;
-                    const res = await fetch('/api/teacher/notes', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ teacherId: user.id, studentId, content: newNote.trim() }),
-                    });
-                    if (res.ok) {
-                      const { note } = await res.json();
-                      setNotes((prev) => prev ? [note, ...prev] : [note]);
-                      setNewNote('');
+                    setNoteSaving(true);
+                    setNoteError(null);
+                    try {
+                      const supabase = createClient();
+                      const { data: { user }, error: authErr } = await supabase.auth.getUser();
+                      if (authErr || !user) { setNoteError('Not signed in'); return; }
+                      if (!studentId) { setNoteError('Missing student id'); return; }
+                      const res = await fetch('/api/teacher/notes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ teacherId: user.id, studentId, content: newNote.trim() }),
+                      });
+                      const data = await res.json().catch(() => ({}));
+                      if (res.ok) {
+                        setNotes((prev) => prev ? [data.note, ...prev] : [data.note]);
+                        setNewNote('');
+                      } else {
+                        setNoteError(data.error || `Save failed (${res.status})`);
+                      }
+                    } catch (e: any) {
+                      setNoteError(e?.message || 'Save failed');
+                    } finally {
+                      setNoteSaving(false);
                     }
                   }}
                   className="px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 border-0 cursor-pointer disabled:opacity-50"
-                >Save Note</button>
+                >{noteSaving ? 'Saving…' : 'Save Note'}</button>
               </div>
+              {noteError && <p className="text-xs text-red-500 mt-2">{noteError}</p>}
             </div>
 
             {/* Date filter */}
