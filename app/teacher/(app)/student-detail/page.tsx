@@ -64,6 +64,8 @@ interface Assessment {
     self_response: string;
   };
   completed_at: string;
+  ai_overview?: string;
+  ai_overview_generated_at?: string;
 }
 
 interface Enrollment {
@@ -174,6 +176,42 @@ export default function StudentDetailPage() {
   );
 }
 
+/* ── Inline child that auto-kicks AI overview generation on first open ── */
+function GenerateOverviewInline({ studentId, onReady }: { studentId: string; onReady: (text: string, when: string) => void }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      setLoading(true); setError(null);
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setError('Not signed in.'); return; }
+        const res = await fetch('/api/teacher/generate-overview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId, teacherId: user.id }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        if (res.ok && data.overview) onReady(data.overview, data.generated_at);
+        else setError(data.error || 'Could not generate overview.');
+      } catch (e) {
+        if (!cancelled) setError('Could not generate overview.');
+      } finally { if (!cancelled) setLoading(false); }
+    }
+    run();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentId]);
+
+  if (loading) return <p className="text-[13px] text-text-secondary italic">✨ Generating overview…</p>;
+  if (error)   return <p className="text-[13px] text-red-500">{error}</p>;
+  return <p className="text-[13px] text-text-muted italic">No overview yet.</p>;
+}
+
 function StudentDetailContent() {
   const searchParams = useSearchParams();
   const studentId = searchParams.get('student');
@@ -190,6 +228,9 @@ function StudentDetailContent() {
   const [flagError, setFlagError] = useState('');
   const [flagSuccess, setFlagSuccess] = useState(false);
   const [showAssessmentPanel, setShowAssessmentPanel] = useState(false);
+  const [aiOverview, setAiOverview] = useState<string | null>(null);
+  const [aiOverviewLoading, setAiOverviewLoading] = useState(false);
+  const [aiOverviewDate, setAiOverviewDate] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -218,6 +259,10 @@ function StudentDetailContent() {
         setAssessment(data.assessment || null);
         setEnrollments(data.enrollments || []);
         setResponses(data.responses || []);
+        if (data.assessment?.ai_overview) {
+          setAiOverview(data.assessment.ai_overview);
+          setAiOverviewDate(data.assessment.ai_overview_generated_at || null);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load student');
       } finally {
@@ -484,6 +529,55 @@ function StudentDetailContent() {
 
             {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+              {/* AI Overview */}
+              <section className="rounded-xl border-2 border-[#7C3AED]/30 bg-gradient-to-br from-[#7C3AED]/8 to-[#7C3AED]/0 p-4">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkle size={16} weight="fill" className="text-[#7C3AED]" />
+                    <h4 className="font-heading font-bold text-[13px] text-text-primary">AI Overview</h4>
+                    <span className="text-[10px] font-semibold text-[#7C3AED] bg-[#7C3AED]/10 px-2 py-0.5 rounded-full">AI-generated</span>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (aiOverviewLoading) return;
+                      setAiOverviewLoading(true);
+                      try {
+                        const supabase = createClient();
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (!user) return;
+                        const res = await fetch('/api/teacher/generate-overview', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ studentId, teacherId: user.id, regenerate: true }),
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                          setAiOverview(data.overview);
+                          setAiOverviewDate(data.generated_at);
+                        }
+                      } finally { setAiOverviewLoading(false); }
+                    }}
+                    className="text-[11px] font-semibold text-[#7C3AED] hover:underline cursor-pointer bg-transparent border-0 disabled:opacity-50"
+                    disabled={aiOverviewLoading}
+                  >
+                    {aiOverviewLoading ? 'Regenerating…' : 'Regenerate'}
+                  </button>
+                </div>
+                {aiOverview ? (
+                  <>
+                    <p className="text-[13px] text-text-primary leading-[1.6]">{aiOverview}</p>
+                    {aiOverviewDate && <p className="text-[10px] text-text-muted mt-2">Generated {new Date(aiOverviewDate).toLocaleString()}</p>}
+                  </>
+                ) : (
+                  studentId && (
+                    <GenerateOverviewInline
+                      studentId={studentId}
+                      onReady={(text, when) => { setAiOverview(text); setAiOverviewDate(when); }}
+                    />
+                  )
+                )}
+              </section>
+
               {/* About section */}
               <section>
                 <h4 className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-secondary mb-2">About</h4>
