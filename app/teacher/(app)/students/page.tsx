@@ -441,7 +441,11 @@ function StudentsContent() {
                         <DotsThree size={20} weight="bold" className="text-text-secondary" />
                       </button>
                       {openActionMenu === s.id && (
-                        <div className="absolute right-0 top-full mt-1 border border-border rounded-lg shadow-xl z-40 min-w-[240px] overflow-hidden bg-white dark:bg-[#0e1a35]">
+                        <div className="absolute right-0 mt-2 border border-border rounded-lg shadow-2xl z-40 min-w-[240px] overflow-hidden bg-white dark:bg-[#0e1a35] top-[calc(100%+4px)]">
+                          {/* Small visual connector between the ... button and the menu so it reads as a clean popover */}
+                          <div className="px-3 py-2 border-b border-border bg-surface">
+                            <p className="text-[11px] font-semibold text-text-primary truncate">{s.first} {s.last}</p>
+                          </div>
                           <button
                             onClick={() => { window.location.href = `/teacher/student-detail?student=${s.id}`; setOpenActionMenu(null); }}
                             className="block w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-navy/5 cursor-pointer"
