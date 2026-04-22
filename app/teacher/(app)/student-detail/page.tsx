@@ -466,8 +466,9 @@ function StudentDetailContent() {
       {/* Assessment Slide-Out Panel */}
       {showAssessmentPanel && assessment && (
         <>
+          {/* Transparent click-catcher so page content stays crisp behind the panel */}
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[55]"
+            className="fixed inset-0 z-[55]"
             onClick={() => setShowAssessmentPanel(false)}
           />
           <div className="fixed top-0 right-0 h-screen bg-card-bg border-l border-border z-[60] shadow-2xl flex flex-col animate-[slideInRight_0.25s_ease-out] w-full sm:w-[40vw] sm:min-w-[500px] sm:max-w-[900px]">
