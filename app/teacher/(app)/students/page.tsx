@@ -659,7 +659,7 @@ function StudentsContent() {
       {/* Delete Student Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/70 z-[80] flex items-center justify-center p-4" onClick={() => !deleteSaving && setDeleteTarget(null)}>
-          <div className="bg-card-bg border border-red-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-[#243550] border border-red-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-heading font-bold text-base text-red-600 mb-2">Permanently Delete {deleteTarget.first} {deleteTarget.last}?</h3>
             <p className="text-sm text-text-secondary mb-3">
               This will <strong>permanently delete</strong> their account, enrollments, assessments, chats, and notes.
@@ -681,7 +681,7 @@ function StudentsContent() {
                 className="px-4 py-2 rounded-lg border border-border text-sm text-text-secondary hover:bg-border/10 cursor-pointer disabled:opacity-50"
               >Cancel</button>
               <button
-                disabled={deleteSaving || !deleteReason.trim()}
+                disabled={deleteSaving}
                 onClick={async () => {
                   setDeleteSaving(true);
                   try {
