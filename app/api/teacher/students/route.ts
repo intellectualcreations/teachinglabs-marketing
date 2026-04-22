@@ -70,49 +70,40 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ classes: teacherClasses, students: [], enrollments: [] });
     }
 
-    // Get unique student IDs and fetch their profiles
+    // Get unique student IDs
     const studentIds = [...new Set(enrollments.map((e: { student_id: string }) => e.student_id))];
-    const { data: studentProfiles } = await supabase
-      .from('profiles')
-      .select('*')
-      .in('id', studentIds);
 
-    // Pull email addresses from auth.users (not stored on profiles)
+    // Parallelize the three downstream fetches:
+    //  (1) profiles for these students
+    //  (2) auth.users to pull emails (single page of 1000 covers all realistic class sizes)
+    //  (3) student_assessments for baseline dates + preferred names
+    const [profilesRes, usersRes, assessmentsRes] = await Promise.all([
+      supabase.from('profiles').select('*').in('id', studentIds),
+      (supabase as any).auth.admin.listUsers({ page: 1, perPage: 1000 }),
+      supabase.from('student_assessments').select('student_id, completed_at, preferred_name').in('student_id', studentIds).then(
+        (r: any) => r,
+        (e: any) => ({ data: [], error: e }),
+      ),
+    ]);
+
+    const studentProfiles = profilesRes.data ?? [];
     const emailMap = new Map<string, string>();
-    try {
-      let page = 1;
-      const ids = new Set(studentIds);
-      while (ids.size > 0) {
-        const { data } = await (supabase as any).auth.admin.listUsers({ page, perPage: 1000 });
-        if (!data?.users?.length) break;
-        for (const u of data.users) {
-          if (ids.has(u.id)) { emailMap.set(u.id, u.email || ''); ids.delete(u.id); }
-        }
-        if (data.users.length < 1000) break;
-        page++;
-      }
-    } catch (e) {
-      console.warn('email lookup failed:', (e as Error).message);
+    const idSet = new Set(studentIds);
+    for (const u of (usersRes?.data?.users ?? [])) {
+      if (idSet.has(u.id)) emailMap.set(u.id, u.email || '');
     }
-    const profilesWithEmail = (studentProfiles ?? []).map((p: any) => ({ ...p, email: emailMap.get(p.id) || '' }));
-
-    // Fetch baseline assessment completion dates (table may not exist yet)
-    let assessments: { student_id: string; completed_at: string }[] = [];
-    try {
-      const { data: assessmentData } = await supabase
-        .from('student_assessments')
-        .select('student_id, completed_at, preferred_name')
-        .in('student_id', studentIds);
-      assessments = (assessmentData ?? []) as { student_id: string; completed_at: string }[];
-    } catch {
-      // Table may not exist yet — return empty
-    }
+    const profilesWithEmail = studentProfiles.map((p: any) => ({ ...p, email: emailMap.get(p.id) || '' }));
+    const assessments = (assessmentsRes as any)?.data ?? [];
 
     return NextResponse.json({
       classes: teacherClasses,
       students: profilesWithEmail,
       enrollments,
-      assessments: assessments ?? [],
+      assessments,
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=5, stale-while-revalidate=30',
+      },
     });
   } catch (err) {
     console.error('Students API error:', err);

@@ -46,35 +46,33 @@ export async function GET(request: NextRequest) {
 
   const classIds = classes.map((c: { id: string }) => c.id);
 
-  // Fetch enrollment counts
-  const { data: enrollments } = await supabase
-    .from('enrollments')
-    .select('class_id')
-    .in('class_id', classIds)
-    .eq('status', 'active');
+  // Parallelize enrollments + class_activities — they don't depend on each other.
+  // This halves the API latency on warm calls (~2 serial queries → 1 parallel round-trip).
+  const [enrollmentsRes, classActivitiesRes] = await Promise.all([
+    supabase.from('enrollments').select('class_id').in('class_id', classIds).eq('status', 'active'),
+    supabase.from('class_activities').select('class_id').in('class_id', classIds),
+  ]);
 
   const enrollCounts = new Map<string, number>();
-  (enrollments ?? []).forEach((e: { class_id: string }) => {
+  (enrollmentsRes.data ?? []).forEach((e: { class_id: string }) => {
     enrollCounts.set(e.class_id, (enrollCounts.get(e.class_id) ?? 0) + 1);
   });
 
-  // Fetch assignment counts from junction table
-  const { data: classActivities } = await supabase
-    .from('class_activities')
-    .select('class_id')
-    .in('class_id', classIds);
-
   const assignCounts = new Map<string, number>();
-  (classActivities ?? []).forEach((a: { class_id: string }) => {
+  (classActivitiesRes.data ?? []).forEach((a: { class_id: string }) => {
     assignCounts.set(a.class_id, (assignCounts.get(a.class_id) ?? 0) + 1);
   });
 
-  // Combine
   const result = classes.map((c: { id: string }) => ({
     ...c,
     studentCount: enrollCounts.get(c.id) ?? 0,
     assignmentCount: assignCounts.get(c.id) ?? 0,
   }));
 
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: {
+      // Short cache + stale-while-revalidate so repeat loads feel instant.
+      'Cache-Control': 'private, max-age=5, stale-while-revalidate=30',
+    },
+  });
 }
