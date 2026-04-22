@@ -365,8 +365,9 @@ export default function MyClassesPage() {
                 </Link>
               </div>
 
-              {/* Footer: sidebar toggle + archive */}
-              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+              {/* Footer: sidebar toggle + approval toggle + archive */}
+              <div className="mt-4 pt-3 border-t border-border flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer text-[11px] text-text-secondary select-none">
                   <input
                     type="checkbox"
@@ -414,6 +415,34 @@ export default function MyClassesPage() {
                   }}
                   className="text-[11px] text-text-muted hover:text-text-primary cursor-pointer"
                 >Archive class</button>
+                </div>
+                {/* Approval toggle */}
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] text-text-secondary select-none">
+                  <input
+                    type="checkbox"
+                    checked={(c as any).requires_approval === true}
+                    onChange={async (e) => {
+                      const next = e.target.checked;
+                      setClasses(prev => prev.map(x => x.id === c.id ? { ...x, requires_approval: next } as any : x));
+                      try {
+                        const supabase = createClient();
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (!user) throw new Error('Not signed in');
+                        const res = await fetch('/api/teacher/classes/approval', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ teacherId: user.id, classId: c.id, requiresApproval: next }),
+                        });
+                        if (!res.ok) throw new Error('Save failed');
+                      } catch (err) {
+                        console.error('Approval toggle failed:', err);
+                        setClasses(prev => prev.map(x => x.id === c.id ? { ...x, requires_approval: !next } as any : x));
+                      }
+                    }}
+                    className="w-3.5 h-3.5 cursor-pointer accent-teal"
+                  />
+                  Require teacher approval for new students
+                </label>
               </div>
             </div>
           ))}
