@@ -321,7 +321,7 @@ function StudentsContent() {
               onClick={() => { setStatusFilter(key); setSelectedIds(new Set()); }}
               className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium cursor-pointer transition-all border-[1.5px] ${
                 statusFilter === key
-                  ? (key === 'pending' ? 'bg-amber-500 border-amber-500 text-white' : key === 'archived' ? 'bg-text-secondary border-text-secondary text-white' : 'bg-navy border-navy text-white')
+                  ? (key === 'pending' ? 'bg-amber-500 border-amber-500 text-white' : key === 'archived' ? 'bg-slate-500 border-slate-500 text-white' : 'bg-navy border-navy text-white')
                   : 'border-border text-text-secondary hover:border-navy hover:text-navy'
               }`}
             >
@@ -419,7 +419,7 @@ function StudentsContent() {
             <p className="text-text-secondary text-sm mt-1">Try adjusting your search or filters</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-visible">
             <table className="w-full border-collapse min-w-[700px]">
               <thead>
                 <tr>
