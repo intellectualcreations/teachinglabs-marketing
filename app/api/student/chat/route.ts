@@ -42,6 +42,27 @@ interface StudentAssessment {
   emotional_intelligence_signals: Record<string, string> | null;
 }
 
+/* ─── Goal-type guidance ─── */
+function goalGuidanceFor(goalType?: string, topic?: string): string {
+  if (!goalType) return '';
+  const goal = topic ? `'${topic}'` : 'what they told you';
+  switch (goalType) {
+    case 'practice':
+      return `\n\n[SESSION GOAL — PRACTICE MODE]\nThe student set their goal for this session: they want to PRACTICE ${goal}.\nBehavior: be Socratic. Ask them a problem, let them try, correct gently, then give another. Go from easier to harder. After 3-4 successful attempts, celebrate and ask if they want to keep going or try harder. Never dump info; have them DO the work.`;
+    case 'write':
+      return `\n\n[SESSION GOAL — WRITING MODE]\nThe student set their goal: they want to WRITE ${goal}.\nBehavior: collaborate as a co-author. Help them outline first, then draft section by section. Ask them questions to pull out their ideas — don't write it for them. Give 1 concrete suggestion at a time, not a wall of feedback.`;
+    case 'plan':
+      return `\n\n[SESSION GOAL — PLANNING MODE]\nThe student set their goal: they want to PLAN ${goal}.\nBehavior: help them structure the plan. Ask about the end outcome, milestones, timeline, and resources. Turn their fuzzy ideas into a clear ordered list. End with a written plan they can save.`;
+    case 'build':
+      return `\n\n[SESSION GOAL — BUILD MODE]\nThe student set their goal: they want to BUILD ${goal}.\nBehavior: act like a maker/engineer coach. Help them break the project into steps, anticipate obstacles, and iterate. Ask what tools/materials they have. Celebrate their creative choices.`;
+    case 'understand':
+      return `\n\n[SESSION GOAL — UNDERSTAND MODE]\nThe student set their goal: they want to UNDERSTAND ${goal}.\nBehavior: explain in layers, starting simple. After each explanation, ask a check-for-understanding question. Use analogies to their interests. End the session with them being able to teach it back to you.`;
+    case 'chat':
+    default:
+      return `\n\n[SESSION GOAL — OPEN CHAT]\nThe student wants to explore ${goal}. Be curious, ask good questions, help them think.`;
+  }
+}
+
 /* ─── Build system prompt ─── */
 function buildSystemPrompt(
   studentName: string,
@@ -54,6 +75,8 @@ function buildSystemPrompt(
   studentAssessment: StudentAssessment | null,
   superpowerTitle?: string | null,
   primaryIntelligence?: string | null,
+  goalType?: string,
+  topic?: string,
 ): string {
   // Language tier mapping
   const languageTierMap: Record<string, string> = {
@@ -245,7 +268,7 @@ TEACHING METHOD (THIS IS HOW YOU TEACH — follow this on every response):
    K-12 PRIVACY:
    - Handle all student-related content with heightened privacy and neutrality
    - Never generate identifying attributes or sensitive labels about students
-   - Never reference conversations with other students or share any cross-student information`;
+   - Never reference conversations with other students or share any cross-student information${goalGuidanceFor(goalType, topic)}`;
 }
 
 /**
@@ -331,14 +354,14 @@ export async function POST(request: NextRequest) {
   // Create a fake user object for compatibility
   const user = { id: userId };
 
-  let body: { class_id?: string; content?: string; user_id?: string; new_chat?: boolean; session_id?: string; topic?: string };
+  let body: { class_id?: string; content?: string; user_id?: string; new_chat?: boolean; session_id?: string; topic?: string; goal_type?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { class_id, content, new_chat, session_id: clientSessionId, topic } = body;
+  const { class_id, content, new_chat, session_id: clientSessionId, topic, goal_type } = body;
   // Generate a session_id for new chats, or use the one from the client
   const session_id = clientSessionId || crypto.randomUUID();
 
@@ -576,6 +599,8 @@ export async function POST(request: NextRequest) {
     studentAssessment,
     studentProfile?.superpower_title,
     studentProfile?.primary_intelligence,
+    goal_type,
+    topic,
   );
 
   try {

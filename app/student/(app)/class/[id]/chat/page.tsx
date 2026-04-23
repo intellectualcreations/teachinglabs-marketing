@@ -154,6 +154,8 @@ export default function ClassChatPage() {
   const [showTopicModal, setShowTopicModal] = useState(false);
   const [topicInput, setTopicInput] = useState('');
   const [currentTopic, setCurrentTopic] = useState('');
+  const [goalType, setGoalType] = useState<string>('');          // 'practice' | 'write' | 'plan' | 'build' | 'understand' | 'chat'
+  const [currentGoalType, setCurrentGoalType] = useState<string>('');
   const [currentSessionId, setCurrentSessionId] = useState('');
   const [speakingMsgId, setSpeakingMsgId] = useState('');
   const [input, setInput] = useState('');
@@ -385,7 +387,7 @@ export default function ClassChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ class_id: classId, content: messageContent, user_id: userId, new_chat: !activeSession, session_id: currentSessionId, topic: currentTopic || undefined }),
+        body: JSON.stringify({ class_id: classId, content: messageContent, user_id: userId, new_chat: !activeSession, session_id: currentSessionId, topic: currentTopic || undefined, goal_type: currentGoalType || undefined }),
       });
 
       if (res.ok) {
@@ -468,11 +470,18 @@ export default function ClassChatPage() {
           >
             <ArrowLeft size={16} className="text-text-secondary" />
           </button>
-          <div>
-            <h1 className="font-heading font-bold text-text-primary">
+          <div className="min-w-0">
+            <h1 className="font-heading font-bold text-text-primary truncate">
               {newChatMode ? (currentTopic || 'New Chat') : (activeSession?.topic || 'Chat')}
             </h1>
-            <p className="text-xs text-text-secondary">{className}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-xs text-text-secondary">{className}</p>
+              {currentGoalType && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal/15 text-teal border border-teal/30 uppercase tracking-wide">
+                  {({ practice: '📝 Practice', write: '✍️ Write', plan: '🎯 Plan', build: '🔨 Build', understand: '🤔 Understand', chat: '💬 Chat' } as Record<string,string>)[currentGoalType] || currentGoalType}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -753,47 +762,84 @@ export default function ClassChatPage() {
           ))}
         </div>
       )}
-      {/* Topic Name Modal */}
+      {/* Goal Picker Modal — every chat starts with 'what do you want to accomplish?' */}
       {showTopicModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#0f1a2e] border border-border rounded-2xl shadow-2xl p-6 max-w-sm mx-4 w-full">
-            <h3 className="font-heading font-bold text-lg text-text-primary mb-2">What do you want to explore?</h3>
-            <p className="text-sm text-text-secondary mb-4">Give your chat a topic so you can find it later.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-[#0f1a2e] border border-border rounded-2xl shadow-2xl p-6 max-w-md mx-auto w-full">
+            <h3 className="font-heading font-bold text-lg text-text-primary mb-1">Let&apos;s set a goal for this chat</h3>
+            <p className="text-sm text-text-secondary mb-4">Great AI conversations start with a purpose. What do you want to accomplish today?</p>
+
+            {/* Goal type pills */}
+            <p className="text-xs font-semibold text-text-secondary mb-2 uppercase tracking-wide">Pick a goal type</p>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {[
+                { id: 'practice', label: '📝 Practice', hint: 'Drill a skill' },
+                { id: 'write', label: '✍️ Write', hint: 'Essay, story, report' },
+                { id: 'plan', label: '🎯 Plan', hint: 'Project, study plan' },
+                { id: 'build', label: '🔨 Build', hint: 'Make something' },
+                { id: 'understand', label: '🤔 Understand', hint: 'Learn a topic' },
+                { id: 'chat', label: '💬 Just Talk', hint: 'Explore ideas' },
+              ].map(g => (
+                <button
+                  key={g.id}
+                  onClick={() => setGoalType(g.id)}
+                  className={`px-2 py-2 rounded-lg border text-left transition-colors ${
+                    goalType === g.id
+                      ? 'border-teal bg-teal/15 text-teal'
+                      : 'border-border text-text-primary hover:border-teal/50'
+                  }`}
+                >
+                  <div className="text-[13px] font-semibold">{g.label}</div>
+                  <div className="text-[10px] text-text-muted mt-0.5">{g.hint}</div>
+                </button>
+              ))}
+            </div>
+
+            <p className="text-xs font-semibold text-text-secondary mb-2 uppercase tracking-wide">What exactly?</p>
             <input
               type="text"
               value={topicInput}
               onChange={e => setTopicInput(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter' && topicInput.trim()) {
+                if (e.key === 'Enter' && topicInput.trim() && goalType) {
                   setCurrentTopic(topicInput.trim());
+                  setCurrentGoalType(goalType);
                   setCurrentSessionId(crypto.randomUUID());
                   setNewChatMode(true);
                   setShowTopicModal(false);
                 }
               }}
-              placeholder={`e.g. Antarctica Trip, Fractions, Stone Fox...`}
+              placeholder={
+                goalType === 'practice' ? 'e.g. adding fractions with unlike denominators'
+                : goalType === 'write' ? 'e.g. 2-page essay on Stone Fox themes'
+                : goalType === 'plan' ? 'e.g. plan my Antarctica research project'
+                : goalType === 'build' ? 'e.g. design a bridge using what we learned'
+                : goalType === 'understand' ? 'e.g. how photosynthesis actually works'
+                : 'e.g. what we\'re working on...'
+              }
               className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/10 border border-border text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:border-teal mb-4"
               autoFocus
-              maxLength={60}
+              maxLength={120}
             />
             <div className="flex gap-2">
               <button
-                onClick={() => setShowTopicModal(false)}
+                onClick={() => { setShowTopicModal(false); setGoalType(''); setTopicInput(''); }}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-border text-text-secondary text-sm font-medium hover:bg-white/5 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => {
-                  if (topicInput.trim()) {
+                  if (topicInput.trim() && goalType) {
                     setCurrentTopic(topicInput.trim());
+                    setCurrentGoalType(goalType);
                     setCurrentSessionId(crypto.randomUUID());
                     setNewChatMode(true);
                     setShowTopicModal(false);
                   }
                 }}
-                disabled={!topicInput.trim()}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-teal text-navy font-semibold text-sm hover:bg-teal/90 transition-colors disabled:opacity-40"
+                disabled={!topicInput.trim() || !goalType}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-teal text-navy font-semibold text-sm hover:bg-teal/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Start Chat
               </button>
