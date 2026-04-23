@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       .join('\n');
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',
+      model: 'claude-haiku-4-5',
       max_tokens: 200,
       system: `You are a teaching assistant. Summarize this student-AI tutor conversation in 2-3 sentences for the teacher. Focus on: what topic was discussed, how the student engaged (questions asked, understanding shown), and any areas where the student may need help. Be concise and professional.`,
       messages: [{ role: 'user', content: transcript }],
