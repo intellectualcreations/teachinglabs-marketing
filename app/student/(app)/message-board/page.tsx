@@ -6,6 +6,7 @@ import {
   ChatsCircle, PaperPlaneRight, ArrowLeft, Plus, Lock, UsersThree, ChatCircleText,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 interface ClassRow { id: string; name: string; subject: string | null; icon: string | null; allow_student_topics?: boolean; }
 interface Topic {
@@ -76,7 +77,7 @@ function StudentMessageBoardContent() {
       if (!user) { router.push('/login'); return; }
       setUserId(user.id);
 
-      const res = await fetch(`/api/student/classes?studentId=${user.id}`);
+      const res = await authFetch(`/api/student/classes?studentId=${user.id}`);
       const data = res.ok ? await res.json() : { classes: [] };
       const rows: ClassRow[] = data.classes ?? [];
 
@@ -105,7 +106,7 @@ function StudentMessageBoardContent() {
   const loadTopics = useCallback(async () => {
     if (!activeClass || !userId) return;
     setLoadingTopics(true);
-    const res = await fetch(`/api/message-board/topics?classId=${activeClass.id}&userId=${userId}&role=student`);
+    const res = await authFetch(`/api/message-board/topics?classId=${activeClass.id}&userId=${userId}&role=student`);
     const data = res.ok ? await res.json() : { topics: [] };
     setTopics(data.topics ?? []);
     setLoadingTopics(false);
@@ -118,7 +119,7 @@ function StudentMessageBoardContent() {
     setSelectedTopic(topic);
     setLoadingTopic(true);
     setShowParticipantsList(false);
-    const res = await fetch(`/api/message-board/topics/${topic.id}?userId=${userId}&role=student`);
+    const res = await authFetch(`/api/message-board/topics/${topic.id}?userId=${userId}&role=student`);
     const data = res.ok ? await res.json() : { replies: [], participants: [] };
     setTopicReplies(data.replies ?? []);
     setTopicParticipants(data.participants ?? []);
@@ -138,7 +139,7 @@ function StudentMessageBoardContent() {
     const tick = async () => {
       if (cancelled || document.hidden) return;
       try {
-        const res = await fetch(`/api/message-board/topics/${selectedTopic.id}?userId=${userId}&role=student`);
+        const res = await authFetch(`/api/message-board/topics/${selectedTopic.id}?userId=${userId}&role=student`);
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
@@ -157,7 +158,7 @@ function StudentMessageBoardContent() {
   async function sendReply() {
     if (!selectedTopic || !replyText.trim() || !userId) return;
     setSending(true);
-    const res = await fetch(`/api/message-board/topics/${selectedTopic.id}/replies`, {
+    const res = await authFetch(`/api/message-board/topics/${selectedTopic.id}/replies`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, role: 'student', content: replyText.trim() }),
@@ -178,7 +179,7 @@ function StudentMessageBoardContent() {
   async function createTopic() {
     if (!activeClass || !userId || !newTitle.trim()) return;
     setCreating(true);
-    const res = await fetch('/api/message-board/topics', {
+    const res = await authFetch('/api/message-board/topics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

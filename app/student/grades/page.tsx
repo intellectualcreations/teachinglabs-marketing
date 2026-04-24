@@ -14,6 +14,7 @@ import {
 import Link from 'next/link';
 import AIFeedbackView from '@/components/grading/AIFeedbackView';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 interface CriteriaScore {
   name: string;
@@ -209,7 +210,7 @@ export default function StudentGradesPage() {
 
     if (!aiGrades[submissionId]) {
       try {
-        const res = await fetch(`/api/submissions/${submissionId}/grade`);
+        const res = await authFetch(`/api/submissions/${submissionId}/grade`);
         if (res.ok) {
           const data = await res.json();
           setAiGrades((prev) => ({ ...prev, [submissionId]: data.gradeSubmission }));

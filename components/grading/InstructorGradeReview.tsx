@@ -8,6 +8,7 @@ import {
   PencilSimple,
   ListChecks,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface CriteriaScore {
   name: string;
@@ -68,7 +69,7 @@ export default function InstructorGradeReview({
     setActing(true);
     setError('');
     try {
-      const res = await fetch(`/api/submissions/${submission.submissionId}/grade/override`, {
+      const res = await authFetch(`/api/submissions/${submission.submissionId}/grade/override`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' }),
@@ -96,7 +97,7 @@ export default function InstructorGradeReview({
     setActing(true);
     setError('');
     try {
-      const res = await fetch(`/api/submissions/${submission.submissionId}/grade/override`, {
+      const res = await authFetch(`/api/submissions/${submission.submissionId}/grade/override`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'override', score, notes }),

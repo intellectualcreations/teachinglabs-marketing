@@ -6,6 +6,7 @@ import {
   PaperPlaneRight, MegaphoneSimple, UserCircle, UsersThree, Clock,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 interface ClassMessage {
   id: string;
@@ -52,14 +53,14 @@ export default function ClassMessageBoardPage() {
         setUserId(user.id);
 
         // Fetch class name
-        const classRes = await fetch(`/api/teacher/class-details?classId=${classId}`);
+        const classRes = await authFetch(`/api/teacher/class-details?classId=${classId}`);
         if (classRes.ok) {
           const classData = await classRes.json();
           setClassName(classData.class?.name || 'Class');
         }
 
         // Fetch messages
-        const res = await fetch(`/api/student/class-messages?classId=${classId}`);
+        const res = await authFetch(`/api/student/class-messages?classId=${classId}`);
         if (res.ok) {
           const data = await res.json();
           setMessages(data.messages || []);
@@ -81,7 +82,7 @@ export default function ClassMessageBoardPage() {
     if (!newMessage.trim() || sending) return;
     setSending(true);
     try {
-      const res = await fetch('/api/student/class-messages', {
+      const res = await authFetch('/api/student/class-messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

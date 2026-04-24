@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface ProgressStats {
   courseCompletion: number;
@@ -14,7 +15,7 @@ export default function ProgressPage() {
   const studentId = 'demo-student-1';
 
   useEffect(() => {
-    fetch(`/api/students/${studentId}/progress`)
+    authFetch(`/api/students/${studentId}/progress`)
       .then(r => r.json())
       .then(setStats)
       .catch(console.error);

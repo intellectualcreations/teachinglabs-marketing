@@ -7,6 +7,7 @@ import {
   Paperclip, Image as ImageIcon, FileText, VideoCamera, X, SpeakerHigh, Stop,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 interface ChatMessage {
   id: string;
@@ -212,7 +213,7 @@ export default function ClassChatPage() {
           if (sess?.access_token) authHeaders = { 'Authorization': `Bearer ${sess.access_token}` };
         } catch { /* ignore */ }
 
-        const classRes = await fetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
+        const classRes = await authFetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
         if (classRes.ok) {
           const classJson = await classRes.json();
           const cls = (classJson.classes ?? []).find((c: { id: string; name: string }) => c.id === classId);
@@ -220,7 +221,7 @@ export default function ClassChatPage() {
         }
 
         // Get chat messages via admin API (bypasses RLS)
-        const chatRes = await fetch(`/api/student/chat?classId=${classId}&userId=${user.id}`);
+        const chatRes = await authFetch(`/api/student/chat?classId=${classId}&userId=${user.id}`);
         const chatJson = chatRes.ok ? await chatRes.json() : { messages: [] };
         const chatMessages = (chatJson.messages ?? []) as ChatMessage[];
         const grouped = groupIntoSessions(chatMessages);
@@ -301,7 +302,7 @@ export default function ClassChatPage() {
       formData.append('userId', uid);
       formData.append('classId', classId);
 
-      const res = await fetch('/api/student/upload', {
+      const res = await authFetch('/api/student/upload', {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -383,7 +384,7 @@ export default function ClassChatPage() {
     setIsTyping(true);
 
     try {
-      const res = await fetch('/api/student/chat', {
+      const res = await authFetch('/api/student/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -460,7 +461,7 @@ export default function ClassChatPage() {
               setActiveSession(null); setNewChatMode(false); setPendingAttachment(null);
               // Re-fetch chat list
               if (userId) {
-                const chatRes = await fetch(`/api/student/chat?classId=${classId}&userId=${userId}`);
+                const chatRes = await authFetch(`/api/student/chat?classId=${classId}&userId=${userId}`);
                 const chatJson = chatRes.ok ? await chatRes.json() : { messages: [] };
                 const grouped = groupIntoSessions((chatJson.messages ?? []) as ChatMessage[]);
                 setSessions(grouped);

@@ -7,6 +7,7 @@ import {
   UserPlus,
   SignOut,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface PeerTutor {
   id: string;
@@ -38,7 +39,7 @@ export default function TutorDirectory({
 
   const fetchTutors = useCallback(async () => {
     try {
-      const res = await fetch(`/api/courses/${courseId}/tutors`);
+      const res = await authFetch(`/api/courses/${courseId}/tutors`);
       if (res.ok) {
         const data = await res.json();
         setTutors(data.tutors || []);
@@ -60,7 +61,7 @@ export default function TutorDirectory({
     if (toggling) return;
     setToggling(true);
     try {
-      const res = await fetch(`/api/courses/${courseId}/tutors`, {
+      const res = await authFetch(`/api/courses/${courseId}/tutors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,7 +84,7 @@ export default function TutorDirectory({
     if (toggling) return;
     setToggling(true);
     try {
-      const res = await fetch(`/api/courses/${courseId}/tutors`, {
+      const res = await authFetch(`/api/courses/${courseId}/tutors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUserId, optOut: true }),

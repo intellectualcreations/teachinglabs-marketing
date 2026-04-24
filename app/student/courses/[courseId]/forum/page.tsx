@@ -12,6 +12,7 @@ import {
   X,
   User,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface Reply {
   id: string;
@@ -51,7 +52,7 @@ export default function StudentForumPage() {
 
   const fetchPosts = useCallback(async () => {
     try {
-      const res = await fetch(`/api/courses/${courseId}/forum`);
+      const res = await authFetch(`/api/courses/${courseId}/forum`);
       if (res.ok) {
         const data = await res.json();
         setPosts(data.posts || []);
@@ -71,7 +72,7 @@ export default function StudentForumPage() {
     if (!newTitle.trim() || !newBody.trim() || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/courses/${courseId}/forum`, {
+      const res = await authFetch(`/api/courses/${courseId}/forum`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -96,7 +97,7 @@ export default function StudentForumPage() {
     if (!selectedPost || !replyBody.trim() || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/courses/${courseId}/forum/${selectedPost.id}/reply`, {
+      const res = await authFetch(`/api/courses/${courseId}/forum/${selectedPost.id}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +110,7 @@ export default function StudentForumPage() {
         setReplyBody('');
         await fetchPosts();
         // Refresh selected post
-        const updated = (await (await fetch(`/api/courses/${courseId}/forum`)).json()).posts;
+        const updated = (await (await authFetch(`/api/courses/${courseId}/forum`)).json()).posts;
         const refreshed = updated.find((p: ForumPost) => p.id === selectedPost.id);
         if (refreshed) setSelectedPost(refreshed);
       }

@@ -1,24 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/api-auth';
 
 /**
- * GET /api/student/activity-chat?activityId=<uuid>&studentId=<uuid>
- * Returns chat messages for a student's activity session.
+ * GET /api/student/activity-chat?activityId=<uuid>
+ * Returns chat messages for the authenticated student's activity session.
+ * Any `studentId` query param is ignored.
  *
  * POST /api/student/activity-chat
- * Body: { activityId, studentId, message, activityTitle?, activityDescription? }
- * Saves message and returns AI reply.
+ * Body: { activityId, message, activityTitle?, activityDescription? }
+ * Saves message and returns AI reply. Caller identity comes from the session.
  */
 
 export async function GET(request: NextRequest) {
-  const activityId = request.nextUrl.searchParams.get('activityId');
-  const studentId = request.nextUrl.searchParams.get('studentId');
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const studentId = user.id;
 
-  if (!activityId || !studentId) {
-    return NextResponse.json({ error: 'activityId and studentId required' }, { status: 400 });
+  const activityId = request.nextUrl.searchParams.get('activityId');
+  if (!activityId) {
+    return NextResponse.json({ error: 'activityId required' }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
   const { data: messages } = await (supabase as any)
     .from('activity_chats')
     .select('*')
@@ -31,14 +34,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth(request);
+    if ('error' in auth) return auth.error;
+    const { user, admin: supabase } = auth;
+    const studentId = user.id;
+
     const body = await request.json();
-    const { activityId, studentId, message, activityTitle, activityDescription } = body;
+    const { activityId, message, activityTitle, activityDescription } = body;
 
-    if (!activityId || !studentId || !message) {
-      return NextResponse.json({ error: 'activityId, studentId, and message required' }, { status: 400 });
+    if (!activityId || !message) {
+      return NextResponse.json({ error: 'activityId and message required' }, { status: 400 });
     }
-
-    const supabase = createAdminClient();
 
     // Save user message
     await (supabase as any)

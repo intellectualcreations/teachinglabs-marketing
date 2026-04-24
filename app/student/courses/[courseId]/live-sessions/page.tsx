@@ -10,6 +10,7 @@ import {
   Clock,
   ArrowSquareOut,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface LiveSession {
   id: string;
@@ -28,7 +29,7 @@ export default function StudentLiveSessionsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/courses/${courseId}/live-sessions`)
+    authFetch(`/api/courses/${courseId}/live-sessions`)
       .then((res) => res.json())
       .then((data) => setSessions(data.sessions || []))
       .catch(() => {})

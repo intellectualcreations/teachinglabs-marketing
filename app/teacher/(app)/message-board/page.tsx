@@ -7,6 +7,7 @@ import {
   Flag, Warning, Question, Lightning, X, Gear, Check,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 interface ClassRow { id: string; name: string; subject: string | null; icon: string | null; allow_student_topics: boolean; }
 interface StudentRow { id: string; display_name: string; }
@@ -130,7 +131,7 @@ function TeacherMessageBoardContent() {
       if (!user) { router.push('/login'); return; }
       setUserId(user.id);
 
-      const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}`);
+      const res = await authFetch(`/api/classes/by-teacher?teacherId=${user.id}`);
       const data = res.ok ? await res.json() : [];
       const rows: ClassRow[] = Array.isArray(data) ? data : (data.classes ?? []);
       setClasses(rows);
@@ -148,7 +149,7 @@ function TeacherMessageBoardContent() {
   const loadTopics = useCallback(async () => {
     if (!activeClass || !userId) return;
     setLoadingTopics(true);
-    const res = await fetch(`/api/message-board/topics?classId=${activeClass.id}&userId=${userId}&role=teacher`);
+    const res = await authFetch(`/api/message-board/topics?classId=${activeClass.id}&userId=${userId}&role=teacher`);
     const data = res.ok ? await res.json() : { topics: [] };
     setTopics(data.topics ?? []);
     setSettingAllow(activeClass.allow_student_topics !== false);
@@ -158,7 +159,7 @@ function TeacherMessageBoardContent() {
   // Load roster when activeClass changes (for private topic picker)
   const loadRoster = useCallback(async () => {
     if (!activeClass) return;
-    const res = await fetch(`/api/teacher/students?teacherId=${userId}`);
+    const res = await authFetch(`/api/teacher/students?teacherId=${userId}`);
     if (!res.ok) return;
     const data = await res.json();
     const enrollments: Array<{ student_id: string; class_id: string }> = data.enrollments ?? [];
@@ -175,7 +176,7 @@ function TeacherMessageBoardContent() {
   const loadFlagged = useCallback(async () => {
     if (!userId) return;
     setLoadingFlagged(true);
-    const res = await fetch(`/api/message-board/flagged?teacherId=${userId}`);
+    const res = await authFetch(`/api/message-board/flagged?teacherId=${userId}`);
     const data = res.ok ? await res.json() : { flagged: [] };
     setFlagged(data.flagged ?? []);
     setLoadingFlagged(false);
@@ -188,7 +189,7 @@ function TeacherMessageBoardContent() {
     setLoadingTopic(true);
     setHighlightReplyId(scrollToReplyId ?? null);
     setShowParticipantsList(false);
-    const res = await fetch(`/api/message-board/topics/${topic.id}?userId=${userId}&role=teacher`);
+    const res = await authFetch(`/api/message-board/topics/${topic.id}?userId=${userId}&role=teacher`);
     const data = res.ok ? await res.json() : { replies: [], participants: [] };
     setTopicReplies(data.replies ?? []);
     setTopicParticipants(data.participants ?? []);
@@ -213,7 +214,7 @@ function TeacherMessageBoardContent() {
     const tick = async () => {
       if (cancelled || document.hidden) return;
       try {
-        const res = await fetch(`/api/message-board/topics/${selectedTopic.id}?userId=${userId}&role=teacher`);
+        const res = await authFetch(`/api/message-board/topics/${selectedTopic.id}?userId=${userId}&role=teacher`);
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
@@ -232,7 +233,7 @@ function TeacherMessageBoardContent() {
   async function sendReply() {
     if (!selectedTopic || !replyText.trim() || !userId) return;
     setSending(true);
-    const res = await fetch(`/api/message-board/topics/${selectedTopic.id}/replies`, {
+    const res = await authFetch(`/api/message-board/topics/${selectedTopic.id}/replies`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, role: 'teacher', content: replyText.trim() }),
@@ -256,7 +257,7 @@ function TeacherMessageBoardContent() {
       is_private: newIsPrivate,
     };
     if (newIsPrivate) body.participant_ids = [...newParticipants];
-    const res = await fetch('/api/message-board/topics', {
+    const res = await authFetch('/api/message-board/topics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -273,7 +274,7 @@ function TeacherMessageBoardContent() {
   }
 
   async function dismissFlag(replyId: string) {
-    await fetch(`/api/message-board/replies/${replyId}/dismiss`, {
+    await authFetch(`/api/message-board/replies/${replyId}/dismiss`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId }),
@@ -286,7 +287,7 @@ function TeacherMessageBoardContent() {
   async function saveSetting() {
     if (!activeClass || !userId) return;
     setSavingSetting(true);
-    const res = await fetch(`/api/classes/${activeClass.id}/allow-student-topics`, {
+    const res = await authFetch(`/api/classes/${activeClass.id}/allow-student-topics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ teacherId: userId, allow: settingAllow }),

@@ -6,6 +6,7 @@
 
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import { authFetch } from '@/lib/api-fetch';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -32,7 +33,7 @@ export default function CodePlayground({ lessonId, starterCode }: CodePlayground
     setRunning(true);
     setOutput(null);
     try {
-      const res = await fetch('/api/sandbox/run', {
+      const res = await authFetch('/api/sandbox/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ language, code, lessonId }),
@@ -52,7 +53,7 @@ export default function CodePlayground({ lessonId, starterCode }: CodePlayground
 
   const loadHistory = useCallback(async () => {
     try {
-      const res = await fetch(`/api/sandbox/history/${lessonId}`);
+      const res = await authFetch(`/api/sandbox/history/${lessonId}`);
       const data = await res.json();
       setHistory(data.history || []);
       setShowHistory(true);

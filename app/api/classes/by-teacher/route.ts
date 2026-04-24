@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
- * GET /api/classes/by-teacher?teacherId=<uuid>
- * Returns teacher's classes with enrollment and assignment counts.
- * Uses admin client to bypass RLS.
+ * GET /api/classes/by-teacher
+ * Returns the authenticated teacher's classes with enrollment and
+ * assignment counts. Any `teacherId` query param is IGNORED — the
+ * caller's identity is always taken from the authenticated session.
  */
 export async function GET(request: NextRequest) {
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const teacherId = user.id;
   const includeArchived = request.nextUrl.searchParams.get('includeArchived') === 'true';
   const sidebarOnly = request.nextUrl.searchParams.get('sidebarOnly') === 'true';
-  if (!teacherId) {
-    return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
-  }
-
-  const supabase = createAdminClient();
 
   // Fetch classes. Gracefully fall back if the new columns aren't migrated yet.
   let classes: any[] | null = null;

@@ -1,24 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/api-auth';
 
 /**
- * GET /api/message-board/topics/[topicId]?userId=<uuid>&role=<teacher|student>
+ * GET /api/message-board/topics/[topicId]
  * Returns a topic with all its replies and sender display names.
- * Enforces private-topic visibility for students.
+ * Enforces private-topic visibility for students. Caller identity and role
+ * come from the authenticated session; any query-string `userId` / `role`
+ * are ignored.
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ topicId: string }> }
 ) {
-  const { topicId } = await params;
-  const userId = request.nextUrl.searchParams.get('userId');
-  const role = request.nextUrl.searchParams.get('role') || 'student';
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const userId = user.id;
 
-  if (!topicId || !userId) {
-    return NextResponse.json({ error: 'topicId and userId required' }, { status: 400 });
+  const { topicId } = await params;
+  if (!topicId) {
+    return NextResponse.json({ error: 'topicId required' }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
+  // Determine role from the DB, not from the caller.
+  const { data: callerProfile } = await (supabase as any)
+    .from('profiles').select('role').eq('id', userId).maybeSingle();
+  const role = callerProfile?.role || 'student';
 
   const { data: topic, error } = await (supabase as any)
     .from('message_board_topics')
@@ -145,22 +152,27 @@ export async function GET(
 }
 
 /**
- * DELETE /api/message-board/topics/[topicId]?userId=<uuid>&role=<teacher|student>
+ * DELETE /api/message-board/topics/[topicId]
  * Teachers can delete any topic in their class. Students can only delete topics they created.
+ * Caller identity and role come from the authenticated session.
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ topicId: string }> }
 ) {
-  const { topicId } = await params;
-  const userId = request.nextUrl.searchParams.get('userId');
-  const role = request.nextUrl.searchParams.get('role') || 'student';
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const userId = user.id;
 
-  if (!topicId || !userId) {
-    return NextResponse.json({ error: 'topicId and userId required' }, { status: 400 });
+  const { topicId } = await params;
+  if (!topicId) {
+    return NextResponse.json({ error: 'topicId required' }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
+  const { data: callerProfile } = await (supabase as any)
+    .from('profiles').select('role').eq('id', userId).maybeSingle();
+  const role = callerProfile?.role || 'student';
 
   const { data: topic } = await (supabase as any)
     .from('message_board_topics')

@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
- * GET /api/teacher/courses?teacherId=<uuid>
+ * GET /api/teacher/courses
  * Returns { courses[], orphanedActivities[] } for the library page.
- * Handles case where courses/modules tables don't exist yet (pre-migration).
+ * Caller identity comes from the authenticated session; any `teacherId`
+ * query param is ignored.
  */
 export async function GET(request: NextRequest) {
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
-  if (!teacherId) {
-    return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
-  }
-
-  const admin = createAdminClient();
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin } = auth;
+  const teacherId = user.id;
 
   try {
     // Try to fetch courses — if table doesn't exist, return empty
@@ -132,19 +131,22 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/teacher/courses
- * Create a new course.
- * Body: { title, description, subject, grade_level, teacher_id }
+ * Create a new course for the authenticated teacher. The caller's id is
+ * always taken from the session; any `teacher_id` in the body is ignored.
+ * Body: { title, description, subject, grade_level }
  */
 export async function POST(request: NextRequest) {
-  const admin = createAdminClient();
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin } = auth;
 
   try {
     const body = await request.json();
-    const { title, description, subject, grade_level, standards, teacher_id } = body;
+    const { title, description, subject, grade_level, standards } = body;
 
-    if (!title || !teacher_id) {
+    if (!title) {
       return NextResponse.json(
-        { error: 'title and teacher_id are required' },
+        { error: 'title is required' },
         { status: 400 }
       );
     }
@@ -154,7 +156,7 @@ export async function POST(request: NextRequest) {
       description: description || null,
       subject: subject || null,
       grade_level: grade_level || null,
-      teacher_id,
+      teacher_id: user.id,
       is_published: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Certificate, Printer, ArrowLeft } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface CertificateData {
   studentName: string;
@@ -23,7 +24,7 @@ export default function CertificatePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/student/certificates/${courseId}`)
+    authFetch(`/api/student/certificates/${courseId}`)
       .then(async (res) => {
         if (!res.ok) {
           const body = await res.json();

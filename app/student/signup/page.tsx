@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 function GoogleIcon() {
   return (
@@ -89,7 +90,7 @@ export default function StudentSignupPage() {
     setCodeStatus('checking');
     codeTimerRef.current = setTimeout(async () => {
       try {
-        const resp = await fetch(`/api/classes/lookup?code=${encodeURIComponent(classCode.trim())}`);
+        const resp = await authFetch(`/api/classes/lookup?code=${encodeURIComponent(classCode.trim())}`);
         const result = await resp.json();
 
         if (!result.found) {

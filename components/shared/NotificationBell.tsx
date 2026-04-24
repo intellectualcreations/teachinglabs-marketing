@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Bell, CheckCircle, Exam, Certificate, Checks, BookOpenText, UserPlus } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface NotificationItem {
   id: string;
@@ -53,7 +54,7 @@ export default function NotificationBell({ role }: { role: 'student' | 'instruct
   // Fetch notifications
   const fetchNotifications = async () => {
     try {
-      const res = await fetch(`/api/notifications?role=${role}`);
+      const res = await authFetch(`/api/notifications?role=${role}`);
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications);
@@ -85,7 +86,7 @@ export default function NotificationBell({ role }: { role: 'student' | 'instruct
   }, [open]);
 
   const markOneRead = async (id: string) => {
-    await fetch(`/api/notifications/${id}/read`, { method: 'POST' });
+    await authFetch(`/api/notifications/${id}/read`, { method: 'POST' });
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
@@ -94,7 +95,7 @@ export default function NotificationBell({ role }: { role: 'student' | 'instruct
 
   const markAllReadAction = async () => {
     setLoading(true);
-    await fetch('/api/notifications/read-all', {
+    await authFetch('/api/notifications/read-all', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role }),

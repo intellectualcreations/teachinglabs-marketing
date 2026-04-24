@@ -8,6 +8,7 @@ import {
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { Assignment, Submission } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 type FilterStatus = 'all' | 'todo' | 'done' | 'archived';
 type SortBy = 'due_date' | 'created_at' | 'title';
@@ -60,7 +61,7 @@ export default function ClassActivitiesPage() {
           if (sess?.access_token) authHeaders = { 'Authorization': `Bearer ${sess.access_token}` };
         } catch { /* ignore */ }
 
-        const res = await fetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
+        const res = await authFetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
         if (!res.ok) return;
         const data = await res.json();
 
@@ -75,7 +76,7 @@ export default function ClassActivitiesPage() {
         setSubmissions(classSubs);
 
         // Fetch activity statuses (turn-in, archive)
-        const statusRes = await fetch(`/api/student/activity-status?studentId=${user.id}&classId=${classId}`);
+        const statusRes = await authFetch(`/api/student/activity-status?studentId=${user.id}&classId=${classId}`);
         if (statusRes.ok) {
           const statusData = await statusRes.json();
           setActivityStatuses(statusData.statuses ?? []);
@@ -106,7 +107,7 @@ export default function ClassActivitiesPage() {
 
   const handleTurnIn = useCallback(async (e: React.MouseEvent, activityId: string) => {
     e.stopPropagation();
-    const res = await fetch('/api/student/activity-status', {
+    const res = await authFetch('/api/student/activity-status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ studentId: userId, activityId, classId, action: 'turn_in' }),
@@ -122,7 +123,7 @@ export default function ClassActivitiesPage() {
 
   const handleArchive = useCallback(async (e: React.MouseEvent, activityId: string, archive: boolean) => {
     e.stopPropagation();
-    const res = await fetch('/api/student/activity-status', {
+    const res = await authFetch('/api/student/activity-status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ studentId: userId, activityId, classId, action: archive ? 'archive' : 'unarchive' }),

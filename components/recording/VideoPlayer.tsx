@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { VideoCamera, CircleNotch } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface RecordingData {
   id: string;
@@ -22,7 +23,7 @@ export default function VideoPlayer({ lessonId }: VideoPlayerProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/lessons/${lessonId}/recording`)
+    authFetch(`/api/lessons/${lessonId}/recording`)
       .then((res) => res.json())
       .then((data: { recording: RecordingData | null }) => {
         setRecording(data.recording ?? null);

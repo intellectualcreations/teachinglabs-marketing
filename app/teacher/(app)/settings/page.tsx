@@ -7,6 +7,7 @@ import {
 } from '@phosphor-icons/react';
 import { useTheme } from 'next-themes';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 /* ─── Toggle Switch ─── */
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
@@ -125,7 +126,7 @@ export default function SettingsPage() {
         setEmail(user.email || '');
 
         // Fetch profile via admin API route (bypasses RLS)
-        const res = await fetch(`/api/teacher/profile?teacherId=${user.id}`);
+        const res = await authFetch(`/api/teacher/profile?teacherId=${user.id}`);
         if (!res.ok) return;
         const data = await res.json();
 
@@ -308,7 +309,7 @@ export default function SettingsPage() {
                     if (!userId) return;
                     setProfileSaving(true);
                     try {
-                      const res = await fetch('/api/teacher/profile', {
+                      const res = await authFetch('/api/teacher/profile', {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -424,7 +425,7 @@ export default function SettingsPage() {
                     const supabase = createClient();
                     const { data: { user } } = await supabase.auth.getUser();
                     if (!user) return;
-                    const res = await fetch('/api/teacher/profile', {
+                    const res = await authFetch('/api/teacher/profile', {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({

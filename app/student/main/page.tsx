@@ -13,6 +13,7 @@ import Link from 'next/link';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile, Class, Enrollment, Assignment, Submission, ChatMessage } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 // ============ HELPERS ============
 
@@ -449,7 +450,7 @@ function StudentMainInner() {
     setIsTyping(true);
 
     try {
-      const res = await fetch('/api/student/chat', {
+      const res = await authFetch('/api/student/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ class_id: currentClassId, content: text }),

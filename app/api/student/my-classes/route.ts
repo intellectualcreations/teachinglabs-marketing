@@ -1,54 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient, createClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/api-auth';
 
 /**
  * GET /api/student/my-classes
- * Returns the student's enrolled classes with teacher info, assignments, submissions.
- * Bypasses RLS using admin client after verifying the student's identity.
+ * Returns the authenticated user's enrolled classes with teacher info,
+ * assignments, and submissions. Caller identity comes only from the
+ * authenticated session (cookie or Bearer token); any `userId` query
+ * param is ignored.
  */
 export async function GET(request: NextRequest) {
-  const admin = createAdminClient();
-  let userId: string | null = null;
-
-  // Method 1: Cookie-based session
-  try {
-    const userSupabase = await createClient();
-    const { data: { user }, error: cookieErr } = await userSupabase.auth.getUser();
-    if (user) userId = user.id;
-    if (cookieErr) console.log('[my-classes] Cookie auth error:', cookieErr.message);
-  } catch (err) {
-    console.log('[my-classes] Cookie auth exception:', err);
-  }
-
-  // Method 2: Authorization header — use admin client to verify JWT
-  if (!userId) {
-    const authHeader = request.headers.get('authorization');
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.slice(7);
-      const { data: { user }, error } = await admin.auth.getUser(token);
-      if (!error && user) userId = user.id;
-      if (error) console.log('[my-classes] Token auth error:', error.message);
-    } else {
-      console.log('[my-classes] No auth header found');
-    }
-  }
-
-  // Method 3: userId query param (only if we can verify via cookie on the page that called us)
-  if (!userId) {
-    const queryUserId = request.nextUrl.searchParams.get('userId');
-    if (queryUserId) {
-      // Verify this user exists in the admin client
-      const { data: { user }, error } = await admin.auth.admin.getUserById(queryUserId);
-      if (!error && user) userId = user.id;
-    }
-  }
-
-  if (!userId) {
-    console.log('[my-classes] All auth methods failed');
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-  }
-
-  console.log('[my-classes] Authenticated as:', userId);
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin } = auth;
+  const userId = user.id;
 
   // Fetch enrollments (active + pending)
   // Note: 'pending' may not exist in the DB enum yet, so fetch active first, then try pending

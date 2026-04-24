@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { Record, Stop, CircleNotch } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface RecordButtonProps {
   sessionId: string;
@@ -49,7 +50,7 @@ export default function RecordButton({
 
     try {
       // 1. Tell the server we are starting
-      const startRes = await fetch(`/api/sessions/${sessionId}/record`, {
+      const startRes = await authFetch(`/api/sessions/${sessionId}/record`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'start', lessonId }),
@@ -149,7 +150,7 @@ export default function RecordButton({
       formData.append('duration', String(duration));
       formData.append('video', blob, `recording-${recordingId}.webm`);
 
-      const res = await fetch(`/api/sessions/${sessionId}/record`, {
+      const res = await authFetch(`/api/sessions/${sessionId}/record`, {
         method: 'POST',
         body: formData,
       });

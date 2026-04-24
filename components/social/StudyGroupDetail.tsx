@@ -9,6 +9,7 @@ import {
   User,
   Trash,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface StudyGroupMember {
   id: string;
@@ -65,7 +66,7 @@ export default function StudyGroupDetail({
 
   const fetchGroup = useCallback(async () => {
     try {
-      const res = await fetch(`/api/groups/${groupId}`);
+      const res = await authFetch(`/api/groups/${groupId}`);
       if (res.ok) {
         const data = await res.json();
         setGroup(data.group);
@@ -83,7 +84,7 @@ export default function StudyGroupDetail({
 
   async function handleDelete() {
     if (!group) return;
-    const res = await fetch(`/api/groups/${groupId}`, { method: 'DELETE' });
+    const res = await authFetch(`/api/groups/${groupId}`, { method: 'DELETE' });
     if (res.ok) onBack();
   }
 

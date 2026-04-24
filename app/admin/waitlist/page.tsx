@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface WaitlistEntry {
   first_name: string;
@@ -38,7 +39,7 @@ export default function WaitlistAdmin() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`/api/admin/waitlist?password=${encodeURIComponent(pw)}`);
+      const res = await authFetch(`/api/admin/waitlist?password=${encodeURIComponent(pw)}`);
       if (res.status === 401) {
         setError('Incorrect password.');
         setAuthenticated(false);

@@ -8,6 +8,7 @@ import {
 import BarChart from '@/components/shared/BarChart';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile, Class } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 /* ── Types for enrolled student data ── */
 interface EnrolledStudent {
@@ -52,7 +53,7 @@ export default function DashboardPage() {
         }
 
         // Fetch all dashboard data via admin API route (bypasses RLS)
-        const res = await fetch(`/api/teacher/dashboard?teacherId=${user.id}`);
+        const res = await authFetch(`/api/teacher/dashboard?teacherId=${user.id}`);
         if (!res.ok) {
           const errData = await res.json();
           throw new Error(errData.error || 'Failed to load dashboard');

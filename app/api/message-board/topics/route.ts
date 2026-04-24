@@ -1,21 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/api-auth';
 
 /**
- * GET /api/message-board/topics?classId=<uuid>&userId=<uuid>&role=<teacher|student>
- * Lists topics for a class. Students only see public topics + private topics they're a participant in.
- * Teachers see all topics.
+ * GET /api/message-board/topics?classId=<uuid>
+ * Lists topics for a class. Students only see public topics + private topics
+ * they're a participant in. Teachers see all topics. Caller identity and
+ * role come from the authenticated session; any `userId` / `role` query
+ * params are ignored.
  */
 export async function GET(request: NextRequest) {
-  const classId = request.nextUrl.searchParams.get('classId');
-  const userId = request.nextUrl.searchParams.get('userId');
-  const role = request.nextUrl.searchParams.get('role') || 'student';
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const userId = user.id;
 
-  if (!classId || !userId) {
-    return NextResponse.json({ error: 'classId and userId required' }, { status: 400 });
+  const classId = request.nextUrl.searchParams.get('classId');
+  if (!classId) {
+    return NextResponse.json({ error: 'classId required' }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
+  // Determine role from the DB, not from the caller.
+  const { data: callerProfile } = await (supabase as any)
+    .from('profiles').select('role').eq('id', userId).maybeSingle();
+  const role = callerProfile?.role || 'student';
 
   // Load topics
   const { data: topics, error } = await (supabase as any)
@@ -97,18 +104,27 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/message-board/topics
- * Body: { classId, userId, role, title, is_private?, participant_ids? }
- * Creates a new topic. Students only allowed if class.allow_student_topics = true.
+ * Body: { classId, title, is_private?, participant_ids? }
+ * Creates a new topic. Caller identity comes from the authenticated session.
+ * Students only allowed if class.allow_student_topics = true.
  */
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { classId, userId, role, title, is_private, participant_ids } = body || {};
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const userId = user.id;
 
-  if (!classId || !userId || !title?.trim()) {
-    return NextResponse.json({ error: 'classId, userId, title required' }, { status: 400 });
+  const body = await request.json();
+  const { classId, title, is_private, participant_ids } = body || {};
+
+  if (!classId || !title?.trim()) {
+    return NextResponse.json({ error: 'classId, title required' }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
+  // Determine role from the DB, not from the caller.
+  const { data: callerProfile } = await (supabase as any)
+    .from('profiles').select('role').eq('id', userId).maybeSingle();
+  const role = callerProfile?.role || 'student';
 
   // Check class setting for students
   if (role !== 'teacher') {

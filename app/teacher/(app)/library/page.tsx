@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { Assignment, Class } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 const SUBJECTS = [
   'English Language Arts', 'Reading', 'Writing', 'Math', 'Science',
@@ -110,7 +111,7 @@ export default function LibraryPage() {
         setUserId(user.id);
 
         // Fetch courses + orphaned activities
-        const coursesRes = await fetch(`/api/teacher/courses?teacherId=${user.id}`);
+        const coursesRes = await authFetch(`/api/teacher/courses?teacherId=${user.id}`);
         if (coursesRes.ok) {
           const coursesData = await coursesRes.json();
           setCourses(coursesData.courses ?? []);
@@ -119,7 +120,7 @@ export default function LibraryPage() {
         }
 
         // Also fetch library data for the activities tab (all assignments)
-        const libRes = await fetch(`/api/teacher/library?teacherId=${user.id}`);
+        const libRes = await authFetch(`/api/teacher/library?teacherId=${user.id}`);
         if (libRes.ok) {
           const libData = await libRes.json();
           setClasses(libData.classes ?? []);
@@ -223,7 +224,7 @@ export default function LibraryPage() {
 
   async function togglePublish(courseId: string, currentlyPublished: boolean) {
     try {
-      const res = await fetch(`/api/teacher/courses/${courseId}`, {
+      const res = await authFetch(`/api/teacher/courses/${courseId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_published: !currentlyPublished }),
@@ -251,7 +252,7 @@ export default function LibraryPage() {
   // Load class assignments for a single activity
   async function loadActivityClasses(activityId: string) {
     try {
-      const res = await fetch(`/api/teacher/activities/${activityId}/classes`);
+      const res = await authFetch(`/api/teacher/activities/${activityId}/classes`);
       if (res.ok) {
         const { classIds } = await res.json();
         setActivityClassMap(prev => new Map(prev).set(activityId, classIds));
@@ -263,7 +264,7 @@ export default function LibraryPage() {
   async function saveActivityClasses(activityId: string, classIds: string[]) {
     setAssignSaving(true);
     try {
-      const res = await fetch(`/api/teacher/activities/${activityId}/classes`, {
+      const res = await authFetch(`/api/teacher/activities/${activityId}/classes`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ classIds }),
@@ -323,7 +324,7 @@ export default function LibraryPage() {
       const modsWithActivities = await Promise.all(
         (course.modules || []).map(async (mod) => {
           try {
-            const res = await fetch(`/api/teacher/courses/${course.id}/modules/${mod.id}/activities`);
+            const res = await authFetch(`/api/teacher/courses/${course.id}/modules/${mod.id}/activities`);
             if (res.ok) {
               const data = await res.json();
               return { id: mod.id, title: mod.title, activities: data.activities || [] };
@@ -453,7 +454,7 @@ export default function LibraryPage() {
             setSubjectFilter('');
             if (tlCourses.length === 0 && !tlLoading) {
               setTlLoading(true);
-              fetch('/api/teacher/tl-courses')
+              authFetch('/api/teacher/tl-courses')
                 .then(r => r.json())
                 .then(d => setTlCourses(d.courses ?? []))
                 .catch(() => {})
@@ -461,7 +462,7 @@ export default function LibraryPage() {
             }
             if (!tlActivitiesLoaded) {
               setTlActivitiesLoaded(true);
-              fetch('/api/teacher/tl-activities')
+              authFetch('/api/teacher/tl-activities')
                 .then(r => r.json())
                 .then(d => setTlActivities(d.activities ?? []))
                 .catch(() => {});
@@ -596,7 +597,7 @@ export default function LibraryPage() {
                         onClick={async () => {
                           if (!userId) return;
                           try {
-                            const res = await fetch('/api/teacher/tl-courses', {
+                            const res = await authFetch('/api/teacher/tl-courses', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ course_id: course.id, teacher_id: userId }),
@@ -688,14 +689,14 @@ export default function LibraryPage() {
                       onClick={async () => {
                         if (!userId) return;
                         // Add to teacher's library by creating a personal copy
-                        const res = await fetch('/api/teacher/activities/copy', {
+                        const res = await authFetch('/api/teacher/activities/copy', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ activityId: act.id, teacherId: userId }),
                         });
                         if (res.ok) {
                           // Refresh assignments
-                          const libRes = await fetch(`/api/teacher/library?teacherId=${userId}`);
+                          const libRes = await authFetch(`/api/teacher/library?teacherId=${userId}`);
                           if (libRes.ok) { const d = await libRes.json(); setAssignments(d.assignments ?? []); }
                           alert('Activity added to your library!');
                         }
@@ -1096,7 +1097,7 @@ export default function LibraryPage() {
                               onClick={async () => {
                                 if (!confirm('Delete this activity? This cannot be undone.')) return;
                                 try {
-                                  const res = await fetch(`/api/teacher/activities?id=${a.id}`, { method: 'DELETE' });
+                                  const res = await authFetch(`/api/teacher/activities?id=${a.id}`, { method: 'DELETE' });
                                   if (!res.ok) { const err = await res.json().catch(() => ({})); alert('Failed to delete: ' + (err.error || res.statusText)); return; }
                                   setAssignments(prev => prev.filter(act => act.id !== a.id));
                                   setOrphanedActivities(prev => prev.filter(act => act.id !== a.id));
@@ -1215,7 +1216,7 @@ export default function LibraryPage() {
                           e.stopPropagation();
                           if (!confirm('Delete this activity? This cannot be undone.')) return;
                           try {
-                            const res = await fetch(`/api/teacher/activities?id=${a.id}`, { method: 'DELETE' });
+                            const res = await authFetch(`/api/teacher/activities?id=${a.id}`, { method: 'DELETE' });
                             if (!res.ok) { const err = await res.json().catch(() => ({})); alert('Failed to delete: ' + (err.error || res.statusText)); return; }
                             setAssignments(prev => prev.filter(act => act.id !== a.id));
                             setOrphanedActivities(prev => prev.filter(act => act.id !== a.id));

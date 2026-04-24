@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
- * GET /api/teacher/profile?teacherId=<uuid>
- * Returns { profile, school } for the settings page.
- * Uses admin client to bypass RLS.
+ * GET /api/teacher/profile
+ * Returns { profile, school } for the authenticated teacher.
+ * Any `teacherId` query param is ignored.
  */
 export async function GET(request: NextRequest) {
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
-  if (!teacherId) {
-    return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
-  }
-
-  const supabase = createAdminClient();
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const teacherId = user.id;
 
   try {
     // Fetch profile
@@ -47,16 +45,19 @@ export async function GET(request: NextRequest) {
 
 /**
  * PATCH /api/teacher/profile
- * Body: { teacherId, display_name?, preferred_name? }
- * Updates teacher profile fields.
+ * Body: { display_name?, preferred_name?, ... }
+ * Updates the authenticated teacher's profile fields. Any `teacherId`
+ * in the body is ignored.
  */
 export async function PATCH(request: NextRequest) {
-  const body = await request.json();
-  const { teacherId, ...updates } = body;
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const teacherId = user.id;
 
-  if (!teacherId) {
-    return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
-  }
+  const body = await request.json();
+  const { teacherId: _ignoredTeacherId, ...updates } = body;
+  void _ignoredTeacherId;
 
   // Only allow safe fields
   const allowed: Record<string, string | null> = {};
@@ -87,7 +88,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
   const { error } = await supabase
     .from('profiles')
     .update(allowed as never)

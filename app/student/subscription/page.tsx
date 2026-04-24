@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { authFetch } from '@/lib/api-fetch';
 
 interface BillingRecord {
   id: string;
@@ -47,7 +48,7 @@ function SubscriptionContent() {
   const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/subscription?studentId=demo-student')
+    authFetch('/api/subscription?studentId=demo-student')
       .then((r) => r.json())
       .then(setData)
       .catch(() => {})
@@ -57,7 +58,7 @@ function SubscriptionContent() {
   async function handleUpgrade() {
     setUpgrading(true);
     try {
-      const res = await fetch('/api/subscription', {
+      const res = await authFetch('/api/subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId: 'demo-student' }),

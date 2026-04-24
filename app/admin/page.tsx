@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface Stats {
   totalUsers: number;
@@ -37,9 +38,9 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/admin/stats').then((r) => r.json()),
-      fetch('/api/admin/users').then((r) => r.json()),
-      fetch('/api/admin/courses').then((r) => r.json()),
+      authFetch('/api/admin/stats').then((r) => r.json()),
+      authFetch('/api/admin/users').then((r) => r.json()),
+      authFetch('/api/admin/courses').then((r) => r.json()),
     ])
       .then(([statsData, usersData, coursesData]) => {
         setStats(statsData);

@@ -9,6 +9,7 @@ import {
   BookOpenText, MusicNotes, PersonArmsSpread, HandHeart,
   TreeEvergreen, Barbell, Lightbulb, Sparkle, Eye, PencilSimple, X,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -189,7 +190,7 @@ function GenerateOverviewInline({ studentId, onReady }: { studentId: string; onR
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setError('Not signed in.'); return; }
-        const res = await fetch('/api/teacher/generate-overview', {
+        const res = await authFetch('/api/teacher/generate-overview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ studentId, teacherId: user.id }),
@@ -296,7 +297,7 @@ function StudentDetailContent() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { window.location.href = '/login'; return; }
 
-        const res = await fetch(
+        const res = await authFetch(
           `/api/teacher/student-detail?studentId=${studentId}&teacherId=${user.id}`
         );
 
@@ -384,7 +385,7 @@ function StudentDetailContent() {
       const params = new URLSearchParams({ teacherId: user.id, studentId });
       if (from) params.set('from', new Date(from).toISOString());
       if (to) params.set('to', new Date(new Date(to).getTime() + 24 * 3600 * 1000).toISOString());
-      const res = await fetch(`/api/teacher/notes?${params.toString()}`);
+      const res = await authFetch(`/api/teacher/notes?${params.toString()}`);
       const data = await res.json();
       if (res.ok) setNotes(data.notes || []);
     } finally { setNotesLoading(false); }
@@ -522,7 +523,7 @@ function StudentDetailContent() {
                 const supabase = createClient();
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user || !studentId) return;
-                const res = await fetch(`/api/teacher/student-conversations?studentId=${studentId}&teacherId=${user.id}`);
+                const res = await authFetch(`/api/teacher/student-conversations?studentId=${studentId}&teacherId=${user.id}`);
                 const data = await res.json();
                 if (res.ok) setConversations(data.sessions || []);
               } finally { setConversationsLoading(false); }
@@ -639,7 +640,7 @@ function StudentDetailContent() {
                     const supabase = createClient();
                     const { data: { user } } = await supabase.auth.getUser();
                     if (!user || !studentId) { setRecalibrateError('Not signed in.'); setRecalibrating(false); return; }
-                    const res = await fetch('/api/teacher/recalibrate', {
+                    const res = await authFetch('/api/teacher/recalibrate', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ studentId, teacherId: user.id }),
@@ -723,7 +724,7 @@ function StudentDetailContent() {
                         const supabase = createClient();
                         const { data: { user } } = await supabase.auth.getUser();
                         if (!user) return;
-                        const res = await fetch('/api/teacher/generate-overview', {
+                        const res = await authFetch('/api/teacher/generate-overview', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ studentId, teacherId: user.id, regenerate: true }),
@@ -904,7 +905,7 @@ function StudentDetailContent() {
                       <button
                         key={h.id}
                         onClick={async () => {
-                          const res = await fetch(`/api/teacher/baseline-history/${h.id}?teacherId=${await (async () => { const s = createClient(); const { data: { user } } = await s.auth.getUser(); return user?.id || ''; })()}`);
+                          const res = await authFetch(`/api/teacher/baseline-history/${h.id}?teacherId=${await (async () => { const s = createClient(); const { data: { user } } = await s.auth.getUser(); return user?.id || ''; })()}`);
                           if (res.ok) { const { history } = await res.json(); setHistoryDetail(history); setSelectedHistoryId(h.id); }
                         }}
                         className="w-full text-left px-3 py-2 rounded-md bg-card-bg border border-border hover:border-[#7C3AED] transition-colors cursor-pointer"
@@ -1068,7 +1069,7 @@ function StudentDetailContent() {
                       const { data: { user }, error: authErr } = await supabase.auth.getUser();
                       if (authErr || !user) { setNoteError('Not signed in'); return; }
                       if (!studentId) { setNoteError('Missing student id'); return; }
-                      const res = await fetch('/api/teacher/notes', {
+                      const res = await authFetch('/api/teacher/notes', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ teacherId: user.id, studentId, content: newNote.trim() }),
@@ -1123,7 +1124,7 @@ function StudentDetailContent() {
                         const supabase = createClient();
                         const { data: { user } } = await supabase.auth.getUser();
                         if (!user) return;
-                        const res = await fetch(`/api/teacher/notes?id=${n.id}&teacherId=${user.id}`, { method: 'DELETE' });
+                        const res = await authFetch(`/api/teacher/notes?id=${n.id}&teacherId=${user.id}`, { method: 'DELETE' });
                         if (res.ok) setNotes((prev) => (prev ?? []).filter((x: any) => x.id !== n.id));
                       }}
                       className="text-[10px] text-text-muted hover:text-red-500 cursor-pointer"

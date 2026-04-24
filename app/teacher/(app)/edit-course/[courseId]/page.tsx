@@ -7,6 +7,7 @@ import {
   BookOpen, Warning, CaretDown, CaretRight, Lightning,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 const SUBJECTS = [
   { value: 'english_language_arts', label: 'English Language Arts' },
@@ -92,7 +93,7 @@ export default function EditCoursePage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) setUserId(user.id);
 
-        const res = await fetch(`/api/teacher/courses/${courseId}`);
+        const res = await authFetch(`/api/teacher/courses/${courseId}`);
         if (!res.ok) throw new Error('Failed to load course');
         const { course } = await res.json();
         setTitle(course.title || '');
@@ -136,7 +137,7 @@ export default function EditCoursePage() {
       return;
     }
     try {
-      const res = await fetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities`);
+      const res = await authFetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities`);
       if (res.ok) {
         const { activities } = await res.json();
         setModules(prev => prev.map(m => m.id === moduleId ? { ...m, activities: activities || [], loadedActivities: true, showActivities: true } : m));
@@ -154,11 +155,15 @@ export default function EditCoursePage() {
       console.error('No activity title');
       return;
     }
-    // Use teacher_id from the course data if userId not available
-    const teacherId = userId || 'c419128e-2868-47b7-8eaf-82c43a52c8bf';
+    // Require an authenticated teacher — never fall back to a hardcoded id.
+    if (!userId) {
+      router.push('/login');
+      return;
+    }
+    const teacherId = userId;
     setSavingActivity(moduleId);
     try {
-      const res = await fetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities`, {
+      const res = await authFetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -211,7 +216,7 @@ export default function EditCoursePage() {
 
   async function saveModuleToDb(mod: ModuleItem): Promise<string | null> {
     try {
-      const res = await fetch(`/api/teacher/courses/${courseId}/modules`, {
+      const res = await authFetch(`/api/teacher/courses/${courseId}/modules`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -237,7 +242,7 @@ export default function EditCoursePage() {
   async function deleteActivity(moduleId: string, activityId: string) {
     if (!confirm('Delete this activity?')) return;
     try {
-      const res = await fetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities/${activityId}`, {
+      const res = await authFetch(`/api/teacher/courses/${courseId}/modules/${moduleId}/activities/${activityId}`, {
         method: 'DELETE',
       });
       if (res.ok) {
@@ -264,7 +269,7 @@ export default function EditCoursePage() {
 
     try {
       // Update course details
-      const res = await fetch(`/api/teacher/courses/${courseId}`, {
+      const res = await authFetch(`/api/teacher/courses/${courseId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -283,7 +288,7 @@ export default function EditCoursePage() {
       // Save new modules
       const newModules = modules.filter((m) => m.isNew && m.title.trim());
       for (const mod of newModules) {
-        await fetch(`/api/teacher/courses/${courseId}/modules`, {
+        await authFetch(`/api/teacher/courses/${courseId}/modules`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -307,7 +312,7 @@ export default function EditCoursePage() {
     if (deleteInput !== 'DELETE') return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/teacher/courses/${courseId}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/teacher/courses/${courseId}`, { method: 'DELETE' });
       if (res.ok) {
         router.push('/teacher/library');
       } else {

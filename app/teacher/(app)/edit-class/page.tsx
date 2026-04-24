@@ -9,6 +9,7 @@ import {
   PersonSimpleRun, Books, MaskHappy, Heartbeat, Leaf, Robot,
   Ruler, Target, Lightbulb, Star, HouseLine, Check, CaretLeft, Copy,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,7 +119,7 @@ function EditClassPage() {
     }
 
     try {
-      const res = await fetch(`/api/teacher/class-details?classId=${classId}`);
+      const res = await authFetch(`/api/teacher/class-details?classId=${classId}`);
       if (!res.ok) {
         setError('Class not found');
         setLoading(false);
@@ -164,7 +165,7 @@ function EditClassPage() {
     setSaving(true);
 
     try {
-      const res = await fetch('/api/teacher/edit-class', {
+      const res = await authFetch('/api/teacher/edit-class', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -200,7 +201,7 @@ function EditClassPage() {
     setDeleting(true);
 
     try {
-      const res = await fetch(`/api/teacher/edit-class?classId=${classId}`, {
+      const res = await authFetch(`/api/teacher/edit-class?classId=${classId}`, {
         method: 'DELETE',
       });
 

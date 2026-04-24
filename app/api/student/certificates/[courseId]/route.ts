@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/api-auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   const { courseId } = await params;
-  const userId = request.nextUrl.searchParams.get('userId') || 'student';
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const userId = auth.user.id;
 
   const html = `<!DOCTYPE html>
 <html lang="en">

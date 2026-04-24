@@ -7,6 +7,7 @@ import {
   FloppyDisk,
   ListChecks,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface RubricCriterion {
   name: string;
@@ -76,7 +77,7 @@ export default function RubricEditor({
     setError('');
 
     try {
-      const res = await fetch(`/api/assignments/${assignmentId}/rubric`, {
+      const res = await authFetch(`/api/assignments/${assignmentId}/rubric`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ criteria }),

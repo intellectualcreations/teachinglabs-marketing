@@ -56,38 +56,10 @@ async function resolveUserId(request: NextRequest, admin: SupabaseAdmin): Promis
     }
   }
 
-  // 3. Transition fallback — the current browser client uses a custom
-  // storageKey (localStorage: sb-auth-token) so no cookie is sent on fetches.
-  // While we migrate clients to attach the Bearer token, we accept an
-  // explicit teacherId/userId in the query string and verify it maps to
-  // a real auth user. This closes the cross-tenant impersonation risk
-  // (attacker can no longer invent IDs) but doesn't achieve full
-  // session-bound auth until clients are migrated.
-  // IMPORTANT: do NOT accept studentId as the caller here — studentId is
-  // the RESOURCE being accessed, not the caller's identity.
-  // TODO: remove this fallback once all fetches attach Authorization header.
-  const url = new URL(request.url);
-  let fallbackId: string | null = url.searchParams.get('teacherId')
-    || url.searchParams.get('userId');
-
-  // Also accept teacherId/userId from the JSON body on POST/PATCH/PUT/DELETE.
-  // We clone the request so the downstream handler can still call req.json().
-  if (!fallbackId && ['POST', 'PATCH', 'PUT', 'DELETE'].includes(request.method)) {
-    try {
-      const cloned = request.clone();
-      const body = await cloned.json().catch(() => null);
-      if (body && typeof body === 'object') {
-        fallbackId = body.teacherId || body.userId || null;
-      }
-    } catch {
-      // body not JSON — ignore
-    }
-  }
-
-  if (fallbackId) {
-    const { data } = await (admin as any).from('profiles').select('id, role').eq('id', fallbackId).maybeSingle();
-    if (data?.id) return { id: data.id };
-  }
+  // No transition fallback. If the caller has no session cookie and no
+  // valid Bearer token, they are unauthenticated — return 401. Never
+  // trust teacherId / userId from query string or body as identity: that
+  // is a cross-tenant impersonation bug.
   return null;
 }
 

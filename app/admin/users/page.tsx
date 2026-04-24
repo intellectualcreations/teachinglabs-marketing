@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface UserRow {
   id: string;
@@ -15,7 +16,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/users')
+    authFetch('/api/admin/users')
       .then((r) => r.json())
       .then((data) => setUsers(data.users || []))
       .catch(() => {})

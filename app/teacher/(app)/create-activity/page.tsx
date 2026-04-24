@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   PlusCircle,
@@ -32,6 +32,7 @@ import {
   Sparkle,
   CaretDown,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 export default function CreateActivityPage() {
   return (
@@ -114,6 +115,7 @@ function uid(): string {
 
 function CreateActivityInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const editId = searchParams.get('edit');
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -180,7 +182,7 @@ function CreateActivityInner() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
-        const res = await fetch(`/api/teacher/courses?teacherId=${user.id}`);
+        const res = await authFetch(`/api/teacher/courses?teacherId=${user.id}`);
         if (res.ok) {
           const data = await res.json();
           setCourses((data.courses || []).map((c: { id: string; title: string; subject: string }) => ({ id: c.id, title: c.title, subject: c.subject })));
@@ -194,7 +196,7 @@ function CreateActivityInner() {
   // Load modules when course changes
   useEffect(() => {
     if (!selectedCourseId) { setModules([]); setSelectedModuleId(''); return; }
-    fetch(`/api/teacher/courses/${selectedCourseId}/modules`)
+    authFetch(`/api/teacher/courses/${selectedCourseId}/modules`)
       .then(r => r.json())
       .then(data => setModules(data.modules || []))
       .catch(() => setModules([]));
@@ -203,9 +205,9 @@ function CreateActivityInner() {
   // Load filter options on mount
   useEffect(() => {
     Promise.all([
-      fetch('/api/standards?subjects=true').then((r) => r.json()),
-      fetch('/api/standards?grades=true').then((r) => r.json()),
-      fetch('/api/standards?frameworks=true').then((r) => r.json()),
+      authFetch('/api/standards?subjects=true').then((r) => r.json()),
+      authFetch('/api/standards?grades=true').then((r) => r.json()),
+      authFetch('/api/standards?frameworks=true').then((r) => r.json()),
     ]).then(([subj, gr, fw]) => {
       setAvailableSubjects(subj.subjects || []);
       setAvailableGrades(gr.grades || []);
@@ -227,7 +229,7 @@ function CreateActivityInner() {
       if (subjectFilter) params.set('subject', subjectFilter);
       if (gradeFilter) params.set('grade', gradeFilter);
       if (frameworkFilter) params.set('framework', frameworkFilter);
-      fetch(`/api/standards?${params.toString()}`)
+      authFetch(`/api/standards?${params.toString()}`)
         .then((r) => r.json())
         .then((data) => {
           setSearchResults((data.standards || []).slice(0, 12));
@@ -272,7 +274,7 @@ function CreateActivityInner() {
   // Mock: simulate Teaching Twin suggesting standards based on activity description
   function triggerSuggestions() {
     if (!instructions.trim()) return;
-    fetch('/api/standards?q=fractions&subject=Math&grade=5')
+    authFetch('/api/standards?q=fractions&subject=Math&grade=5')
       .then((r) => r.json())
       .then((data) => {
         setSuggestedStandards((data.standards || []).slice(0, 4));
@@ -322,7 +324,7 @@ function CreateActivityInner() {
     setIsEditMode(true);
     (async () => {
       try {
-        const res = await fetch(`/api/teacher/activities/${editId}`);
+        const res = await authFetch(`/api/teacher/activities/${editId}`);
         if (!res.ok) { console.error('Failed to load activity:', res.statusText); return; }
         const { activity: data } = await res.json();
         if (data) {
@@ -350,7 +352,7 @@ function CreateActivityInner() {
     if (!generatingLessonIdea.trim()) return;
     setGenerating(true);
     try {
-      const res = await fetch('/api/teacher/activities/generate', {
+      const res = await authFetch('/api/teacher/activities/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -399,7 +401,11 @@ function CreateActivityInner() {
       const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      const teacherId = user?.id || 'c419128e-2868-47b7-8eaf-82c43a52c8bf';
+      if (!user?.id) {
+        router.push('/login');
+        return;
+      }
+      const teacherId = user.id;
 
       const payload: Record<string, unknown> = {
         title: activityName.trim(),
@@ -421,7 +427,7 @@ function CreateActivityInner() {
         if (selectedCourseId) payload.course_id = selectedCourseId;
         if (selectedModuleId) payload.module_id = selectedModuleId;
         delete payload.teacher_id; // don't overwrite owner
-        const res = await fetch(`/api/teacher/activities/${editId}`, {
+        const res = await authFetch(`/api/teacher/activities/${editId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

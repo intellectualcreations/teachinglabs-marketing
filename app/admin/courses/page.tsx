@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface CourseRow {
   id: string;
@@ -29,8 +30,8 @@ export default function AdminCoursesPage() {
 
   const loadData = useCallback(() => {
     Promise.all([
-      fetch('/api/admin/courses').then((r) => r.json()),
-      fetch('/api/admin/users').then((r) => r.json()),
+      authFetch('/api/admin/courses').then((r) => r.json()),
+      authFetch('/api/admin/users').then((r) => r.json()),
     ])
       .then(([coursesData, usersData]) => {
         setCourses(coursesData.courses || []);
@@ -47,7 +48,7 @@ export default function AdminCoursesPage() {
   async function handleEnrollAction() {
     if (!enrollModal || !selectedStudent) return;
     try {
-      const res = await fetch('/api/admin/enrollments', {
+      const res = await authFetch('/api/admin/enrollments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

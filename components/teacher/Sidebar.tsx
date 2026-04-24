@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import { TEACHER_NAV } from '@/lib/constants';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 const iconMap: Record<string, React.ComponentType<{ size?: number; weight?: 'fill' | 'regular'; className?: string }>> = {
   SquaresFour, BookOpenText, UsersThree, Books, ChatsCircle, ChatCircleText,
@@ -29,7 +30,7 @@ export default function Sidebar() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const refreshSidebarClasses = async (userId: string) => {
     try {
-      const res = await fetch(`/api/classes/by-teacher?teacherId=${userId}&sidebarOnly=true&t=${Date.now()}`);
+      const res = await authFetch(`/api/classes/by-teacher?teacherId=${userId}&sidebarOnly=true&t=${Date.now()}`);
       if (!res.ok) return;
       const data = await res.json();
       const list = Array.isArray(data) ? data : (data.classes ?? []);

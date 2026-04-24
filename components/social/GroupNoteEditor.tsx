@@ -8,6 +8,7 @@ import {
   X,
   User,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface GroupNote {
   id: string;
@@ -45,7 +46,7 @@ export default function GroupNoteEditor({
 
   const fetchNotes = useCallback(async () => {
     try {
-      const res = await fetch(`/api/groups/${groupId}/notes`);
+      const res = await authFetch(`/api/groups/${groupId}/notes`);
       if (res.ok) {
         const data = await res.json();
         setNotes(data.notes || []);
@@ -65,7 +66,7 @@ export default function GroupNoteEditor({
     if (!newTitle.trim() || !newContent.trim() || creating) return;
     setCreating(true);
     try {
-      const res = await fetch(`/api/groups/${groupId}/notes`, {
+      const res = await authFetch(`/api/groups/${groupId}/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

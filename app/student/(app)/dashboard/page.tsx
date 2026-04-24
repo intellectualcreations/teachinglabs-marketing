@@ -14,6 +14,7 @@ import Link from 'next/link';
 import NotificationOptIn from '@/components/shared/NotificationOptIn';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile, Class, Assignment, Submission, ChatMessage } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 /* ─── Subject styles for class cards ─── */
 const ICON_MAP: Record<string, { icon: typeof MathOperations; bg: string }> = {
@@ -114,7 +115,7 @@ function JoinClassInline({ onJoined }: { onJoined: () => void }) {
         accessToken = session?.access_token;
       }
 
-      const res = await fetch('/api/student/join-class', {
+      const res = await authFetch('/api/student/join-class', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,7 +223,7 @@ export default function StudentDashboardPage() {
         try {
           const { data: { session: sess } } = await supabase.auth.getSession();
           if (sess?.access_token) {
-            const profRes = await fetch('/api/student/profile', {
+            const profRes = await authFetch('/api/student/profile', {
               headers: { 'Authorization': `Bearer ${sess.access_token}` },
             });
             if (profRes.ok) profile = await profRes.json();
@@ -249,7 +250,7 @@ export default function StudentDashboardPage() {
           }
         } catch { /* session may not be available */ }
 
-        const classRes = await fetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
+        const classRes = await authFetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
         const classJson = classRes.ok ? await classRes.json() : { classes: [], teachers: [], assignments: [], submissions: [] };
 
         const classRows = (classJson.classes ?? []) as Class[];

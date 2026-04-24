@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
-// GET — list teacher's own activities (for Add Activity modal)
+// GET — list the authenticated teacher's own activities (for Add Activity modal)
 export async function GET(request: NextRequest) {
   try {
-    const teacherId = request.nextUrl.searchParams.get('teacherId');
-    if (!teacherId) {
-      return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
-    }
-    const admin = createAdminClient();
+    const auth = await requireTeacher(request);
+    if ('error' in auth) return auth.error;
+    const { user, admin } = auth;
+    const teacherId = user.id;
     const { data, error } = await (admin.from('assignments') as any)
       .select('id, title, description, subject, grade_level, activity_type, estimated_minutes')
       .eq('teacher_id', teacherId)
@@ -21,16 +20,27 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// DELETE — remove an activity by id (uses service role to bypass RLS)
+// DELETE — remove an activity by id (teacher must own it)
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireTeacher(request);
+    if ('error' in auth) return auth.error;
+    const { user, admin } = auth;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     if (!id) {
       return NextResponse.json({ error: 'id is required' }, { status: 400 });
     }
 
-    const admin = createAdminClient();
+    // Verify the caller owns this activity.
+    const { data: assignment } = await (admin.from('assignments') as any)
+      .select('teacher_id').eq('id', id).maybeSingle();
+    if (!assignment) {
+      return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
+    }
+    if (assignment.teacher_id !== user.id) {
+      return NextResponse.json({ error: 'You do not own this activity' }, { status: 403 });
+    }
 
     // Delete related enrollments first to avoid FK issues
     await (admin.from('enrollments') as any).delete().eq('assignment_id', id);
@@ -48,26 +58,29 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-// POST — create a standalone (orphaned) activity
+// POST — create a standalone (orphaned) activity for the authenticated teacher
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireTeacher(request);
+    if ('error' in auth) return auth.error;
+    const { user, admin } = auth;
+    const teacher_id = user.id;
+
     const body = await request.json();
     const {
-      title, description, teacher_id,
+      title, description,
       objective, learning_goal, essential_question,
       materials, vocabulary, directions, hook,
       assessment, differentiation,
       course_id, module_id, // optional — attach later
     } = body;
 
-    if (!title || !teacher_id) {
+    if (!title) {
       return NextResponse.json(
-        { error: 'title and teacher_id are required' },
+        { error: 'title is required' },
         { status: 400 }
       );
     }
-
-    const admin = createAdminClient();
 
     // class_id is NOT NULL, so find teacher's first class
     const { data: classes } = await (admin.from('classes') as any)

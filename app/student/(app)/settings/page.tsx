@@ -11,6 +11,7 @@ import { SUPERPOWER_TITLES, INTELLIGENCE_LABELS, INTELLIGENCE_EMOJIS, type Intel
 import { AVATARS, AVATAR_STYLES } from '@/lib/avatar-manifest';
 import NotificationOptIn from '@/components/shared/NotificationOptIn';
 import Image from 'next/image';
+import { authFetch } from '@/lib/api-fetch';
 
 /* ─── Helper: get access token from Supabase session ─── */
 async function getAccessToken(): Promise<string | null> {
@@ -52,7 +53,7 @@ export default function StudentSettingsPage() {
       if (!token) { setLoading(false); return; }
 
       try {
-        const res = await fetch('/api/student/profile', {
+        const res = await authFetch('/api/student/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) { setLoading(false); return; }
@@ -82,7 +83,7 @@ export default function StudentSettingsPage() {
     setSaving(true);
     try {
       setSaveError('');
-      const res = await fetch('/api/student/profile', {
+      const res = await authFetch('/api/student/profile', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -236,7 +237,7 @@ export default function StudentSettingsPage() {
                     setSuperpowerTitle(title);
                     const token = (await createClient().auth.getSession()).data.session?.access_token;
                     if (token) {
-                      await fetch('/api/student/profile', {
+                      await authFetch('/api/student/profile', {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                         body: JSON.stringify({ superpower_title: title }),
@@ -292,7 +293,7 @@ export default function StudentSettingsPage() {
                       // Auto-save avatar
                       const token = (await createClient().auth.getSession()).data.session?.access_token;
                       if (token) {
-                        await fetch('/api/student/profile', {
+                        await authFetch('/api/student/profile', {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                           body: JSON.stringify({ superpower_avatar: avatar.path }),

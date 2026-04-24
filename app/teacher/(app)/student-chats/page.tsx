@@ -7,6 +7,7 @@ import {
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { ChatMessage, Profile, Class } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 interface ChatTopic {
   id: string;
@@ -53,7 +54,7 @@ function StudentChatsContent() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { window.location.href = '/login'; return; }
 
-        const res = await fetch(`/api/teacher/student-data?teacherId=${user.id}`);
+        const res = await authFetch(`/api/teacher/student-data?teacherId=${user.id}`);
         if (!res.ok) {
           const errData = await res.json();
           throw new Error(errData.error || 'Failed to load chats');
@@ -136,7 +137,7 @@ function StudentChatsContent() {
     setSummaryLoading(true);
     setSummary(null);
     try {
-      const res = await fetch('/api/teacher/chat-summary', {
+      const res = await authFetch('/api/teacher/chat-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

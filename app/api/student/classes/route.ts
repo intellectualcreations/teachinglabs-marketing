@@ -1,30 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient, createClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/api-auth';
 
 /**
  * GET /api/student/classes
- * Returns the authenticated student's enrolled classes.
- * Uses admin client to bypass RLS on enrollments.
+ * Returns the authenticated user's enrolled classes. Any `studentId` query
+ * param is ignored — identity is taken only from the session.
  */
 export async function GET(request: NextRequest) {
-  const admin = createAdminClient();
-
-  // Authenticate via cookie
-  let userId: string | null = null;
-  try {
-    const userSupabase = await createClient();
-    const { data: { user } } = await userSupabase.auth.getUser();
-    if (user) userId = user.id;
-  } catch { /* ignore */ }
-
-  // Fallback: query param (for client-side calls)
-  if (!userId) {
-    userId = request.nextUrl.searchParams.get('studentId');
-  }
-
-  if (!userId) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-  }
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin } = auth;
+  const userId = user.id;
 
   const { data: enrollments } = await (admin as any)
     .from('enrollments')

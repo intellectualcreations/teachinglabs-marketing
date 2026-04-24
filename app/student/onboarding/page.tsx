@@ -36,6 +36,7 @@ import {
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import ThemeToggle from '@/components/shared/ThemeToggle';
+import { authFetch } from '@/lib/api-fetch';
 
 /* ─── Types ─────────────────────────────────────────────────────────────────── */
 
@@ -1096,7 +1097,7 @@ export default function StudentOnboardingPage() {
           const primaryIntel = determinePrimaryIntelligence(gardnerSignals);
           const defaultTitle = getDefaultTitle(primaryIntel);
 
-          await fetch('/api/student/save-assessment', {
+          await authFetch('/api/student/save-assessment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1114,7 +1115,7 @@ export default function StudentOnboardingPage() {
           const pendingBirthYear = localStorage.getItem('pending_birth_year');
           if (pendingClassId) {
             try {
-              await fetch('/api/student/complete-signup', {
+              await authFetch('/api/student/complete-signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1466,7 +1467,7 @@ export default function StudentOnboardingPage() {
                 const supabase = createClient();
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) return;
-                await fetch('/api/student/profile', {
+                await authFetch('/api/student/profile', {
                   method: 'PATCH',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ superpower_title: newTitle }),

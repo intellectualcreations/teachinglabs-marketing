@@ -1,37 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
- * GET /api/teacher/courses/modules?courseId=<uuid>&teacherId=<uuid>
+ * GET /api/teacher/courses/modules?courseId=<uuid>
  * Returns modules for a given course, ordered by sort_order.
- * Falls back to teacherId query param if no Supabase session cookie.
+ * Caller identity is always taken from the authenticated session; any
+ * `teacherId` query param is ignored.
  */
 export async function GET(request: NextRequest) {
-  const courseId = request.nextUrl.searchParams.get('courseId');
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin } = auth;
 
+  const courseId = request.nextUrl.searchParams.get('courseId');
   if (!courseId) {
     return NextResponse.json({ error: 'courseId is required' }, { status: 400 });
   }
 
-  const admin = createAdminClient();
-
   try {
-    // Verify the course belongs to the teacher (if teacherId provided)
-    if (teacherId) {
-      const { data: course, error: courseError } = await (admin.from('courses') as any)
-        .select('id, teacher_id')
-        .eq('id', courseId)
-        .single();
+    // Verify the course belongs to the authenticated teacher.
+    const { data: course, error: courseError } = await (admin.from('courses') as any)
+      .select('id, teacher_id')
+      .eq('id', courseId)
+      .single();
 
-      if (courseError) {
-        console.error('Course lookup error:', courseError.message);
-        return NextResponse.json({ error: 'Course not found' }, { status: 404 });
-      }
+    if (courseError) {
+      console.error('Course lookup error:', courseError.message);
+      return NextResponse.json({ error: 'Course not found' }, { status: 404 });
+    }
 
-      if (course.teacher_id !== teacherId) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-      }
+    if (course.teacher_id !== user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
     const { data: modules, error: modError } = await (admin.from('modules') as any)

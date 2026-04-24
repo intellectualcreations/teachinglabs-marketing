@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Script from 'next/script';
 import { ChartLineUp, ChartBar, Users, CurrencyDollar, BookOpenText } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface EnrollmentTrend {
   date: string;
@@ -36,7 +37,7 @@ export default function AdminAnalyticsPage() {
   const chartInstances = useRef<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/admin/analytics')
+    authFetch('/api/admin/analytics')
       .then((r) => r.json())
       .then((data) => {
         setAnalytics(data.analytics);

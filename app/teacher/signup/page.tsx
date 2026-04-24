@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { ChalkboardTeacher, ArrowLeft, MagnifyingGlass, CircleNotch, CheckCircle, EnvelopeSimple } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import ThemeToggle from '@/components/shared/ThemeToggle';
+import { authFetch } from '@/lib/api-fetch';
 
 // ---- US States (static) ----
 const US_STATES = [
@@ -206,7 +207,7 @@ export default function TeacherSignupPage() {
   // Fetch states that have schools in database
   const [availableStates, setAvailableStates] = useState<string[]>([]);
   useEffect(() => {
-    fetch('/api/schools?states=true')
+    authFetch('/api/schools?states=true')
       .then((r) => r.json())
       .then((d) => setAvailableStates(d.states || []))
       .catch(() => setAvailableStates([]));
@@ -222,7 +223,7 @@ export default function TeacherSignupPage() {
     setSchoolQuery('');
     setSelectedSchool(null);
 
-    fetch(`/api/schools?state=${selectedState}`)
+    authFetch(`/api/schools?state=${selectedState}`)
       .then((r) => r.json())
       .then((d) => setDistricts(d.districts || []))
       .catch(() => setDistricts([]))
@@ -236,7 +237,7 @@ export default function TeacherSignupPage() {
     setSchoolQuery('');
     setSelectedSchool(null);
 
-    fetch(`/api/schools?state=${selectedState}&district=${encodeURIComponent(selectedDistrict)}`)
+    authFetch(`/api/schools?state=${selectedState}&district=${encodeURIComponent(selectedDistrict)}`)
       .then((r) => r.json())
       .then((d) => setSchools(d.schools || []))
       .catch(() => setSchools([]))
@@ -289,7 +290,7 @@ export default function TeacherSignupPage() {
         return;
       }
       setInviteChecking(true);
-      const res = await fetch('/api/invite/validate', {
+      const res = await authFetch('/api/invite/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: inviteCode.trim() }),
@@ -314,7 +315,7 @@ export default function TeacherSignupPage() {
       if (schoolMode === 'public' && selectedSchool) {
         schoolId = selectedSchool.id;
       } else if (schoolMode === 'other' && otherSchoolName.trim()) {
-        const res = await fetch('/api/schools/create', {
+        const res = await authFetch('/api/schools/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -757,7 +758,7 @@ export default function TeacherSignupPage() {
                   onClick={async () => {
                     if (!inviteCode.trim()) { setInviteError('Enter a code first'); return; }
                     setInviteChecking(true); setInviteError(''); setInviteValid(null);
-                    const res = await fetch('/api/invite/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: inviteCode.trim() }) });
+                    const res = await authFetch('/api/invite/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: inviteCode.trim() }) });
                     const data = await res.json();
                     setInviteChecking(false);
                     if (data.valid) { setInviteValid(true); setInviteError(''); }

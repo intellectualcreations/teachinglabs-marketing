@@ -7,6 +7,7 @@ import { CaretLeft, Users } from '@phosphor-icons/react';
 import StudyGroupList from '@/components/social/StudyGroupList';
 import StudyGroupDetail from '@/components/social/StudyGroupDetail';
 import GroupNoteEditor from '@/components/social/GroupNoteEditor';
+import { authFetch } from '@/lib/api-fetch';
 
 const DEMO_USER = { id: 'demo-student', name: 'Alex Demo' };
 
@@ -34,7 +35,7 @@ export default function StudyGroupsPage() {
 
   const fetchGroupInfo = useCallback(async (groupId: string) => {
     try {
-      const res = await fetch(`/api/groups/${groupId}`);
+      const res = await authFetch(`/api/groups/${groupId}`);
       if (res.ok) {
         const data = await res.json();
         setGroupInfo({ id: data.group.id, name: data.group.name });

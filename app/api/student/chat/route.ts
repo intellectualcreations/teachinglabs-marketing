@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/api-auth";
 import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({
@@ -281,16 +281,20 @@ TEACHING METHOD (THIS IS HOW YOU TEACH — follow this on every response):
 }
 
 /**
- * GET /api/student/chat?classId=<uuid>&userId=<uuid>
- * Returns chat messages for a student in a class (bypasses RLS)
+ * GET /api/student/chat?classId=<uuid>
+ * Returns chat messages for the authenticated student in a class.
+ * Caller identity is taken from the session; any `userId` query param is ignored.
  */
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin } = auth;
+  const userId = user.id;
+
   const classId = request.nextUrl.searchParams.get('classId');
-  const userId = request.nextUrl.searchParams.get('userId');
-  if (!classId || !userId) {
-    return NextResponse.json({ error: 'classId and userId required' }, { status: 400 });
+  if (!classId) {
+    return NextResponse.json({ error: 'classId required' }, { status: 400 });
   }
-  const admin = createAdminClient();
 
   // Fetch messages for this student in this class (using student_id for proper isolation)
   // First try student_id column, fall back to sender_id for legacy messages
@@ -309,59 +313,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const admin = createAdminClient();
-  let userId: string | null = null;
-
-  // Method 1: Cookie-based session
-  try {
-    const supabase = await createClient();
-    const { data: { user }, error: cookieErr } = await supabase.auth.getUser();
-    if (user) userId = user.id;
-    if (cookieErr) console.log('[chat] Cookie auth error:', cookieErr.message);
-  } catch (err) {
-    console.log('[chat] Cookie auth exception:', err);
-  }
-
-  // Method 2: Authorization header fallback
-  if (!userId) {
-    const authHeader = request.headers.get('authorization');
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.slice(7);
-      const { data: { user }, error } = await admin.auth.getUser(token);
-      if (!error && user) userId = user.id;
-      if (error) console.log('[chat] Token auth error:', error.message);
-    }
-  }
-
-  // Method 3: userId from request body (verified against enrollment)
-  // This is safe because we verify enrollment below
-  if (!userId) {
-    try {
-      const cloned = request.clone();
-      const bodyPeek = await cloned.json();
-      if (bodyPeek?.user_id && typeof bodyPeek.user_id === 'string') {
-        // Verify this user exists in profiles
-        const { data: verifyProfile } = await admin
-          .from('profiles')
-          .select('id')
-          .eq('id', bodyPeek.user_id)
-          .eq('role', 'student')
-          .single();
-        if (verifyProfile) {
-          userId = bodyPeek.user_id;
-          console.log('[chat] Authenticated via body user_id:', userId);
-        }
-      }
-    } catch { /* ignore parse errors */ }
-  }
-
-  if (!userId) {
-    console.log('[chat] No auth - returning 401');
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // Create a fake user object for compatibility
-  const user = { id: userId };
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin } = auth;
 
   let body: { class_id?: string; content?: string; user_id?: string; new_chat?: boolean; session_id?: string; topic?: string; goal_type?: string };
   try {

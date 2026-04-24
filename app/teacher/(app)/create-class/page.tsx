@@ -10,6 +10,7 @@ import {
   Ruler, Target, Lightbulb, Star, HouseLine, Check, Copy, UsersThree,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -280,7 +281,7 @@ export default function CreateClassPage() {
                     if (!className.trim()) return;
                     setGeneratingDesc(true);
                     try {
-                      const res = await fetch('/api/teacher/generate-description', {
+                      const res = await authFetch('/api/teacher/generate-description', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ className: className.trim(), subject, grade, rawDescription: desc.trim() || undefined }),

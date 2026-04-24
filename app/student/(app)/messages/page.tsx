@@ -6,6 +6,7 @@ import {
   ChatText, PaperPlaneRight, ChatsCircle, ArrowLeft,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 interface ChatMessage {
   id: string;
@@ -59,7 +60,7 @@ export default function MessagesPage() {
       setUserId(user.id);
 
       // Fetch enrolled classes via admin API (bypasses RLS)
-      const res = await fetch(`/api/student/classes?studentId=${user.id}`);
+      const res = await authFetch(`/api/student/classes?studentId=${user.id}`);
       const classData = res.ok ? await res.json() : { classes: [] };
       const classes: any[] = classData.classes ?? [];
 

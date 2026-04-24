@@ -13,6 +13,7 @@ import {
 } from '@phosphor-icons/react';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 /* ─── Icon map for class sidebar icons ─── */
 const ICON_MAP: Record<string, { icon: typeof MathOperations; bg: string }> = {
@@ -136,7 +137,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
         try {
           const { data: { session: sess } } = await supabase.auth.getSession();
           if (sess?.access_token) {
-            const profRes = await fetch('/api/student/profile', {
+            const profRes = await authFetch('/api/student/profile', {
               headers: { 'Authorization': `Bearer ${sess.access_token}` },
             });
             if (profRes.ok) profileData = await profRes.json();
@@ -166,7 +167,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
           }
         } catch { /* session may not be available */ }
 
-        const classRes = await fetch(`/api/student/my-classes?userId=${user.id}`, {
+        const classRes = await authFetch(`/api/student/my-classes?userId=${user.id}`, {
           headers: authHeaders,
         });
         const classJson = classRes.ok ? await classRes.json() : { classes: [] };
@@ -449,7 +450,7 @@ export default function StudentAppLayout({ children }: { children: React.ReactNo
                     const supabase = createClient();
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session?.access_token) { setNameError('Not signed in.'); return; }
-                    const res = await fetch('/api/student/profile', {
+                    const res = await authFetch('/api/student/profile', {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
                       body: JSON.stringify({ preferred_name: value }),

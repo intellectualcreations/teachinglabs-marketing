@@ -8,6 +8,7 @@ import {
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { Assignment } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 interface ChatMessage {
   id: string;
@@ -60,14 +61,14 @@ export default function SparkActivityPage() {
         } catch { /* ignore */ }
 
         // Get the activity
-        const res = await fetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
+        const res = await authFetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
         if (!res.ok) return;
         const data = await res.json();
         const act = (data.assignments ?? []).find((a: any) => a.id === activityId && a.class_id === classId);
         if (act) setActivity(act);
 
         // Load existing chat messages for this activity
-        const chatRes = await fetch(`/api/student/activity-chat?activityId=${activityId}&studentId=${user.id}`);
+        const chatRes = await authFetch(`/api/student/activity-chat?activityId=${activityId}&studentId=${user.id}`);
         if (chatRes.ok) {
           const chatData = await chatRes.json();
           const existing = chatData.messages ?? [];
@@ -77,7 +78,7 @@ export default function SparkActivityPage() {
           if (existing.length === 0 && act) {
             setSending(true);
             try {
-              const greetRes = await fetch('/api/student/activity-chat', {
+              const greetRes = await authFetch('/api/student/activity-chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -126,7 +127,7 @@ export default function SparkActivityPage() {
     setMessages(prev => [...prev, userMsg]);
 
     try {
-      const res = await fetch('/api/student/activity-chat', {
+      const res = await authFetch('/api/student/activity-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

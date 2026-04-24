@@ -8,6 +8,7 @@ import {
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile, Class } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 /* ─── Types ─── */
 type SortOption = 'first-az' | 'first-za' | 'last-az' | 'last-za' | 'preferred-az' | 'preferred-za' | 'enrollment';
@@ -105,7 +106,7 @@ function StudentsContent() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const classIds = classFilter !== 'all' ? [classFilter] : undefined;
-    const res = await fetch('/api/teacher/enrollments/actions', {
+    const res = await authFetch('/api/teacher/enrollments/actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ teacherId: user.id, action, studentIds, classIds }),
@@ -121,7 +122,7 @@ function StudentsContent() {
         if (!user) { window.location.href = '/login'; return; setLoading(false); return; }
 
         // Fetch all student data via admin API route (bypasses RLS)
-        const res = await fetch(`/api/teacher/students?teacherId=${user.id}`);
+        const res = await authFetch(`/api/teacher/students?teacherId=${user.id}`);
         if (!res.ok) {
           const errData = await res.json();
           throw new Error(errData.error || 'Failed to load students');
@@ -442,7 +443,7 @@ function StudentsContent() {
               const supabase = createClient();
               const { data: { user } } = await supabase.auth.getUser();
               if (user) {
-                await fetch('/api/teacher/enrollments/actions', {
+                await authFetch('/api/teacher/enrollments/actions', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ teacherId: user.id, action: 'accept', studentIds, classIds }),
@@ -457,7 +458,7 @@ function StudentsContent() {
               const supabase = createClient();
               const { data: { user } } = await supabase.auth.getUser();
               if (user) {
-                await fetch('/api/teacher/enrollments/actions', {
+                await authFetch('/api/teacher/enrollments/actions', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ teacherId: user.id, action: 'reject', studentIds, classIds }),
@@ -472,20 +473,20 @@ function StudentsContent() {
               const { data: { user } } = await supabase.auth.getUser();
               if (!user) return;
               // Remove from wrong class, then create pending enrollment in correct class.
-              await fetch('/api/teacher/enrollments/actions', {
+              await authFetch('/api/teacher/enrollments/actions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ teacherId: user.id, action: 'remove', studentIds: [studentId], classIds: [fromClassId] }),
               });
               // Upsert a pending enrollment in the target class. We don't have an endpoint for this,
               // so call Supabase via a new small route. For now, update existing row or insert.
-              await fetch('/api/teacher/enrollments/move', {
+              await authFetch('/api/teacher/enrollments/move', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ teacherId: user.id, studentId, toClassId }),
               });
               // Reload the roster
-              const res = await fetch(`/api/teacher/students?teacherId=${user.id}`);
+              const res = await authFetch(`/api/teacher/students?teacherId=${user.id}`);
               if (res.ok) {
                 const data = await res.json();
                 // Rebuild from fresh data — we re-trigger a full re-fetch by updating state surfaces the user sees
@@ -811,7 +812,7 @@ function StudentsContent() {
                   const supabase = createClient();
                   const { data: { user } } = await supabase.auth.getUser();
                   if (user) {
-                    const res = await fetch('/api/teacher/enrollments/actions', {
+                    const res = await authFetch('/api/teacher/enrollments/actions', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
@@ -871,7 +872,7 @@ function StudentsContent() {
                     const supabase = createClient();
                     const { data: { user } } = await supabase.auth.getUser();
                     if (!user) return;
-                    const res = await fetch('/api/teacher/students/delete', {
+                    const res = await authFetch('/api/teacher/students/delete', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ teacherId: user.id, studentId: deleteTarget.id, reason: deleteReason }),
@@ -928,7 +929,7 @@ function StudentsContent() {
                     const supabase = createClient();
                     const { data: { user } } = await supabase.auth.getUser();
                     if (!user) { setFlagError('Not signed in'); setFlagSaving(false); return; }
-                    const res = await fetch('/api/teacher/student-detail', {
+                    const res = await authFetch('/api/teacher/student-detail', {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ studentId: flagTarget.id, teacherId: user.id, preferred_name: flagTarget.first, flagged: true }),

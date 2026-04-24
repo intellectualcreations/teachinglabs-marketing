@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Books, X, MagnifyingGlass, ArrowLeft, CheckCircle } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface AddActivityModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ export default function AddActivityModal({ isOpen, onClose, className: clsName, 
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const res = await fetch(`/api/teacher/library?teacherId=${user.id}`);
+        const res = await authFetch(`/api/teacher/library?teacherId=${user.id}`);
         if (res.ok) {
           const data = await res.json();
           setActivities(data.activities ?? []);
@@ -83,12 +84,12 @@ export default function AddActivityModal({ isOpen, onClose, className: clsName, 
     setSaving(activity.id);
     try {
       // Fetch current class assignments for this activity
-      const getRes = await fetch(`/api/teacher/activities/${activity.id}/classes`);
+      const getRes = await authFetch(`/api/teacher/activities/${activity.id}/classes`);
       const { classIds: existing } = getRes.ok ? await getRes.json() : { classIds: [] };
       // Add this class if not already assigned
       if (!existing.includes(classId)) {
         const updated = [...existing, classId];
-        await fetch(`/api/teacher/activities/${activity.id}/classes`, {
+        await authFetch(`/api/teacher/activities/${activity.id}/classes`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ classIds: updated }),

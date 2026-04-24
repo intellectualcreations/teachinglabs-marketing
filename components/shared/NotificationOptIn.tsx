@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Bell, BellSlash, CheckCircle } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 type OptInState = 'loading' | 'unsupported' | 'denied' | 'prompt' | 'subscribed';
 
@@ -59,7 +60,7 @@ export default function NotificationOptIn() {
       }
 
       // Get VAPID public key
-      const keyRes = await fetch('/api/push/vapid-key');
+      const keyRes = await authFetch('/api/push/vapid-key');
       if (!keyRes.ok) {
         console.error('[Push] Failed to get VAPID key');
         return;
@@ -75,7 +76,7 @@ export default function NotificationOptIn() {
 
       // Send subscription to server
       const subJson = subscription.toJSON();
-      const res = await fetch('/api/push/subscribe', {
+      const res = await authFetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

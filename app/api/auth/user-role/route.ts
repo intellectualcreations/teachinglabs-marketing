@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireAuth } from '@/lib/api-auth';
 
 /**
- * GET /api/auth/user-role?userId=<uuid>
- * Returns the user's role and assessment status using admin client (bypasses RLS).
+ * GET /api/auth/user-role
+ * Returns the authenticated user's role and assessment/onboarding status.
+ * Any `userId` query param is ignored — identity is always taken from
+ * the authenticated session.
  */
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get('userId');
-  if (!userId) {
-    return NextResponse.json({ error: 'userId required' }, { status: 400 });
-  }
-
-  const supabase = createAdminClient();
+  const auth = await requireAuth(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const userId = user.id;
 
   // Get profile role
   const { data: profile } = await supabase

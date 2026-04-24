@@ -14,6 +14,7 @@ import {
   SpinnerGap,
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
+import { authFetch } from '@/lib/api-fetch';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -127,7 +128,7 @@ export default function CreateCoursePage() {
       }
 
       // 1. Create the course
-      const courseRes = await fetch('/api/teacher/courses', {
+      const courseRes = await authFetch('/api/teacher/courses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -151,7 +152,7 @@ export default function CreateCoursePage() {
       const validModules = modules.filter((m) => m.title.trim() !== '');
       for (let i = 0; i < validModules.length; i++) {
         const mod = validModules[i];
-        const modRes = await fetch(`/api/teacher/courses/${course.id}/modules`, {
+        const modRes = await authFetch(`/api/teacher/courses/${course.id}/modules`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

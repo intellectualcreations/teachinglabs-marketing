@@ -12,6 +12,7 @@ import {
 import ClassIcon from '@/components/shared/ClassIcon';
 import { createClient } from '@/lib/supabase/client';
 import AddActivityModal from '@/components/teacher/AddActivityModal';
+import { authFetch } from '@/lib/api-fetch';
 
 /* ─── Demo Data (kept for features we don't track yet) ─── */
 
@@ -346,7 +347,7 @@ function ClassDetailsContent() {
           return;
         }
 
-        const res = await fetch(`/api/teacher/class-details?classId=${classId}`);
+        const res = await authFetch(`/api/teacher/class-details?classId=${classId}`);
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           setError(body.error || 'Failed to load class');
@@ -434,7 +435,7 @@ function ClassDetailsContent() {
     // Persist to database
     if (activity && classData) {
       try {
-        await fetch('/api/teacher/class-activities', {
+        await authFetch('/api/teacher/class-activities', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -637,7 +638,7 @@ function ClassDetailsContent() {
                           onChange={async (e) => {
                             const due_date = e.target.value || null;
                             if (classData) {
-                              await fetch('/api/teacher/class-activities', {
+                              await authFetch('/api/teacher/class-activities', {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -710,7 +711,7 @@ function ClassDetailsContent() {
                     </div>
                     <button
                       onClick={async () => {
-                        await fetch('/api/teacher/enrollment', {
+                        await authFetch('/api/teacher/enrollment', {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ enrollmentId: s.enrollment_id, action: 'approve' }),
@@ -723,7 +724,7 @@ function ClassDetailsContent() {
                     </button>
                     <button
                       onClick={async () => {
-                        await fetch('/api/teacher/enrollment', {
+                        await authFetch('/api/teacher/enrollment', {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ enrollmentId: s.enrollment_id, action: 'deny' }),

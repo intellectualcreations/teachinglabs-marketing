@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { MagnifyingGlass, FunnelSimple, Upload, BookOpen, Hash, GraduationCap } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface Standard {
   id: string;
@@ -45,10 +46,10 @@ export default function AdminStandardsPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/standards?subjects=true').then((r) => r.json()),
-      fetch('/api/standards?grades=true').then((r) => r.json()),
-      fetch('/api/standards?frameworks=true').then((r) => r.json()),
-      fetch('/api/standards?imports=true').then((r) => r.json()),
+      authFetch('/api/standards?subjects=true').then((r) => r.json()),
+      authFetch('/api/standards?grades=true').then((r) => r.json()),
+      authFetch('/api/standards?frameworks=true').then((r) => r.json()),
+      authFetch('/api/standards?imports=true').then((r) => r.json()),
     ]).then(([subj, gr, fw, imp]) => {
       setSubjects(subj.subjects || []);
       setGrades(gr.grades || []);
@@ -64,7 +65,7 @@ export default function AdminStandardsPage() {
     if (subjectFilter) params.set('subject', subjectFilter);
     if (gradeFilter) params.set('grade', gradeFilter);
     if (frameworkFilter) params.set('framework', frameworkFilter);
-    fetch(`/api/standards?${params.toString()}`)
+    authFetch(`/api/standards?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => setStandards(data.standards || []));
   }, [query, subjectFilter, gradeFilter, frameworkFilter]);
@@ -73,7 +74,7 @@ export default function AdminStandardsPage() {
     if (!importFramework.trim() || !importJson.trim()) return;
     try {
       const parsed = JSON.parse(importJson);
-      const res = await fetch('/api/standards/import', {
+      const res = await authFetch('/api/standards/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ framework: importFramework, standards: parsed }),
@@ -84,9 +85,9 @@ export default function AdminStandardsPage() {
         setImportJson('');
         setImportFramework('');
         // Refresh
-        const imp = await fetch('/api/standards?imports=true').then((r) => r.json());
+        const imp = await authFetch('/api/standards?imports=true').then((r) => r.json());
         setImports(imp.imports || []);
-        const fw = await fetch('/api/standards?frameworks=true').then((r) => r.json());
+        const fw = await authFetch('/api/standards?frameworks=true').then((r) => r.json());
         setFrameworks(fw.frameworks || []);
       } else {
         setImportStatus(data.error || 'Import failed');

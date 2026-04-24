@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/client';
 import type { Class, Assignment, Submission, ChatMessage } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 const ICON_MAP: Record<string, { icon: typeof MathOperations; bg: string }> = {
   math: { icon: MathOperations, bg: '#1F3A5F' },
@@ -110,7 +111,7 @@ export default function ClassPage() {
         } catch { /* ignore */ }
 
         // Fetch classes + assignments + submissions
-        const classRes = await fetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
+        const classRes = await authFetch(`/api/student/my-classes?userId=${user.id}`, { headers: authHeaders });
         if (!classRes.ok) return;
         const classJson = await classRes.json();
 

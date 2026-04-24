@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 /**
- * GET /api/message-board/flagged?teacherId=<uuid>
- * Returns all open (not-dismissed) flagged replies across the teacher's classes,
- * grouped by topic so the teacher can jump straight to context.
+ * GET /api/message-board/flagged
+ * Returns all open (not-dismissed) flagged replies across the authenticated
+ * teacher's classes, grouped by topic. Any `teacherId` query param is ignored.
  */
 export async function GET(request: NextRequest) {
-  const teacherId = request.nextUrl.searchParams.get('teacherId');
-  if (!teacherId) {
-    return NextResponse.json({ error: 'teacherId required' }, { status: 400 });
-  }
-
-  const supabase = createAdminClient();
+  const auth = await requireTeacher(request);
+  if ('error' in auth) return auth.error;
+  const { user, admin: supabase } = auth;
+  const teacherId = user.id;
 
   const { data: classes } = await (supabase as any)
     .from('classes')

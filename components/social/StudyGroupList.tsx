@@ -10,6 +10,7 @@ import {
   SignOut,
   Lock,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface StudyGroupMember {
   id: string;
@@ -57,7 +58,7 @@ export default function StudyGroupList({
 
   const fetchGroups = useCallback(async () => {
     try {
-      const res = await fetch(`/api/groups?courseId=${courseId}`);
+      const res = await authFetch(`/api/groups?courseId=${courseId}`);
       if (res.ok) {
         const data = await res.json();
         setGroups(data.groups || []);
@@ -83,7 +84,7 @@ export default function StudyGroupList({
     if (!newName.trim() || !newDesc.trim() || creating) return;
     setCreating(true);
     try {
-      const res = await fetch('/api/groups', {
+      const res = await authFetch('/api/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -110,7 +111,7 @@ export default function StudyGroupList({
   async function handleJoin(groupId: string) {
     setJoiningId(groupId);
     try {
-      const res = await fetch(`/api/groups/${groupId}/members`, {
+      const res = await authFetch(`/api/groups/${groupId}/members`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUserId }),
@@ -124,7 +125,7 @@ export default function StudyGroupList({
   async function handleLeave(groupId: string) {
     setJoiningId(groupId);
     try {
-      const res = await fetch(`/api/groups/${groupId}/members`, {
+      const res = await authFetch(`/api/groups/${groupId}/members`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUserId }),

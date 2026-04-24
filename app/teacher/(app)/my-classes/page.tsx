@@ -7,6 +7,7 @@ import { Plus, PencilSimple, Users, Books, Info, X, MagnifyingGlass, ArrowLeft, 
 import ClassIcon from '@/components/shared/ClassIcon';
 import { createClient } from '@/lib/supabase/client';
 import type { Class, Assignment } from '@/lib/supabase/types';
+import { authFetch } from '@/lib/api-fetch';
 
 const STRIPE_COLORS = ['var(--color-navy)', 'var(--color-teal)', '#F59E0B', '#E8836B'];
 
@@ -45,7 +46,7 @@ function AddActivityModal({
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (!user) { setLoadingLib(false); return; }
         // Use server API to bypass RLS
-        fetch(`/api/teacher/activities?teacherId=${user.id}`)
+        authFetch(`/api/teacher/activities?teacherId=${user.id}`)
           .then(r => r.json())
           .then(d => {
             setAssignments((d.activities ?? []) as Assignment[]);
@@ -142,11 +143,11 @@ function AddActivityModal({
                       onClick={async () => {
                         try {
                           // Fetch current class assignments for this activity
-                          const getRes = await fetch(`/api/teacher/activities/${a.id}/classes`);
+                          const getRes = await authFetch(`/api/teacher/activities/${a.id}/classes`);
                           const { classIds: existing } = getRes.ok ? await getRes.json() : { classIds: [] };
                           // Add this class if not already assigned
                           const updated = existing.includes(classId) ? existing : [...existing, classId];
-                          await fetch(`/api/teacher/activities/${a.id}/classes`, {
+                          await authFetch(`/api/teacher/activities/${a.id}/classes`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ classIds: updated }),
@@ -191,7 +192,7 @@ export default function MyClassesPage() {
         if (!user) { window.location.href = '/login'; return; setLoading(false); return; }
 
         // Fetch teacher's classes including archived so My Classes can show both
-        const res = await fetch(`/api/classes/by-teacher?teacherId=${user.id}&includeArchived=true`);
+        const res = await authFetch(`/api/classes/by-teacher?teacherId=${user.id}&includeArchived=true`);
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           setError(body.error ?? `Failed to load classes (${res.status})`);
@@ -381,7 +382,7 @@ export default function MyClassesPage() {
                         const { data: { user } } = await supabase.auth.getUser();
                         if (!user) throw new Error('Not signed in');
                         const action = next ? 'show' : 'hide';
-                        const res = await fetch('/api/teacher/classes/visibility', {
+                        const res = await authFetch('/api/teacher/classes/visibility', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ teacherId: user.id, classId: c.id, action }),
@@ -405,7 +406,7 @@ export default function MyClassesPage() {
                     const supabase = createClient();
                     const { data: { user } } = await supabase.auth.getUser();
                     if (!user) return;
-                    await fetch('/api/teacher/classes/visibility', {
+                    await authFetch('/api/teacher/classes/visibility', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ teacherId: user.id, classId: c.id, action: 'archive' }),
@@ -428,7 +429,7 @@ export default function MyClassesPage() {
                         const supabase = createClient();
                         const { data: { user } } = await supabase.auth.getUser();
                         if (!user) throw new Error('Not signed in');
-                        const res = await fetch('/api/teacher/classes/approval', {
+                        const res = await authFetch('/api/teacher/classes/approval', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ teacherId: user.id, classId: c.id, requiresApproval: next }),
@@ -477,7 +478,7 @@ export default function MyClassesPage() {
                     const supabase = createClient();
                     const { data: { user } } = await supabase.auth.getUser();
                     if (!user) return;
-                    await fetch('/api/teacher/classes/visibility', {
+                    await authFetch('/api/teacher/classes/visibility', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ teacherId: user.id, classId: c.id, action: 'unarchive' }),

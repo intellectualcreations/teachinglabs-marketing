@@ -10,6 +10,7 @@ import {
   PaperPlaneTilt,
   Clock,
 } from '@phosphor-icons/react';
+import { authFetch } from '@/lib/api-fetch';
 
 interface OfficeHoursSession {
   id: string;
@@ -67,7 +68,7 @@ export default function StudentOfficeHoursPage() {
     async function load() {
       try {
         // Get enrolled courses
-        const enrollRes = await fetch('/api/enrollments/student/demo-student');
+        const enrollRes = await authFetch('/api/enrollments/student/demo-student');
         const enrollData = await enrollRes.json();
         const courseIds: string[] = (enrollData.enrollments || []).map(
           (e: EnrolledCourse) => e.courseId,
@@ -77,7 +78,7 @@ export default function StudentOfficeHoursPage() {
         // Get sessions for all enrolled courses
         const allSessions: OfficeHoursSession[] = [];
         for (const cid of courseIds) {
-          const res = await fetch(`/api/office-hours?courseId=${cid}`);
+          const res = await authFetch(`/api/office-hours?courseId=${cid}`);
           const data = await res.json();
           allSessions.push(...(data.sessions || []));
         }
@@ -98,7 +99,7 @@ export default function StudentOfficeHoursPage() {
   async function openSession(id: string) {
     setSelectedSession(id);
     try {
-      const res = await fetch(`/api/office-hours/${id}`);
+      const res = await authFetch(`/api/office-hours/${id}`);
       const data = await res.json();
       setSessionDetail(data.session);
       setSessionQuestions(data.questions || []);
@@ -113,7 +114,7 @@ export default function StudentOfficeHoursPage() {
     if (!newQuestion.trim() || !selectedSession) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/office-hours/${selectedSession}/questions`, {
+      const res = await authFetch(`/api/office-hours/${selectedSession}/questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: newQuestion.trim() }),
@@ -121,7 +122,7 @@ export default function StudentOfficeHoursPage() {
       if (res.ok) {
         setNewQuestion('');
         // Refresh questions
-        const refreshRes = await fetch(`/api/office-hours/${selectedSession}`);
+        const refreshRes = await authFetch(`/api/office-hours/${selectedSession}`);
         const data = await refreshRes.json();
         setSessionQuestions(data.questions || []);
       }

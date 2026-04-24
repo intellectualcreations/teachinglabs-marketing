@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Script from 'next/script'
+import { authFetch } from '@/lib/api-fetch';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -120,7 +121,7 @@ export default function CEODashboardPage() {
   const chartInstances = useRef<any[]>([])
 
   useEffect(() => {
-    fetch('/api/admin/ceo-dashboard')
+    authFetch('/api/admin/ceo-dashboard')
       .then((r) => r.json())
       .then((d) => {
         setData(d)
