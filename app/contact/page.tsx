@@ -81,7 +81,7 @@ export default function ContactPage() {
               See How It Works
             </Link>
             <Link
-              href="https://teaching-labs-demo.netlify.app/landing-page/hero-banner.html"
+              href="/waitlist"
               className="inline-flex items-center gap-2 font-heading text-base font-semibold bg-transparent text-teal px-10 py-4 rounded-full border-2 border-teal hover:bg-teal hover:text-white hover:-translate-y-0.5 transition-all"
             >
               Join the Waitlist
@@ -95,7 +95,7 @@ export default function ContactPage() {
       </section>
 
       {/* Main Content — Contact Section */}
-      <div className="fade-up max-w-[1100px] mx-auto px-12 py-24 grid grid-cols-2 gap-20 items-start max-md:grid-cols-1 max-md:gap-12 max-md:px-6 max-md:py-[60px]">
+      <div className="fade-up max-w-[1100px] mx-auto px-12 py-24 grid grid-cols-2 gap-20 items-start max-md:grid-cols-1 max-md:gap-12 max-md:px-6 max-md:py-[60px] bg-[#f8f9fb] dark:bg-[#0d1630] rounded-2xl">
         {/* LEFT: Info */}
         <div>
           <h2 className="font-heading text-[32px] font-bold text-text-primary mb-4">
