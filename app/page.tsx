@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     'Teaching Labs learns how you teach and helps every student get the support they need. AI-powered K-12 teaching platform.',
 };
 
-const WAITLIST_URL = 'https://teaching-labs-vps.tail6d84e.ts.net:4001/waitlist';
+const WAITLIST_URL = '/waitlist';
 
 /* ─────────────────────────────────────────
    Inline SVG icons (exact paths from v4)
