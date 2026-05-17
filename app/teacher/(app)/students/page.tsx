@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { StudentDetailContent } from '../student-detail/page';
 import {
   MagnifyingGlass, Plus, DotsThree, Users, FunnelSimple,
   ArrowsDownUp, Export, Robot, UserPlus, X, CheckCircle, CaretDown, Flag,
@@ -100,6 +101,7 @@ function StudentsContent() {
   const [deleteReason, setDeleteReason] = useState('');
   const [bulkActionBusy, setBulkActionBusy] = useState<string | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<{ student: StudentRow; scope: 'all' | 'current'; } | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   async function callEnrollmentAction(action: 'accept' | 'reject' | 'archive' | 'reactivate' | 'remove', studentIds: string[]) {
     const supabase = createClient();
@@ -259,6 +261,14 @@ function StudentsContent() {
     list = list.filter((s) => s.status === statusFilter);
     return list;
   }, [students, classFilter, search, sort, statusFilter]);
+
+  useEffect(() => {
+    if (selectedStudentId && !filtered.some((student) => student.id === selectedStudentId)) {
+      setSelectedStudentId(null);
+    }
+  }, [filtered, selectedStudentId]);
+
+  const selectedStudent = selectedStudentId ? students.find((student) => student.id === selectedStudentId) ?? null : null;
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -506,7 +516,58 @@ function StudentsContent() {
             <h3 className="font-heading font-bold text-[15px] text-text-primary">No students match your filters</h3>
             <p className="text-text-secondary text-sm mt-1">Try adjusting your search or filters</p>
           </div>
-        ) : (
+        ) : selectedStudent ? (
+            <div className="grid grid-cols-1 xl:grid-cols-[340px_minmax(0,1fr)] gap-5 items-start">
+              <aside className="rounded-xl border border-border bg-surface/50 overflow-hidden xl:sticky xl:top-4">
+                <div className="px-4 py-3 border-b border-border bg-card-bg">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.5px] text-text-muted">Filtered roster</p>
+                      <p className="text-sm font-semibold text-text-primary">{filtered.length} student{filtered.length === 1 ? '' : 's'}</p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedStudentId(null)}
+                      className="px-3 py-1.5 rounded-lg border border-border text-[12px] font-semibold text-text-secondary hover:border-navy hover:text-navy cursor-pointer whitespace-nowrap"
+                    >Full table</button>
+                  </div>
+                </div>
+                <div className="max-h-[calc(100vh-280px)] overflow-y-auto divide-y divide-border">
+                  {filtered.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => setSelectedStudentId(s.id)}
+                      className={`w-full text-left px-4 py-3 flex items-center gap-3 cursor-pointer transition-all ${
+                        selectedStudentId === s.id ? 'bg-navy/10 border-l-4 border-navy' : 'hover:bg-teal/[0.04] border-l-4 border-transparent'
+                      }`}
+                    >
+                      {s.superpowerAvatar ? (
+                        <img src={s.superpowerAvatar} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: s.color }}>
+                          {getInitials(s.first, s.last)}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-text-primary truncate">{nameFormat === 'first-last' ? `${s.first} ${s.last}` : `${s.last}, ${s.first}`}</p>
+                        <p className="text-[11px] text-text-muted truncate">{s.classNames.join(', ') || 'No class'}</p>
+                        <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                          {s.preferredName && <span className="text-[10px] rounded-full bg-teal/10 text-navy px-2 py-0.5">{s.preferredName}</span>}
+                          {s.baselineLevel && <span className="text-[10px] rounded-full bg-border/50 text-text-secondary px-2 py-0.5">{s.baselineLevel}</span>}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </aside>
+              <section className="min-w-0 rounded-xl border border-border bg-surface/30 p-4">
+                <StudentDetailContent
+                  studentId={selectedStudentId}
+                  embedded
+                  onBack={() => setSelectedStudentId(null)}
+                />
+              </section>
+            </div>
+          ) : (
           <div className="overflow-x-auto overflow-y-visible">
             <table className="w-full border-collapse min-w-[700px]">
               <thead>
@@ -543,7 +604,11 @@ function StudentsContent() {
                       />
                     </td>
                     <td className="px-3 py-3">
-                      <a href={`/teacher/student-detail?student=${s.id}`} className="flex items-center gap-2 no-underline cursor-pointer hover:opacity-80">
+                      <a
+                        href={`/teacher/student-detail?student=${s.id}`}
+                        onClick={(event) => { event.preventDefault(); setSelectedStudentId(s.id); setSelectedIds(new Set()); }}
+                        className="flex items-center gap-2 no-underline cursor-pointer hover:opacity-80"
+                      >
                         {s.superpowerAvatar ? (
                           <img src={s.superpowerAvatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
                         ) : (

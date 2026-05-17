@@ -213,10 +213,18 @@ function GenerateOverviewInline({ studentId, onReady }: { studentId: string; onR
   return <p className="text-[13px] text-text-muted italic">No overview yet.</p>;
 }
 
-function StudentDetailContent() {
+export function StudentDetailContent({
+  studentId: studentIdOverride,
+  onBack,
+  embedded = false,
+}: {
+  studentId?: string | null;
+  onBack?: () => void;
+  embedded?: boolean;
+} = {}) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const studentId = searchParams.get('student');
+  const studentId = studentIdOverride ?? searchParams.get('student');
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [assessment, setAssessment] = useState<Assessment | null>(null);
@@ -286,6 +294,22 @@ function StudentDetailContent() {
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
+      setError(null);
+      setProfile(null);
+      setAssessment(null);
+      setEnrollments([]);
+      setResponses([]);
+      setBaselineHistory([]);
+      setConversations(null);
+      setNotes(null);
+      setSelectedConversationId(null);
+      setShowAssessmentPanel(false);
+      setShowConversationsPanel(false);
+      setShowClassesPanel(false);
+      setShowNotesPanel(false);
+      setShowInsightsPanel(false);
+
       if (!studentId) {
         setError('No student ID provided');
         setLoading(false);
@@ -370,6 +394,21 @@ function StudentDetailContent() {
   const initials = getInitials(studentName);
   const hasBaseline = !!assessment;
   const mi = assessment?.multiple_intelligences;
+  const profileInfo = profile as Profile & {
+    preferred_name?: string | null;
+    superpower_title?: string | null;
+    primary_intelligence?: string | null;
+    baseline_assessment_at?: string | null;
+    baseline_level?: string | null;
+  };
+  const primaryIntelligence = profileInfo.primary_intelligence
+    ? (GARDNER_LABELS[profileInfo.primary_intelligence] || profileInfo.primary_intelligence.replace(/_/g, ' '))
+    : null;
+  const enrolledDate = enrollments
+    .map((e) => e.enrolled_at)
+    .filter(Boolean)
+    .sort()[0] || null;
+  const lastBaselineDate = profileInfo.baseline_assessment_at || assessment?.completed_at || null;
 
   // Panel push: when any slide-out panel is open, margin-right the main content
   // so the tiles never get overlapped. Clamp matches the panel's CSS width.
@@ -399,12 +438,15 @@ function StudentDetailContent() {
       {/* PERSISTENT TOP: Back button + Student Header always span the full width,
           never pushed by the panel. The panel slides in level with the first tile below. */}
       <button
-        onClick={() => { setShowAssessmentPanel(false); router.push('/teacher/students'); }}
+        onClick={() => {
+          if (onBack) onBack();
+          else { setShowAssessmentPanel(false); router.push('/teacher/students'); }
+        }}
         className="relative z-[70] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-[1.5px] border-border
           bg-transparent text-text-secondary text-[13px] font-medium cursor-pointer transition-all
           hover:border-navy hover:text-text-primary mb-5"
       >
-        <CaretLeft size={16} weight="fill" /> Back to Students
+        <CaretLeft size={16} weight="fill" /> {embedded ? 'Back to full table' : 'Back to Students'}
       </button>
 
       {/* Student Header — always full width, not pushed */}
@@ -446,6 +488,33 @@ function StudentDetailContent() {
       <div style={pushStyle} className="transition-[margin] duration-200 ease-out">
       {/* ── Interactive Tile Stack (single column on left, panels pop from right) ─────────────── */}
       <div className="flex flex-col gap-4 mb-5 max-w-[720px]">
+
+        {/* Profile Information */}
+        <section className="relative bg-card-bg border border-border rounded-[14px] p-5 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-navy to-teal" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <UsersThree size={18} weight="fill" className="text-navy" />
+              <span className="font-heading font-bold text-sm text-text-primary">Profile Information</span>
+            </div>
+            <span className="text-[11px] font-bold text-navy bg-navy/10 px-2 py-0.5 rounded-full">Roster details</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            {[
+              ['Email', profile.email || '—'],
+              ['Preferred Name', assessment?.preferred_name || profileInfo.preferred_name || '—'],
+              ['Superhero Name', profileInfo.superpower_title || '—'],
+              ['Learning Style', primaryIntelligence || '—'],
+              ['Enrolled', enrolledDate ? formatDate(enrolledDate) : '—'],
+              ['Last Baseline', lastBaselineDate ? formatDate(lastBaselineDate) : '—'],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-lg border border-border bg-surface/60 px-3 py-2">
+                <div className="text-[10px] font-bold uppercase tracking-[0.5px] text-text-muted mb-0.5">{label}</div>
+                <div className="text-[13px] font-semibold text-text-primary capitalize">{value}</div>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* Tile 1: Baseline Assessment */}
         <button
