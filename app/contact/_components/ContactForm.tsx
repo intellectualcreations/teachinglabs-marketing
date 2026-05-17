@@ -39,7 +39,7 @@ export default function ContactForm() {
               name="firstName"
               placeholder="First Name"
               required
-              className="px-4 py-3 border-[1.5px] border-[rgba(128,128,128,0.2)] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
+              className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
             />
           </div>
           <div className="flex flex-col gap-1.5 mb-4">
@@ -55,7 +55,7 @@ export default function ContactForm() {
               name="lastName"
               placeholder="Last Name"
               required
-              className="px-4 py-3 border-[1.5px] border-[rgba(128,128,128,0.2)] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
+              className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
             />
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function ContactForm() {
             name="email"
             placeholder="you@school.edu"
             required
-              className="px-4 py-3 border-[1.5px] border-[rgba(128,128,128,0.2)] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
+              className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
             />
         </div>
 
@@ -90,7 +90,7 @@ export default function ContactForm() {
             id="role"
             name="role"
             defaultValue=""
-            className="px-4 py-3 border-[1.5px] border-[rgba(128,128,128,0.2)] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full appearance-none"
+            className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full appearance-none"
             style={{
               backgroundImage:
                 "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896A6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\")",
@@ -128,7 +128,7 @@ export default function ContactForm() {
             name="subject"
             placeholder="What&apos;s on your mind?"
             required
-              className="px-4 py-3 border-[1.5px] border-[rgba(128,128,128,0.2)] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
+              className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
             />
         </div>
 
@@ -146,7 +146,7 @@ export default function ContactForm() {
             placeholder="Tell us a bit about your school, your students, or what you're hoping Teaching Labs can help with..."
             required
             rows={6}
-            className="px-4 py-3 border-[1.5px] border-[rgba(128,128,128,0.2)] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full resize-y min-h-[130px]"
+            className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full resize-y min-h-[130px]"
           />
         </div>
 
