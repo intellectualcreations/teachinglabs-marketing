@@ -107,8 +107,8 @@ export default function ContactPage() {
 
           {/* Info Cards */}
           <div
-            className="flex gap-[18px] items-start p-6 border border-transparent rounded-[20px] mb-4 bg-surface shadow-[0_2px_20px_rgba(20,33,61,0.05)] dark:shadow-none dark:border dark:border-white/10 relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_8px_40px_rgba(20,33,61,0.1)] transition-all duration-400"
-            style={{ borderLeft: '4px solid transparent', backgroundImage: 'linear-gradient(white, white), linear-gradient(180deg, #00F6ED, rgba(0,246,237,0.3))', backgroundOrigin: 'border-box', backgroundClip: 'padding-box, border-box' }}
+            className="flex gap-[18px] items-start p-6 border border-transparent rounded-[20px] mb-4 bg-white dark:bg-[#0e1a35] shadow-[0_2px_20px_rgba(20,33,61,0.05)] dark:shadow-none dark:border dark:border-white/10 relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_8px_40px_rgba(20,33,61,0.1)] transition-all duration-400"
+            style={{ borderLeft: '4px solid #00F6ED' }}
           >
             <div className="w-11 h-11 bg-[rgba(0,246,237,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
               ✉️
@@ -127,8 +127,8 @@ export default function ContactPage() {
           </div>
 
           <div
-            className="flex gap-[18px] items-start p-6 border border-transparent rounded-[20px] mb-4 bg-surface shadow-[0_2px_20px_rgba(20,33,61,0.05)] dark:shadow-none dark:border dark:border-white/10 relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_8px_40px_rgba(20,33,61,0.1)] transition-all duration-400"
-            style={{ borderLeft: '4px solid transparent', backgroundImage: 'linear-gradient(white, white), linear-gradient(180deg, #00F6ED, rgba(0,246,237,0.3))', backgroundOrigin: 'border-box', backgroundClip: 'padding-box, border-box' }}
+            className="flex gap-[18px] items-start p-6 border border-transparent rounded-[20px] mb-4 bg-white dark:bg-[#0e1a35] shadow-[0_2px_20px_rgba(20,33,61,0.05)] dark:shadow-none dark:border dark:border-white/10 relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_8px_40px_rgba(20,33,61,0.1)] transition-all duration-400"
+            style={{ borderLeft: '4px solid #00F6ED' }}
           >
             <div className="w-11 h-11 bg-[rgba(0,246,237,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
               🏫
@@ -144,8 +144,8 @@ export default function ContactPage() {
           </div>
 
           <div
-            className="flex gap-[18px] items-start p-6 border border-transparent rounded-[20px] mb-4 bg-surface shadow-[0_2px_20px_rgba(20,33,61,0.05)] dark:shadow-none dark:border dark:border-white/10 relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_8px_40px_rgba(20,33,61,0.1)] transition-all duration-400"
-            style={{ borderLeft: '4px solid transparent', backgroundImage: 'linear-gradient(white, white), linear-gradient(180deg, #00F6ED, rgba(0,246,237,0.3))', backgroundOrigin: 'border-box', backgroundClip: 'padding-box, border-box' }}
+            className="flex gap-[18px] items-start p-6 border border-transparent rounded-[20px] mb-4 bg-white dark:bg-[#0e1a35] shadow-[0_2px_20px_rgba(20,33,61,0.05)] dark:shadow-none dark:border dark:border-white/10 relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_8px_40px_rgba(20,33,61,0.1)] transition-all duration-400"
+            style={{ borderLeft: '4px solid #00F6ED' }}
           >
             <div className="w-11 h-11 bg-[rgba(0,246,237,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
               🎤
@@ -170,7 +170,7 @@ export default function ContactPage() {
                 (tag) => (
                   <span
                     key={tag}
-                    className="px-4 py-1.5 rounded-[20px] font-heading text-[13px] font-medium border border-[rgba(128,128,128,0.15)] text-text-secondary bg-surface"
+                    className="px-4 py-1.5 rounded-[20px] font-heading text-[13px] font-medium border border-[rgba(128,128,128,0.15)] text-text-secondary bg-white dark:bg-[#0e1a35]"
                   >
                     {tag}
                   </span>
