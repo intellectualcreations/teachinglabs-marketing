@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, Open_Sans } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
-import AuthProvider from '@/components/shared/AuthProvider';
-import ServiceWorkerRegistrar from '@/components/shared/ServiceWorkerRegistrar';
 import './globals.css';
 
 const inter = Inter({
@@ -47,12 +45,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${inter.variable} ${openSans.variable} antialiased`}>
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-            <ServiceWorkerRegistrar />
-            {children}
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
