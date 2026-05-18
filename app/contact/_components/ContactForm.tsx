@@ -19,7 +19,7 @@ export default function ContactForm() {
       <h2 className="font-heading text-[28px] font-bold text-text-primary mb-2">
         Send us a message
       </h2>
-      <p className="text-sm text-text-muted mb-8">
+      <p className="text-sm text-[#4b5b73] dark:text-text-muted mb-8">
         We&apos;ll get back to you within one business day.
       </p>
 
@@ -39,7 +39,7 @@ export default function ContactForm() {
               name="firstName"
               placeholder="First Name"
               required
-              className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
+              className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
             />
           </div>
           <div className="flex flex-col gap-1.5 mb-4">
@@ -55,7 +55,7 @@ export default function ContactForm() {
               name="lastName"
               placeholder="Last Name"
               required
-              className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
+              className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
             />
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function ContactForm() {
             name="email"
             placeholder="you@school.edu"
             required
-              className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
+              className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
             />
         </div>
 
@@ -90,7 +90,7 @@ export default function ContactForm() {
             id="role"
             name="role"
             defaultValue=""
-            className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full appearance-none"
+            className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full appearance-none"
             style={{
               backgroundImage:
                 "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896A6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\")",
@@ -128,7 +128,7 @@ export default function ContactForm() {
             name="subject"
             placeholder="What&apos;s on your mind?"
             required
-              className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
+              className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
             />
         </div>
 
@@ -146,18 +146,18 @@ export default function ContactForm() {
             placeholder="Tell us a bit about your school, your students, or what you're hoping Teaching Labs can help with..."
             required
             rows={6}
-            className="px-4 py-3 border-[1.5px] border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary bg-white dark:bg-[#0e1a35] outline-none focus:border-teal focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full resize-y min-h-[130px]"
+            className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full resize-y min-h-[130px]"
           />
         </div>
 
         <button
           type="submit"
           disabled={submitted}
-          className="w-full mt-2 py-[15px] rounded-full font-heading text-sm font-semibold tracking-[2px] uppercase text-white transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed"
-          style={{
-            background: submitted ? '#2D9B6F' : 'var(--teal, #00F6ED)',
-            boxShadow: submitted ? 'none' : '0 4px 16px rgba(0,246,237,0.35)',
-          }}
+          className={`w-full mt-2 py-[15px] rounded-full font-heading text-sm font-semibold tracking-[2px] uppercase text-white transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed ${
+            submitted
+              ? 'bg-success shadow-none'
+              : 'bg-indigo dark:bg-teal shadow-[0_6px_20px_rgba(64,86,244,0.28)] dark:shadow-[0_4px_16px_rgba(0,246,237,0.35)]'
+          }`}
         >
           {submitted ? '✓ Message Sent!' : 'Send Message'}
         </button>
