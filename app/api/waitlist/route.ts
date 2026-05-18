@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomBytes } from 'crypto';
 
 const LOGO_URL = 'https://www.teachinglabs.com/email/teaching-labs-logo.png';
 
@@ -26,7 +27,11 @@ function getSupabaseConfig() {
   return { url, anonKey };
 }
 
-async function sendWaitlistConfirmation(email: string, firstName: string) {
+function createUnsubscribeToken(): string {
+  return randomBytes(24).toString('hex');
+}
+
+async function sendWaitlistConfirmation(email: string, firstName: string, unsubscribeToken: string) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.WAITLIST_FROM_EMAIL || 'Teaching Labs <hello@teachinglabs.com>';
 
@@ -36,6 +41,7 @@ async function sendWaitlistConfirmation(email: string, firstName: string) {
   }
 
   const safeFirstName = escapeHtml(firstName);
+  const unsubscribeUrl = `https://www.teachinglabs.com/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`;
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -46,7 +52,7 @@ async function sendWaitlistConfirmation(email: string, firstName: string) {
       from,
       to: email,
       subject: 'You’re on the Teaching Labs Waitlist',
-      text: `Hi ${firstName},\n\nThanks for joining the Teaching Labs waitlist.\n\nWe’re building something designed to help teachers create more engaging, student-centered learning experiences — without adding more overwhelm to your day.\n\nRight now, we’re working closely with early educators to shape the platform, test ideas, and build tools that are actually useful in real classrooms.\n\nAs an early member, you’ll get:\n\n• Early access opportunities\n• Sneak peeks at new features\n• Classroom-ready ideas and experiments\n• A chance to help shape what Teaching Labs becomes\n\nOur goal is simple:\nHelp teachers create learning experiences students genuinely connect with.\n\nWe’re glad you’re here.\n\n— The Teaching Labs Team`,
+      text: `Hi ${firstName},\n\nThanks for joining the Teaching Labs waitlist.\n\nWe’re building something designed to help teachers create more engaging, student-centered learning experiences — without adding more overwhelm to your day.\n\nRight now, we’re working closely with early educators to shape the platform, test ideas, and build tools that are actually useful in real classrooms.\n\nAs an early member, you’ll get:\n\n• Early access opportunities\n• Sneak peeks at new features\n• Classroom-ready ideas and experiments\n• A chance to help shape what Teaching Labs becomes\n\nOur goal is simple:\nHelp teachers create learning experiences students genuinely connect with.\n\nWe’re glad you’re here.\n\n— The Teaching Labs Team\n\nYou’re receiving this email because you signed up for early access to Teaching Labs.\nTeaching Labs · https://www.teachinglabs.com · hello@teachinglabs.com\nUnsubscribe anytime: ${unsubscribeUrl}`,
       html: `
         <div style="margin:0; padding:0; background:#f4f7fb; font-family: Arial, Helvetica, sans-serif; color:#0a1128;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; background:#f4f7fb;">
@@ -77,9 +83,10 @@ async function sendWaitlistConfirmation(email: string, firstName: string) {
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:20px 32px 28px 32px; background:#0a1128; color:#d7deea; font-size:13px; line-height:1.5;">
-                      Teaching Labs · AI-powered support for teachers and students<br />
-                      <a href="https://www.teachinglabs.com" style="color:#00F6ED; text-decoration:none;">www.teachinglabs.com</a>
+                    <td style="padding:20px 32px 28px 32px; background:#0a1128; color:#d7deea; font-size:13px; line-height:1.6;">
+                      You’re receiving this email because you signed up for early access to Teaching Labs.<br />
+                      Teaching Labs · <a href="https://www.teachinglabs.com" style="color:#00F6ED; text-decoration:none;">www.teachinglabs.com</a> · <a href="mailto:hello@teachinglabs.com" style="color:#00F6ED; text-decoration:none;">hello@teachinglabs.com</a><br />
+                      <a href="${unsubscribeUrl}" style="color:#d7deea; text-decoration:underline;">Unsubscribe anytime</a>
                     </td>
                   </tr>
                 </table>
@@ -118,6 +125,7 @@ export async function POST(req: NextRequest) {
 
     const trimmedFirstName = firstName.trim();
     const normalizedEmail = email.trim().toLowerCase();
+    const unsubscribeToken = createUnsubscribeToken();
     const { url, anonKey } = getSupabaseConfig();
     const response = await fetch(`${url}/rest/v1/waitlist`, {
       method: 'POST',
@@ -132,6 +140,7 @@ export async function POST(req: NextRequest) {
         last_name: lastName.trim(),
         role: role.trim(),
         email: normalizedEmail,
+        unsubscribe_token: unsubscribeToken,
       }),
     });
 
@@ -153,7 +162,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await sendWaitlistConfirmation(normalizedEmail, trimmedFirstName);
+      await sendWaitlistConfirmation(normalizedEmail, trimmedFirstName, unsubscribeToken);
     } catch (emailError) {
       console.error('Waitlist confirmation email error:', emailError);
     }
