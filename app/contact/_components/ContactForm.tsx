@@ -4,14 +4,45 @@ import { useState } from 'react';
 
 export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      (e.target as HTMLFormElement).reset();
-    }, 4000);
+    setSubmitted(false);
+    setError('');
+    setIsSubmitting(true);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.get('firstName'),
+          lastName: formData.get('lastName'),
+          email: formData.get('email'),
+          role: formData.get('role'),
+          subject: formData.get('subject'),
+          message: formData.get('message'),
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Message could not be sent.');
+      }
+
+      setSubmitted(true);
+      form.reset();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Message could not be sent. Please email hello@teachinglabs.com directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -152,15 +183,21 @@ export default function ContactForm() {
 
         <button
           type="submit"
-          disabled={submitted}
+          disabled={isSubmitting || submitted}
           className={`w-full mt-2 py-[15px] rounded-full font-heading text-sm font-semibold tracking-[2px] uppercase text-white transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed ${
             submitted
               ? 'bg-success shadow-none'
               : 'bg-indigo dark:bg-teal shadow-[0_6px_20px_rgba(64,86,244,0.28)] dark:shadow-[0_4px_16px_rgba(0,246,237,0.35)]'
           }`}
         >
-          {submitted ? '✓ Message Sent!' : 'Send Message'}
+          {submitted ? '✓ Message Sent!' : isSubmitting ? 'Sending…' : 'Send Message'}
         </button>
+
+        {error && (
+          <p className="mt-3.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm font-medium text-red-700 dark:text-red-200">
+            {error}
+          </p>
+        )}
 
         <p className="text-xs text-text-muted text-center mt-3.5 leading-relaxed">
           🔒 Your information is private and will never be sold or shared.
