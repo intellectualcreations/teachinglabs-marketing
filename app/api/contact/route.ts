@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.CONTACT_FROM_EMAIL || process.env.WAITLIST_FROM_EMAIL || 'Teaching Labs Website <no-reply@teachinglabs.com>';
+    const from = process.env.CONTACT_FROM_EMAIL || 'Teaching Labs Website <no-reply@teachinglabs.com>';
 
     if (!apiKey) {
       console.error('Contact email failed: RESEND_API_KEY is not configured.');
