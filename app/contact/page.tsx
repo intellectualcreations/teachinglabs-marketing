@@ -130,7 +130,7 @@ export default function ContactPage() {
               },
               {
                 title: 'Speaking / press',
-                text: 'Invite Dottie for a conversation, event, podcast, panel, or media inquiry.',
+                text: 'Invite us for a conversation, event, podcast, panel, or media inquiry.',
                 icon: (
                   <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4zM5 10a7 7 0 0 0 14 0M12 17v4M9 21h6" />
                 ),
