@@ -157,7 +157,7 @@ export default function ContactForm() {
           className={`w-full mt-2 py-[15px] rounded-full font-heading text-sm font-semibold tracking-[2px] uppercase text-white transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed ${
             submitted
               ? 'bg-success shadow-none'
-              : 'bg-indigo dark:bg-teal shadow-[0_6px_20px_rgba(64,86,244,0.28)] dark:shadow-[0_4px_16px_rgba(0,246,237,0.35)]'
+              : 'bg-deep-navy shadow-[0_6px_20px_rgba(20,33,61,0.28)] hover:bg-indigo'
           }`}
         >
           {submitted ? '✓ Message Sent!' : isSubmitting ? 'Sending…' : 'Send Message'}

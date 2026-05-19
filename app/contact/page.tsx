@@ -147,11 +147,11 @@ export default function ContactPage() {
                 key={title}
                 className="flex gap-4 p-5 border border-[#d6dde8] border-l-4 border-l-indigo dark:border-white/10 dark:border-l-teal rounded-[18px] bg-white dark:bg-[#0e1a35] shadow-[0_6px_24px_rgba(20,33,61,0.06)] dark:shadow-none"
               >
-                <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo dark:bg-teal text-white shadow-[0_6px_16px_rgba(64,86,244,0.22)] dark:shadow-[0_4px_14px_rgba(0,246,237,0.22)]">
+                <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center text-deep-navy dark:text-teal">
                   <svg
                     viewBox="0 0 24 24"
                     aria-hidden="true"
-                    className="h-5 w-5"
+                    className="h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
