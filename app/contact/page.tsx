@@ -101,80 +101,39 @@ export default function ContactPage() {
           <h2 className="font-heading text-[32px] font-bold text-text-primary mb-4">
             How can we help?
           </h2>
-          <p className="text-base text-[#24324a] dark:text-text-secondary mb-10 leading-[1.7]">
-            Teaching Labs is built for educators, by someone who spent 13 years in the classroom. Reach out — we respond to every message personally.
+          <p className="text-base text-[#24324a] dark:text-text-secondary mb-8 leading-[1.7]">
+            Tell us what you need, and we&apos;ll route your note to the right person. Every message goes to hello@teachinglabs.com.
           </p>
 
-          {/* Info Cards */}
-          <div
-            className="flex gap-[18px] items-start p-6 border border-[#d6dde8] border-l-4 border-l-indigo dark:border-white/10 dark:border-l-teal rounded-[20px] mb-4 bg-white dark:bg-[#0e1a35] shadow-[0_6px_24px_rgba(20,33,61,0.08)] dark:shadow-none relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_10px_40px_rgba(20,33,61,0.12)] transition-all duration-400"
-          >
-            <div className="w-11 h-11 bg-[rgba(64,86,244,0.12)] dark:bg-[rgba(0,246,237,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
-              ✉️
-            </div>
-            <div>
-              <h3 className="font-heading text-sm font-bold text-text-primary mb-1 tracking-[0.3px]">
-                Email Us
-              </h3>
-              <a
-                href="mailto:hello@teachinglabs.com"
-                className="text-sm text-[#24324a] dark:text-text-secondary hover:text-gold transition-colors"
+          <div className="space-y-3">
+            {[
+              ['Early access', 'Join the first group of educators and schools shaping Teaching Labs.'],
+              ['District partnerships', 'Explore pilots, school partnerships, and implementation conversations.'],
+              ['Platform partnerships', 'Connect with us about integrations, product partnerships, or aligned tools.'],
+              ['Speaking / press', 'Invite Dottie for a conversation, event, podcast, panel, or media inquiry.'],
+              ['Product feedback', 'Share ideas, questions, classroom needs, or feedback on the platform.'],
+            ].map(([title, text]) => (
+              <div
+                key={title}
+                className="p-5 border border-[#d6dde8] border-l-4 border-l-indigo dark:border-white/10 dark:border-l-teal rounded-[18px] bg-white dark:bg-[#0e1a35] shadow-[0_6px_24px_rgba(20,33,61,0.06)] dark:shadow-none"
               >
-                hello@teachinglabs.com
-              </a>
-            </div>
+                <h3 className="font-heading text-sm font-bold text-text-primary mb-1 tracking-[0.3px]">
+                  {title}
+                </h3>
+                <p className="text-sm text-[#24324a] dark:text-text-secondary leading-[1.5]">
+                  {text}
+                </p>
+              </div>
+            ))}
           </div>
 
-          <div
-            className="flex gap-[18px] items-start p-6 border border-[#d6dde8] border-l-4 border-l-indigo dark:border-white/10 dark:border-l-teal rounded-[20px] mb-4 bg-white dark:bg-[#0e1a35] shadow-[0_6px_24px_rgba(20,33,61,0.08)] dark:shadow-none relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_10px_40px_rgba(20,33,61,0.12)] transition-all duration-400"
-          >
-            <div className="w-11 h-11 bg-[rgba(64,86,244,0.12)] dark:bg-[rgba(0,246,237,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
-              🏫
-            </div>
-            <div>
-              <h3 className="font-heading text-sm font-bold text-text-primary mb-1 tracking-[0.3px]">
-                District &amp; School Partnerships
-              </h3>
-              <p className="text-sm text-[#24324a] dark:text-text-secondary leading-[1.5]">
-                Interested in piloting Teaching Labs at your school? We&apos;re scheduling early access now.
-              </p>
-            </div>
-          </div>
-
-          <div
-            className="flex gap-[18px] items-start p-6 border border-[#d6dde8] border-l-4 border-l-indigo dark:border-white/10 dark:border-l-teal rounded-[20px] mb-4 bg-white dark:bg-[#0e1a35] shadow-[0_6px_24px_rgba(20,33,61,0.08)] dark:shadow-none relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_10px_40px_rgba(20,33,61,0.12)] transition-all duration-400"
-          >
-            <div className="w-11 h-11 bg-[rgba(64,86,244,0.12)] dark:bg-[rgba(0,246,237,0.1)] rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
-              🎤
-            </div>
-            <div>
-              <h3 className="font-heading text-sm font-bold text-text-primary mb-1 tracking-[0.3px]">
-                Speaking &amp; Press
-              </h3>
-              <p className="text-sm text-[#24324a] dark:text-text-secondary leading-[1.5]">
-                Conference panels, podcast appearances, or media inquiries — we&apos;re happy to connect.
-              </p>
-            </div>
-          </div>
-
-          {/* Audience Tags */}
-          <div className="mt-8">
-            <h3 className="font-heading text-[11px] font-bold tracking-[2px] uppercase text-[#4b5b73] dark:text-text-muted mb-3.5">
-              I am a...
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {['Classroom Teacher', 'School Administrator', 'District Leader', 'EdTech Investor', 'Parent', 'Student', 'Researcher'].map(
-                (tag) => (
-                  <span
-                    key={tag}
-                    className="px-4 py-1.5 rounded-[20px] font-heading text-[13px] font-semibold border border-[#c8d2e1] text-[#24324a] bg-white dark:border-white/10 dark:text-text-secondary dark:bg-[#0e1a35]"
-                  >
-                    {tag}
-                  </span>
-                )
-              )}
-            </div>
-          </div>
+          <p className="mt-7 text-sm text-[#4b5b73] dark:text-text-muted leading-[1.6]">
+            Prefer email? Write to{' '}
+            <a href="mailto:hello@teachinglabs.com" className="font-semibold text-indigo dark:text-teal hover:underline">
+              hello@teachinglabs.com
+            </a>
+            .
+          </p>
         </div>
 
         {/* RIGHT: Form */}

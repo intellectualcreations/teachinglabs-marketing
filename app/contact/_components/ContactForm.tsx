@@ -2,6 +2,18 @@
 
 import { useState } from 'react';
 
+const SUBJECT_OPTIONS = [
+  'Early access',
+  'District partnerships',
+  'Platform partnerships',
+  'Speaking / press',
+  'Product feedback or question',
+  'Other',
+];
+
+const inputClass =
+  'px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full';
+
 export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,7 +51,11 @@ export default function ContactForm() {
       setSubmitted(true);
       form.reset();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Message could not be sent. Please email hello@teachinglabs.com directly.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Message could not be sent. Please email hello@teachinglabs.com directly.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -51,77 +67,57 @@ export default function ContactForm() {
         Send us a message
       </h2>
       <p className="text-sm text-[#4b5b73] dark:text-text-muted mb-8">
-        We&apos;ll get back to you within one business day.
+        Tell us what you&apos;re working on, and we&apos;ll route it to the right person.
       </p>
 
       <form onSubmit={handleSubmit}>
-        {/* Name row */}
         <div className="grid grid-cols-2 gap-4 mb-4 max-md:grid-cols-1">
           <div className="flex flex-col gap-1.5 mb-4">
-            <label
-              htmlFor="firstName"
-              className="font-heading text-[13px] font-semibold text-text-primary"
-            >
+            <label htmlFor="firstName" className="font-heading text-[13px] font-semibold text-text-primary">
               First Name
             </label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              placeholder="First Name"
-              required
-              className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
-            />
+            <input type="text" id="firstName" name="firstName" placeholder="First Name" required className={inputClass} />
           </div>
+
           <div className="flex flex-col gap-1.5 mb-4">
-            <label
-              htmlFor="lastName"
-              className="font-heading text-[13px] font-semibold text-text-primary"
-            >
+            <label htmlFor="lastName" className="font-heading text-[13px] font-semibold text-text-primary">
               Last Name
             </label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              placeholder="Last Name"
-              required
-              className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
-            />
+            <input type="text" id="lastName" name="lastName" placeholder="Last Name" required className={inputClass} />
           </div>
         </div>
 
-        {/* Email */}
         <div className="flex flex-col gap-1.5 mb-4">
-          <label
-            htmlFor="email"
-            className="font-heading text-[13px] font-semibold text-text-primary"
-          >
+          <label htmlFor="email" className="font-heading text-[13px] font-semibold text-text-primary">
             Email Address
           </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="you@school.edu"
-            required
-              className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
-            />
+          <input type="email" id="email" name="email" placeholder="you@school.edu" required className={inputClass} />
         </div>
 
-        {/* Role */}
         <div className="flex flex-col gap-1.5 mb-4">
-          <label
-            htmlFor="role"
-            className="font-heading text-[13px] font-semibold text-text-primary"
-          >
+          <label htmlFor="role" className="font-heading text-[13px] font-semibold text-text-primary">
             Your Role
           </label>
-          <select
+          <input
+            type="text"
             id="role"
             name="role"
+            placeholder="How would you describe yourself?"
+            required
+            className={inputClass}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5 mb-4">
+          <label htmlFor="subject" className="font-heading text-[13px] font-semibold text-text-primary">
+            Subject
+          </label>
+          <select
+            id="subject"
+            name="subject"
             defaultValue=""
-            className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full appearance-none"
+            required
+            className={`${inputClass} appearance-none`}
             style={{
               backgroundImage:
                 "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896A6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\")",
@@ -131,53 +127,27 @@ export default function ContactForm() {
             }}
           >
             <option value="" disabled>
-              Select your role...
+              Select a topic...
             </option>
-            <option>Classroom Teacher</option>
-            <option>School Administrator</option>
-            <option>District Leader / Superintendent</option>
-            <option>EdTech Investor</option>
-            <option>Parent</option>
-            <option>Student</option>
-            <option>Researcher / Academic</option>
-            <option>Press / Media</option>
-            <option>Other</option>
+            {SUBJECT_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
           </select>
         </div>
 
-        {/* Subject */}
         <div className="flex flex-col gap-1.5 mb-4">
-          <label
-            htmlFor="subject"
-            className="font-heading text-[13px] font-semibold text-text-primary"
-          >
-            Subject
-          </label>
-          <input
-            type="text"
-            id="subject"
-            name="subject"
-            placeholder="What&apos;s on your mind?"
-            required
-              className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full"
-            />
-        </div>
-
-        {/* Message */}
-        <div className="flex flex-col gap-1.5 mb-4">
-          <label
-            htmlFor="message"
-            className="font-heading text-[13px] font-semibold text-text-primary"
-          >
+          <label htmlFor="message" className="font-heading text-[13px] font-semibold text-text-primary">
             Message
           </label>
           <textarea
             id="message"
             name="message"
-            placeholder="Tell us a bit about your school, your students, or what you're hoping Teaching Labs can help with..."
+            placeholder="Tell us a little more..."
             required
             rows={6}
-            className="px-4 py-3 border-[1.5px] border-[#4b5b73] dark:border-[#1a5276] rounded-xl font-body text-[15px] text-text-primary placeholder:text-[#64748b] dark:placeholder:text-white/55 bg-white dark:bg-[#0e1a35] outline-none focus:border-indigo dark:focus:border-teal focus:shadow-[0_0_0_3px_rgba(64,86,244,0.14)] dark:focus:shadow-[0_0_0_3px_rgba(0,246,237,0.12)] transition-all w-full resize-y min-h-[130px]"
+            className={`${inputClass} resize-y min-h-[130px]`}
           />
         </div>
 
