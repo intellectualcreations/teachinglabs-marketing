@@ -270,6 +270,9 @@ export default function WaitlistPage() {
                 <p className="font-heading text-[13px] text-text-muted mt-4 text-center">
                   Free early access · No credit card required · Join 4,000+ teachers
                 </p>
+                <p className="text-xs text-text-muted mt-3 text-center leading-relaxed">
+                  🔒 Your information is private and will never be sold or shared. By joining the waitlist, you agree that Teaching Labs may contact you by email about early access and related Teaching Labs updates. You can unsubscribe at any time.
+                </p>
               </div>
             ) : (
               <>
