@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomBytes } from 'crypto';
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -11,6 +12,21 @@ function escapeHtml(value: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function getSupabaseConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return { url, anonKey };
+}
+
+function createUnsubscribeToken(): string {
+  return randomBytes(24).toString('hex');
 }
 
 export async function POST(req: NextRequest) {
@@ -40,6 +56,39 @@ export async function POST(req: NextRequest) {
     }
 
     const submittedAt = new Date().toISOString();
+    const normalizedEmail = email.toLowerCase();
+    const unsubscribeToken = createUnsubscribeToken();
+    const { url, anonKey } = getSupabaseConfig();
+
+    const saveResponse = await fetch(`${url}/rest/v1/contact_submissions`, {
+      method: 'POST',
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({
+        first_name: firstName,
+        last_name: lastName,
+        email: normalizedEmail,
+        role,
+        subject,
+        message,
+        marketing_consent: true,
+        email_opt_out: false,
+        unsubscribe_token: unsubscribeToken,
+        source: 'contact_page',
+        user_agent: req.headers.get('user-agent') || null,
+      }),
+    });
+
+    if (!saveResponse.ok) {
+      const errorText = await saveResponse.text();
+      console.error('Contact submission save failed:', errorText);
+      return NextResponse.json({ error: 'Message could not be saved. Please try again or email hello@teachinglabs.com directly.' }, { status: 500 });
+    }
+
     const safe = {
       firstName: escapeHtml(firstName),
       lastName: escapeHtml(lastName),
