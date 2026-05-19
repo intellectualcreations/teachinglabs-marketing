@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         from,
-        to: 'hello@teachinglabs.com',
+        to: ['hello@teachinglabs.com', 'dottie@intellectualcreations.net'],
         reply_to: email,
         subject: `Teaching Labs contact: ${subject}`,
         text: `New Teaching Labs contact form submission\n\nName: ${firstName} ${lastName}\nEmail: ${email}\nRole: ${role}\nSubject: ${subject}\nSubmitted: ${submittedAt}\n\nMessage:\n${message}`,
