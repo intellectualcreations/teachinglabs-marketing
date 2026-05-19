@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import MarketingNav from '@/components/shared/MarketingNav';
 import MarketingFooter from '@/components/shared/MarketingFooter';
+import { TEACHING_LABS_CONTACT_EMAIL } from '@/lib/email-footer';
 
 function UnsubscribePanel() {
   const searchParams = useSearchParams();
@@ -58,16 +59,30 @@ function UnsubscribePanel() {
           Unsubscribe from Teaching Labs emails
         </h1>
         <p className="text-[#24324a] dark:text-text-secondary leading-[1.7] mb-8">
-          You are receiving waitlist emails because you signed up for early access to Teaching Labs.
-          Click below to stop receiving waitlist and early-access updates.
+          If your email includes an unsubscribe token, click below to stop receiving Teaching Labs waitlist
+          and early-access updates. If you came here from a standard footer link, email us and we’ll remove
+          you manually.
         </p>
+
+        {!token && (
+          <div className="rounded-2xl bg-[#eef2ff] dark:bg-white/5 border border-indigo/20 dark:border-teal/20 p-5 text-left mb-8">
+            <p className="font-heading font-bold text-text-primary mb-1">Need to unsubscribe?</p>
+            <p className="text-[#24324a] dark:text-text-secondary leading-[1.6]">
+              Send a quick note to{' '}
+              <a href={`mailto:${TEACHING_LABS_CONTACT_EMAIL}?subject=Unsubscribe%20me`} className="font-semibold text-indigo dark:text-teal hover:underline">
+                {TEACHING_LABS_CONTACT_EMAIL}
+              </a>{' '}
+              and we’ll take care of it.
+            </p>
+          </div>
+        )}
 
         {status === 'success' ? (
           <div className="rounded-2xl bg-[#eef2ff] dark:bg-white/5 border border-indigo/20 dark:border-teal/20 p-5 text-left mb-8">
             <p className="font-heading font-bold text-text-primary mb-1">You’re all set.</p>
             <p className="text-[#24324a] dark:text-text-secondary leading-[1.6]">{message}</p>
           </div>
-        ) : (
+        ) : token ? (
           <button
             type="button"
             onClick={handleUnsubscribe}
@@ -76,7 +91,7 @@ function UnsubscribePanel() {
           >
             {status === 'loading' ? 'Unsubscribing...' : 'Unsubscribe me'}
           </button>
-        )}
+        ) : null}
 
         {status === 'error' && (
           <p className="mt-5 text-sm text-red-600 dark:text-red-300">{message}</p>
