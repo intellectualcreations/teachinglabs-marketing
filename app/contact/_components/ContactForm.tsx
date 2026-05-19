@@ -170,7 +170,7 @@ export default function ContactForm() {
         )}
 
         <p className="text-xs text-text-muted text-center mt-3.5 leading-relaxed">
-          🔒 Your information is private and will never be sold or shared.
+          🔒 Your information is private and will never be sold or shared. By submitting this form, you agree that Teaching Labs may contact you by email about your request and related Teaching Labs updates. You can unsubscribe at any time.
         </p>
       </form>
     </div>
