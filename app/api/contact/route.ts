@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.CONTACT_FROM_EMAIL || process.env.WAITLIST_FROM_EMAIL || 'Teaching Labs <hello@teachinglabs.com>';
+    const from = process.env.CONTACT_FROM_EMAIL || process.env.WAITLIST_FROM_EMAIL || 'Teaching Labs Website <no-reply@teachinglabs.com>';
 
     if (!apiKey) {
       console.error('Contact email failed: RESEND_API_KEY is not configured.');
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         from,
-        to: ['hello@teachinglabs.com', 'dottie@intellectualcreations.net'],
+        to: 'hello@teachinglabs.com',
         reply_to: email,
         subject: `Teaching Labs contact: ${subject}`,
         text: `New Teaching Labs contact form submission\n\nName: ${firstName} ${lastName}\nEmail: ${email}\nRole: ${role}\nSubject: ${subject}\nSubmitted: ${submittedAt}\n\nMessage:\n${message}`,
