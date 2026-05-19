@@ -107,22 +107,68 @@ export default function ContactPage() {
 
           <div className="space-y-3">
             {[
-              ['Early access', 'Join the first group of educators and schools shaping Teaching Labs.'],
-              ['District partnerships', 'Explore pilots, school partnerships, and implementation conversations.'],
-              ['Platform partnerships', 'Connect with us about integrations, product partnerships, or aligned tools.'],
-              ['Speaking / press', 'Invite Dottie for a conversation, event, podcast, panel, or media inquiry.'],
-              ['Product feedback', 'Share ideas, questions, classroom needs, or feedback on the platform.'],
-            ].map(([title, text]) => (
+              {
+                title: 'Early access',
+                text: 'Join the first group of educators and schools shaping Teaching Labs.',
+                icon: (
+                  <path d="M12 3.5l2.2 4.4 4.8.7-3.5 3.4.8 4.8L12 14.5l-4.3 2.3.8-4.8L5 8.6l4.8-.7L12 3.5z" />
+                ),
+              },
+              {
+                title: 'District partnerships',
+                text: 'Explore pilots, school partnerships, and implementation conversations.',
+                icon: (
+                  <path d="M4 20h16M6 20V9l6-4 6 4v11M9 20v-5h6v5M9 11h.01M12 11h.01M15 11h.01" />
+                ),
+              },
+              {
+                title: 'Platform partnerships',
+                text: 'Connect with us about integrations, product partnerships, or aligned tools.',
+                icon: (
+                  <path d="M8 12h8M7 7h.01M17 7h.01M7 17h.01M17 17h.01M6.5 7h11M6.5 17h11" />
+                ),
+              },
+              {
+                title: 'Speaking / press',
+                text: 'Invite Dottie for a conversation, event, podcast, panel, or media inquiry.',
+                icon: (
+                  <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4zM5 10a7 7 0 0 0 14 0M12 17v4M9 21h6" />
+                ),
+              },
+              {
+                title: 'Product feedback',
+                text: 'Share ideas, questions, classroom needs, or feedback on the platform.',
+                icon: (
+                  <path d="M8 10h8M8 14h5M5 5h14v11H8l-3 3V5z" />
+                ),
+              },
+            ].map(({ title, text, icon }) => (
               <div
                 key={title}
-                className="p-5 border border-[#d6dde8] border-l-4 border-l-indigo dark:border-white/10 dark:border-l-teal rounded-[18px] bg-white dark:bg-[#0e1a35] shadow-[0_6px_24px_rgba(20,33,61,0.06)] dark:shadow-none"
+                className="flex gap-4 p-5 border border-[#d6dde8] border-l-4 border-l-indigo dark:border-white/10 dark:border-l-teal rounded-[18px] bg-white dark:bg-[#0e1a35] shadow-[0_6px_24px_rgba(20,33,61,0.06)] dark:shadow-none"
               >
-                <h3 className="font-heading text-sm font-bold text-text-primary mb-1 tracking-[0.3px]">
-                  {title}
-                </h3>
-                <p className="text-sm text-[#24324a] dark:text-text-secondary leading-[1.5]">
-                  {text}
-                </p>
+                <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo dark:bg-teal text-white shadow-[0_6px_16px_rgba(64,86,244,0.22)] dark:shadow-[0_4px_14px_rgba(0,246,237,0.22)]">
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    {icon}
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-heading text-sm font-bold text-text-primary mb-1 tracking-[0.3px]">
+                    {title}
+                  </h3>
+                  <p className="text-sm text-[#24324a] dark:text-text-secondary leading-[1.5]">
+                    {text}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
