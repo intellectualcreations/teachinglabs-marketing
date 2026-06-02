@@ -32,6 +32,58 @@ function createUnsubscribeToken(): string {
   return randomBytes(24).toString('hex');
 }
 
+async function sendWaitlistAdminNotification(data: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'hello@teachinglabs.com';
+  const from = process.env.WAITLIST_FROM_EMAIL || 'Teaching Labs <hello@teachinglabs.com>';
+
+  if (!apiKey) {
+    console.warn('Skipping waitlist admin notification: RESEND_API_KEY is not configured.');
+    return;
+  }
+
+  const safe = {
+    firstName: escapeHtml(data.firstName),
+    lastName: escapeHtml(data.lastName),
+    email: escapeHtml(data.email),
+    role: escapeHtml(data.role),
+  };
+  const submittedAt = new Date().toISOString();
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: adminEmail,
+      subject: `New Teaching Labs waitlist signup: ${data.firstName} ${data.lastName}`,
+      text: `New waitlist signup\n\nName: ${data.firstName} ${data.lastName}\nEmail: ${data.email}\nRole: ${data.role}\nSubmitted: ${submittedAt}`,
+      html: `
+        <div style="font-family: Arial, Helvetica, sans-serif; color:#0a1128; line-height:1.6;">
+          <h1 style="margin:0 0 16px; font-size:24px;">New Teaching Labs waitlist signup</h1>
+          <p><strong>Name:</strong> ${safe.firstName} ${safe.lastName}</p>
+          <p><strong>Email:</strong> <a href="mailto:${safe.email}">${safe.email}</a></p>
+          <p><strong>Role:</strong> ${safe.role}</p>
+          <p><strong>Submitted:</strong> ${escapeHtml(submittedAt)}</p>
+        </div>
+      `,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Waitlist admin notification failed: ${errorText}`);
+  }
+}
+
 async function sendWaitlistConfirmation(email: string, firstName: string, unsubscribeToken: string) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.WAITLIST_FROM_EMAIL || 'Teaching Labs <hello@teachinglabs.com>';
@@ -162,6 +214,17 @@ export async function POST(req: NextRequest) {
       await sendWaitlistConfirmation(normalizedEmail, trimmedFirstName, unsubscribeToken);
     } catch (emailError) {
       console.error('Waitlist confirmation email error:', emailError);
+    }
+
+    try {
+      await sendWaitlistAdminNotification({
+        email: normalizedEmail,
+        firstName: trimmedFirstName,
+        lastName: lastName.trim(),
+        role: role.trim(),
+      });
+    } catch (adminEmailError) {
+      console.error('Waitlist admin notification error:', adminEmailError);
     }
 
     return NextResponse.json({ success: true });
