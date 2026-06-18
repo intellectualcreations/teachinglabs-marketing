@@ -5,7 +5,7 @@ import ContactForm from './_components/ContactForm';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
 export const metadata: Metadata = {
-  title: 'Contact — Teaching Labs',
+  title: 'Contact',
   description:
     "Get in touch with Teaching Labs. Whether you're a teacher, district leader, or just curious, we'd love to hear from you.",
 };

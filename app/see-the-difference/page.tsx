@@ -5,7 +5,7 @@ import MarketingNav from '@/components/shared/MarketingNav';
 import ScrollReveal from '@/components/shared/ScrollReveal';
 
 export const metadata: Metadata = {
-  title: 'See the Difference — Teaching Labs',
+  title: 'See the Difference',
   description:
     'Every AI can answer a question. Only one teaches. See how Teaching Labs compares to ChatGPT and Gemini.',
 };

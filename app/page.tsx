@@ -5,7 +5,6 @@ import ScrollReveal from '@/components/shared/ScrollReveal';
 import MarketingNav from '@/components/shared/MarketingNav';
 
 export const metadata: Metadata = {
-  title: 'Teaching Labs — AI-Powered Teaching Platform for K-12',
   description:
     'Teaching Labs learns how you teach and helps every student get the support they need. AI-powered K-12 teaching platform.',
 };

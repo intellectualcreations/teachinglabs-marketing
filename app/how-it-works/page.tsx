@@ -6,7 +6,7 @@ import MarketingNav from '@/components/shared/MarketingNav';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
 export const metadata: Metadata = {
-  title: 'How It Works — Teaching Labs',
+  title: 'How It Works',
   description:
     'Teaching Labs creates an AI assistant built from your teaching style. Here\'s how it works.',
 };

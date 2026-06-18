@@ -5,7 +5,7 @@ import MarketingNav from '@/components/shared/MarketingNav';
 import ScrollReveal from '@/components/shared/ScrollReveal';
 
 export const metadata: Metadata = {
-  title: 'For Students — Teaching Labs',
+  title: 'For Students',
   description:
     'Every student supported. Every student moving forward. Teaching Labs helps students get guidance when they need it.',
 };
