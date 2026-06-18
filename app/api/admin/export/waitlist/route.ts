@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ADMIN_COOKIE, isValidSession } from '../../login/route';
 
 /**
- * GET /api/admin/export/waitlist?password=<ADMIN_PASSWORD>
+ * GET /api/admin/export/waitlist
  *
  * Returns a CSV download of all waitlist signups.
- * Protected by ADMIN_PASSWORD env var — returns 401 if missing/incorrect.
+ * Auth: valid admin session cookie OR ?password=<ADMIN_PASSWORD>.
+ * Returns 401 if neither is present/valid.
  *
  * CSV columns: First Name, Last Name, Email, Role, Signed Up At
  */
@@ -36,8 +38,12 @@ function escapeCsvField(value: string | null | undefined): string {
 export async function GET(req: NextRequest) {
   try {
     const password = req.nextUrl.searchParams.get('password');
+    const session = req.cookies.get(ADMIN_COOKIE)?.value;
+    const authed =
+      isValidSession(session) ||
+      (!!password && !!process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD);
 
-    if (!password || password !== process.env.ADMIN_PASSWORD) {
+    if (!authed) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
