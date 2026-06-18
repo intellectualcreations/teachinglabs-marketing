@@ -5,7 +5,7 @@ import MarketingNav from '@/components/shared/MarketingNav';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
 export const metadata: Metadata = {
-  title: 'Pricing — Teaching Labs',
+  title: 'Pricing',
   description:
     'Simple, transparent pricing. Always free for every teacher. Upgrade when you want the full experience.',
 };

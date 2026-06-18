@@ -6,7 +6,7 @@ import ScrollReveal from '@/components/shared/ScrollReveal';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
 export const metadata: Metadata = {
-  title: 'Our Story — Teaching Labs',
+  title: 'Our Story',
   description:
     'Teaching Labs exists because great teachers deserve tools designed with them in mind. Built by a teacher, for every teacher.',
 };

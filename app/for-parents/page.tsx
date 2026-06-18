@@ -6,7 +6,7 @@ import ScrollReveal from '@/components/shared/ScrollReveal';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
 export const metadata: Metadata = {
-  title: 'For Parents — Teaching Labs',
+  title: 'For Parents',
   description:
     "Teaching Labs keeps your child's teacher in the driver's seat, and keeps you in the loop. Safe, teacher-guided AI for K-12.",
 };

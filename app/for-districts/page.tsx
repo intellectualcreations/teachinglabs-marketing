@@ -6,7 +6,7 @@ import ScrollReveal from '@/components/shared/ScrollReveal';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 
 export const metadata: Metadata = {
-  title: 'For Districts — Teaching Labs',
+  title: 'For Districts',
   description:
     'AI is entering classrooms. Teaching Labs helps districts introduce AI in a way that protects students, strengthens teaching, and supports real learning.',
 };

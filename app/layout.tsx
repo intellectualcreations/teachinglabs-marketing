@@ -16,7 +16,10 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'TeachingLabs',
+  title: {
+    default: 'Teaching Labs — AI-Powered Teaching Platform for K-12',
+    template: 'Teaching Labs · %s',
+  },
   description: 'AI-powered teaching platform for K-12 education',
   manifest: '/manifest.json',
   appleWebApp: {
