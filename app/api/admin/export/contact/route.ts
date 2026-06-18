@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ADMIN_COOKIE, isValidSession } from '../../login/route';
 
 /**
  * GET /api/admin/export/contact?password=<ADMIN_PASSWORD>
@@ -36,8 +37,12 @@ function escapeCsvField(value: string | null | undefined): string {
 export async function GET(req: NextRequest) {
   try {
     const password = req.nextUrl.searchParams.get('password');
+    const session = req.cookies.get(ADMIN_COOKIE)?.value;
+    const authed =
+      isValidSession(session) ||
+      (!!password && !!process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD);
 
-    if (!password || password !== process.env.ADMIN_PASSWORD) {
+    if (!authed) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
