@@ -11,13 +11,17 @@ import { NextRequest, NextResponse } from 'next/server';
 
 function getSupabaseConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Use the service-role key for admin reads so Row-Level Security does not
+  // hide rows. This key is server-side only and must never be exposed to the
+  // browser. Falls back to the anon key if the service key is not configured.
+  const readKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!url || !anonKey) {
+  if (!url || !readKey) {
     throw new Error('Missing Supabase environment variables');
   }
 
-  return { url, anonKey };
+  return { url, anonKey: readKey };
 }
 
 function escapeCsvField(value: string | null | undefined): string {
