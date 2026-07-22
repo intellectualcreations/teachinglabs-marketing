@@ -1,54 +1,20 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function WaitlistForm({ variant = 'cta' }: { variant?: 'cta' | 'hero' }) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
 
-  async function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!email.trim()) return;
-
-    setStatus('loading');
-    try {
-      const res = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setStatus('success');
-        setMessage(data.message || "You're on the list!");
-        setEmail('');
-      } else {
-        setStatus('error');
-        setMessage(data.error || 'Something went wrong. Please try again.');
-      }
-    } catch {
-      setStatus('error');
-      setMessage('Network error. Please try again.');
-    }
-  }
-
-  if (status === 'success') {
-    return (
-      <div className="text-center">
-        <div className="success-fade-up" style={{ animationDelay: '0s' }}>
-          <svg viewBox="0 0 100 100" className="w-16 h-16 mx-auto mb-4">
-            <circle cx="50" cy="50" r="45" fill="none" stroke="#00F6ED" strokeWidth="3" className="success-circle" />
-            <path d="M30 52 L44 66 L70 38" fill="none" stroke="#00F6ED" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="success-check" />
-          </svg>
-        </div>
-        <p className={variant === 'cta' ? 'text-lg font-semibold text-white' : 'text-lg font-semibold text-text-primary'}>
-          {message}
-        </p>
-      </div>
-    );
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    // The one-line CTA only collects an email, but a real signup needs name + role.
+    // Hand off to the full waitlist form with the email prefilled instead of
+    // posting incomplete data that the API (correctly) rejects.
+    router.push(`/waitlist?email=${encodeURIComponent(trimmed)}`);
   }
 
   if (variant === 'cta') {
@@ -64,10 +30,9 @@ export default function WaitlistForm({ variant = 'cta' }: { variant?: 'cta' | 'h
         />
         <button
           type="submit"
-          disabled={status === 'loading'}
-          className="cta-button-pulse inline-flex items-center justify-center font-heading text-[17px] font-bold bg-gold text-white px-10 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300 disabled:opacity-60"
+          className="cta-button-pulse inline-flex items-center justify-center font-heading text-[17px] font-bold bg-gold text-white px-10 py-4 rounded-full hover:-translate-y-0.5 transition-transform duration-300"
         >
-          {status === 'loading' ? 'Joining...' : 'Join the Waitlist'}
+          Join the Waitlist
         </button>
       </form>
     );

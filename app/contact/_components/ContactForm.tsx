@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import TurnstileWidget, { TURNSTILE_ENABLED } from '@/components/shared/TurnstileWidget';
 
 const SUBJECT_OPTIONS = [
   'Early access',
@@ -18,6 +19,7 @@ export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -27,6 +29,12 @@ export default function ContactForm() {
 
     const form = e.currentTarget;
     const formData = new FormData(form);
+
+    if (TURNSTILE_ENABLED && !turnstileToken) {
+      setError('Please complete the verification below.');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch('/api/contact', {
@@ -39,6 +47,8 @@ export default function ContactForm() {
           role: formData.get('role'),
           subject: formData.get('subject'),
           message: formData.get('message'),
+          website: formData.get('website'),
+          turnstileToken,
         }),
       });
 
@@ -50,6 +60,7 @@ export default function ContactForm() {
 
       setSubmitted(true);
       form.reset();
+      setTurnstileToken('');
     } catch (err) {
       setError(
         err instanceof Error
@@ -71,6 +82,10 @@ export default function ContactForm() {
       </p>
 
       <form onSubmit={handleSubmit}>
+        {/* Honeypot — hidden from real users; bots that fill it are dropped server-side */}
+        <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+          <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+        </div>
         <div className="grid grid-cols-2 gap-4 mb-4 max-md:grid-cols-1">
           <div className="flex flex-col gap-1.5 mb-4">
             <label htmlFor="firstName" className="font-heading text-[13px] font-semibold text-text-primary">
@@ -151,9 +166,11 @@ export default function ContactForm() {
           />
         </div>
 
+        <TurnstileWidget onToken={setTurnstileToken} />
+
         <button
           type="submit"
-          disabled={isSubmitting || submitted}
+          disabled={isSubmitting || submitted || (TURNSTILE_ENABLED && !turnstileToken)}
           className={`w-full mt-2 py-[15px] rounded-full font-heading text-sm font-semibold tracking-[2px] uppercase text-white transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed ${
             submitted
               ? 'bg-success shadow-none'

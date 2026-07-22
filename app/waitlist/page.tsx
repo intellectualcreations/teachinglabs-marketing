@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import TurnstileWidget, { TURNSTILE_ENABLED } from '@/components/shared/TurnstileWidget';
 import MarketingNav from '@/components/shared/MarketingNav';
 import MarketingFooter from '@/components/shared/MarketingFooter';
 import ScrollReveal from '@/components/shared/ScrollReveal';
@@ -99,12 +100,21 @@ export default function WaitlistPage() {
   const [role, setRole] = useState('');
   const [email, setEmail] = useState('');
   const [honeypot, setHoneypot] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [currentWord, setCurrentWord] = useState(0);
   const mountTimeRef = useRef<number>(0);
 
   useEffect(() => { mountTimeRef.current = Date.now(); }, []);
+
+  // Prefill email when arriving from the one-line CTA (/waitlist?email=...).
+  // One-time sync from a browser-only source on mount (avoids hydration mismatch).
+  useEffect(() => {
+    const prefill = new URLSearchParams(window.location.search).get('email');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (prefill) setEmail(prefill);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -119,6 +129,10 @@ export default function WaitlistPage() {
     e.preventDefault();
     if (honeypot) return;
     if (Date.now() - mountTimeRef.current < 2000) return;
+    if (TURNSTILE_ENABLED && !turnstileToken) {
+      setEmailError('Please complete the verification below.');
+      return;
+    }
     if (!emailRegex.test(email)) {
       setEmailError('Please enter a valid email address');
       return;
@@ -128,7 +142,7 @@ export default function WaitlistPage() {
       const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, role, email }),
+        body: JSON.stringify({ firstName, lastName, role, email, website: honeypot, turnstileToken }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -259,6 +273,9 @@ export default function WaitlistPage() {
                       <option value="other" className="bg-white dark:bg-[#0e1a35] text-[#0a1128] dark:text-white">Other</option>
                     </select>
                   </div>
+
+                  {/* Bot verification */}
+                  <TurnstileWidget onToken={setTurnstileToken} />
 
                   {/* Submit */}
                   <button type="submit"

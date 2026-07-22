@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { buildUnsubscribeUrl, renderEmailFooterHtml, renderEmailFooterText } from '@/lib/email-footer';
+import { verifyTurnstile } from '@/lib/turnstile';
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -160,6 +161,22 @@ async function sendContactConfirmation(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // Honeypot — a real user never fills the hidden "website" field.
+    if (typeof body.website === 'string' && body.website.trim() !== '') {
+      return NextResponse.json({ success: true }); // silently drop bots
+    }
+
+    // Bot verification (Cloudflare Turnstile) — activates once keys are set.
+    const clientIp =
+      req.headers.get('cf-connecting-ip') ||
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      null;
+    const turnstile = await verifyTurnstile(body.turnstileToken, clientIp);
+    if (!turnstile.ok) {
+      return NextResponse.json({ error: 'Verification failed. Please try again.' }, { status: 400 });
+    }
+
     const firstName = String(body.firstName || '').trim();
     const lastName = String(body.lastName || '').trim();
     const email = String(body.email || '').trim().toLowerCase();
